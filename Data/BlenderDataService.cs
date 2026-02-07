@@ -234,7 +234,7 @@ public class BlenderDataService
                     "Tab キーで編集モードに入る",
                     "S キーで服のサイズに合わせて拡縮",
                     "E キーで押し出しを使って形状を調整",
-                    "Loop Cut（Ctrl+R）で詳���な形状を作成"
+                    "Loop Cut（Ctrl+R）で詳細な形状を作成"
                 },
                 Tips = new List<string>
                 {

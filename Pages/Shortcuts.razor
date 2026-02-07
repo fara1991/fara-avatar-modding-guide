@@ -9,7 +9,7 @@
 
 <div class="mb-3">
     <div class="btn-group" role="group">
-        <button type="button" class="btn @(selectedCategory == "すべて" ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByCategory(\"す��て\")">すべて</button>
+        <button type="button" class="btn @(selectedCategory == "すべて" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByCategory("すべて")'>すべて</button>
         @foreach (var category in categories)
         {
             <button type="button" class="btn @(selectedCategory == category ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByCategory(category)">@category</button>
@@ -57,8 +57,8 @@
     private void FilterByCategory(string category)
     {
         selectedCategory = category;
-        filteredShortcuts = category == "すべて" 
-            ? shortcuts 
+        filteredShortcuts = category == "すべて"
+            ? shortcuts
             : shortcuts.Where(s => s.Category == category).ToList();
     }
 
