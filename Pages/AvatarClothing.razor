@@ -1,0 +1,99 @@
+@page "/avatar-clothing"
+@using FaraBlenderManual.Data
+@inject BlenderDataService DataService
+
+<PageTitle>アバター服作成 - Fara Blender Manual</PageTitle>
+
+<h1>アバター服作成方法</h1>
+<p class="lead">VRChatなどで使用するアバター用の衣装をBlenderで作成する方法を学びます。</p>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="accordion" id="tutorialAccordion">
+            @for (int i = 0; i < tutorials.Count; i++)
+            {
+                var tutorial = tutorials[i];
+                var index = i;
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading@(index)">
+                        <button class="accordion-button @(index != 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@(index)" aria-expanded="@(index == 0 ? "true" : "false")">
+                            <span class="badge bg-primary me-2">@(index + 1)</span>
+                            @tutorial.Title
+                        </button>
+                    </h2>
+                    <div id="collapse@(index)" class="accordion-collapse collapse @(index == 0 ? "show" : "")" data-bs-parent="#tutorialAccordion">
+                        <div class="accordion-body">
+                            <p>@tutorial.Description</p>
+                            <h6>手順:</h6>
+                            <ol>
+                                @foreach (var step in tutorial.Steps)
+                                {
+                                    <li>@step</li>
+                                }
+                            </ol>
+                            @if (tutorial.Tips.Any())
+                            {
+                                <div class="alert alert-info mt-3" role="alert">
+                                    <h6 class="alert-heading">💡 ヒント</h6>
+                                    <ul class="mb-0">
+                                        @foreach (var tip in tutorial.Tips)
+                                        {
+                                            <li>@tip</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">必要なツール</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">✅ Blender 3.0以上</li>
+                    <li class="mb-2">✅ アバター用ベースモデル</li>
+                    <li class="mb-2">✅ テクスチャ作成ソフト（GIMP、Photoshopなど）</li>
+                    <li class="mb-2">✅ VRChat SDK（アップロード用）</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">参考リソース</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" target="_blank">VRChat Documentation</a></li>
+                    <li class="mb-2"><a href="#" target="_blank">Blender for VRChat</a></li>
+                    <li class="mb-2"><a href="#" target="_blank">アバター用テクスチャ素材</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="alert alert-warning mt-4" role="alert">
+            <h6 class="alert-heading">⚠️ 注意事項</h6>
+            <ul class="mb-0">
+                <li>著作権に注意してください</li>
+                <li>VRChatの利用規約を確認してください</li>
+                <li>ポリゴン数の制限に注意してください</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<ClothingTutorial> tutorials = new();
+
+    protected override void OnInitialized()
+    {
+        tutorials = DataService.GetClothingTutorials();
+    }
+}

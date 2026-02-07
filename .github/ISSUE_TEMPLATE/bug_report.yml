@@ -1,0 +1,65 @@
+name: バグ報告
+description: アプリケーションのバグや問題を報告
+labels: ["bug"]
+body:
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: バグの説明
+      description: 発生している問題について詳しく説明してください
+      placeholder: 例：ショートカット一覧ページで、一部のキーボードショートカットが正しく表示されない
+    validations:
+      required: true
+  
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: 再現手順
+      description: バグを再現するための手順を記載してください
+      placeholder: |
+        例：
+        1. ショートカット一覧ページにアクセス
+        2. 「モデリング」カテゴリを選択
+        3. 一覧を下にスクロール
+        4. 特定のショートカットが表示されないことを確認
+    validations:
+      required: true
+  
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 期待する動作
+      description: 正常に動作する場合はどうなるべきかを説明してください
+      placeholder: 例：すべてのショートカットが正しく表示される
+    validations:
+      required: true
+  
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: 実際の動作
+      description: 実際に何が起こっているかを説明してください
+      placeholder: 例：「Ctrl+R」のショートカットが表示されず、代わりに空白になっている
+    validations:
+      required: true
+  
+  - type: textarea
+    id: environment
+    attributes:
+      label: 環境情報
+      description: OS、ブラウザ、.NETバージョンなどの環境情報を記載してください
+      placeholder: |
+        例：
+        - OS: Windows 11
+        - ブラウザ: Chrome 120.0.0.0
+        - .NET: 8.0
+        - デバイス: デスクトップ / モバイル
+    validations:
+      required: true
+  
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: スクリーンショット
+      description: 問題を示すスクリーンショットがあれば添付してください
+      placeholder: スクリーンショットをドラッグ＆ドロップまたはペーストしてください

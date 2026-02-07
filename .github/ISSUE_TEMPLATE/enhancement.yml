@@ -1,0 +1,37 @@
+name: 改善提案
+description: 既存機能の改善や最適化の提案
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: target-feature
+    attributes:
+      label: 改善したい機能
+      description: どの機能を改善したいかを明確に記載してください
+      placeholder: 例：アバター服作成方法のページのUI
+    validations:
+      required: true
+  
+  - type: textarea
+    id: improvement-proposal
+    attributes:
+      label: 提案内容
+      description: 具体的にどのような改善を行いたいかを詳しく説明してください
+      placeholder: 例：手順を画像付きのステップ形式に変更し、進捗バーを追加して現在の位置がわかりやすくする
+    validations:
+      required: true
+  
+  - type: textarea
+    id: benefits
+    attributes:
+      label: 改善によるメリット
+      description: この改善により得られるメリットや解決される問題を説明してください
+      placeholder: 例：初心者でも手順を理解しやすくなり、どこまで進んだかが一目でわかるようになる
+    validations:
+      required: true
+  
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 追加情報
+      description: 参考になる情報があれば記載してください
+      placeholder: 任意：類似サイトの例、UIモックアップ、技術的な制約など

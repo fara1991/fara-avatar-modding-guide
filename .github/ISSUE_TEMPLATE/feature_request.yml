@@ -1,0 +1,28 @@
+name: 新機能のリクエスト
+description: 新しい機能や改善の提案
+labels: ["feature"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 機能の説明
+      description: 実装したい機能について詳しく説明してください
+      placeholder: 例：検索機能を追加して、ショートカットやプラグインを素早く見つけられるようにしたい
+    validations:
+      required: true
+  
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 期待する動作
+      description: この機能がどのように動作すべきかを説明してください
+      placeholder: 例：ナビゲーションバーに検索ボックスを配置し、入力に応じてリアルタイムで結果をフィルタリングする
+    validations:
+      required: true
+  
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 追加情報
+      description: スクリーンショット、参考になるWebサイト、その他の情報があれば記載してください
+      placeholder: 任意：参考サイトのURL、UIモックアップなど
