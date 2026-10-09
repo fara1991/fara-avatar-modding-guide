@@ -37,7 +37,7 @@ jobs:
           retention-days: 7
 
   deploy:
-    name: Deploy to Cloudflare (${{ github.ref_name == 'master' && 'production' || 'develop' }})
+    name: Deploy to Cloudflare
     needs: build
     # PR では build だけ行い、master / develop への push でデプロイする
     if: github.event_name != 'pull_request'
