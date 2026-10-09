@@ -6,6 +6,9 @@ obj/
 *.userosscache
 *.sln.docstates
 
+## 静的サイトの書き出し先 (dotnet run -- --export dist)
+dist/
+
 ## IDE
 .idea/
 .vs/

@@ -11,9 +11,17 @@ Blender の操作方法を、基本からアバター用衣装の作成まで順
 - **Markdown で執筆**: `Content/` 以下にファイルを置くだけで記事を追加できる（コードの変更不要）
 - **レスポンシブ**: スマートフォンでも閲覧可能
 
+## 公開 URL
+
+| 環境 | URL | ブランチ |
+| --- | --- | --- |
+| 本番 | https://blender.app-fara.com | `master` |
+| 開発 | https://blender.dev.app-fara.com | `develop` |
+
 ## 技術スタック
 
 - .NET 9 / ASP.NET Core Blazor Web App（静的 SSR、SignalR 接続なし）
+- 公開時は静的サイトとして書き出し、Cloudflare Workers (Static Assets) でホスティング
 - [Markdig](https://github.com/xoofx/markdig)（Markdown → HTML）
 - [YamlDotNet](https://github.com/aaubry/YamlDotNet)（フロントマター・データファイル）
 - Bootstrap 5.3 / Bootstrap Icons（CDN）
@@ -80,6 +88,33 @@ fara-blender-manual/
 
 詳しくは [Content/README.md](Content/README.md) を参照してください。
 新しいカテゴリを追加するときは `Content/learn/categories.yml` に追記し、同名のディレクトリを作ります。
+
+## デプロイ（Cloudflare）
+
+`master` / `develop` への push で `.github/workflows/deploy.yml` が動き、静的サイトを書き出して Cloudflare Workers (Static Assets) にデプロイします。Pull Request ではビルドと書き出しだけ行います。
+
+```bash
+# ローカルで書き出して確認する
+dotnet run -- --export dist
+npx wrangler dev            # http://localhost:8787 で dist/ を配信
+npx wrangler deploy --env dev   # 手動で develop 環境へ（本番は --env production）
+```
+
+### 初回設定
+
+1. GitHub リポジトリの Secrets に以下を登録
+   - `CLOUDFLARE_API_TOKEN`: Workers Scripts: Edit、Workers Routes: Edit、Zone: DNS: Edit（app-fara.com）を持つ API トークン
+   - `CLOUDFLARE_ACCOUNT_ID`
+2. `develop` ブランチを作成（`git checkout -b develop master && git push -u origin develop`）
+3. 最初のデプロイで `wrangler.toml` の `custom_domain = true` により Cloudflare が DNS レコードと証明書を自動作成します
+   - `blender.dev.app-fara.com` は 2 段のサブドメインなので、Universal SSL の `*.app-fara.com` ではカバーされません。証明書が発行されない場合は Advanced Certificate Manager（または Total TLS）が必要です
+
+### 仕組み
+
+- `dotnet run -- --export dist` が自身を起動して全ページを取得し、`dist/` に `index.html`、`learn/basics/transform.html` などを書き出します（`Publishing/StaticSiteExporter.cs`）
+- `wwwroot/` と `Content/learn/**/images/` もコピーされます
+- 旧 URL のリダイレクトは `dist/_redirects`、404 は `dist/404.html` で処理します
+- 記事を追加したら push するだけで反映されます
 
 ## ライセンス
 

@@ -1,0 +1,37 @@
+# Cloudflare Workers (Static Assets) の設定。
+# dist/ は `dotnet run -- --export dist` で生成する（.github/workflows/deploy.yml 参照）。
+#
+#   本番:     master  ブランチ → blender.app-fara.com      (npx wrangler deploy --env production)
+#   develop:  develop ブランチ → blender.dev.app-fara.com  (npx wrangler deploy --env dev)
+
+name = "blender-manual"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "./dist"
+# /learn/basics → learn/basics.html、/learn/basics/ → /learn/basics へリダイレクト
+html_handling = "auto-trailing-slash"
+# 存在しないパスは 404.html を 404 ステータスで返す
+not_found_handling = "404-page"
+
+[env.production]
+name = "blender-manual"
+routes = [
+  { pattern = "blender.app-fara.com", custom_domain = true },
+]
+
+[env.production.assets]
+directory = "./dist"
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"
+
+[env.dev]
+name = "blender-manual-dev"
+routes = [
+  { pattern = "blender.dev.app-fara.com", custom_domain = true },
+]
+
+[env.dev.assets]
+directory = "./dist"
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"

@@ -4,11 +4,8 @@
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
     <NotFound>
-        <PageTitle>ページが見つかりません</PageTitle>
         <LayoutView Layout="typeof(Layout.MainLayout)">
-            <h1>ページが見つかりません</h1>
-            <p role="alert">お探しのページは移動したか、削除された可能性があります。</p>
-            <a href="/" class="btn btn-primary">ホームへ戻る</a>
+            <NotFoundContent />
         </LayoutView>
     </NotFound>
 </Router>
