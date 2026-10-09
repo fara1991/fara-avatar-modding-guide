@@ -1,0 +1,64 @@
+@page "/shortcuts"
+@inject ContentService Content
+@inject IOptions<SiteOptions> Site
+
+<PageTitle>ショートカット一覧 - @Site.Value.Title</PageTitle>
+
+<h1>ショートカット一覧</h1>
+<p class="lead">Blender でよく使うキーボードショートカットを機能別に整理しました。</p>
+
+@* 静的 SSR なので絞り込みはクエリ文字列で行う（URL を共有できる） *@
+<div class="mb-3 d-flex flex-wrap gap-2">
+    <a href="/shortcuts" class="btn btn-sm @(string.IsNullOrEmpty(Category) ? "btn-primary" : "btn-outline-primary")">すべて</a>
+    @foreach (var c in Content.ShortcutCategories)
+    {
+        <a href="/shortcuts?category=@Uri.EscapeDataString(c)" class="btn btn-sm @(c == Category ? "btn-primary" : "btn-outline-primary")">@c</a>
+    }
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>ショートカット</th>
+                <th>機能</th>
+                <th>カテゴリ</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var shortcut in filtered)
+            {
+                <tr>
+                    <td><kbd>@shortcut.Key</kbd></td>
+                    <td>@shortcut.Function</td>
+                    <td><span class="badge @GetCategoryBadgeClass(shortcut.Category)">@shortcut.Category</span></td>
+                    <td>@shortcut.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] public string? Category { get; set; }
+
+    private IEnumerable<Shortcut> filtered = [];
+
+    protected override void OnParametersSet()
+    {
+        filtered = string.IsNullOrEmpty(Category)
+            ? Content.Shortcuts
+            : Content.Shortcuts.Where(s => s.Category == Category);
+    }
+
+    private static string GetCategoryBadgeClass(string category) => category switch
+    {
+        "一般" => "bg-primary",
+        "モデリング" => "bg-success",
+        "編集" => "bg-warning text-dark",
+        "表示" => "bg-info text-dark",
+        "選択" => "bg-secondary",
+        _ => "bg-dark"
+    };
+}

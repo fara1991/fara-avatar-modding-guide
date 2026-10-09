@@ -1,0 +1,38 @@
+# ショートカットの一次データ。記事側は frontmatter の shortcuts: [key, ...] でここの key を参照する。
+
+# 一般
+- { key: Ctrl+N,       function: 新規ファイル,           category: 一般,       description: 新しい Blender ファイルを作成 }
+- { key: Ctrl+O,       function: 開く,                   category: 一般,       description: ファイルを開く }
+- { key: Ctrl+S,       function: 保存,                   category: 一般,       description: 現在のファイルを保存 }
+- { key: Ctrl+Z,       function: 元に戻す,               category: 一般,       description: 直前の操作を取り消し }
+- { key: Ctrl+Shift+Z, function: やり直し,               category: 一般,       description: 取り消した操作をやり直し }
+
+# 選択
+- { key: A,            function: 全選択,                 category: 選択,       description: すべてのオブジェクトを選択 }
+- { key: Alt+A,        function: 選択解除,               category: 選択,       description: すべての選択を解除 }
+- { key: Ctrl+I,       function: 選択反転,               category: 選択,       description: 選択状態を反転 }
+- { key: B,            function: 矩形選択,               category: 選択,       description: 矩形範囲で選択 }
+- { key: C,            function: 円形選択,               category: 選択,       description: 円形範囲で選択 }
+
+# モデリング
+- { key: Tab,          function: 編集モード切り替え,     category: モデリング, description: オブジェクトモードと編集モードを切り替え }
+- { key: E,            function: 押し出し,               category: モデリング, description: 選択した要素を押し出し }
+- { key: I,            function: 面の内側押し出し,       category: モデリング, description: 面を内側に押し出し }
+- { key: Ctrl+R,       function: ループカット,           category: モデリング, description: エッジループを作成 }
+- { key: K,            function: ナイフツール,           category: モデリング, description: メッシュを切断 }
+
+# 編集
+- { key: G,            function: 移動,                   category: 編集,       description: 選択したオブジェクトを移動 }
+- { key: R,            function: 回転,                   category: 編集,       description: 選択したオブジェクトを回転 }
+- { key: S,            function: 拡縮,                   category: 編集,       description: 選択したオブジェクトを拡縮 }
+- { key: X,            function: 削除,                   category: 編集,       description: 選択した要素を削除 }
+- { key: Shift+D,      function: 複製,                   category: 編集,       description: 選択したオブジェクトを複製 }
+- { key: Shift+A,      function: 追加,                   category: 編集,       description: オブジェクトやメッシュを追加 }
+- { key: Ctrl+P,       function: 親子関係を設定,         category: 編集,       description: 選択したオブジェクトをアクティブオブジェクトの子にする }
+
+# 表示
+- { key: Home,         function: 全体表示,               category: 表示,       description: すべてのオブジェクトが見えるように表示 }
+- { key: ".",          function: 選択オブジェクトにフォーカス, category: 表示, description: 選択オブジェクトを中心に表示 }
+- { key: H,            function: 非表示,                 category: 表示,       description: 選択したオブジェクトを非表示 }
+- { key: Alt+H,        function: 非表示解除,             category: 表示,       description: すべてのオブジェクトを表示 }
+- { key: Z,            function: シェーディング切り替え, category: 表示,       description: 表示モードの切り替え }

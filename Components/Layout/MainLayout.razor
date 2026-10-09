@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@inject IOptions<SiteOptions> Site
 
 <div class="page">
     <div class="sidebar">
@@ -6,12 +7,17 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <h1 class="h4 mb-0">Fara Blender Manual</h1>
-        </div>
-
         <article class="content px-4">
             @Body
         </article>
+
+        <footer class="site-footer px-4">
+            <span>対象バージョン: Blender @Site.Value.BlenderVersion</span>
+            @if (!string.IsNullOrEmpty(Site.Value.RepositoryUrl))
+            {
+                <span> · </span>
+                <a href="@Site.Value.RepositoryUrl" target="_blank" rel="noopener">GitHub で修正を提案する</a>
+            }
+        </footer>
     </main>
 </div>
