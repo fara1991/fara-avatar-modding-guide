@@ -1,0 +1,114 @@
+@page "/learn/{CategoryId}/{Slug}"
+@inject ContentService Content
+@inject IOptions<SiteOptions> Site
+
+@if (article is null || category is null)
+{
+    <PageTitle>記事が見つかりません - @Site.Value.Title</PageTitle>
+    <h1>記事が見つかりません</h1>
+    <p role="alert">お探しの記事は移動したか、削除された可能性があります。</p>
+    <a href="/learn" class="btn btn-primary">ロードマップへ戻る</a>
+}
+else
+{
+    <PageTitle>@article.Title - @Site.Value.Title</PageTitle>
+    <HeadContent>
+        <meta name="description" content="@article.Description" />
+    </HeadContent>
+
+    <nav aria-label="パンくず">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/learn">学習ロードマップ</a></li>
+            <li class="breadcrumb-item"><a href="/learn/@category.Id">@category.Title</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@article.Title</li>
+        </ol>
+    </nav>
+
+    <header class="article-header mb-4">
+        <h1>@article.Title</h1>
+        <div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary small">
+            <DifficultyBadge Difficulty="@article.Difficulty" />
+            <span><i class="bi bi-box" aria-hidden="true"></i> Blender @(article.BlenderVersion ?? Site.Value.BlenderVersion)</span>
+            @if (article.Updated is { } updated)
+            {
+                <span><i class="bi bi-clock-history" aria-hidden="true"></i> 更新: @updated.ToString("yyyy-MM-dd")</span>
+            }
+        </div>
+        @if (!string.IsNullOrEmpty(article.Description))
+        {
+            <p class="lead mt-2 mb-0">@article.Description</p>
+        }
+    </header>
+
+    <div class="row g-4">
+        <div class="@(article.Shortcuts.Count > 0 ? "col-lg-9" : "col-12")">
+            <div class="article-body">
+                @((MarkupString)article.Html)
+            </div>
+        </div>
+
+        @if (article.Shortcuts.Count > 0)
+        {
+            <aside class="col-lg-3">
+                <div class="card article-keys">
+                    <div class="card-header"><i class="bi bi-keyboard me-1" aria-hidden="true"></i>この記事で使うキー</div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var key in article.Shortcuts)
+                        {
+                            var shortcut = Content.Shortcuts.FirstOrDefault(s => s.Key == key);
+                            <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                                <kbd>@key</kbd>
+                                @if (shortcut is not null)
+                                {
+                                    <a href="/shortcuts?category=@Uri.EscapeDataString(shortcut.Category)" class="small text-decoration-none">@shortcut.Function</a>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </aside>
+        }
+    </div>
+
+    <nav class="article-nav d-flex justify-content-between gap-3 mt-5 pt-4 border-top" aria-label="前後の記事">
+        @if (prev is not null)
+        {
+            <a href="@prev.Url" class="btn btn-outline-secondary text-start">
+                <small class="d-block text-body-secondary">← 前へ</small>@prev.Title
+            </a>
+        }
+        else
+        {
+            <span></span>
+        }
+        @if (next is not null)
+        {
+            <a href="@next.Url" class="btn btn-primary text-end">
+                <small class="d-block">次へ →</small>@next.Title
+            </a>
+        }
+    </nav>
+}
+
+@code {
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    [Parameter] public string CategoryId { get; set; } = string.Empty;
+    [Parameter] public string Slug { get; set; } = string.Empty;
+
+    private LearnCategory? category;
+    private Article? article;
+    private Article? prev;
+    private Article? next;
+
+    protected override void OnParametersSet()
+    {
+        category = Content.GetCategory(CategoryId);
+        article = category is null ? null : Content.GetArticle(category.Id, Slug);
+        (prev, next) = article is null ? (null, null) : Content.GetNeighbors(article);
+        if (article is null && HttpContext is not null)
+        {
+            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+        }
+    }
+}

@@ -1,0 +1,32 @@
+# 学習ロードマップ。上から順に学ぶ想定で並べる。
+# id はディレクトリ名 (Content/learn/<id>/) と URL (/learn/<id>) に使われる。
+
+- id: getting-started
+  title: はじめに
+  description: Blender のインストール、画面の見方、視点の動かし方。
+  icon: bi-rocket-takeoff
+
+- id: basics
+  title: 基本操作
+  description: オブジェクトの選択・移動・回転・拡縮など、すべての作業の土台になる操作。
+  icon: bi-arrows-move
+
+- id: modeling
+  title: モデリング
+  description: 編集モードで頂点・辺・面を操作して形を作る。
+  icon: bi-box
+
+- id: materials
+  title: マテリアルとテクスチャ
+  description: 色や質感を設定し、画像テクスチャを貼る。
+  icon: bi-palette
+
+- id: rigging
+  title: リギング
+  description: ボーンを入れてキャラクターを動かせるようにする。
+  icon: bi-person-arms-up
+
+- id: avatar-clothing
+  title: 実践：アバター用衣装の作成
+  description: VRChat などで使うアバターの衣装を、インポートから Unity での設定まで通して作る。
+  icon: bi-person-standing-dress

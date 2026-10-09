@@ -1,0 +1,56 @@
+# おすすめアドオン一覧
+
+- name: Hard Ops
+  description: ハードサーフェスモデリングを効率化するプロフェッショナル向けアドオン
+  type: モデリング
+  price: 有料
+  features:
+    - 高度なブール演算
+    - ハードサーフェス用ツール群
+    - 自動トポロジー
+    - カスタムシェーダー
+  url: https://hardops.gumroad.com/
+
+- name: Cats Blender Plugin
+  description: VRChat アバター作成に特化したアドオン。アバターの最適化やセットアップが簡単に
+  type: ゲーム開発
+  price: 無料
+  features:
+    - アバター最適化
+    - ボーン構造修正
+    - 表情作成支援
+    - Unity 連携
+  url: https://github.com/absolute-quantum/cats-blender-plugin
+
+- name: Animation Nodes
+  description: ノードベースでアニメーションを作成できるパワフルなアドオン
+  type: アニメーション
+  price: 無料
+  features:
+    - ノードベースアニメーション
+    - プロシージャルアニメーション
+    - パーティクルシステム連携
+    - 数学的アニメーション
+  url: https://github.com/JacquesLucke/animation_nodes
+
+- name: Extra Objects
+  description: デフォルトでは含まれていない様々なオブジェクトを追加
+  type: ユーティリティ
+  price: 無料
+  features:
+    - 建築用オブジェクト
+    - 機械部品
+    - 装飾オブジェクト
+    - 数学的形状
+  url: ""
+
+- name: Node Wrangler
+  description: マテリアルノード編集を効率化するアドオン
+  type: ユーティリティ
+  price: 無料
+  features:
+    - ノード自動接続
+    - プレビュー機能
+    - テクスチャセット読み込み
+    - ショートカット拡張
+  url: ""

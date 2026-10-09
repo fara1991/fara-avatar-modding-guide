@@ -1,54 +1,43 @@
+@inject ContentService Content
+@inject IOptions<SiteOptions> Site
+
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Fara Blender Manual</a>
-        <button title="ナビゲーションメニュー" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <a class="navbar-brand" href="/">@Site.Value.Title</a>
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="CollapseNavMenu">
+@* 静的 SSR なので JS を使わず、チェックボックスと CSS でメニューを開閉する *@
+<input type="checkbox" id="nav-toggle" class="navbar-toggler" title="ナビゲーションメニュー" />
+
+<div class="nav-scrollable">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> ホーム
+            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                <i class="bi bi-house-door" aria-hidden="true"></i> ホーム
+            </NavLink>
+        </div>
+
+        <div class="nav-section px-3">学習ロードマップ</div>
+        @foreach (var category in Content.Categories)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="@($"/learn/{category.Id}")">
+                    <i class="bi @category.Icon" aria-hidden="true"></i> @category.Title
+                </NavLink>
+            </div>
+        }
+
+        <div class="nav-section px-3">リファレンス</div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/shortcuts">
+                <i class="bi bi-keyboard" aria-hidden="true"></i> ショートカット一覧
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="operations">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> 操作方法
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="shortcuts">
-                <span class="oi oi-key" aria-hidden="true"></span> ショートカット一覧
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="plugins">
-                <span class="oi oi-puzzle-piece" aria-hidden="true"></span> プラグイン
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="avatar-clothing">
-                <span class="oi oi-person" aria-hidden="true"></span> アバター服作成
+            <NavLink class="nav-link" href="/addons">
+                <i class="bi bi-puzzle" aria-hidden="true"></i> アドオン
             </NavLink>
         </div>
     </nav>
 </div>
-
-@code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-
-    private void CollapseNavMenu()
-    {
-        collapseNavMenu = true;
-    }
-}

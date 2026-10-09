@@ -1,0 +1,34 @@
+@inject ContentService Content
+
+<ol class="roadmap list-unstyled">
+    @foreach (var (category, index) in Content.Categories.Select((c, i) => (c, i)))
+    {
+        var articles = Content.GetArticles(category.Id);
+        <li class="roadmap-step">
+            <div class="roadmap-marker">@(index + 1)</div>
+            <div class="roadmap-body">
+                <h3 class="h5 mb-1">
+                    <i class="bi @category.Icon me-1" aria-hidden="true"></i>
+                    <a href="/learn/@category.Id" class="text-decoration-none">@category.Title</a>
+                </h3>
+                <p class="text-body-secondary mb-2">@category.Description</p>
+                @if (articles.Count == 0)
+                {
+                    <span class="badge bg-secondary">準備中</span>
+                }
+                else
+                {
+                    <ol class="roadmap-articles">
+                        @foreach (var article in articles)
+                        {
+                            <li>
+                                <a href="@article.Url">@article.Title</a>
+                                <DifficultyBadge Difficulty="@article.Difficulty" />
+                            </li>
+                        }
+                    </ol>
+                }
+            </div>
+        </li>
+    }
+</ol>

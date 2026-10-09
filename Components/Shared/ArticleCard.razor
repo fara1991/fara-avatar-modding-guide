@@ -1,0 +1,20 @@
+<a href="@Article.Url" class="article-card card h-100 text-decoration-none">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+            <h5 class="card-title mb-0">
+                @if (ShowOrder)
+                {
+                    <span class="badge bg-primary me-2">@Article.Order</span>
+                }
+                @Article.Title
+            </h5>
+            <DifficultyBadge Difficulty="@Article.Difficulty" />
+        </div>
+        <p class="card-text text-body-secondary mb-0">@Article.Description</p>
+    </div>
+</a>
+
+@code {
+    [Parameter, EditorRequired] public required Article Article { get; set; }
+    [Parameter] public bool ShowOrder { get; set; } = true;
+}

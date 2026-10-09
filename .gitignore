@@ -1,0 +1,16 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## IDE
+.idea/
+.vs/
+*.swp
+*~
+
+## Claude Code
+.claude/
