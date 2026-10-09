@@ -32,7 +32,7 @@
 
 # 表示
 - { key: Home,         function: 全体表示,               category: 表示,       description: すべてのオブジェクトが見えるように表示 }
-- { key: ".",          function: 選択オブジェクトにフォーカス, category: 表示, description: 選択オブジェクトを中心に表示 }
+- { key: "Numpad .",   function: 選択オブジェクトにフォーカス, category: 表示, description: テンキーの . で選択オブジェクトを中心に表示（文字キーの . はピボット選択メニュー） }
 - { key: H,            function: 非表示,                 category: 表示,       description: 選択したオブジェクトを非表示 }
 - { key: Alt+H,        function: 非表示解除,             category: 表示,       description: すべてのオブジェクトを表示 }
 - { key: Z,            function: シェーディング切り替え, category: 表示,       description: 表示モードの切り替え }

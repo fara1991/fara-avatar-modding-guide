@@ -3,6 +3,8 @@ using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Yaml;
 using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
+using System.Net;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -68,6 +70,38 @@ public sealed partial class ContentService
     public IReadOnlyList<string> ShortcutCategories =>
         Shortcuts.Select(s => s.Category).Distinct().ToList();
 
+    /// <summary>記事・ショートカット・アドオンをまとめた検索インデックス。</summary>
+    public IReadOnlyList<SearchEntry> BuildSearchIndex()
+    {
+        var entries = new List<SearchEntry>();
+
+        foreach (var article in Categories.SelectMany(c => GetArticles(c.Id)))
+        {
+            var category = GetCategory(article.Category)?.Title ?? article.Category;
+            var subtitle = string.IsNullOrEmpty(article.Difficulty) ? category : $"{category} · {article.Difficulty}";
+            var text = string.Join(' ', [article.Description, article.PlainText, .. article.Shortcuts]);
+            entries.Add(new SearchEntry("article", article.Title, subtitle, article.Url, text));
+        }
+
+        foreach (var shortcut in Shortcuts)
+        {
+            entries.Add(new SearchEntry(
+                "shortcut",
+                shortcut.Key,
+                shortcut.Function,
+                $"/shortcuts?category={Uri.EscapeDataString(shortcut.Category)}",
+                $"{shortcut.Description} {shortcut.Category}"));
+        }
+
+        foreach (var addon in Addons)
+        {
+            var text = string.Join(' ', [addon.Description, addon.Note ?? string.Empty, .. addon.Features]);
+            entries.Add(new SearchEntry("addon", addon.Name, addon.Type, "/addons", text));
+        }
+
+        return entries;
+    }
+
     private Snapshot Load()
     {
         var categories = ReadYaml<List<LearnCategory>>(Path.Combine(_root, "learn", "categories.yml")) ?? [];
@@ -108,6 +142,16 @@ public sealed partial class ContentService
         var markdown = File.ReadAllText(path);
         var document = Markdown.Parse(markdown, Pipeline);
 
+        // 記事内の相対パス画像（例: images/move.gif）を /learn/<category>/images/move.gif に解決する。
+        // 画像は Content/learn/<category>/images/ に置き、Program.cs で /learn 以下として配信している。
+        foreach (var link in document.Descendants<LinkInline>())
+        {
+            if (link.IsImage && link.Url is { } url && IsRelative(url))
+            {
+                link.Url = $"/learn/{categoryId}/{url}";
+            }
+        }
+
         var front = new ArticleFrontMatter();
         if (document.Descendants<YamlFrontMatterBlock>().FirstOrDefault() is { } yamlBlock)
         {
@@ -116,6 +160,8 @@ public sealed partial class ContentService
                 .Trim().Trim('-').Trim();
             front = Yaml.Deserialize<ArticleFrontMatter>(yaml) ?? front;
         }
+
+        var html = document.ToHtml(Pipeline);
 
         return new Article
         {
@@ -128,8 +174,19 @@ public sealed partial class ContentService
             BlenderVersion = front.BlenderVersion,
             Updated = front.Updated,
             Shortcuts = front.Shortcuts,
-            Html = document.ToHtml(Pipeline),
+            Html = html,
+            PlainText = ToPlainText(html),
         };
+    }
+
+    private static bool IsRelative(string url) =>
+        !url.StartsWith('/') && !url.StartsWith('#') && !url.Contains("://") && !url.StartsWith("data:", StringComparison.OrdinalIgnoreCase);
+
+    private static string ToPlainText(string html)
+    {
+        var text = HtmlTagRegex().Replace(html, " ");
+        text = WebUtility.HtmlDecode(text);
+        return WhitespaceRegex().Replace(text, " ").Trim();
     }
 
     private T? ReadYaml<T>(string path) where T : class
@@ -144,6 +201,12 @@ public sealed partial class ContentService
 
     [GeneratedRegex(@"^(?<order>\d+)-(?<slug>[a-z0-9]+(?:-[a-z0-9]+)*)$")]
     private static partial Regex FileNameRegex();
+
+    [GeneratedRegex("<[^>]+>")]
+    private static partial Regex HtmlTagRegex();
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex WhitespaceRegex();
 
     private sealed record Snapshot(
         IReadOnlyList<LearnCategory> Categories,

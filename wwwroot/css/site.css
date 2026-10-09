@@ -197,6 +197,54 @@ main {
     margin-bottom: 0.25rem;
 }
 
+/* ---------- 検索 ---------- */
+.nav-search .form-control {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.nav-search .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.nav-search .form-control:focus {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    box-shadow: none;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.search-result {
+    display: block;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.search-result:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.search-result-title {
+    font-weight: 600;
+}
+
+.search-result-snippet {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.search-result mark {
+    padding: 0 0.1em;
+    background: #fff3cd;
+}
+
 /* ---------- カード ---------- */
 .card {
     border: none;
@@ -237,10 +285,28 @@ main {
     margin-bottom: 0.4rem;
 }
 
-.article-body img {
+.article-body img,
+.article-body video {
     max-width: 100%;
     height: auto;
     border-radius: 6px;
+    border: 1px solid #dee2e6;
+    display: block;
+    margin: 1rem 0;
+}
+
+/* 画像の直後の斜体1行をキャプションとして扱う: ![alt](images/x.png) の次の行に *説明* */
+.article-body p > img + em,
+.article-body p > em:only-child {
+    display: block;
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+.article-body .steps-with-images > li {
+    margin-bottom: 1.25rem;
 }
 
 /* ::: tip / ::: warning カスタムコンテナ */

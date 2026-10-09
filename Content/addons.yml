@@ -1,4 +1,8 @@
 # おすすめアドオン一覧
+#
+# status: 対応状況の短いラベル（バッジ表示。例: "Blender 4.x 非対応", "Extension"）
+# note:   補足（代替アドオン、インストール方法の違いなど）
+# 対象バージョンは appsettings.json の Site:BlenderVersion（現在 4.2）。
 
 - name: Hard Ops
   description: ハードサーフェスモデリングを効率化するプロフェッショナル向けアドオン
@@ -15,17 +19,21 @@
   description: VRChat アバター作成に特化したアドオン。アバターの最適化やセットアップが簡単に
   type: ゲーム開発
   price: 無料
+  status: 本家は開発停止（Blender 4.x 非対応）
+  note: 本家 (absolute-quantum) は更新が止まっており Blender 4.x では動作しません。4.x では有志が保守している「Cats Blender Plugin Unofficial」を使ってください。
   features:
     - アバター最適化
     - ボーン構造修正
     - 表情作成支援
     - Unity 連携
-  url: https://github.com/absolute-quantum/cats-blender-plugin
+  url: https://github.com/teamneoneko/Cats-Blender-Plugin-Unofficial-
 
 - name: Animation Nodes
   description: ノードベースでアニメーションを作成できるパワフルなアドオン
   type: アニメーション
   price: 無料
+  status: 更新が不定期
+  note: 公式リリースは Blender 3.x 向けが最後です。4.x で使う場合は GitHub の最新ビルドの対応状況を確認してください。
   features:
     - ノードベースアニメーション
     - プロシージャルアニメーション
@@ -33,24 +41,28 @@
     - 数学的アニメーション
   url: https://github.com/JacquesLucke/animation_nodes
 
-- name: Extra Objects
-  description: デフォルトでは含まれていない様々なオブジェクトを追加
+- name: Extra Mesh Objects
+  description: 歯車・パイプ・数学的な形状など、標準では含まれていない様々なメッシュを追加
   type: ユーティリティ
   price: 無料
+  status: Extension（4.2 以降）
+  note: Blender 4.1 までは内蔵アドオン「Add Mesh：Extra Objects」でした。4.2 以降は Extensions Platform からインストールします。
   features:
-    - 建築用オブジェクト
-    - 機械部品
+    - 歯車・ボルトなどの機械部品
+    - パイプ・ハニカムなどの構造物
+    - 数学的形状（多面体、曲面）
     - 装飾オブジェクト
-    - 数学的形状
-  url: ""
+  url: https://extensions.blender.org/add-ons/extra-mesh-objects/
 
 - name: Node Wrangler
   description: マテリアルノード編集を効率化するアドオン
   type: ユーティリティ
   price: 無料
+  status: Extension（4.2 以降）
+  note: Blender 4.1 までは内蔵アドオンでした。4.2 以降は Extensions Platform からインストールします。
   features:
-    - ノード自動接続
-    - プレビュー機能
-    - テクスチャセット読み込み
+    - ノード自動接続（Ctrl+Shift+クリックでプレビュー）
+    - テクスチャセットの一括読み込み
+    - Principled BSDF への自動接続
     - ショートカット拡張
-  url: ""
+  url: https://extensions.blender.org/add-ons/node-wrangler/

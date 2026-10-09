@@ -37,3 +37,22 @@ shortcuts: [G, R, S]      # shortcuts.yml の key と一致させる
 
 - 開発中（`dotnet run`）はファイルを保存するだけでブラウザをリロードすれば反映されます。
 - ファイル名の番号は表示順にだけ使われ、URL には含まれません。
+
+## 画像・GIF を載せる
+
+Blender の操作は文章だけでは伝わりにくいので、手順ごとにスクリーンショットや GIF を添えてください。
+
+1. 画像をカテゴリの `images/` に置く: `Content/learn/<category-id>/images/<slug>-<内容>.png`
+2. Markdown からは `images/` からの相対パスで参照する（`/learn/<category-id>/images/...` に自動で解決されます）
+
+```markdown
+1. <kbd>G</kbd> キーで移動モードに入る
+
+   ![G キーを押すとオブジェクトがマウスに追従する](images/transform-grab.gif)
+   *移動中は画面左下に移動量が表示される*
+```
+
+- 画像の直後の行に `*斜体*` で1行書くとキャプションになります
+- 対応形式: png / jpg / gif / webp / svg / mp4 / webm（`Content/learn/` 以下の画像・動画だけが配信され、.md や .yml は配信されません）
+- ファイル名は `スラッグ-内容.png` のように記事が分かる名前にしてください
+- GIF は 10 秒以内・幅 800px 程度に。長いものは mp4/webm にして `<video src="images/x.mp4" autoplay loop muted></video>` で埋め込めます

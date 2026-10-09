@@ -29,3 +29,8 @@ updated: 2026-10-09
 - VRChat の利用規約を確認してください
 - ポリゴン数の制限に注意してください
 :::
+
+## 参考リンク
+
+- [VRChat Creators: Avatars](https://creators.vrchat.com/avatars/) — アバターの制限（ポリゴン数・マテリアル数など）とアップロード手順の公式ドキュメント
+- [Blender 公式マニュアル（日本語）](https://docs.blender.org/manual/ja/latest/) — 各機能の詳しい説明
