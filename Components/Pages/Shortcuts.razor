@@ -7,12 +7,13 @@
 <h1>ショートカット一覧</h1>
 <p class="lead">Blender でよく使うキーボードショートカットを機能別に整理しました。</p>
 
-@* 静的 SSR なので絞り込みはクエリ文字列で行う（URL を共有できる） *@
-<div class="mb-3 d-flex flex-wrap gap-2">
-    <a href="/shortcuts" class="btn btn-sm @(string.IsNullOrEmpty(Category) ? "btn-primary" : "btn-outline-primary")">すべて</a>
+@* 全件を描画し、?category= による絞り込みは wwwroot/js/shortcuts.js で行う。
+   静的サイトとして書き出しても 1 つの HTML で済み、URL は共有できる。 *@
+<div id="shortcut-filters" class="mb-3 d-flex flex-wrap gap-2">
+    <a href="/shortcuts" class="btn btn-sm btn-primary" data-category="">すべて</a>
     @foreach (var c in Content.ShortcutCategories)
     {
-        <a href="/shortcuts?category=@Uri.EscapeDataString(c)" class="btn btn-sm @(c == Category ? "btn-primary" : "btn-outline-primary")">@c</a>
+        <a href="/shortcuts?category=@Uri.EscapeDataString(c)" class="btn btn-sm btn-outline-primary" data-category="@c">@c</a>
     }
 </div>
 
@@ -26,10 +27,10 @@
                 <th>説明</th>
             </tr>
         </thead>
-        <tbody>
-            @foreach (var shortcut in filtered)
+        <tbody id="shortcut-rows">
+            @foreach (var shortcut in Content.Shortcuts)
             {
-                <tr>
+                <tr data-category="@shortcut.Category">
                     <td><kbd>@shortcut.Key</kbd></td>
                     <td>@shortcut.Function</td>
                     <td><span class="badge @GetCategoryBadgeClass(shortcut.Category)">@shortcut.Category</span></td>
@@ -40,18 +41,9 @@
     </table>
 </div>
 
+<script src="/js/shortcuts.js" defer></script>
+
 @code {
-    [SupplyParameterFromQuery] public string? Category { get; set; }
-
-    private IEnumerable<Shortcut> filtered = [];
-
-    protected override void OnParametersSet()
-    {
-        filtered = string.IsNullOrEmpty(Category)
-            ? Content.Shortcuts
-            : Content.Shortcuts.Where(s => s.Category == Category);
-    }
-
     private static string GetCategoryBadgeClass(string category) => category switch
     {
         "一般" => "bg-primary",
