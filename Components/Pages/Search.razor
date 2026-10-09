@@ -1,0 +1,24 @@
+@page "/search"
+@inject IOptions<SiteOptions> Site
+
+<PageTitle>検索 - @Site.Value.Title</PageTitle>
+
+<h1>検索</h1>
+<p class="lead">記事・ショートカット・アドオンをまとめて検索します。</p>
+
+<form id="search-form" action="/search" method="get" class="mb-4" role="search">
+    <div class="input-group input-group-lg">
+        <input id="search-input" name="q" type="search" class="form-control" placeholder="例: 押し出し、Ctrl+R、ウェイト" value="@Q" autofocus autocomplete="off" />
+        <button type="submit" class="btn btn-primary"><i class="bi bi-search" aria-hidden="true"></i> 検索</button>
+    </div>
+</form>
+
+<div id="search-results" aria-live="polite">
+    <noscript><p class="text-danger">検索には JavaScript が必要です。</p></noscript>
+</div>
+
+<script src="/js/search.js" defer></script>
+
+@code {
+    [SupplyParameterFromQuery] public string? Q { get; set; }
+}

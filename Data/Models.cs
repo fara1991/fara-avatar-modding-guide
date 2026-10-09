@@ -25,6 +25,8 @@ public sealed class Article
     public IReadOnlyList<string> Shortcuts { get; init; } = [];
     /// <summary>Markdown から変換済みの本文 HTML</summary>
     public required string Html { get; init; }
+    /// <summary>本文のプレーンテキスト（検索インデックス用）</summary>
+    public required string PlainText { get; init; }
 
     public string Url => $"/learn/{Category}/{Slug}";
 }
@@ -56,6 +58,10 @@ public sealed class Addon
     public string Price { get; set; } = string.Empty;
     public List<string> Features { get; set; } = [];
     public string Url { get; set; } = string.Empty;
+    /// <summary>対応状況の短いラベル（例: "Blender 4.x 非対応"）。バッジとして表示される。</summary>
+    public string? Status { get; set; }
+    /// <summary>補足（代替アドオン、インストール方法の違いなど）</summary>
+    public string? Note { get; set; }
 }
 
 /// <summary>appsettings.json の "Site" セクション</summary>

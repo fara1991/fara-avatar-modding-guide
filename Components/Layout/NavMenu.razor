@@ -11,6 +11,12 @@
 <input type="checkbox" id="nav-toggle" class="navbar-toggler" title="ナビゲーションメニュー" />
 
 <div class="nav-scrollable">
+    <form action="/search" method="get" class="nav-search px-3 pt-3" role="search">
+        <div class="input-group input-group-sm">
+            <input name="q" type="search" class="form-control" placeholder="サイト内を検索" aria-label="サイト内を検索" />
+            <button type="submit" class="btn btn-light" aria-label="検索"><i class="bi bi-search" aria-hidden="true"></i></button>
+        </div>
+    </form>
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">

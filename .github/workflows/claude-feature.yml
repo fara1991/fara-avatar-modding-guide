@@ -11,11 +11,16 @@ permissions:
 
 jobs:
   generate-feature:
+    # Issue を開けるなら誰でも API 利用料とコード生成を発生させられるため、
+    # リポジトリのオーナー・メンバー・コラボレーターが開いた Issue に限定する
     if: |
-      contains(github.event.issue.labels.*.name, 'feature') ||
-      contains(github.event.issue.labels.*.name, 'bug') ||
-      contains(github.event.issue.labels.*.name, 'enhancement') ||
-      contains(github.event.issue.labels.*.name, 'refactor')
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.issue.author_association) &&
+      (
+        contains(github.event.issue.labels.*.name, 'feature') ||
+        contains(github.event.issue.labels.*.name, 'bug') ||
+        contains(github.event.issue.labels.*.name, 'enhancement') ||
+        contains(github.event.issue.labels.*.name, 'refactor')
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
