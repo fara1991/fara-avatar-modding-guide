@@ -1,4 +1,4 @@
-# Fara Blender Manual
+# Blender Manual
 
 Blender の操作方法を、基本からアバター用衣装の作成まで順番に学べるマニュアルサイトです。
 .NET 9 の Blazor Web App（静的サーバーサイドレンダリング）で実装し、記事は Markdown で管理しています。

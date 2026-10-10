@@ -67,7 +67,7 @@ public sealed class Addon
 /// <summary>appsettings.json の "Site" セクション</summary>
 public sealed class SiteOptions
 {
-    public string Title { get; set; } = "Fara Blender Manual";
+    public string Title { get; set; } = "Blender Manual";
     /// <summary>サイト全体で前提にする Blender のバージョン。各記事は blender_version で上書きできる。</summary>
     public string BlenderVersion { get; set; } = "4.2";
     public string RepositoryUrl { get; set; } = string.Empty;
