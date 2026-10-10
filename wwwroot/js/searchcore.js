@@ -100,17 +100,19 @@
     return (start > 0 ? "…" : "") + text.slice(start, end) + (end < text.length ? "…" : "");
   }
 
-  // 種類の表示（用語集・何て名前？・TIPS は Content/tips/ のデータ）
+  // 種類の表示（用語集・何て名前？・TIPS・Q&A は Content/tips/、リンク集は Content/links.yml のデータ）
   var TYPES = {
     article: { label: "記事", cls: "bg-primary" },
     glossary: { label: "用語", cls: "bg-warning text-dark" },
     howto: { label: "何て名前？", cls: "bg-danger" },
     tip: { label: "TIPS", cls: "bg-info text-dark" },
+    qa: { label: "Q&A", cls: "bg-light text-dark" },
     shortcut: { label: "ショートカット", cls: "bg-success" },
     addon: { label: "アドオン", cls: "bg-secondary" },
+    link: { label: "リンク", cls: "bg-primary-subtle text-primary-emphasis" },
   };
   // 同じくらい一致したときは、記事や用語を先に出す
-  var TYPE_BONUS = { article: 0.6, glossary: 0.5, howto: 0.5, tip: 0.4, shortcut: 0.2, addon: 0 };
+  var TYPE_BONUS = { article: 0.6, glossary: 0.5, howto: 0.5, tip: 0.4, qa: 0.4, shortcut: 0.2, addon: 0, link: 0 };
 
   window.faraSearch = { load: load, search: search, highlight: highlight, snippet: snippet, escapeHtml: escapeHtml, TYPES: TYPES };
 })();

@@ -45,8 +45,9 @@
                     {
                         <p class="small mb-2">@((MarkupString)ContentService.RenderInline(h.Note))</p>
                     }
+                    <TipBody Markdown="@h.Body" />
                     <TipTags Tags="@h.Tags" Source="@h.Source" />
-                    <TipRefs Articles="@h.Articles" />
+                    <TipRefs Articles="@h.Articles" Related="@h.Related" Keywords="@h.Keywords" />
                 </div>
             </article>
         </div>

@@ -5,7 +5,7 @@
 <PageTitle>アドオン - @Site.Value.Title</PageTitle>
 
 <h1>おすすめアドオン</h1>
-<p class="lead">Blender の機能を拡張する便利なアドオンを紹介します。</p>
+<p class="lead">Blender の機能を拡張する便利なアドオンを紹介します。Unity のツールや参考になる記事は <a href="/links">リンク集</a> へ。</p>
 
 <div class="row g-4">
     @foreach (var addon in Content.Addons)
@@ -21,17 +21,24 @@
                     {
                         <span class="badge bg-warning text-dark mb-2"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> @addon.Status</span>
                     }
+                    @if (addon.Source == "discord")
+                    {
+                        <div class="tip-tags"><span class="tip-tag tip-source-discord" title="Discord での質問・会話で紹介されたもの"><i class="bi bi-discord" aria-hidden="true"></i> Discord より</span></div>
+                    }
                     <p class="card-text">@addon.Description</p>
                     @if (!string.IsNullOrEmpty(addon.Note))
                     {
                         <p class="card-text small text-body-secondary border-start border-3 border-warning ps-2">@addon.Note</p>
                     }
-                    <ul class="mb-3">
-                        @foreach (var feature in addon.Features)
-                        {
-                            <li>@feature</li>
-                        }
-                    </ul>
+                    @if (addon.Features.Count > 0)
+                    {
+                        <ul class="mb-3">
+                            @foreach (var feature in addon.Features)
+                            {
+                                <li>@feature</li>
+                            }
+                        </ul>
+                    }
                     <div class="d-flex justify-content-between align-items-center">
                         <small class="text-body-secondary">価格: @addon.Price</small>
                         @if (!string.IsNullOrEmpty(addon.Url))

@@ -50,6 +50,18 @@ public sealed partial class ContentService
     public IReadOnlyList<GlossaryEntry> Glossary => _snapshot.Glossary;
     public IReadOnlyList<HowtoEntry> Howtos => _snapshot.Howtos;
     public IReadOnlyList<TipEntry> Tips => _snapshot.Tips;
+    public IReadOnlyList<QaEntry> Qas => _snapshot.Qas;
+    public IReadOnlyList<LinkEntry> Links => _snapshot.Links;
+
+    /// <summary>リンク集の区切り（この順に表示する）。Content/links.yml の category はここの id を使う</summary>
+    public static IReadOnlyList<LinkCategory> LinkCategories { get; } =
+    [
+        new("unity-tool", "Unity のツール", "bi-tools", "Unity で使うエディタ拡張・アセット。導入は配布ページの案内（VCC / ALCOM、unitypackage など）に従ってください。"),
+        new("vrchat", "VRChat", "bi-headset-vr", "PhysBone や SDK の資料、アップロード手順の解説など。"),
+        new("reference", "参考になる記事・資料", "bi-journal-bookmark", "Blender・Unity での改変の手順を解説した記事や動画、画像編集ソフトなど。古いバージョンの画面で書かれたものは、メニューの名前や場所が今と違うことがあります。"),
+        new("booth-avatar", "BOOTH: アバター", "bi-person-bounding-box", "相談の中で話題になったアバター。販売状況・価格・規約は変わることがあるので、購入前に商品ページで確かめてください。"),
+        new("booth-outfit", "BOOTH: 衣装・小物", "bi-handbag", "相談の中で話題になった衣装・アクセサリー。対応アバター・規約（改変や他アバターへの流用の可否）は商品ページで確かめてください。"),
+    ];
 
     /// <summary>Markdown の短い文章（用語集・TIPS の説明など）を HTML にする。1 段落だけなら &lt;p&gt; を外す</summary>
     public static string RenderInline(string? markdown)
@@ -122,20 +134,33 @@ public sealed partial class ContentService
         {
             var subtitle = string.Join(" · ", new[] { g.En, string.Join(" / ", g.Tags) }.Where(x => !string.IsNullOrEmpty(x)));
             entries.Add(new SearchEntry("glossary", g.Term, subtitle, $"/glossary#{g.Id}",
-                string.Join(' ', [g.Reading, g.En ?? "", PlainOf(g.Description), .. g.Shortcuts, .. g.Tags])));
+                string.Join(' ', [g.Reading, g.En ?? "", PlainOf(g.Description), PlainOf(g.Body), .. g.Keywords, .. g.Shortcuts, .. g.Tags])));
         }
 
         foreach (var h in Howtos)
         {
             var answer = h.Shortcuts.Count > 0 ? $"{h.Answer}（{string.Join(" / ", h.Shortcuts)}）" : h.Answer;
             entries.Add(new SearchEntry("howto", h.Question, answer, $"/howto#{h.Id}",
-                string.Join(' ', [h.Answer, h.AnswerEn ?? "", h.Menu ?? "", h.MenuEn ?? "", PlainOf(h.Note), .. h.Aliases, .. h.Shortcuts, .. h.Tags])));
+                string.Join(' ', [h.Answer, h.AnswerEn ?? "", h.Menu ?? "", h.MenuEn ?? "", PlainOf(h.Note), PlainOf(h.Body), .. h.Aliases, .. h.Keywords, .. h.Shortcuts, .. h.Tags])));
         }
 
         foreach (var t in Tips)
         {
             entries.Add(new SearchEntry("tip", t.Title, string.Join(" / ", t.Tags), $"/tips#{t.Id}",
-                string.Join(' ', [PlainOf(t.Symptom), PlainOf(t.Cause), PlainOf(t.Fix), .. t.Shortcuts, .. t.Tags])));
+                string.Join(' ', [PlainOf(t.Summary), PlainOf(t.Symptom), PlainOf(t.Cause), PlainOf(t.Fix), PlainOf(t.Body), .. t.Keywords, .. t.Shortcuts, .. t.Tags])));
+        }
+
+        foreach (var q in Qas)
+        {
+            entries.Add(new SearchEntry("qa", q.Question, string.Join(" / ", q.Tags), $"/qa#{q.Id}",
+                string.Join(' ', [PlainOf(q.Answer), PlainOf(q.Body), .. q.Keywords, .. q.Shortcuts, .. q.Tags])));
+        }
+
+        foreach (var l in Links)
+        {
+            var category = LinkCategories.FirstOrDefault(c => c.Id == l.Category)?.Title ?? l.Category;
+            entries.Add(new SearchEntry("link", l.Name, category, $"/links#{l.Id}",
+                string.Join(' ', [l.Description, l.Note ?? ""])));
         }
 
         foreach (var shortcut in Shortcuts)
@@ -180,12 +205,14 @@ public sealed partial class ContentService
             .ToList();
         var howtos = ReadYaml<List<HowtoEntry>>(Path.Combine(_root, "tips", "howto.yml")) ?? [];
         var tips = ReadYaml<List<TipEntry>>(Path.Combine(_root, "tips", "tips.yml")) ?? [];
-        CheckTips(glossary, howtos, tips, articles, shortcuts);
+        var qas = ReadYaml<List<QaEntry>>(Path.Combine(_root, "tips", "qa.yml")) ?? [];
+        var links = ReadYaml<List<LinkEntry>>(Path.Combine(_root, "links.yml")) ?? [];
+        CheckTips(glossary, howtos, tips, qas, links, articles, shortcuts);
 
         _logger.LogInformation("Content loaded: {Categories} categories, {Articles} articles, {Shortcuts} shortcuts, {Addons} addons",
             categories.Count, articles.Count, shortcuts.Count, addons.Count);
 
-        return new Snapshot(sections, categories, articles, shortcuts, addons, glossary, howtos, tips);
+        return new Snapshot(sections, categories, articles, shortcuts, addons, glossary, howtos, tips, qas, links);
     }
 
     private IEnumerable<Article> LoadArticles(string categoryId)
@@ -315,24 +342,53 @@ public sealed partial class ContentService
     [GeneratedRegex(@"\s+")]
     private static partial Regex WhitespaceRegex();
 
-    /// <summary>TIPS・用語集の ID の重複や、存在しない記事・用語・ショートカットへの参照を警告する</summary>
-    private void CheckTips(List<GlossaryEntry> glossary, List<HowtoEntry> howtos, List<TipEntry> tips, List<Article> articles, List<Shortcut> shortcuts)
+    /// <summary>TIPS・用語集・Q&amp;A・リンク集の ID の重複や、存在しない記事・用語・項目への参照を警告する</summary>
+    private void CheckTips(List<GlossaryEntry> glossary, List<HowtoEntry> howtos, List<TipEntry> tips, List<QaEntry> qas, List<LinkEntry> links, List<Article> articles, List<Shortcut> shortcuts)
     {
         var articleIds = articles.Select(a => a.Id).ToHashSet();
         var termIds = glossary.Select(g => g.Id).ToHashSet();
         var keys = shortcuts.Select(s => s.Key).ToHashSet();
-        void Check(string kind, string id, IEnumerable<string> arts, IEnumerable<string> related, IEnumerable<string> keysUsed)
+        // 本文中の [文字](/tips#id) のようなリンクの行き先
+        var anchors = new Dictionary<string, HashSet<string>>
+        {
+            ["glossary"] = termIds,
+            ["howto"] = howtos.Select(h => h.Id).ToHashSet(),
+            ["tips"] = tips.Select(t => t.Id).ToHashSet(),
+            ["qa"] = qas.Select(q => q.Id).ToHashSet(),
+            ["links"] = [.. links.Select(l => l.Id), .. LinkCategories.Select(c => c.Id)],
+        };
+        void Check(string kind, string id, IEnumerable<string> arts, IEnumerable<string> related, IEnumerable<string> keysUsed, params string?[] markdown)
         {
             if (!ScenarioNameRegex().IsMatch(id)) _logger.LogWarning("{Kind} {Id}: id must be lowercase letters, digits and hyphens", kind, id);
             foreach (var a in arts.Where(a => !articleIds.Contains(a))) _logger.LogWarning("{Kind} {Id}: unknown article {Article}", kind, id, a);
             foreach (var r in related.Where(r => !termIds.Contains(r))) _logger.LogWarning("{Kind} {Id}: unknown glossary term {Term}", kind, id, r);
             foreach (var k in keysUsed.Where(k => !keys.Contains(k))) _logger.LogDebug("{Kind} {Id}: shortcut {Key} is not in shortcuts.yml (shown without link)", kind, id, k);
+            foreach (Match m in markdown.SelectMany(md => InternalLinkRegex().Matches(md ?? string.Empty)))
+            {
+                var page = m.Groups["page"].Value;
+                var target = m.Groups["id"].Value;
+                if (page == "learn")
+                {
+                    if (!articleIds.Contains(target)) _logger.LogWarning("{Kind} {Id}: link to unknown article /learn/{Target}", kind, id, target);
+                }
+                else if (target.Length > 0 && !anchors[page].Contains(target))
+                {
+                    _logger.LogWarning("{Kind} {Id}: link to unknown item /{Page}#{Target}", kind, id, page, target);
+                }
+            }
         }
-        foreach (var g in glossary) Check("glossary", g.Id, g.Articles, g.Related, g.Shortcuts);
-        foreach (var h in howtos) Check("howto", h.Id, h.Articles, [], h.Shortcuts);
-        foreach (var t in tips) Check("tip", t.Id, t.Articles, [], t.Shortcuts);
-        // アンカーはページごと（/glossary、/howto、/tips）なので、重複はそれぞれの中で確かめる
-        foreach (var (kind, ids) in new[] { ("glossary", glossary.Select(g => g.Id)), ("howto", howtos.Select(h => h.Id)), ("tip", tips.Select(t => t.Id)) })
+        foreach (var g in glossary) Check("glossary", g.Id, g.Articles, g.Related, g.Shortcuts, g.Description, g.Body);
+        foreach (var h in howtos) Check("howto", h.Id, h.Articles, h.Related, h.Shortcuts, h.Note, h.Body);
+        foreach (var t in tips) Check("tip", t.Id, t.Articles, t.Related, t.Shortcuts, t.Summary, t.Symptom, t.Cause, t.Fix, t.Body);
+        foreach (var q in qas) Check("qa", q.Id, q.Articles, q.Related, q.Shortcuts, q.Answer, q.Body);
+        foreach (var l in links)
+        {
+            if (!ScenarioNameRegex().IsMatch(l.Id)) _logger.LogWarning("link {Id}: id must be lowercase letters, digits and hyphens", l.Id);
+            if (!LinkCategories.Any(c => c.Id == l.Category)) _logger.LogWarning("link {Id}: unknown category {Category}", l.Id, l.Category);
+            if (!Uri.TryCreate(l.Url, UriKind.Absolute, out _)) _logger.LogWarning("link {Id}: url is not absolute", l.Id);
+        }
+        // アンカーはページごと（/glossary、/howto、/tips、/qa、/links）なので、重複はそれぞれの中で確かめる
+        foreach (var (kind, ids) in new[] { ("glossary", glossary.Select(g => g.Id)), ("howto", howtos.Select(h => h.Id)), ("tip", tips.Select(t => t.Id)), ("qa", qas.Select(q => q.Id)), ("link", links.Select(l => l.Id)) })
         {
             foreach (var dup in ids.GroupBy(x => x).Where(g => g.Count() > 1))
             {
@@ -340,6 +396,10 @@ public sealed partial class ContentService
             }
         }
     }
+
+    /// <summary>本文中のサイト内リンク: (/tips#id) (/glossary#id) (/howto#id) (/qa#id) (/links#id) (/learn/category/slug)</summary>
+    [GeneratedRegex(@"\]\(/(?:(?<page>glossary|howto|tips|qa|links)(?:#(?<id>[^)\s]*))?|(?<page>learn)/(?<id>[a-z0-9-]+/[a-z0-9-]+))\)")]
+    private static partial Regex InternalLinkRegex();
 
     private sealed record Snapshot(
         IReadOnlyList<LearnSection> Sections,
@@ -349,5 +409,7 @@ public sealed partial class ContentService
         IReadOnlyList<Addon> Addons,
         IReadOnlyList<GlossaryEntry> Glossary,
         IReadOnlyList<HowtoEntry> Howtos,
-        IReadOnlyList<TipEntry> Tips);
+        IReadOnlyList<TipEntry> Tips,
+        IReadOnlyList<QaEntry> Qas,
+        IReadOnlyList<LinkEntry> Links);
 }

@@ -2,6 +2,7 @@
 #
 # status: 対応状況の短いラベル（バッジ表示。例: "Blender 5.0 以降", "Extension"）
 # note:   補足（代替アドオン、インストール方法の違いなど）
+# source: manual（既定）/ discord（Discord で紹介されたもの。「Discord より」と表示）
 # 対象バージョンは appsettings.json の Site:BlenderVersion（現在 4.5）。
 # Extension と書いてあるものは「編集 > プリファレンス > エクステンションを入手」から検索してインストールできる。
 # それ以外は配布元から ZIP をダウンロードして「ディスクからインストール」。
@@ -82,3 +83,52 @@
     - 数学的形状（多面体、曲面）
     - 装飾オブジェクト
   url: https://extensions.blender.org/add-ons/extra-mesh-objects/
+
+# ---------------------------------------------------------------- Discord の改変相談から
+
+- name: RestoreSymmetry
+  description: 左右非対称になった頂点を左右対称に復元するアドオン
+  type: モデリング
+  price: 無料
+  note: 2.8〜3.0 での動作報告のみ。最新 Blender 向けの fork があるとの情報あり。4.5 での動作は未確認。
+  url: https://github.com/12funkeys/BlenderAddons/tree/master/RestoreSymmetry
+  source: discord
+
+- name: Hide Only Vertex (Lock Vertex)
+  description: 選択した頂点だけを編集不可（固定）にする有料アドオン
+  type: モデリング
+  price: 有料
+  note: 対応バージョン未確認。標準のプロポーショナル編集「接続のみ」や H 非表示で代替可能。
+  url: https://bookyakuno.gumroad.com/l/hide_only_vertex
+  source: discord
+
+- name: ApplyModifier
+  description: シェイプキーのあるメッシュにモディファイアーを適用できるようにするアドオン
+  type: モデリング
+  price: 無料
+  note: Blender 標準では今もシェイプキー付きメッシュへの適用は不可のため需要あり。4.5 対応はリポジトリで確認してください。
+  url: https://github.com/Taremin/ApplyModifier
+  source: discord
+
+- name: Blender Asset Creation Toolset
+  description: ゲーム向けアセット作成の便利機能集
+  type: ユーティリティ
+  price: 無料
+  url: https://github.com/mrven/Blender-Asset-Creation-Toolset
+  source: discord
+
+- name: Handy Weight Edit
+  description: スクロールでウェイトを少しずつ変更でき、ちょっとした貫通修正に便利な有料アドオン
+  type: ウェイト
+  price: 有料
+  note: 2022〜2023 年に利用報告。最新版の対応バージョンは販売ページで確認。
+  url: https://blendermarket.com/products/handy-weight-edit
+  source: discord
+
+- name: Better FBX Importer & Exporter
+  description: 高機能な FBX 入出力（Maya 製アバターのシェイプキー名の問題などを補正）の有料アドオン
+  type: ユーティリティ
+  price: 有料
+  note: 現行も販売。書き出し設定によって法線が変わる事例があるので標準エクスポーターとの比較推奨。
+  url: https://blendermarket.com/products/better-fbx-importer--exporter
+  source: discord

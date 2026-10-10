@@ -1,5 +1,5 @@
 // 用語集・何て名前？・TIPS の絞り込み（文字とタグ）。?tag=Unity のように URL でも指定できる。
-// #id で飛んできたときは、その項目が隠れないように絞り込みを外す。
+// #id で飛んできたときは、その項目が隠れないように絞り込みを外し、「詳しく」を開く。
 (function () {
   "use strict";
   var box = document.querySelector("[data-tips-filter]");
@@ -53,6 +53,8 @@
     var target = id && document.getElementById(id);
     if (!target || !target.closest("[data-tip-item]")) return;
     if (target.closest("[data-tip-item]").hidden) { tag = ""; input.value = ""; apply(); }
+    var details = target.querySelector("details.tip-body");
+    if (details) details.open = true;
     target.scrollIntoView({ block: "start" });
   }
   window.addEventListener("hashchange", showHash);

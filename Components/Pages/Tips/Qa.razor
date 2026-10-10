@@ -1,0 +1,31 @@
+@page "/qa"
+@inject ContentService Content
+@inject IOptions<SiteOptions> Site
+
+<PageTitle>改変 Q&amp;A - @Site.Value.Title</PageTitle>
+<HeadContent><meta name="description" content="非対応衣装の着せ替え、ウェイト、首すげ替え、テクスチャの色変え、表情・アニメーター、PhysBone、VRM など、アバター改変でよく出る質問と答え・手順です。" /></HeadContent>
+
+<h1>改変 Q&amp;A</h1>
+<p class="lead">アバター改変の相談でよく出た質問と、その答え・手順をまとめました。各項目の「詳しく」を開くと手順や補足が見られます。言葉の意味は <a href="/glossary">用語集</a>、症状から探すなら <a href="/tips">TIPS</a> へ。</p>
+<p class="small text-body-secondary">「当時」と書いてあるところは、古いバージョンの Blender・Unity・VRChat SDK での手順です。今の手順と一緒に載せています。</p>
+
+<TipsFilter Tags="@Content.TipTags(Content.Qas.Select(q => q.Tags))" Placeholder="質問で絞り込む（例: 首、ウェイト、VRM）" HasDiscord="@Content.Qas.Any(q => q.Source == "discord")" Count="@Content.Qas.Count" />
+
+<div class="row g-3">
+    @foreach (var q in Content.Qas)
+    {
+        <div class="col-lg-6" data-tip-item>
+            <article class="tip-card card h-100" id="@q.Id" data-tags="@string.Join('|', q.Tags)" data-source="@q.Source">
+                <div class="card-body">
+                    <h2 class="h5 mb-2"><i class="bi bi-chat-left-text me-1" aria-hidden="true"></i><a href="#@q.Id" class="tip-anchor">@q.Question</a></h2>
+                    <TipTags Tags="@q.Tags" Source="@q.Source" />
+                    <p class="mb-2">@((MarkupString)ContentService.RenderInline(q.Answer))</p>
+                    <TipBody Markdown="@q.Body" />
+                    <TipRefs Shortcuts="@q.Shortcuts" Articles="@q.Articles" Related="@q.Related" Keywords="@q.Keywords" />
+                </div>
+            </article>
+        </div>
+    }
+</div>
+
+<script src="/js/tipsfilter.js" defer></script>

@@ -13,8 +13,10 @@ Content/
     glossary.yml          # 用語集（/glossary）
     howto.yml             # あの操作、何て名前？（/howto）
     tips.yml              # TIPS（/tips）
+    qa.yml                # 改変 Q&A（/qa）
   shortcuts.yml           # ショートカットの一次データ（記事からは frontmatter の shortcuts で参照）
   addons.yml              # アドオン一覧
+  links.yml               # リンク集（/links）
 ```
 
 ## 記事の書き方
@@ -179,7 +181,7 @@ node tools/tutorial-images/capture.mjs http://localhost:8787 transform   # 指�
 - 記録はブラウザの localStorage（`blender-manual.progress`）にだけ保存されます。目次ページの「記録を消す」で消せます
 - 確認用に、`/learn?debug=1&seed=basics/select,basics/transform` のように開くと、指定したページを完了にできます
 
-## 用語集・何て名前？・TIPS
+## 用語集・何て名前？・TIPS・改変 Q&A
 
 `Content/tips/` の YAML に 1 項目ずつ書きます。どれもサイト内検索の対象になり、ページではタグで絞り込めます。項目の形は各ファイルの先頭のコメントを見てください。
 
@@ -199,5 +201,11 @@ node tools/tutorial-images/capture.mjs http://localhost:8787 transform   # 指�
 
 - タグは `Blender` / `Unity` / `VRChat` / `Modular Avatar` と、作業の種類（`モデリング` `ウェイト` `マテリアル` `UV` `リギング` `書き出し`）を組み合わせます
 - `source: discord` の項目は「Discord より」の印が付き、絞り込みのボタンも出ます。会話の内容は、誰が言ったかがわからない形に書き直してください
-- 存在しない記事・用語を参照すると、起動時に警告が出ます
+- どの種類にも、長い説明や手順を `body`（Markdown。「詳しく」を開くと表示）、用語集に無い関連語を `keywords`（文字のまま表示・検索の対象）として書けます。TIPS は症状・原因・直し方の形にならないコツを `summary` に書けます
+- 本文から別の項目へは `[文字](/tips#id)` `[文字](/qa#id)` `[文字](/glossary#id)` `[文字](/links#id)` のようにリンクします
+- 存在しない記事・用語・項目を参照すると、起動時に警告が出ます
+
+## リンク集
+
+`Content/links.yml` に 1 件ずつ書きます（形は先頭のコメント）。区切り（Unity のツール / VRChat / 参考になる記事・資料 / BOOTH のアバター / BOOTH の衣装・小物）は `Data/ContentService.cs` の `LinkCategories` です。`status: old` を付けると「古い情報」と表示されます。Blender のアドオンは `addons.yml`（/addons）に書きます。
 

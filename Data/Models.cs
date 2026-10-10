@@ -78,6 +78,8 @@ public sealed class Addon
     public string? Status { get; set; }
     /// <summary>補足（代替アドオン、インストール方法の違いなど）</summary>
     public string? Note { get; set; }
+    /// <summary>manual（既定）/ discord（Discord で紹介されたもの）</summary>
+    public string Source { get; set; } = "manual";
 }
 
 /// <summary>appsettings.json の "Site" セクション</summary>
@@ -113,6 +115,10 @@ public sealed class GlossaryEntry
     public List<string> Articles { get; set; } = [];
     /// <summary>関連する用語（id）</summary>
     public List<string> Related { get; set; } = [];
+    /// <summary>関連する言葉（用語集に無いもの。文字のまま表示し、検索にも使う）</summary>
+    public List<string> Keywords { get; set; } = [];
+    /// <summary>詳しい説明（Markdown。「詳しく」を開くと表示）</summary>
+    public string? Body { get; set; }
     public string Source { get; set; } = "manual";
 }
 
@@ -136,6 +142,12 @@ public sealed class HowtoEntry
     public List<string> Aliases { get; set; } = [];
     public List<string> Tags { get; set; } = [];
     public List<string> Articles { get; set; } = [];
+    /// <summary>関連する用語（id）</summary>
+    public List<string> Related { get; set; } = [];
+    /// <summary>関連する言葉（用語集に無いもの）</summary>
+    public List<string> Keywords { get; set; } = [];
+    /// <summary>手順などの詳しい説明（Markdown。「詳しく」を開くと表示）</summary>
+    public string? Body { get; set; }
     public string Source { get; set; } = "manual";
 }
 
@@ -144,6 +156,8 @@ public sealed class TipEntry
 {
     public string Id { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
+    /// <summary>要点（Markdown。症状・原因・直し方の形にならないコツなどはこちらに書く）</summary>
+    public string? Summary { get; set; }
     /// <summary>症状（Markdown）</summary>
     public string Symptom { get; set; } = string.Empty;
     /// <summary>原因（Markdown）</summary>
@@ -153,5 +167,51 @@ public sealed class TipEntry
     public List<string> Tags { get; set; } = [];
     public List<string> Shortcuts { get; set; } = [];
     public List<string> Articles { get; set; } = [];
+    /// <summary>関連する用語（id）</summary>
+    public List<string> Related { get; set; } = [];
+    /// <summary>関連する言葉（用語集に無いもの）</summary>
+    public List<string> Keywords { get; set; } = [];
+    /// <summary>詳しい説明（Markdown。「詳しく」を開くと表示）</summary>
+    public string? Body { get; set; }
     public string Source { get; set; } = "manual";
 }
+
+/// <summary>改変 Q&amp;A の 1 件（Content/tips/qa.yml）</summary>
+public sealed class QaEntry
+{
+    public string Id { get; set; } = string.Empty;
+    /// <summary>質問・やりたいこと</summary>
+    public string Question { get; set; } = string.Empty;
+    /// <summary>短い答え（Markdown。1〜3 文）</summary>
+    public string Answer { get; set; } = string.Empty;
+    /// <summary>詳しい説明・手順（Markdown。「詳しく」を開くと表示）</summary>
+    public string? Body { get; set; }
+    public List<string> Tags { get; set; } = [];
+    public List<string> Shortcuts { get; set; } = [];
+    public List<string> Articles { get; set; } = [];
+    /// <summary>関連する用語（id）</summary>
+    public List<string> Related { get; set; } = [];
+    /// <summary>関連する言葉（用語集に無いもの）</summary>
+    public List<string> Keywords { get; set; } = [];
+    public string Source { get; set; } = "manual";
+}
+
+/// <summary>リンク集の 1 件（Content/links.yml）</summary>
+public sealed class LinkEntry
+{
+    /// <summary>URL のアンカー（/links#id）</summary>
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    /// <summary>区切り（LinkCategories の id）</summary>
+    public string Category { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    /// <summary>補足（対応バージョン、代わりになるものなど）</summary>
+    public string? Note { get; set; }
+    /// <summary>current（今も使われている）/ old（古い情報・販売終了の可能性）/ 省略（不明）</summary>
+    public string? Status { get; set; }
+    public string Source { get; set; } = "manual";
+}
+
+/// <summary>リンク集の区切り</summary>
+public sealed record LinkCategory(string Id, string Title, string Icon, string Description);
