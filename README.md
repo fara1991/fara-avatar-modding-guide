@@ -66,6 +66,7 @@ fara-blender-manual/
 ├── wwwroot/                  # 静的ファイル（CSS、画像、JS）
 │   └── js/
 │       ├── viewport.js       # Blender と同じキー操作の 3D ビュー（Three.js）。/practice と記事内チュートリアルで共用
+│       ├── editmesh.js       # 編集モードのメッシュ（頂点・辺・面）と、押し出し・ループカットなどの操作
 │       ├── practice.js       # /practice のお題
 │       ├── tutorial.js       # 記事内チュートリアル（::: practice）の案内
 │       ├── scenarios.js      # 記事内チュートリアルの手順

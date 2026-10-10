@@ -74,6 +74,11 @@ Blender の操作は文章だけでは伝わりにくいので、手順ごとに
 | `navigation-numpad` | テンキーで前 / 右 / 上 / 後ろ、Numpad 5、Numpad . | getting-started/navigation |
 | `select` | クリック・Shift+クリック・A / Alt+A・ボックス選択・Shift+A・X・Shift+D・Ctrl+Z | basics/select |
 | `transform` | G / R / S、軸の固定、数値入力、キャンセル、N、Ctrl+Z | basics/transform |
+| `edit-mode` | Tab、選択モード（1 / 2 / 3）、Alt+クリックのループ選択、ループの拡大、A / Alt+A、Alt+Z とボックス選択 | modeling/edit-mode |
+| `extrude-inset-loopcut` | 面を選んで E → I → E（へこませる）→ Ctrl+R（ホイールで 2 本） | modeling/extrude-inset-loopcut |
+| `bevel-merge` | Ctrl+B、E → Esc で重複を作って M > 距離で、面を削除して Alt+クリック → F | modeling/bevel-knife-merge |
+| `mirror` | 中央にループカット → 左半分の面を削除 → ミラー | modeling/mirror-smooth |
+| `topology` | 統計を表示 → ループカット → 辺を溶解 | modeling/topology |
 
 ### 記事に置く
 
@@ -114,7 +119,11 @@ Blender の操作は文章だけでは伝わりにくいので、手順ごとに
 - `done(e)` に届くイベントの種類（`select` / `opstart` / `axis` / `numeric` / `confirm` / `cancel` / `view` / `add` / `delete` / `undo` など）と中身は `wwwroot/js/viewport.js` の先頭に書いてあります
 - `hint(e)` で文字列を返すとヒントを表示し、`fail(e)` で文字列を返すと `group` の最初の手順からやり直しになります
 - `skip` は必ず書いてください。「やり直す」や一時停止からの再開は、最初の状態から前の手順の `skip` を順に実行して再現しています
-- `highlight: { object: "Cube", axis: "z", hud: "view" }` で、対象のオブジェクト・軸・左上の視点表示を目立たせます
+- `highlight: { object: "Cube", axis: "z", hud: "view" }` で、対象のオブジェクト・軸・左上の視点表示を目立たせます。編集モードでは `at: [x, y, z]`（ワールド座標の点に吹き出し）と `tool: "face"`（上の「頂点 / 辺 / 面・透過・統計・ミラー」ボタンを光らせる）が便利です
+- 編集モード用の部品が `scenarios.js` にあります: `tabStep`（Tab）、`selectModeStep`（1 / 2 / 3）、`editOpSteps`（E / I / Ctrl+B → 数値 → Enter）、`editClickStep`（面や辺をクリック）、`loopCutSteps`（Ctrl+R → ホイール → クリック → 位置）
+- 編集モードの選択を判定するときは、`select` イベントの `e.edit` と `e.counts`（選択した頂点・辺・面の数）を見ます。どの面を選んだかは `vp.editInfo().faces`（ワールド座標の中心と法線）で確かめられます
+- `skip` でマウス位置に頼る操作（ループカットの辺など）は、`vp.findEdge(条件)` のように条件で対象を決めてください（再現のときはマウスの位置が決まっていないため）
+- 編集モードの操作はおおむね Blender と同じ結果になりますが、ベベルは分割数 1 だけ、差し込みは複数の面でも面ごと（Blender で I を 2 回押したとき）、ナイフ（K）・隠す（H）・編集モードの複製（Shift+D）は未対応です。ミラーはモディファイアーの代わりに上の「ミラー」ボタン（X 方向）で表示します
 - 動作確認は `dotnet run` で記事を開いて最後まで操作し、「次へ（スキップ）」だけでも最後まで進めることを確かめてください。`?debug=1` を付けると、ブラウザのコンソールから `__tutorials` で状態を見られます
 
 ### 完了の記録

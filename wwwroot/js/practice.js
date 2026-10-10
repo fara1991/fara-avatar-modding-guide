@@ -15,6 +15,14 @@ const TASKS = [
   { text: "Numpad 5 で平行投影に切り替える", check: s => s.ortho },
   { text: "Ctrl+Z で直前の操作を元に戻す", check: s => s.undoUsed },
   { text: "球を選んで X で削除する", check: s => s.sphereAdded && !s.objects.some(o => o.userData.kind === "sphere") },
+  // ここから編集モード
+  { text: "立方体を選んで Tab で編集モードに入る", check: s => s.mode === "edit" },
+  { text: "3 で面選択モードにして、上の面をクリックで選ぶ", check: s => s.mode === "edit" && s.selectMode === "face" && s.faces.length === 1 && s.faces[0].normal.z > 0.9 },
+  { text: "E → 1 → Enter で、上の面を押し出す", check: s => s.extruded },
+  { text: "I → 0.3 → Enter で、面を差し込む", check: s => s.inset },
+  { text: "Ctrl+R で側面にループカットを入れる（ホイールで本数）", check: s => s.loopcut },
+  { text: "2 で辺選択モードにして辺を 1 本選び、Ctrl+B でベベル", check: s => s.bevel },
+  { text: "Tab でオブジェクトモードに戻る", check: s => s.mode === "object" },
 ];
 
 class Practice {
@@ -26,6 +34,10 @@ class Practice {
     this.vp.on("*", e => {
       if (e.type === "add" && e.kind === "sphere") this.state.sphereAdded = true;
       if (e.type === "undo") this.state.undoUsed = true;
+      if (e.type === "confirm" && e.extrude) this.state.extruded = true;
+      if (e.type === "confirm" && e.kind === "I") this.state.inset = true;
+      if (e.type === "loopcut") this.state.loopcut = true;
+      if (e.type === "confirm" && e.kind === "B") this.state.bevel = true;
       this.checkTasks();
     });
     document.getElementById("practice-reset").addEventListener("click", () => { this.reset(); root.focus(); });
@@ -34,7 +46,7 @@ class Practice {
 
   reset() {
     this.vp.resetScene();
-    this.state = { undoUsed: false, sphereAdded: false };
+    this.state = { undoUsed: false, sphereAdded: false, extruded: false, inset: false, loopcut: false, bevel: false };
     this.taskIndex = 0;
     this.taskDone = TASKS.map(() => false);
     this.renderTasks();
@@ -54,7 +66,10 @@ class Practice {
 
   checkTasks() {
     const vp = this.vp;
-    const ctx = { objects: vp.objects, selected: vp.selected, viewName: vp.view.name, ortho: vp.ortho, ...this.state };
+    const ctx = {
+      objects: vp.objects, selected: vp.selected, viewName: vp.view.name, ortho: vp.ortho,
+      mode: vp.mode, selectMode: vp.selectMode, faces: vp.mode === "edit" ? vp.editInfo().faces : [], ...this.state,
+    };
     let changed = false;
     while (this.taskIndex < TASKS.length && TASKS[this.taskIndex].check(ctx)) {
       this.taskDone[this.taskIndex] = true;
@@ -68,7 +83,8 @@ class Practice {
 const root = document.getElementById("practice-viewport");
 if (root) {
   try {
-    new Practice(root);
+    const practice = new Practice(root);
+    if (new URLSearchParams(location.search).get("debug") === "1") window.__practice = practice.vp; // 確認用
   } catch (err) {
     // WebGL が使えない環境（古いブラウザ・GPU 無効など）
     const msg = document.createElement("div");
