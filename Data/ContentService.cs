@@ -40,12 +40,20 @@ public sealed partial class ContentService
         _snapshot = Load();
     }
 
+    public IReadOnlyList<LearnSection> Sections => _snapshot.Sections;
+    /// <summary>目次のカテゴリ。区切り（Sections）の順、同じ区切りの中は categories.yml の順</summary>
     public IReadOnlyList<LearnCategory> Categories => _snapshot.Categories;
     public IReadOnlyList<Article> Articles => _snapshot.Articles;
     public IReadOnlyList<Shortcut> Shortcuts => _snapshot.Shortcuts;
     public IReadOnlyList<Addon> Addons => _snapshot.Addons;
 
     public void Reload() => _snapshot = Load();
+
+    public IReadOnlyList<LearnCategory> GetCategoriesInSection(string sectionId) =>
+        Categories.Where(c => c.Section.Equals(sectionId, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    public LearnSection? GetSection(string id) =>
+        Sections.FirstOrDefault(s => s.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
     public LearnCategory? GetCategory(string id) =>
         Categories.FirstOrDefault(c => c.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
@@ -106,7 +114,16 @@ public sealed partial class ContentService
 
     private Snapshot Load()
     {
+        var sections = ReadYaml<List<LearnSection>>(Path.Combine(_root, "learn", "sections.yml")) ?? [];
         var categories = ReadYaml<List<LearnCategory>>(Path.Combine(_root, "learn", "categories.yml")) ?? [];
+        foreach (var c in categories.Where(c => !sections.Any(s => s.Id == c.Section)))
+        {
+            _logger.LogWarning("Category {Category} has unknown section {Section}", c.Id, c.Section);
+        }
+        // 区切りの順に並べ替える（同じ区切りの中は元の順。OrderBy は安定ソート）
+        categories = categories
+            .OrderBy(c => sections.FindIndex(s => s.Id == c.Section) is var i && i >= 0 ? i : int.MaxValue)
+            .ToList();
         var articles = categories
             .SelectMany(c => LoadArticles(c.Id))
             .ToList();
@@ -116,7 +133,7 @@ public sealed partial class ContentService
         _logger.LogInformation("Content loaded: {Categories} categories, {Articles} articles, {Shortcuts} shortcuts, {Addons} addons",
             categories.Count, articles.Count, shortcuts.Count, addons.Count);
 
-        return new Snapshot(categories, articles, shortcuts, addons);
+        return new Snapshot(sections, categories, articles, shortcuts, addons);
     }
 
     private IEnumerable<Article> LoadArticles(string categoryId)
@@ -247,6 +264,7 @@ public sealed partial class ContentService
     private static partial Regex WhitespaceRegex();
 
     private sealed record Snapshot(
+        IReadOnlyList<LearnSection> Sections,
         IReadOnlyList<LearnCategory> Categories,
         IReadOnlyList<Article> Articles,
         IReadOnlyList<Shortcut> Shortcuts,

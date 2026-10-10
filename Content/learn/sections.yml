@@ -1,0 +1,22 @@
+# 目次の大きな区切り（ツールごと）。並び順がそのまま目次の順になる。
+# 各カテゴリは categories.yml の section で、どの区切りに入るかを決める。
+
+- id: blender
+  title: Blender
+  description: モデリング・マテリアル・リギングなど、Blender での作業。
+  icon: bi-box
+
+- id: unity
+  title: Unity
+  description: アバターを Unity に入れて、衣装やマテリアルを設定する。
+  icon: bi-grid-3x3-gap
+
+- id: vrchat
+  title: VRChat
+  description: アップロード前の確認と、VRChat 向けの設定。
+  icon: bi-headset-vr
+
+- id: practice
+  title: 通しで作る
+  description: Blender → Unity → VRChat の流れを、アバター用の衣装づくりで通して行う。
+  icon: bi-signpost-split

@@ -1,39 +1,57 @@
 @inject ContentService Content
 
-<ol class="roadmap list-unstyled">
-    @foreach (var (category, index) in Content.Categories.Select((c, i) => (c, i)))
-    {
-        var articles = Content.GetArticles(category.Id);
-        <li class="roadmap-step">
-            <div class="roadmap-marker">@(index + 1)</div>
-            <div class="roadmap-body">
-                <h3 class="h5 mb-1">
-                    <i class="bi @category.Icon me-1" aria-hidden="true"></i>
-                    <a href="/learn/@category.Id" class="text-decoration-none">@category.Title</a>
-                    @if (articles.Count > 0)
-                    {
-                        <span class="category-progress" data-category-progress="@category.Id" data-articles="@string.Join(' ', articles.Select(a => a.Id))" hidden></span>
-                    }
-                </h3>
-                <p class="text-body-secondary mb-2">@category.Description</p>
-                @if (articles.Count == 0)
+@* 目次。区切り（Blender / Unity / VRChat / 通しで作る）ごとに、カテゴリを読む順に並べる *@
+@foreach (var section in Content.Sections)
+{
+    var categories = Content.GetCategoriesInSection(section.Id);
+    <section class="roadmap-section" id="section-@section.Id" aria-labelledby="section-title-@section.Id">
+        <h3 class="roadmap-section-title" id="section-title-@section.Id">
+            <i class="bi @section.Icon" aria-hidden="true"></i> @section.Title
+        </h3>
+        <p class="roadmap-section-desc text-body-secondary">@section.Description</p>
+        @if (categories.Count == 0)
+        {
+            <p><span class="badge bg-secondary">準備中</span></p>
+        }
+        else
+        {
+            <ol class="roadmap list-unstyled">
+                @foreach (var (category, index) in categories.Select((c, i) => (c, i)))
                 {
-                    <span class="badge bg-secondary">準備中</span>
+                    var articles = Content.GetArticles(category.Id);
+                    <li class="roadmap-step">
+                        <div class="roadmap-marker">@(index + 1)</div>
+                        <div class="roadmap-body">
+                            <h4 class="h5 mb-1">
+                                <i class="bi @category.Icon me-1" aria-hidden="true"></i>
+                                <a href="/learn/@category.Id" class="text-decoration-none">@category.Title</a>
+                                @if (articles.Count > 0)
+                                {
+                                    <span class="category-progress" data-category-progress="@category.Id" data-articles="@string.Join(' ', articles.Select(a => a.Id))" hidden></span>
+                                }
+                            </h4>
+                            <p class="text-body-secondary mb-2">@category.Description</p>
+                            @if (articles.Count == 0)
+                            {
+                                <span class="badge bg-secondary">準備中</span>
+                            }
+                            else
+                            {
+                                <ol class="roadmap-articles">
+                                    @foreach (var article in articles)
+                                    {
+                                        <li data-article="@article.Id">
+                                            <a href="@article.Url">@article.Title</a>
+                                            <i class="done-mark bi bi-check-circle-fill" title="完了" aria-label="完了"></i>
+                                            <DifficultyBadge Difficulty="@article.Difficulty" />
+                                        </li>
+                                    }
+                                </ol>
+                            }
+                        </div>
+                    </li>
                 }
-                else
-                {
-                    <ol class="roadmap-articles">
-                        @foreach (var article in articles)
-                        {
-                            <li data-article="@article.Id">
-                                <a href="@article.Url">@article.Title</a>
-                                <i class="done-mark bi bi-check-circle-fill" title="完了" aria-label="完了"></i>
-                                <DifficultyBadge Difficulty="@article.Difficulty" />
-                            </li>
-                        }
-                    </ol>
-                }
-            </div>
-        </li>
-    }
-</ol>
+            </ol>
+        }
+    </section>
+}

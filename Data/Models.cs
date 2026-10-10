@@ -1,9 +1,21 @@
 namespace FaraBlenderManual.Data;
 
+/// <summary>目次の大きな区切り（Blender / Unity / VRChat など）。Content/learn/sections.yml で定義する。</summary>
+public sealed class LearnSection
+{
+    public string Id { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    /// <summary>Bootstrap Icons のクラス名</summary>
+    public string Icon { get; set; } = "bi-collection";
+}
+
 /// <summary>目次の1段階。Content/learn/categories.yml で定義し、並び順がそのまま読む順になる。</summary>
 public sealed class LearnCategory
 {
     public string Id { get; set; } = string.Empty;
+    /// <summary>入る区切り（sections.yml の id）</summary>
+    public string Section { get; set; } = "blender";
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     /// <summary>Bootstrap Icons のクラス名（例: bi-arrows-move）</summary>
@@ -71,8 +83,11 @@ public sealed class Addon
 /// <summary>appsettings.json の "Site" セクション</summary>
 public sealed class SiteOptions
 {
-    public string Title { get; set; } = "Blender Manual";
+    /// <summary>サイト名。表示はすべてここから取る（appsettings.json の Site:Title。ほかに書かない）</summary>
+    public string Title { get; set; } = string.Empty;
     /// <summary>サイト全体で前提にする Blender のバージョン。各記事は blender_version で上書きできる。</summary>
     public string BlenderVersion { get; set; } = "4.2";
+    /// <summary>Unity の記事で前提にするバージョン</summary>
+    public string UnityVersion { get; set; } = "2022.3";
     public string RepositoryUrl { get; set; } = string.Empty;
 }

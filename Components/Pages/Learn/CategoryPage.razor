@@ -16,6 +16,10 @@ else
     <nav aria-label="パンくず">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/learn">目次</a></li>
+            @if (Content.GetSection(category.Section) is { } section)
+            {
+                <li class="breadcrumb-item"><a href="/learn#section-@section.Id">@section.Title</a></li>
+            }
             <li class="breadcrumb-item active" aria-current="page">@category.Title</li>
         </ol>
     </nav>

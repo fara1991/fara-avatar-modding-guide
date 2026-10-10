@@ -1,5 +1,7 @@
-// Cloudflare Worker。/api/rooms/<部屋ID>/ws だけをこのスクリプトで処理し、それ以外は静的ファイル（dist/）を返す。
-// 静的ファイルは wrangler.toml の run_worker_first で /api/* 以外はスクリプトを通らずに配信される。
+// Cloudflare Worker。すべてのリクエストがまずここを通る（wrangler.toml の run_worker_first = true）。
+// - 旧アドレス（blender.fara-labs.com / blender-dev.fara-labs.com）は、パスを保ったまま新アドレスへ 301
+// - /api/rooms/<部屋ID>/ws は共同練習の部屋（Durable Object）へ
+// - それ以外は静的ファイル（dist/）。確認用（*-dev）のホストには検索エンジン向けの noindex を付ける
 //
 // 共同練習の部屋（/practice/room）: 部屋ごとに 1 つの Durable Object（Room）が WebSocket をまとめ、
 // オブジェクトモードのシーン（立方体などの種類・名前・位置・回転・スケール）を全員で共有する。
@@ -32,11 +34,23 @@ export const LIMITS = {
 const KINDS = new Set(["plane", "cube", "sphere", "cylinder", "cone", "torus"]);
 const COLORS = ["#f97316", "#22c55e", "#3b82f6", "#e879f9", "#facc15", "#14b8a6", "#ef4444", "#a78bfa"];
 const ROOM_ID = /^[a-z0-9]{6,32}$/;
+// サイト名の変更で移ったアドレス
+const HOST_REDIRECTS = {
+  "blender.fara-labs.com": "avatar.fara-labs.com",
+  "blender-dev.fara-labs.com": "avatar-dev.fara-labs.com",
+};
 const OBJ_ID = /^[a-z0-9]{1,24}$/;
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const moved = HOST_REDIRECTS[url.hostname];
+    if (moved) {
+      url.hostname = moved;
+      url.protocol = "https:";
+      url.port = "";
+      return Response.redirect(url.href, 301);
+    }
     const m = url.pathname.match(/^\/api\/rooms\/([^/]+)\/ws$/);
     if (m) {
       if (!ROOM_ID.test(m[1])) return new Response("bad room id", { status: 400 });
@@ -48,7 +62,13 @@ export default {
       return stub.fetch(request);
     }
     if (url.pathname.startsWith("/api/")) return new Response("not found", { status: 404 });
-    return env.ASSETS.fetch(request);
+    const res = await env.ASSETS.fetch(request);
+    if (url.hostname.endsWith("-dev.fara-labs.com")) {
+      const out = new Response(res.body, res);
+      out.headers.set("X-Robots-Tag", "noindex, nofollow");
+      return out;
+    }
+    return res;
   },
 };
 

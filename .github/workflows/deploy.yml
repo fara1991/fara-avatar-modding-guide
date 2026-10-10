@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.ref_name == 'master' && 'production' || 'develop' }}
-      url: ${{ github.ref_name == 'master' && 'https://blender.fara-labs.com' || 'https://blender-dev.fara-labs.com' }}
+      url: ${{ github.ref_name == 'master' && 'https://avatar.fara-labs.com' || 'https://avatar-dev.fara-labs.com' }}
     steps:
       - uses: actions/checkout@v4
 

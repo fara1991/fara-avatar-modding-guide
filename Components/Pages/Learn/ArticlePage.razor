@@ -19,6 +19,10 @@ else
     <nav aria-label="パンくず">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/learn">目次</a></li>
+            @if (Content.GetSection(category.Section) is { } section)
+            {
+                <li class="breadcrumb-item"><a href="/learn#section-@section.Id">@section.Title</a></li>
+            }
             <li class="breadcrumb-item"><a href="/learn/@category.Id">@category.Title</a></li>
             <li class="breadcrumb-item active" aria-current="page">@article.Title</li>
         </ol>
@@ -30,7 +34,15 @@ else
         <div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary small">
             <span class="done-mark badge-done" data-article="@article.Id"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> 完了</span>
             <DifficultyBadge Difficulty="@article.Difficulty" />
-            <span><i class="bi bi-box" aria-hidden="true"></i> Blender @(article.BlenderVersion ?? Site.Value.BlenderVersion)</span>
+            @* 対象のソフトとバージョン。Unity / VRChat の区切りの記事は Unity のバージョン *@
+            @if (category.Section is "unity" or "vrchat")
+            {
+                <span><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Unity @Site.Value.UnityVersion</span>
+            }
+            else
+            {
+                <span><i class="bi bi-box" aria-hidden="true"></i> Blender @(article.BlenderVersion ?? Site.Value.BlenderVersion)</span>
+            }
             @if (article.Updated is { } updated)
             {
                 <span><i class="bi bi-clock-history" aria-hidden="true"></i> 更新: @updated.ToString("yyyy-MM-dd")</span>
