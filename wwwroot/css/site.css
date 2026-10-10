@@ -258,6 +258,105 @@ body {
     margin-right: 0.15rem;
 }
 
+/* 共同練習: ほかの人のカーソル */
+.vp-remote {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.vp-remote-cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: transform 0.08s linear;
+}
+
+.vp-remote-cursor[hidden] {
+    display: none;
+}
+
+.vp-remote-cursor .dot {
+    width: 12px;
+    height: 12px;
+    margin: -6px 0 0 -6px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--peer);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.vp-remote-cursor .name {
+    max-width: 10rem;
+    padding: 1px 6px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--peer);
+    color: #111;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* 共同練習ページ */
+.room-peers {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.room-peers li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.room-peers li:last-child {
+    border-bottom: none;
+}
+
+.room-peers .swatch {
+    flex: 0 0 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    background: var(--peer);
+}
+
+.room-peers .peer-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.room-peers .btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.room-status.is-ok {
+    color: #4ade80;
+}
+
+.room-status.is-warn {
+    color: #fbbf24;
+}
+
+[data-bs-theme="light"] .room-status.is-ok {
+    color: #15803d;
+}
+
+[data-bs-theme="light"] .room-status.is-warn {
+    color: #b45309;
+}
+
 /* 3D ビュー上部のボタン（選択モード・透過・統計・ミラー） */
 .vp-tools {
     position: absolute;
