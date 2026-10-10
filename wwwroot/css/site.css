@@ -1497,6 +1497,103 @@ main {
     color: inherit;
 }
 
+/* ---------- 用語集・何て名前？・TIPS ---------- */
+.tip-card {
+    scroll-margin-top: 5rem;
+}
+
+.tip-card:target {
+    border-color: var(--violet);
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.45);
+}
+
+.tip-anchor {
+    color: inherit;
+    text-decoration: none;
+}
+
+.tip-anchor:hover {
+    text-decoration: underline;
+}
+
+.tip-en {
+    padding: 0 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    color: var(--bs-secondary-color);
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.8rem;
+}
+
+.tip-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.tip-tag {
+    padding: 0 7px;
+    border-radius: 999px;
+    background: rgba(168, 85, 247, 0.14);
+    color: var(--bs-secondary-color);
+    font-size: 0.72rem;
+}
+
+.tip-source-discord {
+    background: rgba(88, 101, 242, 0.25);
+    color: var(--bs-body-color);
+}
+
+.tip-refs {
+    display: grid;
+    gap: 0.2rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+}
+
+.tip-refs-label {
+    display: inline-block;
+    min-width: 2.6rem;
+    margin-right: 0.3rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.75rem;
+}
+
+.howto-answer {
+    font-size: 1.05rem;
+}
+
+.howto-answer .bi {
+    color: var(--violet);
+}
+
+.howto-menu,
+.tip-detail {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.15rem 0.75rem;
+}
+
+.howto-menu dt,
+.tip-detail dt {
+    color: var(--bs-secondary-color);
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding-top: 0.1rem;
+}
+
+.howto-menu dd,
+.tip-detail dd {
+    margin: 0;
+}
+
+.tip-detail dd ul {
+    margin-bottom: 0;
+    padding-left: 1.1rem;
+}
+
 /* ---------- カード ---------- */
 .card {
     background: var(--surface);

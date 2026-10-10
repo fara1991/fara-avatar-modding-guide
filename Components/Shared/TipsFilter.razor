@@ -1,0 +1,23 @@
+@* 用語集・何て名前？・TIPS の絞り込み（文字とタグ）。動きは wwwroot/js/tipsfilter.js。?tag= で URL を共有できる *@
+<div class="tips-filter mb-4" data-tips-filter>
+    <input type="search" class="form-control mb-2" placeholder="@Placeholder" aria-label="この一覧を絞り込む" data-tips-q autocomplete="off" />
+    <div class="d-flex flex-wrap gap-2" role="group" aria-label="タグで絞り込む">
+        <button type="button" class="btn btn-sm btn-primary" data-tag="" aria-pressed="true">すべて</button>
+        @foreach (var tag in Tags)
+        {
+            <button type="button" class="btn btn-sm btn-outline-primary" data-tag="@tag" aria-pressed="false">@tag</button>
+        }
+        @if (HasDiscord)
+        {
+            <button type="button" class="btn btn-sm btn-outline-primary" data-tag="source:discord" aria-pressed="false">Discord より</button>
+        }
+    </div>
+    <p class="small text-body-secondary mt-2 mb-0" data-tips-count aria-live="polite">@Count 件</p>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<string> Tags { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "この一覧を絞り込む";
+    [Parameter] public bool HasDiscord { get; set; }
+    [Parameter] public int Count { get; set; }
+}

@@ -1,0 +1,36 @@
+@page "/glossary"
+@inject ContentService Content
+@inject IOptions<SiteOptions> Site
+
+<PageTitle>用語集 - @Site.Value.Title</PageTitle>
+<HeadContent><meta name="description" content="Blender・Unity・VRChat・Modular Avatar の用語を、読み・英語 UI の表記・短い説明と関連する記事でまとめた用語集です。" /></HeadContent>
+
+<h1>用語集</h1>
+<p class="lead">Blender・Unity・VRChat でよく出てくる言葉を、画面での英語の表記と一緒にまとめました（読みの順）。やりたいことから操作の名前を探すなら <a href="/howto">何て名前？</a>、つまずいたときは <a href="/tips">TIPS</a> へ。</p>
+
+<TipsFilter Tags="@Content.TipTags(Content.Glossary.Select(g => g.Tags))" Placeholder="用語・読み・英語名で絞り込む（例: ウェイト、merge）" HasDiscord="@Content.Glossary.Any(g => g.Source == "discord")" Count="@Content.Glossary.Count" />
+
+<div class="row g-3">
+    @foreach (var g in Content.Glossary)
+    {
+        <div class="col-md-6" data-tip-item>
+            <article class="tip-card card h-100" id="@g.Id" data-tags="@string.Join('|', g.Tags)" data-source="@g.Source">
+                <div class="card-body">
+                    <header class="d-flex flex-wrap align-items-baseline gap-2 mb-1">
+                        <h2 class="h5 mb-0"><a href="#@g.Id" class="tip-anchor">@g.Term</a></h2>
+                        <span class="small text-body-secondary">@g.Reading</span>
+                        @if (!string.IsNullOrEmpty(g.En))
+                        {
+                            <span class="tip-en" title="英語 UI での表記">@g.En</span>
+                        }
+                    </header>
+                    <TipTags Tags="@g.Tags" Source="@g.Source" />
+                    <p class="mb-2">@((MarkupString)ContentService.RenderInline(g.Description))</p>
+                    <TipRefs Shortcuts="@g.Shortcuts" Articles="@g.Articles" Related="@g.Related" />
+                </div>
+            </article>
+        </div>
+    }
+</div>
+
+<script src="/js/tipsfilter.js" defer></script>

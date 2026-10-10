@@ -91,3 +91,67 @@ public sealed class SiteOptions
     public string UnityVersion { get; set; } = "2022.3";
     public string RepositoryUrl { get; set; } = string.Empty;
 }
+
+// ---------------------------------------------------------------- TIPS・用語集（Content/tips/*.yml）
+// どれも source に "discord" を入れると「Discord より」と表示される（Discord の会話から起こした項目用）。
+
+/// <summary>用語集の 1 語（Content/tips/glossary.yml）</summary>
+public sealed class GlossaryEntry
+{
+    /// <summary>URL のアンカー（/glossary#id）。英小文字・数字・ハイフン</summary>
+    public string Id { get; set; } = string.Empty;
+    public string Term { get; set; } = string.Empty;
+    /// <summary>読み（ひらがな）。並び順に使う</summary>
+    public string Reading { get; set; } = string.Empty;
+    /// <summary>英語 UI での表記（Blender / Unity の画面に出る名前）</summary>
+    public string? En { get; set; }
+    /// <summary>説明（Markdown。1〜3 文）</summary>
+    public string Description { get; set; } = string.Empty;
+    public List<string> Tags { get; set; } = [];
+    public List<string> Shortcuts { get; set; } = [];
+    /// <summary>関連する記事（"category/slug"）</summary>
+    public List<string> Articles { get; set; } = [];
+    /// <summary>関連する用語（id）</summary>
+    public List<string> Related { get; set; } = [];
+    public string Source { get; set; } = "manual";
+}
+
+/// <summary>「あの操作、何て名前？」の 1 件（Content/tips/howto.yml）</summary>
+public sealed class HowtoEntry
+{
+    public string Id { get; set; } = string.Empty;
+    /// <summary>やりたいこと（例: 頂点をくっつけたい）</summary>
+    public string Question { get; set; } = string.Empty;
+    /// <summary>操作の名前（例: マージ）</summary>
+    public string Answer { get; set; } = string.Empty;
+    public string? AnswerEn { get; set; }
+    /// <summary>メニューの場所（日本語 UI）</summary>
+    public string? Menu { get; set; }
+    /// <summary>メニューの場所（英語 UI）</summary>
+    public string? MenuEn { get; set; }
+    public List<string> Shortcuts { get; set; } = [];
+    /// <summary>補足・似た操作との違い（Markdown）</summary>
+    public string? Note { get; set; }
+    /// <summary>同じ意味の言い方（検索用）</summary>
+    public List<string> Aliases { get; set; } = [];
+    public List<string> Tags { get; set; } = [];
+    public List<string> Articles { get; set; } = [];
+    public string Source { get; set; } = "manual";
+}
+
+/// <summary>TIPS（つまずきと直し方）の 1 件（Content/tips/tips.yml）</summary>
+public sealed class TipEntry
+{
+    public string Id { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    /// <summary>症状（Markdown）</summary>
+    public string Symptom { get; set; } = string.Empty;
+    /// <summary>原因（Markdown）</summary>
+    public string Cause { get; set; } = string.Empty;
+    /// <summary>直し方（Markdown。手順は箇条書きで）</summary>
+    public string Fix { get; set; } = string.Empty;
+    public List<string> Tags { get; set; } = [];
+    public List<string> Shortcuts { get; set; } = [];
+    public List<string> Articles { get; set; } = [];
+    public string Source { get; set; } = "manual";
+}

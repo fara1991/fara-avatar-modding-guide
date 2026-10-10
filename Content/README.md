@@ -9,6 +9,10 @@ Content/
     categories.yml        # 目次の段階（並び順 = 読む順。section でどの区切りに入るかを決める）
     <category-id>/
       01-slug.md          # 記事。ファイル名が「番号-スラッグ.md」で、URL は /learn/<category-id>/<slug>
+  tips/
+    glossary.yml          # 用語集（/glossary）
+    howto.yml             # あの操作、何て名前？（/howto）
+    tips.yml              # TIPS（/tips）
   shortcuts.yml           # ショートカットの一次データ（記事からは frontmatter の shortcuts で参照）
   addons.yml              # アドオン一覧
 ```
@@ -148,3 +152,26 @@ node tools/tutorial-images/capture.mjs http://localhost:8787 transform   # 指�
 - 各記事の最後にある「このページを完了にする」か、ページ内のチュートリアルを最後まで進めると記録されます
 - 記録はブラウザの localStorage（`blender-manual.progress`）にだけ保存されます。目次ページの「記録を消す」で消せます
 - 確認用に、`/learn?debug=1&seed=basics/select,basics/transform` のように開くと、指定したページを完了にできます
+
+## 用語集・何て名前？・TIPS
+
+`Content/tips/` の YAML に 1 項目ずつ書きます。どれもサイト内検索の対象になり、ページではタグで絞り込めます。項目の形は各ファイルの先頭のコメントを見てください。
+
+```yaml
+# glossary.yml
+- id: merge                 # /glossary#merge。英小文字・数字・ハイフン
+  term: マージ
+  reading: まーじ           # 読み（並び順に使う）
+  en: Merge                 # 英語 UI での表記
+  description: 選んだ頂点を 1 つにまとめる（編集モードで <kbd>M</kbd>）。   # Markdown
+  tags: [Blender, モデリング]
+  shortcuts: [M]            # shortcuts.yml の key と同じ表記ならリンクになる
+  articles: [modeling/bevel-knife-merge]   # カテゴリ/スラッグ
+  related: [join]           # 関連する用語の id
+  source: discord           # Discord の会話から起こした項目なら（「Discord より」と表示）
+```
+
+- タグは `Blender` / `Unity` / `VRChat` / `Modular Avatar` と、作業の種類（`モデリング` `ウェイト` `マテリアル` `UV` `リギング` `書き出し`）を組み合わせます
+- `source: discord` の項目は「Discord より」の印が付き、絞り込みのボタンも出ます。会話の内容は、誰が言ったかがわからない形に書き直してください
+- 存在しない記事・用語を参照すると、起動時に警告が出ます
+

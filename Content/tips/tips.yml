@@ -1,0 +1,238 @@
+# TIPS: よくあるつまずきと直し方。/tips に表示され、検索の対象になる。
+#
+#   id:      URL のアンカー（/tips#id）
+#   title:   短い見出し（症状や原因がひと目でわかるように）
+#   symptom: 症状（Markdown）
+#   cause:   原因（Markdown）
+#   fix:     直し方（Markdown。手順は箇条書き）
+#   tags / shortcuts / articles / source（manual / discord）は用語集と同じ
+#
+# 対象: Blender 4.5 / Unity 2022.3 + VRChat SDK3 + Modular Avatar
+
+- id: unapplied-scale
+  title: スケールを適用していない
+  symptom: ソリッド化の厚みやベベルの幅が軸ごとに違う。Unity に入れると大きさが 100 倍・0.01 倍になる。
+  cause: オブジェクトモードで拡大縮小すると、メッシュではなくオブジェクトの「スケール」の値が変わる。モディファイアーや書き出しはその値の影響を受ける。
+  fix: |
+    - オブジェクトを選んで <kbd>Ctrl</kbd>+<kbd>A</kbd> > **スケール**（書き出し前は **全トランスフォーム**）
+    - サイドバー（<kbd>N</kbd>）でスケールが 1.000 になっていることを確かめる
+    - アーマチュアで動かしているメッシュは、アーマチュアと一緒に適用する
+  tags: [Blender, 書き出し, モデリング]
+  shortcuts: [Ctrl+A, N]
+  articles: [basics/transform, avatar-clothing/export-fbx]
+
+- id: flipped-normals
+  title: 面が黒い・Unity で一部が透けて見えない
+  symptom: マテリアルプレビューで一部の面が黒い。Unity では、その面が裏からしか見えない（透明に見える）。
+  cause: 面の表裏（法線）が裏返っている。ミラーや押し出しのあとに起きやすい。
+  fix: |
+    - 3D ビューの「オーバーレイ > 面の向き」で確認する（表が青、裏が赤）
+    - 編集モードで <kbd>A</kbd> → <kbd>Shift</kbd>+<kbd>N</kbd>（外側を再計算）
+    - 直らない面だけ選んで「メッシュ > ノーマル > 反転」
+  tags: [Blender, Unity, モデリング]
+  shortcuts: [Shift+N, A]
+  articles: [modeling/topology]
+
+- id: duplicate-vertices-tip
+  title: スムーズにすると黒い筋が出る
+  symptom: スムーズシェードにすると線状の影や筋が出る。自動ウェイトが失敗する。
+  cause: 同じ位置に頂点が重なっている（押し出しのキャンセル、ミラーの中央、統合のあとなど）。
+  fix: |
+    - 編集モードで <kbd>A</kbd> → <kbd>M</kbd> > **距離で**
+    - 画面左下に「○個の頂点を削除」と出る。消えた数が 0 なら別の原因（法線の裏返りなど）
+  tags: [Blender, モデリング]
+  shortcuts: [M, A]
+  articles: [modeling/topology, modeling/bevel-knife-merge]
+
+- id: pink-material
+  title: Unity でマテリアルがピンク（マゼンタ）になる
+  symptom: アバターや衣装を入れたら、表面が真っピンクになる。
+  cause: マテリアルが使うシェーダーがプロジェクトに無い。衣装が lilToon などを前提にしているのに、プロジェクトに入っていないことが多い。
+  fix: |
+    - 衣装の説明で、必要なシェーダー（lilToon など）とバージョンを確かめる
+    - VCC / ALCOM のパッケージ、または配布元の unitypackage でシェーダーを入れる
+    - 入れたあとも直らなければ、マテリアルの Inspector でシェーダーを選び直す
+  tags: [Unity, マテリアル]
+  articles: [materials/for-unity]
+
+- id: ma-bone-mismatch
+  title: Modular Avatar で服が体についてこない
+  symptom: Setup Outfit をしたのに、アバターが動くと服がその場に残る・ずれる。
+  cause: 衣装のボーン名がアバターのボーン名と合っていない（別のアバター向けの衣装、名前の前後に余計な文字があるなど）。Setup Outfit が衣装のアーマチュアを見つけられていないこともある。
+  fix: |
+    - 衣装がそのアバターに対応しているか確かめる（対応アバター以外は、ボーンの調整が必要）
+    - 衣装のアーマチュアに **MA Merge Armature** が付いているか、Merge Target がアバターの Armature か確かめる
+    - 名前の前後の違いは、MA Merge Armature の Prefix / Suffix で合わせる
+    - Build & Test で実際に動かして確かめる
+  tags: [Unity, Modular Avatar, リギング]
+  articles: [avatar-clothing/unity-setup]
+
+- id: clothes-clip-through
+  title: 体が服を突き抜ける
+  symptom: 腕を曲げたりしゃがんだりすると、体が服の外に出てくる。
+  cause: 服と体のウェイトが合っていない、または服が体に近すぎる。
+  fix: |
+    - 服のウェイトを体から転送し直す（データ転送）
+    - 服を少しだけ外に膨らませる（編集モードで <kbd>Alt</kbd>+<kbd>S</kbd>）
+    - 服で隠れる部分の体は、シェイプキーで縮めるか、服の下の体のメッシュを消す
+  tags: [Blender, ウェイト, Unity]
+  shortcuts: [Alt+S]
+  articles: [avatar-clothing/weight-transfer]
+
+- id: fbx-leaf-bones
+  title: Unity で余計なボーン（_end）が増えている
+  symptom: 書き出した FBX を Unity に入れると、ボーンの先に「〜_end」というボーンが増えている。
+  cause: FBX 書き出しの「リーフボーンを追加」（Add Leaf Bones）がオンになっている。
+  fix: |
+    - FBX の書き出しで、アーマチュアの **リーフボーンを追加** をオフにする
+    - あわせて「選択したオブジェクト」で、服とアーマチュアだけを書き出す
+  tags: [Blender, Unity, 書き出し]
+  articles: [avatar-clothing/export-fbx]
+
+- id: fbx-rotation
+  title: Unity で服が 90° 回っている・寝ている
+  symptom: FBX を Unity に置くと、横倒しになっている。Rotation に -90 などの値が入っている。
+  cause: Blender（Z が上）と Unity（Y が上）の軸の違いが、オブジェクトの回転として残っている。
+  fix: |
+    - 書き出す前に <kbd>Ctrl</kbd>+<kbd>A</kbd> > 全トランスフォーム を適用する
+    - FBX 書き出しの「トランスフォーム」で、前方 -Z・上 Y、「変換を適用」を試す（衣装の配布元の推奨設定があればそれに従う）
+  tags: [Blender, Unity, 書き出し]
+  shortcuts: [Ctrl+A]
+  articles: [avatar-clothing/export-fbx]
+
+- id: bone-heat-failed
+  title: 自動のウェイトで「Bone Heat Weighting」エラーが出る
+  symptom: '<kbd>Ctrl</kbd>+<kbd>P</kbd> > 自動のウェイトで、「Bone Heat Weighting: failed to find solution for one or more bones」と出て、一部の頂点が動かない。'
+  cause: 重複頂点、とても小さい・薄い部分、つながっていないパーツ、スケールの大きすぎる / 小さすぎるメッシュなど。
+  fix: |
+    - <kbd>M</kbd> > 距離で 重複頂点を消す
+    - スケールを適用する（<kbd>Ctrl</kbd>+<kbd>A</kbd>）
+    - 服なら、自動ではなく体からのウェイト転送（データ転送）を使う
+  tags: [Blender, ウェイト, リギング]
+  shortcuts: [Ctrl+P, M, Ctrl+A]
+  articles: [rigging/parent-weights, avatar-clothing/weight-transfer]
+
+- id: shape-key-modifier
+  title: シェイプキーがあるとモディファイアーを適用できない
+  symptom: モディファイアーの「適用」で「Modifier cannot be applied to a mesh with shape keys」と出る。
+  cause: Blender は、シェイプキーを持つメッシュへのモディファイアーの適用を（そのままでは）できない。
+  fix: |
+    - シェイプキーを作る前に、ミラーなどのモディファイアーを適用しておく（作業の順番で避ける）
+    - すでにシェイプキーがある場合は、モディファイアーを残したまま書き出す（FBX 書き出しの「モディファイアーを適用」）か、シェイプキーを保ったまま適用するアドオンを使う
+  tags: [Blender, リギング, モデリング]
+  articles: [rigging/shape-keys, basics/modifiers]
+
+- id: shape-keys-lost
+  title: Unity でシェイプキー（ブレンドシェイプ）が出ない
+  symptom: Blender で作ったシェイプキーが、Unity の Skinned Mesh Renderer の BlendShapes に出てこない。
+  cause: FBX 書き出しでシェイプキーが書き出されていない、またはモディファイアーの適用でシェイプキーが失われている。
+  fix: |
+    - FBX 書き出しで、メッシュの「シェイプキー」がオンになっているか確かめる
+    - 書き出し前に、メッシュにシェイプキーが残っているか（プロパティ > データ > シェイプキー）確かめる
+    - Unity 側で FBX の Import Settings > Model > **Import BlendShapes** がオンか確かめる
+  tags: [Blender, Unity, 書き出し]
+  articles: [rigging/shape-keys, avatar-clothing/export-fbx]
+
+- id: mirror-center-gap
+  title: ミラーの真ん中が開く・重なる
+  symptom: ミラーで作った形の中央に、すき間や段差ができる。
+  cause: 中央の頂点が X = 0 からずれている。クリッピング・マージがオフになっている。
+  fix: |
+    - ミラー モディファイアーの **クリッピング** と **マージ** をオンにする
+    - 中央の頂点を選んで <kbd>S</kbd> → <kbd>X</kbd> → `0` → <kbd>Enter</kbd> で X = 0 にそろえる
+  tags: [Blender, モデリング]
+  shortcuts: [S]
+  articles: [modeling/mirror-smooth]
+
+- id: weights-not-normalized
+  title: 動かすと、関係ないところまで引っ張られる
+  symptom: 腕を上げると脇腹やスカートまで一緒に動く。
+  cause: 関係ないボーンにもウェイトが少し付いている、またはウェイトの合計が 1 になっていない。
+  fix: |
+    - ウェイトペイントで、引っ張られている頂点に付いているボーン（頂点グループ）を確かめる
+    - 「ウェイト > すべてを正規化」で合計を 1 にそろえる
+    - 小さすぎるウェイトは「ウェイト > クリーン」で消す
+  tags: [Blender, ウェイト]
+  articles: [rigging/weight-paint]
+
+- id: unity-version
+  title: Unity のバージョンが違うと言われる
+  symptom: VCC / ALCOM でプロジェクトを開くと、Unity のバージョンが違う・見つからないと表示される。SDK が入らない。
+  cause: VRChat が対応している Unity のバージョン（2022.3 系の決まったバージョン）以外で開いている。
+  fix: |
+    - VCC / ALCOM が案内する Unity のバージョンを、Unity Hub から入れる
+    - 新しいプロジェクトは VCC / ALCOM から作る（Unity Hub から直接作らない）
+  tags: [Unity, VRChat]
+  articles: [avatar-clothing/unity-setup]
+
+- id: cannot-upload
+  title: Build and Upload のボタンが押せない
+  symptom: SDK の Builder でアップロードのボタンが灰色、または赤いエラーが並んでいる。
+  cause: VRC Avatar Descriptor が無い、Humanoid でない、ログインしていない、などの検査エラー。
+  fix: |
+    - Builder の一覧の赤いエラーを上から読む。「Auto Fix」があるものは押す
+    - アバターのルートに VRC Avatar Descriptor が付いているか、FBX の Rig が Humanoid か確かめる
+    - Authentication タブでログインしているか確かめる
+  tags: [VRChat, Unity]
+
+- id: overwrote-avatar
+  title: 別のアバターに上書きしてしまった
+  symptom: 新しく作ったアバターをアップロードしたら、前のアバターが置き換わった。
+  cause: 前のアバターから複製したため、Pipeline Manager の Blueprint ID が同じまま。
+  fix: |
+    - アップロード前に、アバターの Pipeline Manager で **Detach** して Blueprint ID を外す
+    - 上書きしてしまったら、前のアバターのプロジェクトから同じ Blueprint ID でアップロードし直して戻す
+  tags: [VRChat]
+
+- id: very-poor
+  title: パフォーマンスランクが Very Poor になる
+  symptom: Builder でアバターのランクが Very Poor になり、ほかの人から見えにくくなる。
+  cause: 三角形の数・マテリアル数・Skinned Mesh の数・PhysBone の数などのどれかが上限を超えている。いちばん悪い項目がランクになる。
+  fix: |
+    - Builder のランクの詳細で、どの項目が悪いかを見る
+    - 見えない面を消す、服の下の体を消す、マテリアルをまとめる（同じテクスチャにまとめる）
+    - 使わない衣装やギミックは、無効にするのではなく Tag を EditorOnly にするか削除する
+  tags: [VRChat, モデリング]
+  articles: [modeling/topology]
+
+- id: texture-too-large
+  title: アバターのダウンロードサイズが大きい
+  symptom: アップロードはできるが、ダウンロードサイズ（容量）が大きい。
+  cause: テクスチャの解像度が必要以上に大きい（4096 など）、圧縮されていない。
+  fix: |
+    - Project ウィンドウでテクスチャを選び、Inspector の **Max Size** を 2048 や 1024 に下げる
+    - Compression を Normal Quality 以上の圧縮にする（目立つ顔などは様子を見ながら）
+  tags: [Unity, VRChat, マテリアル]
+  articles: [materials/for-unity]
+
+- id: physbone-not-swinging
+  title: PhysBone が揺れない・揺れすぎる
+  symptom: 髪やスカートがまったく揺れない、または暴れる。
+  cause: Root Transform が揺らしたいボーンの根元になっていない、Pull と Spring のバランスが極端、Ignore Transforms に揺らすボーンが入っている。
+  fix: |
+    - VRC Phys Bone の Root Transform に、揺らしたいボーンの根元を指定する
+    - Pull（戻る力）を 0.2〜0.4、Spring（揺れ）を 0.2 前後から調整する
+    - Build & Test で実際に動かして確かめる
+  tags: [VRChat, Unity]
+
+- id: original-clothes-show
+  title: 元の服と新しい服が重なって表示される
+  symptom: 衣装を着せたのに、アバターの初期衣装が服から突き出している。
+  cause: アバターの元の服（または、服の下の体）が表示されたまま。
+  fix: |
+    - Hierarchy でアバターの元の服のメッシュを選び、Inspector 左上のチェックを外す
+    - 完全に外すなら Tag を EditorOnly にする（アップロードに含めない）
+    - 服の下で体が突き抜けるなら、アバターの体の「縮める」シェイプキーを MA の設定や Skinned Mesh Renderer で使う
+  tags: [Unity, Modular Avatar]
+  articles: [avatar-clothing/unity-setup]
+
+- id: added-at-wrong-place
+  title: 追加したオブジェクトが変なところに出る
+  symptom: <kbd>Shift</kbd>+<kbd>A</kbd> で追加したものが、見えない場所や遠くに出る。
+  cause: 新しいオブジェクトは 3D カーソルの位置に追加される。カーソルが動いている。
+  fix: |
+    - <kbd>Shift</kbd>+<kbd>S</kbd> > カーソル → ワールド原点 で戻してから追加する
+    - すでに追加したものは <kbd>Alt</kbd>+<kbd>G</kbd> で位置をリセット
+  tags: [Blender]
+  shortcuts: [Shift+S, Shift+A]
+  articles: [basics/select, basics/origin-pivot-snap]

@@ -46,6 +46,31 @@ public sealed partial class ContentService
     public IReadOnlyList<Article> Articles => _snapshot.Articles;
     public IReadOnlyList<Shortcut> Shortcuts => _snapshot.Shortcuts;
     public IReadOnlyList<Addon> Addons => _snapshot.Addons;
+    /// <summary>用語集（読みの順）</summary>
+    public IReadOnlyList<GlossaryEntry> Glossary => _snapshot.Glossary;
+    public IReadOnlyList<HowtoEntry> Howtos => _snapshot.Howtos;
+    public IReadOnlyList<TipEntry> Tips => _snapshot.Tips;
+
+    /// <summary>Markdown の短い文章（用語集・TIPS の説明など）を HTML にする。1 段落だけなら &lt;p&gt; を外す</summary>
+    public static string RenderInline(string? markdown)
+    {
+        if (string.IsNullOrWhiteSpace(markdown)) return string.Empty;
+        var html = Markdown.ToHtml(markdown.Trim(), Pipeline).Trim();
+        if (html.StartsWith("<p>") && html.EndsWith("</p>") && html.IndexOf("<p>", 3, StringComparison.Ordinal) < 0)
+        {
+            html = html[3..^4];
+        }
+        return html;
+    }
+
+    public static string PlainOf(string? markdown) =>
+        string.IsNullOrEmpty(markdown) ? string.Empty : ToPlainText(Markdown.ToHtml(markdown, Pipeline));
+
+    /// <summary>TIPS・用語集のタグ（よく使うものから）</summary>
+    public IReadOnlyList<string> TipTags(IEnumerable<IEnumerable<string>> tagLists) =>
+        tagLists.SelectMany(t => t).GroupBy(t => t).OrderBy(g => TagOrder(g.Key)).ThenByDescending(g => g.Count()).Select(g => g.Key).ToList();
+
+    private static int TagOrder(string tag) => tag switch { "Blender" => 0, "Unity" => 1, "VRChat" => 2, "Modular Avatar" => 3, _ => 10 };
 
     public void Reload() => _snapshot = Load();
 
@@ -80,7 +105,7 @@ public sealed partial class ContentService
     public IReadOnlyList<string> ShortcutCategories =>
         Shortcuts.Select(s => s.Category).Distinct().ToList();
 
-    /// <summary>記事・ショートカット・アドオンをまとめた検索インデックス。</summary>
+    /// <summary>記事・用語集・何て名前？・TIPS・ショートカット・アドオンをまとめた検索インデックス。</summary>
     public IReadOnlyList<SearchEntry> BuildSearchIndex()
     {
         var entries = new List<SearchEntry>();
@@ -91,6 +116,26 @@ public sealed partial class ContentService
             var subtitle = string.IsNullOrEmpty(article.Difficulty) ? category : $"{category} · {article.Difficulty}";
             var text = string.Join(' ', [article.Description, article.PlainText, .. article.Shortcuts]);
             entries.Add(new SearchEntry("article", article.Title, subtitle, article.Url, text));
+        }
+
+        foreach (var g in Glossary)
+        {
+            var subtitle = string.Join(" · ", new[] { g.En, string.Join(" / ", g.Tags) }.Where(x => !string.IsNullOrEmpty(x)));
+            entries.Add(new SearchEntry("glossary", g.Term, subtitle, $"/glossary#{g.Id}",
+                string.Join(' ', [g.Reading, g.En ?? "", PlainOf(g.Description), .. g.Shortcuts, .. g.Tags])));
+        }
+
+        foreach (var h in Howtos)
+        {
+            var answer = h.Shortcuts.Count > 0 ? $"{h.Answer}（{string.Join(" / ", h.Shortcuts)}）" : h.Answer;
+            entries.Add(new SearchEntry("howto", h.Question, answer, $"/howto#{h.Id}",
+                string.Join(' ', [h.Answer, h.AnswerEn ?? "", h.Menu ?? "", h.MenuEn ?? "", PlainOf(h.Note), .. h.Aliases, .. h.Shortcuts, .. h.Tags])));
+        }
+
+        foreach (var t in Tips)
+        {
+            entries.Add(new SearchEntry("tip", t.Title, string.Join(" / ", t.Tags), $"/tips#{t.Id}",
+                string.Join(' ', [PlainOf(t.Symptom), PlainOf(t.Cause), PlainOf(t.Fix), .. t.Shortcuts, .. t.Tags])));
         }
 
         foreach (var shortcut in Shortcuts)
@@ -129,11 +174,18 @@ public sealed partial class ContentService
             .ToList();
         var shortcuts = ReadYaml<List<Shortcut>>(Path.Combine(_root, "shortcuts.yml")) ?? [];
         var addons = ReadYaml<List<Addon>>(Path.Combine(_root, "addons.yml")) ?? [];
+        var ja = System.Globalization.CultureInfo.GetCultureInfo("ja-JP");
+        var glossary = (ReadYaml<List<GlossaryEntry>>(Path.Combine(_root, "tips", "glossary.yml")) ?? [])
+            .OrderBy(g => g.Reading, StringComparer.Create(ja, System.Globalization.CompareOptions.IgnoreKanaType | System.Globalization.CompareOptions.IgnoreWidth))
+            .ToList();
+        var howtos = ReadYaml<List<HowtoEntry>>(Path.Combine(_root, "tips", "howto.yml")) ?? [];
+        var tips = ReadYaml<List<TipEntry>>(Path.Combine(_root, "tips", "tips.yml")) ?? [];
+        CheckTips(glossary, howtos, tips, articles, shortcuts);
 
         _logger.LogInformation("Content loaded: {Categories} categories, {Articles} articles, {Shortcuts} shortcuts, {Addons} addons",
             categories.Count, articles.Count, shortcuts.Count, addons.Count);
 
-        return new Snapshot(sections, categories, articles, shortcuts, addons);
+        return new Snapshot(sections, categories, articles, shortcuts, addons, glossary, howtos, tips);
     }
 
     private IEnumerable<Article> LoadArticles(string categoryId)
@@ -263,10 +315,39 @@ public sealed partial class ContentService
     [GeneratedRegex(@"\s+")]
     private static partial Regex WhitespaceRegex();
 
+    /// <summary>TIPS・用語集の ID の重複や、存在しない記事・用語・ショートカットへの参照を警告する</summary>
+    private void CheckTips(List<GlossaryEntry> glossary, List<HowtoEntry> howtos, List<TipEntry> tips, List<Article> articles, List<Shortcut> shortcuts)
+    {
+        var articleIds = articles.Select(a => a.Id).ToHashSet();
+        var termIds = glossary.Select(g => g.Id).ToHashSet();
+        var keys = shortcuts.Select(s => s.Key).ToHashSet();
+        void Check(string kind, string id, IEnumerable<string> arts, IEnumerable<string> related, IEnumerable<string> keysUsed)
+        {
+            if (!ScenarioNameRegex().IsMatch(id)) _logger.LogWarning("{Kind} {Id}: id must be lowercase letters, digits and hyphens", kind, id);
+            foreach (var a in arts.Where(a => !articleIds.Contains(a))) _logger.LogWarning("{Kind} {Id}: unknown article {Article}", kind, id, a);
+            foreach (var r in related.Where(r => !termIds.Contains(r))) _logger.LogWarning("{Kind} {Id}: unknown glossary term {Term}", kind, id, r);
+            foreach (var k in keysUsed.Where(k => !keys.Contains(k))) _logger.LogDebug("{Kind} {Id}: shortcut {Key} is not in shortcuts.yml (shown without link)", kind, id, k);
+        }
+        foreach (var g in glossary) Check("glossary", g.Id, g.Articles, g.Related, g.Shortcuts);
+        foreach (var h in howtos) Check("howto", h.Id, h.Articles, [], h.Shortcuts);
+        foreach (var t in tips) Check("tip", t.Id, t.Articles, [], t.Shortcuts);
+        // アンカーはページごと（/glossary、/howto、/tips）なので、重複はそれぞれの中で確かめる
+        foreach (var (kind, ids) in new[] { ("glossary", glossary.Select(g => g.Id)), ("howto", howtos.Select(h => h.Id)), ("tip", tips.Select(t => t.Id)) })
+        {
+            foreach (var dup in ids.GroupBy(x => x).Where(g => g.Count() > 1))
+            {
+                _logger.LogWarning("{Kind} id {Id} is used more than once", kind, dup.Key);
+            }
+        }
+    }
+
     private sealed record Snapshot(
         IReadOnlyList<LearnSection> Sections,
         IReadOnlyList<LearnCategory> Categories,
         IReadOnlyList<Article> Articles,
         IReadOnlyList<Shortcut> Shortcuts,
-        IReadOnlyList<Addon> Addons);
+        IReadOnlyList<Addon> Addons,
+        IReadOnlyList<GlossaryEntry> Glossary,
+        IReadOnlyList<HowtoEntry> Howtos,
+        IReadOnlyList<TipEntry> Tips);
 }
