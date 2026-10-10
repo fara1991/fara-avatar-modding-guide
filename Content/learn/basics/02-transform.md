@@ -21,6 +21,10 @@ shortcuts: [G, R, S, N, Ctrl+A, Shift+D]
 ![移動ツールのギズモ](images/transform-move-gizmo.png)
 *矢印をドラッグすると軸に沿って動く。中央の白い円をドラッグすると自由に動く*
 
+::: tip
+[操作の練習](/practice) で、このページのキー操作をブラウザ上で試せます。Blender を起動しなくても、<kbd>G</kbd> → <kbd>Z</kbd> → `2` のような流れを体で覚えられます。
+:::
+
 ## 軸を固定する
 
 キーを押した直後に <kbd>X</kbd> / <kbd>Y</kbd> / <kbd>Z</kbd> を押すと、その軸に沿ってだけ動きます。
