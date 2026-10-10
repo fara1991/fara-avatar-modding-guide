@@ -1,11 +1,13 @@
 # Cloudflare Workers の設定（静的ファイル + 共同練習の部屋）。
 # dist/ は `dotnet run -- --export dist` で生成する（.github/workflows/deploy.yml 参照）。
 #
-#   本番:     master  ブランチ → blender.fara-labs.com      (npx wrangler deploy --env production)
-#   develop:  develop ブランチ → blender-dev.fara-labs.com  (npx wrangler deploy --env dev)
+#   本番:     master  ブランチ → avatar.fara-labs.com      (npx wrangler deploy --env production)
+#   develop:  develop ブランチ → avatar-dev.fara-labs.com  (npx wrangler deploy --env dev)
+#   旧アドレスの blender.fara-labs.com / blender-dev.fara-labs.com も同じ Worker に向け、worker/index.js で新アドレスへ 301 する。
+#   Worker 名（fara-blender / fara-blender-dev）は変えない（名前を変えると別の Worker が新しく作られるため）。
 #
-# worker/index.js は /api/* だけを処理する（共同練習の部屋の WebSocket。部屋ごとに Durable Object）。
-# それ以外のパスはスクリプトを通らずに dist/ の静的ファイルが返る（run_worker_first）。
+# すべてのリクエストが worker/index.js を通る（run_worker_first = true。旧アドレスの転送のため）。
+# /api/rooms/<ID>/ws は共同練習の部屋（部屋ごとに Durable Object）、それ以外は env.ASSETS で dist/ の静的ファイルを返す。
 # Durable Object は SQLite 版（new_sqlite_classes）なので Workers の無料プランでも使える。
 
 name = "fara-blender"
@@ -19,8 +21,8 @@ binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 # 存在しないパスは 404.html を 404 ステータスで返す
 not_found_handling = "404-page"
-# /api/* だけ worker/index.js を先に通す
-run_worker_first = ["/api/*"]
+# すべて worker/index.js を先に通す（旧アドレスの転送と /api のため）
+run_worker_first = true
 
 [[durable_objects.bindings]]
 name = "ROOMS"
@@ -33,7 +35,8 @@ new_sqlite_classes = ["Room"]
 [env.production]
 name = "fara-blender"
 routes = [
-  { pattern = "blender.fara-labs.com", custom_domain = true },
+  { pattern = "avatar.fara-labs.com", custom_domain = true },
+  { pattern = "blender.fara-labs.com", custom_domain = true }, # 旧アドレス（avatar へ 301）
 ]
 
 [env.production.assets]
@@ -41,7 +44,7 @@ directory = "./dist"
 binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
-run_worker_first = ["/api/*"]
+run_worker_first = true
 
 [[env.production.durable_objects.bindings]]
 name = "ROOMS"
@@ -50,7 +53,8 @@ class_name = "Room"
 [env.dev]
 name = "fara-blender-dev"
 routes = [
-  { pattern = "blender-dev.fara-labs.com", custom_domain = true },
+  { pattern = "avatar-dev.fara-labs.com", custom_domain = true },
+  { pattern = "blender-dev.fara-labs.com", custom_domain = true }, # 旧アドレス（avatar-dev へ 301）
 ]
 
 [env.dev.assets]
@@ -58,7 +62,7 @@ directory = "./dist"
 binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
-run_worker_first = ["/api/*"]
+run_worker_first = true
 
 [[env.dev.durable_objects.bindings]]
 name = "ROOMS"

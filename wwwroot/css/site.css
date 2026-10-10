@@ -1246,6 +1246,24 @@ main {
 }
 
 /* ---------- ロードマップ ---------- */
+.roadmap-section + .roadmap-section {
+    margin-top: 1.5rem;
+}
+
+.roadmap-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 1.35rem;
+}
+
+.roadmap-section-desc {
+    margin-bottom: 1rem;
+}
+
 .roadmap {
     position: relative;
     padding-left: 0;

@@ -1,11 +1,12 @@
-# Blender Manual
+# Avatar Manual（仮称）
 
-Blender の操作方法を、基本からアバター用衣装の作成まで順番にまとめたマニュアルサイトです。
+アバターづくりの手順を、Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでまとめたマニュアルサイトです。
+サイト名は `appsettings.json` の `Site:Title` にだけ書いてあり、画面の表示はすべてそこから取ります（名前を変えるときはそこだけ直す）。
 .NET 9 の Blazor Web App（静的サーバーサイドレンダリング）で実装し、記事は Markdown で管理しています。
 
 ## 特徴
 
-- **目次**: 「はじめに → 基本操作 → モデリング → マテリアル → リギング → 実践」の順に読める
+- **目次**: Blender / Unity / VRChat / 通しで作る の区切りごとに、上から順に読める（区切りは `Content/learn/sections.yml`）
 - **1記事 = 1 URL**: 記事ごとにブックマーク・共有・検索エンジンからの到達ができる
 - **ショートカット連携**: 各記事に「この記事で使うキー」を表示し、一覧ページで逆引きできる
 - **Markdown で執筆**: `Content/` 以下にファイルを置くだけで記事を追加できる（コードの変更不要）
@@ -15,13 +16,15 @@ Blender の操作方法を、基本からアバター用衣装の作成まで順
 
 | 環境 | URL | ブランチ |
 | --- | --- | --- |
-| 本番 | https://blender.fara-labs.com | `master` |
-| 開発 | https://blender-dev.fara-labs.com（Cloudflare Access で自分だけが閲覧可能） | `develop` |
+| 本番 | https://avatar.fara-labs.com | `master` |
+| 開発 | https://avatar-dev.fara-labs.com（Cloudflare Access で自分だけが閲覧可能） | `develop` |
+
+旧アドレスの https://blender.fara-labs.com / https://blender-dev.fara-labs.com は、パスを保ったまま新アドレスへ 301 で転送します（`worker/index.js`）。Cloudflare の Worker 名は `fara-blender` / `fara-blender-dev` のままです（名前を変えると別の Worker が作られるため）。
 
 ## 技術スタック
 
 - .NET 9 / ASP.NET Core Blazor Web App（静的 SSR、SignalR 接続なし）
-- 公開時は静的サイトとして書き出し、Cloudflare Workers (Static Assets) でホスティング
+- 公開時は静的サイトとして書き出し、Cloudflare Workers（Static Assets + Durable Objects）でホスティング
 - [Markdig](https://github.com/xoofx/markdig)（Markdown → HTML）
 - [YamlDotNet](https://github.com/aaubry/YamlDotNet)（フロントマター・データファイル）
 - Bootstrap 5.3 / Bootstrap Icons（CDN）
@@ -49,7 +52,8 @@ dotnet run
 fara-blender-manual/
 ├── Content/                  # 記事・データ（Markdown / YAML）。書き方は Content/README.md 参照
 │   ├── learn/
-│   │   ├── categories.yml    # ロードマップの段階と並び順
+│   │   ├── sections.yml      # 目次の大きな区切り（Blender / Unity / VRChat / 通しで作る）
+│   │   ├── categories.yml    # ロードマップの段階と並び順（section で区切りを指定）
 │   │   └── <category>/NN-slug.md
 │   ├── shortcuts.yml
 │   └── addons.yml
@@ -129,7 +133,7 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 3. 本文を Markdown で書く（`::: tip` / `::: warning` ブロック、操作のチュートリアルを埋め込む `::: practice <名前>` が使える）
 
 詳しくは [Content/README.md](Content/README.md) を参照してください。
-新しいカテゴリを追加するときは `Content/learn/categories.yml` に追記し、同名のディレクトリを作ります。
+新しいカテゴリを追加するときは `Content/learn/categories.yml` に追記し（`section` で Blender / Unity / VRChat / 通しで作る のどこに入るかを指定）、同名のディレクトリを作ります。区切り自体は `Content/learn/sections.yml` です。
 
 ## デプロイ（Cloudflare）
 
@@ -147,16 +151,17 @@ npx wrangler deploy --env dev   # 手動で develop 環境へ（本番は --env 
 1. GitHub リポジトリの **Settings → Secrets and variables → Actions** に以下を登録（値は fara-portfolio-site と同じものを使えます）
    - Secrets: `CLOUDFLARE_API_TOKEN`（テンプレート Edit Cloudflare Workers、Zone Resources は `fara-labs.com`）
    - Variables: `CLOUDFLARE_ACCOUNT_ID`
-2. Cloudflare の `fara-labs.com` の **DNS → Records** に `blender` / `blender-dev` のレコードが無いことを確認
+2. Cloudflare の `fara-labs.com` の **DNS → Records** に `avatar` / `avatar-dev` のレコードが無いことを確認（旧アドレスの `blender` / `blender-dev` は Worker のカスタムドメインとして残す）
 3. 最初のデプロイで `wrangler.toml` の `custom_domain = true` により Cloudflare が DNS レコードと証明書を自動作成します（数分かかります）
-4. 開発環境を自分だけに見せるため、Cloudflare **Zero Trust → Access → Applications** の確認用アプリケーションに public hostname `blender-dev.fara-labs.com` を追加します
+4. 開発環境を自分だけに見せるため、Cloudflare **Zero Trust → Access → Applications** の確認用アプリケーションに public hostname `avatar-dev.fara-labs.com` を追加します（旧アドレスの `blender-dev.fara-labs.com` も残しておく）
    - 開発環境には `X-Robots-Tag: noindex` も付けています
 
 ### 仕組み
 
 - `dotnet run -- --export dist` が自身を起動して全ページを取得し、`dist/` に `index.html`、`learn/basics/transform.html` などを書き出します（`Publishing/StaticSiteExporter.cs`）
 - `wwwroot/` と `Content/learn/**/images/` もコピーされます
-- 旧 URL のリダイレクトは `dist/_redirects`、404 は `dist/404.html` で処理します
+- 旧 URL（パス）のリダイレクトは `dist/_redirects`、旧アドレス（ホスト）の転送は `worker/index.js`、404 は `dist/404.html` で処理します
+- すべてのリクエストが Worker を通るので（`run_worker_first = true`）、静的ファイルの配信も Workers のリクエスト数に数えられます（無料プランは 1 日 10 万リクエスト）
 - 記事を追加したら push するだけで反映されます
 
 ## ライセンス

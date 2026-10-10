@@ -24,19 +24,31 @@
             </NavLink>
         </div>
 
-        <div class="nav-section px-3">目次</div>
-        @foreach (var category in Content.Categories)
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/learn" Match="NavLinkMatch.All">
+                <i class="bi bi-list-ol" aria-hidden="true"></i> 目次
+            </NavLink>
+        </div>
+
+        @* 目次の区切りごと。まだカテゴリのない区切りは出さない *@
+        @foreach (var section in Content.Sections)
         {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="@($"/learn/{category.Id}")">
-                    <i class="bi @category.Icon" aria-hidden="true"></i> @category.Title
-                    @{ var ids = Content.GetArticles(category.Id).Select(a => a.Id).ToList(); }
-                    @if (ids.Count > 0)
-                    {
-                        <span class="category-progress ms-auto" data-category-progress="@category.Id" data-articles="@string.Join(' ', ids)" hidden></span>
-                    }
-                </NavLink>
-            </div>
+            var categories = Content.GetCategoriesInSection(section.Id);
+            if (categories.Count == 0) continue;
+            <div class="nav-section px-3">@section.Title</div>
+            @foreach (var category in categories)
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="@($"/learn/{category.Id}")">
+                        <i class="bi @category.Icon" aria-hidden="true"></i> @category.Title
+                        @{ var ids = Content.GetArticles(category.Id).Select(a => a.Id).ToList(); }
+                        @if (ids.Count > 0)
+                        {
+                            <span class="category-progress ms-auto" data-category-progress="@category.Id" data-articles="@string.Join(' ', ids)" hidden></span>
+                        }
+                    </NavLink>
+                </div>
+            }
         }
 
         <div class="nav-section px-3">リファレンス</div>
