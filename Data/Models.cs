@@ -1,6 +1,6 @@
 namespace FaraBlenderManual.Data;
 
-/// <summary>学習ロードマップの1段階。Content/learn/categories.yml で定義し、並び順がそのまま学習順になる。</summary>
+/// <summary>目次の1段階。Content/learn/categories.yml で定義し、並び順がそのまま読む順になる。</summary>
 public sealed class LearnCategory
 {
     public string Id { get; set; } = string.Empty;

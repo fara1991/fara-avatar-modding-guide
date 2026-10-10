@@ -1,0 +1,97 @@
+@page "/practice"
+@inject IOptions<SiteOptions> Site
+
+<PageTitle>操作の練習 - @Site.Value.Title</PageTitle>
+
+<h1>操作の練習</h1>
+<p class="lead">ブラウザ上の 3D ビューで、Blender と同じキー操作を試せます。下のお題を順にこなしてください。</p>
+
+@* 本体は wwwroot/js/practice.js（Three.js）。静的 SSR なので、ここは枠と文言だけ *@
+<div id="practice" class="row g-4">
+    <div class="col-lg-8">
+        <div class="practice-viewport" id="practice-viewport" tabindex="0" aria-label="3D ビューポート">
+            <div class="practice-hud">
+                <div id="hud-mode">オブジェクトモード</div>
+                <div id="hud-view">ユーザー・透視投影</div>
+            </div>
+            <div class="practice-npanel" id="npanel" hidden>
+                <h6>アイテム</h6>
+                <div id="npanel-name" class="mb-1">—</div>
+                <h6>位置</h6>
+                <div class="row-3">
+                    <span>X</span><input type="number" step="0.1" data-prop="position" data-axis="x" />
+                    <span>Y</span><input type="number" step="0.1" data-prop="position" data-axis="y" />
+                    <span>Z</span><input type="number" step="0.1" data-prop="position" data-axis="z" />
+                </div>
+                <h6>回転（°）</h6>
+                <div class="row-3">
+                    <span>X</span><input type="number" step="1" data-prop="rotation" data-axis="x" />
+                    <span>Y</span><input type="number" step="1" data-prop="rotation" data-axis="y" />
+                    <span>Z</span><input type="number" step="1" data-prop="rotation" data-axis="z" />
+                </div>
+                <h6>スケール</h6>
+                <div class="row-3">
+                    <span>X</span><input type="number" step="0.1" data-prop="scale" data-axis="x" />
+                    <span>Y</span><input type="number" step="0.1" data-prop="scale" data-axis="y" />
+                    <span>Z</span><input type="number" step="0.1" data-prop="scale" data-axis="z" />
+                </div>
+            </div>
+            <div class="practice-status">
+                <span id="hud-status">クリックして選択。G / R / S で動かす</span>
+                <span id="hud-numeric"></span>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" id="practice-reset">最初からやり直す</button>
+            <div class="form-check form-check-inline ms-2 mb-0">
+                <input class="form-check-input" type="checkbox" id="practice-emulate-numpad" />
+                <label class="form-check-label small" for="practice-emulate-numpad">テンキーを模倣（数字キーで視点を切り替え）</label>
+            </div>
+            <span class="small text-body-secondary ms-auto">ビューポートをクリックしてからキーを押してください</span>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">お題</div>
+            <div class="card-body">
+                <ol class="practice-tasks mb-2" id="practice-tasks"></ol>
+                <div id="practice-tasks-done" class="small text-body-secondary" hidden>すべてできました。あとは自由に試してください。</div>
+            </div>
+        </div>
+        <div class="card practice-keys">
+            <div class="card-header fw-semibold">使えるキー</div>
+            <div class="card-body small">
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        <tr><td>ホイールボタンをドラッグ</td><td>視点を回す</td></tr>
+                        <tr><td><kbd>Shift</kbd>+ホイールボタン</td><td>視点を平行移動</td></tr>
+                        <tr><td>ホイール</td><td>ズーム</td></tr>
+                        <tr><td><kbd>Numpad 1</kbd> <kbd>3</kbd> <kbd>7</kbd></td><td>前 / 右 / 上から（<kbd>Ctrl</kbd> で反対側）</td></tr>
+                        <tr><td><kbd>Numpad 5</kbd></td><td>透視 / 平行投影</td></tr>
+                        <tr><td><kbd>Numpad .</kbd> / <kbd>Home</kbd></td><td>選択を表示 / 全体を表示</td></tr>
+                        <tr><td>クリック / <kbd>Shift</kbd>+クリック / ドラッグ</td><td>選択 / 追加選択 / ボックス選択</td></tr>
+                        <tr><td><kbd>A</kbd> / <kbd>Alt</kbd>+<kbd>A</kbd></td><td>全選択 / 選択解除</td></tr>
+                        <tr><td><kbd>G</kbd> <kbd>R</kbd> <kbd>S</kbd></td><td>移動 / 回転 / スケール（<kbd>X</kbd> <kbd>Y</kbd> <kbd>Z</kbd> で軸固定、数値入力可）</td></tr>
+                        <tr><td><kbd>Ctrl</kbd> / <kbd>Shift</kbd>（操作中）</td><td>スナップ / 微調整</td></tr>
+                        <tr><td>左クリック / <kbd>Enter</kbd></td><td>確定</td></tr>
+                        <tr><td>右クリック / <kbd>Esc</kbd></td><td>キャンセル</td></tr>
+                        <tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>追加</td></tr>
+                        <tr><td><kbd>Shift</kbd>+<kbd>D</kbd></td><td>複製</td></tr>
+                        <tr><td><kbd>X</kbd> / <kbd>Delete</kbd></td><td>削除</td></tr>
+                        <tr><td><kbd>N</kbd></td><td>サイドバー（位置・回転・スケール）</td></tr>
+                        <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>元に戻す / やり直し</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+    }
+}
+</script>
+<script type="module" src="/js/practice.js"></script>

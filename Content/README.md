@@ -5,7 +5,7 @@
 ```
 Content/
   learn/
-    categories.yml        # ロードマップの段階（並び順 = 学習順）
+    categories.yml        # 目次の段階（並び順 = 読む順）
     <category-id>/
       01-slug.md          # 記事。ファイル名が「番号-スラッグ.md」で、URL は /learn/<category-id>/<slug>
   shortcuts.yml           # ショートカットの一次データ（記事からは frontmatter の shortcuts で参照）

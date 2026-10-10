@@ -19,6 +19,10 @@ shortcuts: [Shift+MMB, Ctrl+MMB, Numpad 1, Numpad 3, Numpad 7, Numpad 5, Numpad 
 
 ホイールボタンのないマウスやトラックパッドの場合は、[インストールと日本語化](/learn/getting-started/install) で説明した「3 ボタンマウスを再現」をオンにすると、<kbd>Alt</kbd>+左ドラッグで回せます。
 
+::: tip
+マウスとテンキーでの視点操作は、[操作の練習](/practice) のビューポートでも同じように試せます。
+:::
+
 ## ナビゲーションギズモ
 
 3D ビューポートの右上にある、X / Y / Z の丸が付いた軸がナビゲーションギズモです。マウスだけで視点を操作できます。

@@ -8,7 +8,7 @@ shortcuts: [F3]
 
 ## どのバージョンを入れるか
 
-このサイトは **Blender 4.5 LTS** を前提にしています。LTS（長期サポート版）は 2 年間バグ修正が続き、アドオンの対応も安定しているので、学習用・作業用にはこれを選びます。
+このサイトは **Blender 4.5 LTS** を前提にしています。LTS（長期サポート版）は 2 年間バグ修正が続き、アドオンの対応も安定しているので、普段の作業にはこれを選びます。
 
 - ダウンロード: [blender.org/download/lts/](https://www.blender.org/download/lts/) から **4.5 LTS** を選ぶ
 - Windows なら「Windows Installer」（.msi）を使うのが簡単です。インストール先はそのままで構いません
