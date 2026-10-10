@@ -124,10 +124,14 @@ public sealed partial class ContentService
         var dir = Path.Combine(_root, "learn", categoryId);
         if (!Directory.Exists(dir)) yield break;
 
-        foreach (var file in Directory.EnumerateFiles(dir, "*.md").Order(StringComparer.Ordinal))
+        // ファイル名の文字列順だと 10- が 9- より前になるので、先頭の番号の数値で並べる
+        foreach (var article in Directory.EnumerateFiles(dir, "*.md")
+                     .Select(file => ParseArticle(categoryId, file))
+                     .OfType<Article>()
+                     .OrderBy(a => a.Order)
+                     .ThenBy(a => a.Slug, StringComparer.Ordinal))
         {
-            var article = ParseArticle(categoryId, file);
-            if (article is not null) yield return article;
+            yield return article;
         }
     }
 

@@ -39,8 +39,9 @@ jobs:
   deploy:
     name: Deploy to Cloudflare
     needs: build
-    # PR では build だけ行い、master / develop への push でデプロイする
-    if: github.event_name != 'pull_request'
+    # PR では build だけ行い、master / develop への push（と手動実行）でデプロイする。
+    # 手動実行は master / develop を選んだときだけ（ほかのブランチで確認用サイトを上書きしない）
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.ref_name == 'master' && 'production' || 'develop' }}

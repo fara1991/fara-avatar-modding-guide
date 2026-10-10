@@ -50,10 +50,11 @@ app.UseStaticFiles();
 
 // 記事の画像は Markdown と同じ場所 (Content/learn/<category>/images/) に置けるようにする。
 // 画像・動画だけを /learn/... として配信し、.md や .yml は配信しない。
+// 静的サイトの書き出しも同じ判定（StaticSiteExporter.IsMedia）でコピーする。
 var mediaTypes = new FileExtensionContentTypeProvider();
 var mediaOnly = new FileExtensionContentTypeProvider(
     mediaTypes.Mappings
-        .Where(m => m.Value.StartsWith("image/") || m.Value.StartsWith("video/"))
+        .Where(m => StaticSiteExporter.IsMedia(m.Key))
         .ToDictionary(m => m.Key, m => m.Value, StringComparer.OrdinalIgnoreCase));
 app.UseStaticFiles(new StaticFileOptions
 {

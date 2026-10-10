@@ -17,11 +17,11 @@ const TASKS = [
   { text: "球を選んで X で削除する", check: s => s.sphereAdded && !s.objects.some(o => o.userData.kind === "sphere") },
   // ここから編集モード
   { text: "立方体を選んで Tab で編集モードに入る", check: s => s.mode === "edit" },
-  { text: "3 で面選択モードにして、上の面をクリックで選ぶ", check: s => s.mode === "edit" && s.selectMode === "face" && s.faces.length === 1 && s.faces[0].normal.z > 0.9 },
+  { text: "3 で面選択モードにして、上の面をクリックで選ぶ（「テンキーを模倣」がオンなら、オフにするか上の「面」ボタンで切り替え）", check: s => s.mode === "edit" && s.selectMode === "face" && s.faces.length === 1 && s.faces[0].normal.z > 0.9 },
   { text: "E → 1 → Enter で、上の面を押し出す", check: s => s.extruded },
   { text: "I → 0.3 → Enter で、面を差し込む", check: s => s.inset },
   { text: "Ctrl+R で側面にループカットを入れる（ホイールで本数）", check: s => s.loopcut },
-  { text: "2 で辺選択モードにして辺を 1 本選び、Ctrl+B でベベル", check: s => s.bevel },
+  { text: "2 で辺選択モードにして辺を 1 本選び、Ctrl+B でベベル（「テンキーを模倣」がオンなら上の「辺」ボタンで切り替え）", check: s => s.bevel },
   { text: "Tab でオブジェクトモードに戻る", check: s => s.mode === "object" },
 ];
 
