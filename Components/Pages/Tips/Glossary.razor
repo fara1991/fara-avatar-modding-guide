@@ -6,7 +6,7 @@
 <HeadContent><meta name="description" content="Blender・Unity・VRChat・Modular Avatar の用語を、読み・英語 UI の表記・短い説明と関連する記事でまとめた用語集です。" /></HeadContent>
 
 <h1>用語集</h1>
-<p class="lead">Blender・Unity・VRChat でよく出てくる言葉を、画面での英語の表記と一緒にまとめました（読みの順）。やりたいことから操作の名前を探すなら <a href="/howto">何て名前？</a>、つまずいたときは <a href="/tips">TIPS</a> へ。</p>
+<p class="lead">Blender・Unity・VRChat でよく出てくる言葉を、画面での英語の表記と一緒にまとめました（読みの順）。やりたいことから操作の名前を探すなら <a href="/howto">何て名前？</a>、つまずいたときは <a href="/tips">TIPS</a> や <a href="/qa">改変 Q&amp;A</a> へ。</p>
 
 <TipsFilter Tags="@Content.TipTags(Content.Glossary.Select(g => g.Tags))" Placeholder="用語・読み・英語名で絞り込む（例: ウェイト、merge）" HasDiscord="@Content.Glossary.Any(g => g.Source == "discord")" Count="@Content.Glossary.Count" />
 
@@ -26,7 +26,8 @@
                     </header>
                     <TipTags Tags="@g.Tags" Source="@g.Source" />
                     <p class="mb-2">@((MarkupString)ContentService.RenderInline(g.Description))</p>
-                    <TipRefs Shortcuts="@g.Shortcuts" Articles="@g.Articles" Related="@g.Related" />
+                    <TipBody Markdown="@g.Body" />
+                    <TipRefs Shortcuts="@g.Shortcuts" Articles="@g.Articles" Related="@g.Related" Keywords="@g.Keywords" />
                 </div>
             </article>
         </div>

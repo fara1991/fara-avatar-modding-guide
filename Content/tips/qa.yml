@@ -1,0 +1,967 @@
+# 改変 Q&A: よく出る質問と答え・手順。/qa に表示され、検索の対象になる。
+#
+#   id:        URL のアンカー（/qa#id）
+#   question:  質問・やりたいこと
+#   answer:    短い答え（Markdown。1〜3 文）
+#   body:      詳しい説明・手順（Markdown。「詳しく」を開くと表示）
+#   related:   関連する用語の id（用語集）   keywords: 用語集に無い関連語（文字のまま表示）
+#   tags / shortcuts / articles / source（manual / discord）は用語集と同じ
+#
+# 本文中のサイト内リンクは [文字](/tips#id) のように書く（存在しない項目は起動時に警告）。
+# 対象: Blender 4.5 / Unity 2022.3 + VRChat SDK3 + Modular Avatar。「当時」と書いたところは古いバージョンでの手順
+
+- id: start-unity-or-blender
+  question: 改変は Unity と Blender のどちらから始めればよいですか？
+  answer: 髪色の変更や対応衣装の着せ替えなど基本的な改変は Unity と画像編集ソフトだけでできます。衣装が肌に埋まる・体形が合わないなどメッシュそのものを直す必要が出たら Blender を使います。
+  body: |-
+    - まずは **Unity から** 始めるのがおすすめです。アバターのアップロード、対応衣装の着せ替え、表情・メニュー設定はすべて Unity で行います。
+    - **髪や服の色を変えるだけなら Blender は不要** です。テクスチャ（画像）を画像編集ソフトで編集するか、lilToon の色調補正を使います。
+      - 画像編集ソフトの例: GIMP（無料）、CLIP STUDIO PAINT、Photoshop。色変更程度なら GIMP でも十分です。
+    - **Blender が必要になる場面** の目安
+      - 衣装を着せたら肌が衣装を突き抜ける（貫通する）、衣装が体に埋まる
+      - 非対応衣装を着せたい、体形（胸・脚など）に合わせてメッシュを変形したい
+      - 不要なメッシュの削除、ボーンやウェイトの修正、シェイプキーの追加
+    - Unity だけでメッシュを触れるエディタ拡張もありますが、細かい調整は Blender の方が融通が利きます。
+    - 現行では対応衣装の着せ替えは Modular Avatar（MA）の「Setup Outfit」で Blender なしに行うのが一般的です。
+  tags: [Blender, Unity, VRChat, マテリアル]
+  related: [modular-avatar]
+  source: discord
+
+- id: first-upload-flow
+  question: 購入したアバターを VRChat にアップロードする基本の流れ
+  answer: VCC（VRChat Creator Companion）でプロジェクトを作り、アバターの unitypackage を入れて SDK の Builder タブからアップロードします。当時の手順（Unity 2019 / Build & Publish）とは画面が変わっています。
+  body: |-
+    **現行の流れ（VRChat SDK3 / VCC）**
+
+    1. VCC（または ALCOM）で Avatar 用プロジェクトを作成します。Unity は VRChat が指定するバージョン（このサイトでは 2022.3 を前提にしています）を使います。
+    2. アバター作者が指定するシェーダー（lilToon など）を先に導入し、その後アバター本体の `.unitypackage` をインポートします。
+    3. Project ウィンドウからアバターの Prefab を Hierarchy にドラッグします（FBX ではなく Prefab を使います）。
+    4. メニューの `VRChat SDK > Show Control Panel` → `Builder` タブで、エラー・警告を確認します。
+    5. 名前などを入力し、権利確認にチェックを入れて **Build and Upload** を押します。
+
+    **よくあるつまずき**
+
+    - 全体がピンク色 → シェーダー未導入です（[ピンク色になる](/tips#pink-material)）。
+    - Unity のバージョン違い → VCC が案内するバージョンを使います。
+    - 揺れものが動かない → 当時は有料アセット DynamicBone が必要でしたが、現在は VRChat 標準の PhysBone を使います。
+
+    **当時（2022 年頃）との違い**
+
+    - 当時は Unity 2019.4.31f1 を手動で入れ、SDK の「Build & Publish for Windows」を押したあと Game ビューでアバター名を入力して Upload していました。現在は Builder タブ内で完結します。
+    - DynamicBone を持っていない場合は Missing Remover で欠けたスクリプトを消す手順がありましたが、PhysBone 対応アバターでは不要です。
+  tags: [Unity, VRChat]
+  articles: [unity/pre-upload-check]
+  related: [vcc, physbone]
+  source: discord
+
+- id: blender-fbx-materials-in-unity
+  question: Blender から書き出した FBX を Unity に入れたらテクスチャ・マテリアルがおかしい
+  answer: Blender で付けたマテリアル情報は Unity では実質使えません。元のアバター・衣装の unitypackage に入っている Unity 用マテリアルを、FBX の Materials タブで割り当て直します。
+  body: |-
+    - 前提: Blender のマテリアル／テクスチャ設定は Unity 側ではほぼ使えないので、**Unity 側でマテリアルを設定し直す** 必要があります。
+    - 手順
+      1. 元のアバターと衣装の `.unitypackage` をインポートしておきます（素体の FBX から抜き出したマテリアルではなく、パッケージに付属する Unity 用マテリアルを使います）。
+      2. Project で書き出した FBX を選択 → Inspector の `Materials` タブを開きます。
+      3. `Remapped Materials` の各スロットに元のマテリアルをドラッグして `Apply` します。
+      - もしくは `Extract Materials` で FBX 内のマテリアルを取り出し、手動で全部設定します。
+    - Blender でマテリアル名を変えていなければ、元のマテリアルと同じ名前のスロットに割り当てれば元通りになります。
+    - 割り当てたら輪郭線（アウトライン）が太くなった → [Blender を通すと輪郭線が太くなる](/qa#outline-thick-after-blender) を参照してください。
+    - 衣装とアバターで別々にマテリアルがあるので、どちらも入れ忘れないようにします。
+  tags: [Blender, Unity, マテリアル, 衣装]
+  articles: [materials/for-unity]
+  related: [unitypackage]
+  source: discord
+
+- id: unity-editor-basics
+  question: Unity の Project / Hierarchy / Inspector / Prefab / 親子関係とは？
+  answer: Project はアセット置き場、Hierarchy はシーンに置いたオブジェクトの一覧、Inspector は選択したものの設定欄です。オブジェクトを別のオブジェクトの中に入れることを「子にする（親子関係）」と呼びます。
+  body: |-
+    - **Project**: プロジェクト内のファイル（Prefab、FBX、マテリアル、テクスチャ）。Unity 上のエクスプローラーのようなものです。インポート後のファイル操作は基本的にここで行い、Windows のエクスプローラーで直接いじらないようにします。
+    - **Hierarchy**: シーンに置いたオブジェクトの一覧。Project から Prefab や FBX をドラッグして置きます。
+    - **Inspector**: 選択中のオブジェクトやファイルの設定。右上の鍵アイコンで表示をロックすると、別のものをドラッグするときに便利です。
+    - **Prefab**: オブジェクト構成を保存したもの。アバターは FBX ではなく Prefab を Hierarchy に置きます。
+    - **親子関係（入れ子）**: Hierarchy で A を B の上にドラッグすると、A が B の子になり B に追従して動きます。
+    - **Add Component**: Inspector 最下部のボタン。検索欄に名前を入力してコンポーネント（スクリプト）を追加します。
+    - **Unpack Prefab Completely**: Prefab とのリンクを切ります。元データを壊さないよう、改変前に Prefab Variant を作る方法もあります。
+    - マテリアルはシーン上のメッシュに直接ドラッグ＆ドロップしても割り当てられます。
+  tags: [Unity]
+  articles: [unity/editor-overview]
+  source: discord
+
+- id: blueprint-id-error
+  question: アップロード時に「Error saving blueprint」と出る
+  answer: アバターに付いている Pipeline Manager の Blueprint ID が自分のアカウントのものではありません。Detach で ID を空にしてから新規アップロードします。
+  body: |-
+    - アバターのルートを選択 → Inspector の `VRC Avatar Descriptor` の下にある **Pipeline Manager** を確認します。
+    - `Blueprint ID` が入っていたら **Detach** を押して空にし、再度アップロードします。
+    - 購入アバターに ID が残っていた場合や、Content Manager でアバターを削除したのに ID が残っている場合に起こります。
+    - **注意**: Blueprint ID は他人に知られると不正利用の恐れがあるため、ID が写ったスクリーンショットを SNS に載せないでください。
+  tags: [Unity, VRChat]
+  articles: [unity/pre-upload-check]
+  related: [blueprint-id]
+  source: discord
+
+- id: build-and-test-vs-upload
+  question: アップロードしたつもりがエラー／反映されない（Build and Test を押していた）
+  answer: SDK の Build and Test はローカルでの動作確認用で、サーバーへはアップロードされません。公開するには Build and Upload を使います。
+  body: |-
+    - `Build and Test`（ローカルテスト）: 自分の PC の VRChat でだけ確認できる機能です。アップロードはされません。
+    - `Build and Upload`: サーバーにアップロードします。
+    - ローカルテストは改変の確認に便利なので、アップロード前の動作チェックに活用できます。
+  tags: [VRChat]
+  articles: [unity/pre-upload-check]
+  related: [build-and-test]
+  source: discord
+
+- id: unity-tool-not-in-menu
+  question: ツールをインポートしたのにメニューに出てこない
+  answer: コンパイルエラーがあるとエディタ拡張のメニューが表示されません。Console のエラーを確認し、Reimport や Unity の再起動、必要な依存パッケージの導入を試します。
+  body: |-
+    - Console にエラーが出ていると、他のスクリプトも含めてエディタ拡張が読み込まれません。エラー内容を確認します。
+    - `Reimport`（対象フォルダ右クリック）や Unity の再起動で直ることがあります。
+    - 新規プロジェクトでは動くなら、既存プロジェクト内の別ツールとの競合や古いバージョンの残骸が原因のことがあります。
+    - 依存パッケージが 2 つ必要なツール（当時の UniVRM 0.8x 系など）は、片方の入れ忘れでもメニューが出ません。
+    - Unity のバージョンがツールの対応範囲外でないかも確認します（当時は Unity 2018 → 2019 に変えたら解決した例があります）。
+  tags: [Unity]
+  source: discord
+
+- id: avatar-lightweight
+  question: アバターを軽くするには（描画負荷とファイルサイズ）
+  answer: 描画負荷はメッシュ数・マテリアル数・ポリゴン数・揺れもの数、ファイルサイズはテクスチャ解像度とシェイプキーが主に効きます。現行は Avatar Optimizer（AAO）で非破壊に軽量化するのが手軽です。
+  body: |-
+    **効果の大きい順の目安**
+
+    1. **着替え（衣装）を減らす**: 1 アバター 1 衣装にするだけでもかなり軽くなります。
+    2. **見えない部分を消す**: 衣装で隠れる素体メッシュや使わない小物を削除します。
+    3. **テクスチャ解像度を下げる**: ダウンロードサイズに最も影響します（例: 2048 → 1024。Unity のテクスチャ Import 設定の Max Size で変更可能）。
+    4. **揺れもの（PhysBone）を減らす・まとめる**: 非表示部分の揺れものは消します（[PhysBone のまとめ方](/tips#physbone-merge-components)）。
+    5. **メッシュを結合する**: Skinned Mesh 数を減らします。
+    6. **マテリアルを減らす**: テクスチャを 1 枚にまとめる（アトラス化）のは発展編です。
+
+    **現行のおすすめ**
+
+    - **Avatar Optimizer（AAO）** の `Trace And Optimize` をアバターに付けると、アップロード時に未使用要素の削除やメッシュ結合などを自動で行います（元データは変更しません）。
+    - `AAO Merge Skinned Mesh` で複数メッシュを結合でき、シェイプキーやアニメーションの参照も維持されます。
+
+    **当時の手法**
+
+    - Blender で `Ctrl+J` でメッシュ結合、Unity のアセット MeshBaker でメッシュ・テクスチャを焼き込む方法が使われていました（[MeshBaker](/qa#meshbaker-old)）。
+    - 結合前に各メッシュの UV マップ名を揃え、`Ctrl+A` → 全トランスフォームを適用しておかないと、UV が壊れたりサイズが変わったりします。
+    - MeshBaker で 1 メッシュ 1 マテリアルにしても必ず軽くなるとは限らず、シェイプキーが混ざるデメリットもあります。
+  tags: [Blender, Unity, VRChat, 軽量化]
+  articles: [unity/pre-upload-check]
+  source: discord
+
+- id: meshbaker-old
+  question: MeshBaker でメッシュを 1 つにまとめる（当時の手順）
+  answer: 有料アセット MeshBaker でメッシュとテクスチャを結合する手順です。VRChat では現在 Avatar Optimizer（AAO）で同様のことを非破壊にできるため、新規には AAO をおすすめします。
+  body: |-
+    > 当時（Unity 2019 / SDK3 初期）の手順です。現在の VRChat 向けには **Avatar Optimizer の Merge Skinned Mesh / Trace And Optimize** を使う方が安全で手軽です。
+
+    1. `Texture and MeshBaker` のオブジェクトを作成し、TextureBaker の `Open Tools For Adding Objects` を開きます。
+    2. `Exclude meshes with out-of-bounds UVs` のチェックを外し、アバターを選択して `Add Selected Meshes To Target` を押します。**顔（Body）メッシュは焼き込み対象から外します**（表情用シェイプキーが多く、ファイルサイズが極端に増えるため）。
+    3. `Objects To Be Combined` を確認し、Material Bake Options を設定して `Create Empty Assets For Combined Material`（保存先は Assets 以下）→ `Bake Materials Into Combined Material`。
+    4. 子の MeshBaker オブジェクトで Output を `Bake Into Prefab` にし、`Create Empty Prefab` → `Bake`。
+    5. できた Prefab を Hierarchy に置き、`Unpack Prefab Completely` して、結合メッシュをアバター直下に移し Root Bone を設定します。
+    6. シェイプキー名の末尾に衝突回避用の番号が付く場合は、MeshBaker の設定で付けないようにします（付くと表情アニメーションが動きません）。
+
+    **注意**
+
+    - 焼き込み前の元メッシュは、VRChat では **非アクティブでもアップロードされる** ので、アバターの外に出すか削除します（VRM 出力では非表示なら出力されません）。
+    - 表情が動かなくなったら [MeshBaker 後に表情が動かない](/qa#merged-mesh-expression-broken) を参照してください。
+  tags: [Unity, 軽量化, リギング]
+  source: discord
+
+- id: merged-mesh-expression-broken
+  question: メッシュを結合したら表情（シェイプキー）がアップロード後に動かない
+  answer: 表情アニメーションは「メッシュ名/シェイプキー名」のパスでシェイプキーを動かすため、結合後のメッシュ名やシェイプキー名が変わると動きません。結合後のメッシュ名を元の顔メッシュ名（大文字小文字も一致）にし、Avatar Descriptor の参照も結合後のメッシュにします。
+  body: |-
+    - 原因: アニメーションは `Body` のような **メッシュのパス + シェイプキー名** を参照します。結合でメッシュ名が変わったり、シェイプキー名の末尾に番号が付いたりすると参照が切れます。
+    - 対処
+      1. 結合（焼き込み）後のメッシュの名前を、元の顔メッシュと同じ名前にします（`Body` と `body` のような大文字小文字も合わせます）。
+      2. `VRC Avatar Descriptor` の Lip Sync / Eye Look などで指定する顔メッシュは **結合後のメッシュ** にします。
+      3. 焼き込み前のメッシュはアバター外へ退避します。
+    - Unity 上ではシェイプキーが動くのに VRChat やエミュレーターで動かない場合は、この参照切れを疑います。
+    - AAO の Merge Skinned Mesh はこの参照を自動で付け替えるので、現行ではこちらを使うと起こりにくくなります。
+  tags: [Unity, 表情, リギング, 軽量化]
+  related: [avatar-descriptor]
+  source: discord
+
+- id: remove-unused-bones-after-dressing
+  question: 衣装を着せ替えたあと、不要になったボーンは消した方がよいですか？
+  answer: 基本的には消した方が軽くなります。ただし Humanoid のボーンは消さず、Blender ではウェイトが乗っていないことを確認してから消します。
+  body: |-
+    - 消してよい: 元衣装のスカートボーンなど、使わなくなった補助ボーン。
+    - 消してはいけない: Hips、手足など Humanoid に関係するボーン。
+    - Blender で消す前に、メッシュの頂点グループにそのボーン名が使われていないか確認します（使われていると、その部分が動かなくなります）。
+    - Unity 上でボーンを消す場合はコンポーネントやアニメーションの参照にも注意します。現行では Avatar Optimizer がアップロード時に未使用ボーンを自動で削除できます。
+    - VRM の場合は、ボーンを削除すると「設計図にあるボーンがない」とエラーになるので、正規化前に無効化（非アクティブ）にしておくと正規化時に消えます。
+  tags: [Blender, Unity, リギング, 衣装]
+  related: [humanoid, vertex-group]
+  source: discord
+
+- id: blender-version-choice
+  question: Blender はどのバージョンを使えばよいですか？
+  answer: 使いたいアドオンが対応している範囲で、新しめの安定版（LTS など）を使うのがおすすめです。新しいバージョンではウェイト転送やシュリンクラップの選択肢が増えています。
+  body: |-
+    - 基本方針: **使うアドオンの対応バージョン** を確認し、その範囲で新しめの安定版を選びます。本サイトは Blender 4.5 を前提にしています。
+    - 古い記事（Blender 2.8〜3.x）とはメニュー名や位置が変わっていることがあります。手順どおりに見つからない場合はバージョン差を疑ってください。
+    - 3.x の途中からデータ転送やシュリンクラップのモードが増え、より綺麗に仕上がる選択肢が増えています。
+    - 複数バージョンを並行してインストールできます（設定は別々に保存されます）。
+    - Steam 版は自動更新で見た目が大きく変わるバージョンに上がることがあり、アドオンが動かなくなる場合があります。公式サイト版の方がバージョン固定しやすいです。
+    - Blender 4.2 以降、アドオンは「エクステンション」として Extensions プラットフォームから入れる形に変わりました。古いアドオンは手動インストールが必要な場合があります。
+  tags: [Blender]
+  source: discord
+
+- id: bone-twisted-pose-reset
+  question: ボーン（つま先など）が勝手に曲がっている／編集モードに入ると直る
+  answer: ポーズモードでボーンが回転したままになっています。ポーズモードで該当ボーンを選び Alt+R（回転のリセット）、全体なら全選択して Alt+G / Alt+R / Alt+S でポーズをクリアします。
+  body: |-
+    - ポーズモードでの変形は、編集モードに入っている間は表示されません。そのため「編集モードにすると普通に戻る」ように見えます。
+    - 対処
+      1. アーマチュアを選択してポーズモードにします。
+      2. 曲がっているボーンを選び `Alt+R` で回転をリセットします。
+      3. まとめて戻すなら `A` で全選択 → `Alt+G`、`Alt+R`、`Alt+S`（またはポーズメニューの「ユーザートランスフォームをクリア」）。
+    - ポーズモードで動きを確認したあと、戻し忘れたままウェイト転送などをするとずれる原因になります。作業前に必ずポーズをクリアしましょう。
+  tags: [Blender, リギング]
+  shortcuts: [Alt+R]
+  related: [pose-mode]
+  source: discord
+
+- id: shapekey-edit-basis
+  question: Basis を編集したのにシェイプキーを 1 にすると元の形に戻る／変形が加算される
+  answer: 各シェイプキーは編集前の Basis との差分で形を持っているため、後から Basis だけを動かすとずれます。編集モードで動かした頂点を選び「シェイプに反映（Propagate to Shapes）」を使うか、シェイプキーで変形を作るのが安全です。
+  body: |-
+    - **どのシェイプキーを編集しているか確認**: 編集モードの変更は、選択中（アクティブ）のシェイプキーに入ります。Basis 以外が選ばれていると、オブジェクトモードに戻ったときに元の形に見えます。
+    - **Basis の変更を他のシェイプキーにも反映する**: 編集モードで Basis を選んで頂点を動かしたあと、動かした頂点を選択して `頂点 > シェイプに反映（Propagate to Shapes）` を実行します。
+    - **最初からやり直せるなら**: Basis は直接いじらず、新しいシェイプキーで変形を作る方が安全です。首など体の形を変える場合も、まずシェイプキーで作ります。
+    - 当時（2.9 頃）にあった「Basis に適用」系のメニューは 3.1 で見当たらなくなったという報告があります。Blender 4.5 のメニュー構成は実機で確認してください。
+    - 一度ずれてしまった後の修正は難しく、作り直した方が早いこともあります。
+  tags: [Blender, リギング]
+  articles: [rigging/shape-keys]
+  source: discord
+
+- id: shapekey-transfer
+  question: 同じ素体どうしでシェイプキーを転送したら途中までしか変形しない
+  answer: シェイプキーの転送は頂点数・頂点の並び・Basis が同じメッシュどうしでないと正しく動きません。転送先に同名のシェイプキーがあると上書き・合成されておかしくなるので、名前の重複をなくすか空にしてから転送します。
+  body: |-
+    - 手順: 転送元のメッシュ → `Ctrl` を押しながら転送先を選択（転送先がアクティブ）→ 転送先のシェイプキー欄の `▽` メニュー → **シェイプキーを転送（Transfer Shape Key）**。
+      - 正確には「選択中の別オブジェクトのアクティブなシェイプキー」をアクティブオブジェクトへ転送します。どちらを先に選ぶか（アクティブ）に注意してください。
+    - 失敗する原因
+      - 転送先に同じ名前のシェイプキーがある（上書き・合成されて変になる）→ 名前を変えるか削除してから転送します。
+      - 頂点数や頂点の位置、Basis が転送元と違う。
+    - 頂点グループの違いは影響しません。
+    - 頂点数が違うメッシュ間でシェイプキーをコピーしたい場合は、専用アドオンを使う方法があります。
+  tags: [Blender, リギング]
+  articles: [rigging/shape-keys]
+  source: discord
+
+- id: fbx-export-outfit-only
+  question: Blender で合わせた衣装だけを FBX で書き出したい（衣装データの受け渡し）
+  answer: フィッティング中にアバターと衣装のアーマチュアを結合しなければ、FBX 書き出しの「選択したオブジェクトのみ」や「アクティブコレクション」で衣装だけを出力できます。
+  body: |-
+    - 前提: 受け渡しは **お互いがその衣装・アバターを購入済みで、規約上許可されている場合のみ** にします。
+    - アバター側と衣装側のアーマチュアを **別々のまま**（アーマチュアが 2 つある状態）で重ねてフィッティングします。
+    - 書き出し時、FBX エクスポートの `Limit to` で
+      - `Selected Objects`（選択したオブジェクトのみ）: 衣装のアーマチュアとメッシュを選択して書き出す
+      - `Active Collection`: 衣装を別コレクションに分けておき、そのコレクションだけ書き出す
+    - ボーン名を相手のアバターに合わせてリネームしておくと親切です（任意）。
+    - すでに結合してしまった場合は、アバター側の要素を慎重に削除するしかありません。アクセサリーなどアバター側データが残らないよう注意します。
+  tags: [Blender, 衣装, 規約]
+  articles: [avatar-clothing/export-fbx]
+  source: discord
+
+- id: knife-and-fbx-export-error
+  question: メッシュを切り分けたら FBX が書き出せなくなった
+  answer: ナイフなどでメッシュを編集した結果、空のマテリアルスロットや想定外の面ができると FBX 書き出しでエラーになることがあります。空のスロットを削除してマテリアルを割り当て直すか、編集前からやり直します。
+  body: |-
+    - 当時の事例では、ナイフで無理に切り出したあと FBX 書き出しでエラーが出ました。考えられる原因は空のマテリアルスロットや、誤操作（`F` キーでの面張りなど）による想定外の面でした。
+    - 対処
+      - マテリアルプロパティで空のスロットを削除し、各面にマテリアルを割り当て直します。
+      - 修正が泥沼化しそうなら、編集前のデータからやり直す方が早いです。
+      - 切り出しが難しい場合は、メッシュを切らずに別メッシュで上から覆う方法もあります。
+    - ナイフツールは Blender 3.0 で使い勝手が改善されています。
+  tags: [Blender, マテリアル]
+  articles: [avatar-clothing/export-fbx]
+  related: [knife]
+  source: discord
+
+- id: unity-mesh-to-blender
+  question: Unity で編集・スケール変更したモデルを Blender 用に書き出せますか？
+  answer: Unity の FBX Exporter（Package Manager から導入）で FBX にできますが、構造が崩れて Blender での手直しが多くなりがちです。VRM として書き出して Blender の VRM アドオンで読む方が扱いやすい場合もあります。
+  body: |-
+    - 方法 1: Package Manager から **FBX Exporter** を導入し、オブジェクトを FBX に書き出します。ただし Blender でかなり手直しが必要な構造になることがあります。
+    - 方法 2: VRM として書き出し、Blender の VRM アドオンで読み込む。
+    - ボーンのない小物で座標さえ合えばよい場合は、どちらでも十分なことが多いです。
+    - 大きな形状変更は最初から Blender で行う方が結局楽なことが多いです。
+  tags: [Blender, Unity]
+  source: discord
+
+- id: better-fbx-exporter-normals
+  question: Better FBX Exporter で書き出すと法線（陰影）がおかしくなる
+  answer: 顔を編集していないのに Better FBX Exporter で書き出すと法線がおかしくなった事例があり、エクスポートオプションの違いが原因と考えられます。標準の FBX エクスポーターと結果を比べ、法線関連の設定を確認してください。
+  body: |-
+    - 事例: 有料アドオン Better FBX Importer & Exporter で書き出したところ、顔の法線がおかしくなりました（標準エクスポーターでは問題なし）。
+    - 法線（カスタム法線）や Smoothing 関連のオプションが標準エクスポーターと異なる可能性があります。
+    - 設定がわからない場合は標準の FBX エクスポーターを使うのが無難です。
+    - 同アドオンには、Maya 製アバターのシェイプキー名先頭（`vrc.` など）が Blender 経由で消える問題を書き出し時に補正してくれる利点もあります。
+  tags: [Blender, Unity]
+  related: [normal]
+  source: discord
+
+- id: dress-compatible-outfit-blender-old
+  question: Blender で対応衣装を着せて 1 つの FBX にする（当時の方法）
+  answer: アバターと衣装の FBX を Blender に読み込み、アーマチュアを結合してボーンを統合し、各メッシュの Armature モディファイアーをアバター側に向け直す方法です。現在は対応衣装なら Modular Avatar で十分ですが、ボーン統合で軽くしたいときの基礎になります。
+  body: |-
+    > 対応衣装を着せるだけなら現在は [Modular Avatar の Setup Outfit](/howto#dress-outfit) が手軽です。
+
+    1. `ファイル > インポート > FBX` でアバターを読み込みます。`アニメーション` のチェックを外し、`アーマチュア > ボーン方向の自動整列` にチェックを入れます。
+    2. 同様に衣装の FBX を読み込みます。
+    3. 結合前に双方のスケールを確認し、必要なら `Ctrl+A` → 全トランスフォームを適用します（[結合で大きさが変わる](/tips#unapplied-scale)）。
+    4. アバターのアーマチュアを選び、`Ctrl` を押しながら衣装のアーマチュアを選択して `Ctrl+J` で結合します。
+    5. 編集モードで重複したボーンを削除し、衣装の補助ボーン（スカート等）を対応するアバターのボーンの子にします。
+    6. 衣装の各メッシュの **Armature モディファイアーのオブジェクト** を、結合後のアーマチュアに変更します。
+    7. 各メッシュの UV マップ名を揃えます（例: すべて `UVMap`）。名前が違うと結合・書き出し時にテクスチャが外れることがあります。
+    8. FBX で書き出し、Unity で Humanoid 設定とマテリアル割り当てを行います。
+    - ボーン統合後は頂点グループやシェイプキーの見直し、Unity の Rig Configure で体の向きの確認も行います（[衣装ボーンをアバターに統合する](/qa#merge-outfit-bones-into-avatar)）。
+  tags: [Blender, 衣装, リギング]
+  shortcuts: [Ctrl+J]
+  articles: [avatar-clothing/export-fbx]
+  related: [armature]
+  source: discord
+
+- id: merge-outfit-bones-into-avatar
+  question: 衣装のボーンをアバターのボーンに統合して負荷を減らす（Blender）
+  answer: Blender で衣装ボーンの名前をアバターに合わせて統合し、重複ボーンを削除すると、ボーン数が減って負荷が下がります。統合後は頂点グループやシェイプキー、Unity の Rig 設定を確認します。
+  body: |-
+    **流れの例**
+
+    1. 素体と衣装を読み込み、不要なメッシュを削除します。
+    2. 衣装ボーンのうち素体に対応するものの名前を素体側に合わせます（例: `UpperLeg_L` → `Upper_leg.L`）。ボーン名を変えると頂点グループ名も一緒に変わります。
+    3. アーマチュアを結合し、素体と重複する衣装ボーンを削除、残った衣装ボーン（スカート等）を適切な素体ボーンの子にします。
+    4. 衣装メッシュの Armature モディファイアーを素体のアーマチュアに向け、必要ならメッシュも結合します。
+    5. 不要なボーン・マテリアルを削除して FBX で書き出し、Unity で Rig を Humanoid にして Apply します。
+
+    **確認ポイント**
+
+    - ボーン削除後、頂点グループやシェイプキーに不整合がないか
+    - Unity の `Rig > Configure` で体の向き・ボーン割り当てが正しいか
+    - ポーズモードと Unity 上で実際に動かして破綻がないか
+    - 現行では Modular Avatar もアップロード時にボーンを統合し、Avatar Optimizer が不要ボーンを削除できるので、Blender での統合は「さらに詰めたいとき」の選択肢です。
+  tags: [Blender, リギング, 衣装, 軽量化]
+  related: [vertex-group]
+  source: discord
+
+- id: unity-shoes-bone-nesting
+  question: Unity で単品の靴（小物）を履かせると足についてこない
+  answer: 衣装のボーンが素体のボーンの子になっていないか、そもそもボーン（スキニング）のない小物です。現行は Modular Avatar の Setup Outfit を使い、手動なら衣装の各 Humanoid ボーンを同じ意味の素体ボーンの子にします。
+  body: |-
+    - **現行の方法**: 靴の Prefab をアバターの子に置き、`ModularAvatar > Setup Outfit` を実行します。
+    - **手動で入れ子にする場合（当時の方法）**: 衣装の各ボーンを、同じ意味を持つ素体ボーンの子にします。
+    ```
+    Upper Leg.L（素体）
+     ├ Lower Leg.L（素体）
+     │  ├ Foot.L（素体）
+     │  │  ├ Toes.L（素体）
+     │  │  │  └ Toes.L（衣装）
+     │  │  └ Foot.L（衣装）
+     │  └ Lower Leg.L（衣装）
+     └ Upper Leg.L（衣装）
+    ```
+      - 名前から判断して上下を間違えやすいので注意します。
+      - 揺れもの用など Humanoid にないボーンは、衣装内の元の配置のままで大丈夫です。
+    - **ボーンのない小物**（スキニングされていないモデル）は、足のボーン（Foot など）の子にオブジェクトとして置きます。MA の Bone Proxy でも固定できます。
+  tags: [Unity, Modular Avatar, 衣装, リギング]
+  articles: [unity/modular-avatar-outfit]
+  related: [setup-outfit, bone-proxy]
+  source: discord
+
+- id: autodresser-old
+  question: Auto Dresser で衣装を着せる（当時の方法）
+  answer: 当時は Auto Dresser というエディタ拡張で、衣装のボーンを素体に自動で入れ子にしていました。現在は Modular Avatar の Setup Outfit が主流です。
+  body: |-
+    > 当時（2022 年頃）の手順です。現在は [Modular Avatar の Setup Outfit](/howto#dress-outfit) を使うのが一般的です。
+
+    1. Auto Dresser の unitypackage をインポートします（DynamicBone 未所持の場合は NonDB 版）。
+    2. 素体（服を着ていない）Prefab と衣装 Prefab を Hierarchy に置きます。念のため両方 `Unpack Prefab Completely` しておくと、失敗しても元データが残ります。
+    3. 衣装を選び `Add Component` で「Auto」と検索して Auto Dresser を追加します（スクリプトなので Project からドラッグはできません）。
+    4. 説明書に従い、衣装の `Hips`（Armature 直下）などを指定して Dressing を実行します。
+    5. 帽子など自動で付かない小物は、Hierarchy で Head ボーンの子にドラッグします。
+    - 使わないアイテムは Hierarchy から消しておくと作業しやすくなります。
+  tags: [Unity, 衣装]
+  source: discord
+
+- id: accessory-from-other-outfit
+  question: 別の衣装に付いているリボンなどの小物だけを使いたい
+  answer: Blender でリボンのメッシュと、そのリボンが使うボーン（Head 以下の該当ボーン）だけを残して書き出し、Unity で頭のボーンに配置します。メッシュのルートボーンより上のボーンを消すと、行き先不明で地面に落ちます。
+  body: |-
+    **きちんとやる方法**
+
+    1. Blender で衣装 FBX を開き、リボンのメッシュと、リボンが使うボーン（例: Head 内のリボン用ボーン以下）だけを残して削除します。
+    2. FBX で書き出し、Unity にインポートします。
+    3. 位置を合わせ、リボンのアーマチュアをアバターの `Head` ボーンの子に、メッシュをアバターの中に入れます（現行では MA の **Bone Proxy** で Head に固定する方法も使えます）。
+
+    **手早くやる方法**
+
+    - 衣装 FBX から服メッシュを消してリボンとアーマチュアだけにし、位置を合わせてアーマチュアごと Head に入れます。無駄なボーンが残るので重くなりますが動きます。
+
+    **注意**
+
+    - Skinned Mesh には「どのボーンから接続されているか（Root Bone）」が記録されています。その手前のボーンを Unity 上で消すと、メッシュが地面に落ちたり表示がおかしくなります。ルートの修正は Unity 上では通常できないので、Blender で必要なボーンを残して切り出す方が楽です。
+  tags: [Blender, Unity, Modular Avatar, 衣装]
+  articles: [unity/modular-avatar-outfit]
+  related: [bone-proxy]
+  source: discord
+
+- id: clothes-not-following-bones
+  question: 服がアバターの動きについてこない（ポーズを付けても服が動かない）
+  answer: ①メッシュの頂点グループ名が追従させたいボーン名と一致しているか、②Armature モディファイアーのオブジェクトが追従させたいアーマチュアになっているか、③そのボーンにウェイトが乗っているか、の 3 点を確認します。
+  body: |-
+    **チェックリスト**
+
+    1. **頂点グループ名 = ボーン名** になっているか（オブジェクトデータプロパティの頂点グループ一覧で確認）。ボーンと頂点グループは名前で対応します。
+    2. **Armature モディファイアーのオブジェクト** が、最終的に出力する（追従させたい）アーマチュアになっているか。モディファイアーを誤って適用・削除した場合は、`モディファイアーを追加 > 変形 > アーマチュア` で付け直します。**Armature モディファイアーは適用しません。**
+    3. **ウェイトが乗っているか**: オブジェクトモードでアーマチュア → `Shift` を押しながらメッシュを選択 → ウェイトペイントモード → `Ctrl+クリック` でボーンを選ぶと、そのボーンのウェイトが表示されます。
+       - 全体が青: そのボーンにウェイトがない。ウェイト転送ができていない可能性があります。
+
+    **動作確認**
+
+    - アーマチュアを選んでポーズモード → ボーンを選んで `R` で回転させ、服がついてくるか確認します。確認後は `Alt+R` などでポーズを戻します。
+
+    **よくある原因**
+
+    - ボーン名を変えずにウェイト転送した（頂点グループにあるウェイトしか転送されません）。
+    - モディファイアーのスパナアイコンが見えない → オブジェクトモードになっていない場合があります。
+  tags: [Blender, ウェイト, 衣装, リギング]
+  articles: [rigging/parent-weights, avatar-clothing/weight-transfer]
+  related: [vertex-group, armature, weight-paint-mode]
+  source: discord
+
+- id: arm-length-mismatch
+  question: 非対応衣装を着せたら腕の長さが合わず変な位置で曲がる
+  answer: 衣装のウェイトとボーンの長さがアバターと合っていません。編集モードで袖（腕）部分をアバターの腕に合わせて縮めてから、素体からウェイトを転送するときれいに追従します。
+  body: |-
+    1. 編集モードで袖（腕）部分の頂点をまとめて選択します。
+    2. `S`（スケール）で腕の向きに縮め、`G` で移動して肩側に寄せ、アバターの腕の長さに合わせます。プロポーショナル編集は目的に合わせて ON/OFF します。
+    3. 腕のサイズが合ったら、素体からウェイトを転送します（[ウェイト転送](/howto#copy-weights)）。
+    - 編集後にオブジェクトモードへ戻すと元に戻ってしまう場合は、Basis 以外のシェイプキーを編集しています（[Basis 編集](/qa#shapekey-edit-basis)）。
+    - 腕を動かさない（手を出さない）着せ方なら、ウェイトペイントで直接塗る方法もあります。
+  tags: [Blender, 衣装, ウェイト]
+  articles: [avatar-clothing/weight-transfer]
+  related: [apply-transform]
+  source: discord
+
+- id: shrinkwrap-keep-thickness
+  question: 厚みのあるメッシュを、厚みを残したままシュリンクラップしたい
+  answer: 外側と内側の頂点にそれぞれ頂点グループを作り、シュリンクラップを 2 つ（頂点グループを指定、オフセットを変えて）かけるとうまくいくことがあります。閉じたメッシュは分割してシュリンクラップし、後で結合する方法もあります。
+  body: |-
+    - 方法 1: 外側の面と内側の面にそれぞれ頂点グループを割り当て、シュリンクラップモディファイアーを 2 つ追加して、各モディファイアーの `頂点グループ` 欄で対象を限定し、オフセットを変えて厚みを保ちます。
+    - 方法 2: メッシュを分割してからシュリンクラップし、後で結合します。
+  tags: [Blender, 衣装]
+  articles: [avatar-clothing/base-shape]
+  related: [shrinkwrap, vertex-group]
+  source: discord
+
+- id: tights-dent-at-knee
+  question: タイツ・レギンスが膝などで凹む
+  answer: 多くは、衣装のウェイトの境目（Upper Leg と Lower Leg の塗り分け）と素体の関節位置がずれていることが原因です。素体からウェイトを転送すると直ります。素体を細くしたあとで凹む場合は、シュリンクラップの適用漏れや、結合済みメッシュでのプロポーショナル編集も疑います。
+  body: |-
+    - **ウェイトの境目と関節位置のずれ**: ウェイトペイントモードで Upper Leg / Lower Leg の塗り分けを確認し、関節位置とずれていれば素体からウェイトを転送します。
+    - **転送したのに直らない**: 頂点グループ名が素体のボーン名と一致しているか確認します。
+    - **素体を細くしたら衣装まで凹んだ**
+      - シュリンクラップを適用し忘れていると、素体の変形に追従して凹みます。
+      - 素体と衣装を `Ctrl+J` で結合した状態でプロポーショナル編集をすると、衣装まで動きます（[接続のみ](/tips#proportional-edit-connected-only)）。
+      - 結合済みかどうかは、オブジェクトモードで素体をクリックしたときに衣装も一緒に選択されるかでわかります。
+    - やり直す場合は、結合前のデータから衣装だけ持ってくる方法もあります。
+  tags: [Blender, ウェイト, 衣装]
+  related: [weight-paint-mode, shrinkwrap]
+  source: discord
+
+- id: heel-shoes-fitting
+  question: ヒールのある靴を合わせるには？
+  answer: 足の形はボーンを曲げるのではなく、ヒール用に足を伸ばすシェイプキーを素体に持たせて対応するのがおすすめです。VRChat では Humanoid のボーン角度はトラッキングで上書きされるため、ボーンを曲げても戻されます。
+  body: |-
+    - **足の形**: 素体に「ヒールを履ける足の形」にするシェイプキーを作り、靴に合わせて値を入れます。足のボーン自体を曲げる方法は不具合が出やすいのでおすすめしません。
+    - 靴で素足が見えないなら、素足を極端に細くするシェイプキーで隠す方法もあります。
+    - ボーン配置をヒール用に変える例（Foot を縦にして Lower Leg と互い違いにする）もありますが、素足の見え方やウェイト次第で正解は変わります。
+    - **床の高さ**: VRChat ではアバターの見た目の床高さは環境側（トラッキングの床設定など）で調整されることが多く、あまり気にしなくて構いません。VRM の場合は正規化後に Armature の高さを上げ、ヒールが床に付くようにします。
+  tags: [Blender, VRChat, 衣装, リギング]
+  related: [shape-key]
+  source: discord
+
+- id: cloth-outfit-to-other-avatar
+  question: Cloth（Unity の布シミュレーション）を使った服を他のアバターに着せたら崩れる
+  answer: Cloth はメッシュ単位の設定（コライダー、頂点ごとの制約ペイント）が必要で、移植しただけでは正しく動きません。Cloth を設定し直すか、Blender でボーンとウェイトを入れて PhysBone で揺らす方法に変えます。
+  body: |-
+    - Cloth コンポーネントは、頂点ごとの動きの制約（Cloth Constraints のペイント）とコライダーの設定が必須です。他アバターに移したら設定し直します。
+    - Cloth は Performance Rank の評価が厳しく、すぐ Very Poor になります。ロード時に周囲を一瞬止めることもあるため、Blender でボーンを入れてウェイトを付け、PhysBone で揺らす方が扱いやすい場合が多いです。
+    - **移動すると布がくしゃくしゃになる**: `World Velocity Scale` と `World Acceleration Scale` を 0 に近づけると、アバターの移動の影響が減ります。
+    - **Solver Frequency** は VRChat 側の計算レートと合わないとローカルと動きが変わることがあります（当時は 90 の倍数がよいとされていました）。
+    - **Edit Cloth Constraints を押しても頂点が表示されない**: Scene ビューの Gizmos が OFF になっていないか確認し、それでも出ない場合は `Window > Layouts` から任意のレイアウトを選び直すと直ることがあります。
+    - 「Cloth を付けるには Armature モディファイアーを消す必要がある」というのは古い情報です。
+  tags: [Unity, 衣装, PhysBone, 軽量化]
+  source: discord
+
+- id: body-transplant
+  question: 素体（体）データのないアバターに別アバターの素体を移植する／首から下を差し替える
+  answer: Blender で両アバターを読み込み、頭側と体側のボーン（Neck / Head）を正しくつなぎ、首の継ぎ目のメッシュとテクスチャの色を合わせます。体のボーン名が変わると衣装の頂点グループとの対応にも影響します。
+  body: |-
+    - 当時は有志の解説動画（Blender 2.91 / Unity 2018 / SDK3 時点）を参考に移植していました。大まかな手順はどの組み合わせでも同じです。
+
+    **流れ**
+
+    1. Blender で両方の FBX を読み込みます（`アニメーション` のチェックを外し、`ボーン方向の自動整列` を有効）。
+    2. 使う側の頭・体のメッシュを残し、不要部分を削除します。
+    3. アーマチュアを統合し、首と頭のボーンが正しく親子でつながるよう調整します。
+    4. 首の継ぎ目のメッシュを合わせます（[首の継ぎ目](/qa#neck-seam-mesh)）。
+    5. FBX を書き出し、Unity で Humanoid 設定・マテリアル割り当てを行います。
+
+    **よくあるミス**
+
+    - 首と頭のボーンがつながっていない。
+    - 体側を変えたことでボーン名が変わり、手持ちの衣装の頂点グループ名と合わなくなる（[服が動かない](/qa#clothes-not-following-bones)）。
+    - 首と体で色や明るさが違う（[首の色合わせ](/qa#neck-color-match)、[首と体の明るさ](/qa#neck-body-brightness-mismatch)）。
+    - 現在は「首すげ替え」を補助するツールもあり、当時より楽にできるようになっています。
+  tags: [Blender, Unity, モデリング, リギング]
+  source: discord
+
+- id: transplant-eye-expression
+  question: 他のアバターの目（＞＜などの表情パーツ）を移植する
+  answer: 移植元の Body から目の部分だけを分離し、移植先のアーマチュアの下に入れて Armature モディファイアーを移植先に向け、位置を合わせて不要なシェイプキーを削除します。Unity では目のマテリアルを透過設定にします。
+  body: |-
+    **Blender**
+
+    1. 移植先と移植元の FBX を読み込みます（`アニメーション` オフ、`ボーン方向の自動整列` オン）。
+    2. 移植元の Body を選んで編集モードにし、目以外を `L` で選んで `H` で隠します。
+    3. 残った目のパーツを `A` で全選択 → `P` → `選択` で分離し、名前を `eye` などに変えます。
+    4. `Shift` を押しながらドラッグして、移植先のアーマチュアの下に移動します。
+    5. `eye` の Armature モディファイアーのオブジェクトを移植先のアーマチュアに変更します。
+    6. `N` のトランスフォームで頭部内に位置を合わせます。
+    7. 不要なシェイプキーを削除し、使う表情のシェイプキーを 1 にして位置や違和感を確認・修正します。
+
+    **Unity**
+
+    - 移植した目のマテリアルを透過（Transparent / Cutout）にして、シェイプキーで正しく表示されることを確認します。当時は VRM 用に MToon を使っていましたが、VRChat 向けは lilToon などアバターに合わせたシェーダーで設定します。
+
+    **元の目を隠すとき**
+
+    - シェイプキーで元の目を閉じて別の目（－－など）を表に出すと、周囲の色に違和感が出ることがあります。上に出す目の下側に境目が来るようにすると目立ちにくくなります。
+  tags: [Blender, Unity, 表情, リギング]
+  related: [separate, armature, shape-key]
+  source: discord
+
+- id: head-swap-unity-humanoid-error
+  question: 頭を移植した FBX を Unity に入れたら Humanoid のエラーが出る
+  answer: FBX の Rig の Configure で、ボーンの割り当て（Chest / Upper Chest / Neck / Head など）が正しいか確認します。アーマチュア名の変更自体は通常影響しませんが、メッシュの Root Bone のずれやツールの干渉が原因のこともあります。
+  body: |-
+    - FBX の Inspector → `Rig` → `Configure...` で、ボーンの対応関係が正しいか確認します。コライダー用オブジェクト（Chest_Col など）を誤って割り当てていないかも見ます。
+    - Hierarchy に置いたあとのアーマチュア名の変更は通常は問題になりません（Unity 側で参照も追従します）。
+    - 一部メッシュの Root Bone がずれている、何らかのツールが参照を壊している、などの可能性もあります。
+    - 当時の事例では、書き出し時のアーマチュア名（`Armature.001`）のまま扱うとエラーが出なくなりましたが、原因は特定されていません。
+  tags: [Blender, Unity, モデリング, リギング]
+  source: discord
+
+- id: neck-color-match
+  question: 首すげ替え後に首と体の色を合わせる（テクスチャ）
+  answer: 顔の色をスポイトで取り、体側の首まわりをその色からグラデーションで体の色へなじませます。全体の色味が違う場合は lilToon の色調補正や、画像編集ソフトの色調補正レイヤーで合わせます。
+  body: |-
+    **首まわりだけ合わせる（GIMP の例）**
+
+    1. 移植先（顔）と移植元（体）のテクスチャを開きます。
+    2. 顔の継ぎ目付近の色をカラーピッカーで取り、描画色にします。体の首の色も取り、背景色にします。
+    3. パスツールなどで首まわりを囲み、選択範囲にします。
+    4. グラデーションツールで、首と顔の境目のやや上から首の下の方へドラッグし、上ほど顔の色・下ほど体の色になるようにします。
+
+    **体全体の色味が違う場合**
+
+    - まずマテリアル（シェーダー）の設定を顔と体で揃え、lilToon の色調補正（色相・彩度・明度）でおおまかに合わせます。
+    - 色相が大きく違う場合は、画像編集ソフトで色調補正用のレイヤーを作り、元のテクスチャに重ねます。
+
+    **シェーダーの影響にも注意**
+
+    - テクスチャの色が合っていても、MatCap、リムライト、影、反射、逆光ライトなどの影響で継ぎ目が目立つことがあります。
+    - lilToon ではそれぞれのマスク欄にマスクテクスチャ（継ぎ目付近が黒くなるグラデーション）を設定すると、継ぎ目付近だけ影響を受けなくでき、色がなじみやすくなります。
+    - MToon はリムライトのマスクは設定できますが、MatCap のマスクはありません。
+    - 首の形状合わせには Blender のラティス変形も便利です。
+  tags: [マテリアル, モデリング]
+  source: discord
+
+- id: neck-seam-mesh
+  question: 首の継ぎ目（後ろなど）に切れ目ができる
+  answer: 継ぎ目の頂点のウェイトが顔側と体側で一致しているかを確認します。メッシュを動かすなら、Basis を直接いじらずシェイプキーで首を少し伸ばして頭側に差し込むと安全です。
+  body: |-
+    - ① **ウェイトで直す**: 顔と体の継ぎ目付近で、頂点のウェイト（Neck / Head の配分）が一致するようにします。体側の Neck に Head のウェイトが混ざっているアバターもあるので確認します。
+    - ② **メッシュで直す**: 首のメッシュを少し伸ばして頭側にめり込ませると切れ目が見えにくくなります。このとき **Basis を直接編集せず、まずシェイプキーで作る** と後戻りできます。
+    - ③ 首と頭の頂点をつないでから首側で再分離すると綺麗にできますが、メッシュが分かれている以上どこかで妥協が必要です。
+    - 首の後ろだけはぴったり合わせず少しゆとりを持たせると、頭を動かしたときに切れ目が出にくくなります。
+    - 頭と首をなめらかにつなぐ転送系の手法は、頭側メッシュが首まで伸びている構造では有効ですが、首の折り返しで切れている構造ではうまくいかないことがあります。シェイプキーがあると崩れる手法もあります。
+  tags: [Blender, モデリング, ウェイト, リギング]
+  related: [shape-key, weight]
+  source: discord
+
+- id: neck-body-brightness-mismatch
+  question: ワールドによって首（顔）と体の明るさが違う
+  answer: 各メッシュの Anchor Override・Root Bone・Bounds と、マテリアルの設定（lilToon の「明るさの下限」など）を顔と体で揃えます。
+  body: |-
+    - **ライティングの基準を揃える**: Skinned Mesh Renderer の `Anchor Override`、`Root Bone`、`Bounds` が顔・体・服で揃っていないと、ライトプローブの参照位置が変わり明るさが違って見えます。
+      - Bounds はアバター全体が入るサイズに揃えます。
+      - 現行では Modular Avatar の **MA Mesh Settings** をアバタールートに付けると、配下のメッシュの Anchor Override と Bounds をまとめて設定できます。
+      - Bounds を揃えるツールを使った場合も、本当に揃っているか確認します。
+    - **シェーダー設定を揃える**: 上記が揃っていても違う場合は、lilToon の `明るさの下限`（ライティング設定）など、顔と体のマテリアル設定の差を確認します。首すげ替えで別アバターのマテリアルを使うとよく起こります。
+  tags: [Unity, マテリアル, モデリング]
+  articles: [unity/liltoon-basics]
+  source: discord
+
+- id: physbone-lost-after-dressing
+  question: 首すげ替えや着替えのあと、全身の PhysBone が動かなくなった
+  answer: PhysBone コンポーネントが消えていないか、非アクティブになっていないか、再生時にアニメーションで OFF にされていないかを確認します。PhysBone をまとめて置いていたメッシュのないオブジェクトを移し忘れていることもあります。
+  body: |-
+    確認する順番
+    1. PhysBone コンポーネントが残っているか（消えていないか）。
+    2. コンポーネントは付いているが、オブジェクトやコンポーネントが非アクティブになっていないか。
+    3. 再生（プレビュー）を始めると非アクティブになる → アニメーション（FX）で PhysBone の ON/OFF を制御しているかを確認します。
+    4. PhysBone をまとめて付けていた「メッシュのない空オブジェクト」を、衣装の入れ替えで消したり移し忘れたりしていないか。
+  tags: [Unity, PhysBone, 衣装]
+  related: [physbone]
+  source: discord
+
+- id: hair-color-change
+  question: 髪（テクスチャ）の色を変える方法
+  answer: 一番手軽なのは lilToon の色調補正（色相・彩度・明度）で変える方法です。テクスチャ自体を変える場合は、改変用 PSD のレイヤーで色相を変えるか、グラデーションマップで塗り替えます。
+  body: |-
+    **方法 1: lilToon の色調補正（おすすめ）**
+
+    - マテリアルのメインカラーにある色調補正で、色相（Hue）・彩度・明度・ガンマを調整します。テクスチャを編集せずに済み、別売りのヘアセットを元の髪色に近づけるのも簡単です。
+    - 色相は色相環の針を回すイメージで、元の色を保ったまま色だけを回します。
+    - 必要に応じて調整後の色をテクスチャに焼き込む機能もあります。
+
+    **方法 2: 画像編集ソフトでテクスチャを編集**
+
+    1. [使用中のテクスチャを探す](/howto#find-texture)。改変用 PSD が付属していればそれを使います。
+    2. ベース色のレイヤーを選び、色相・彩度（HSV）を変更します（GIMP: `色 > 色相-彩度` / `色 > 色相-クロマ`、CLIP STUDIO PAINT: 色調補正 > 色相・彩度・明度）。
+    3. PNG などで書き出し、元のテクスチャを上書き（またはマテリアルに割り当て）します。
+    - レイヤーカラー（CLIP STUDIO）で塗りつぶす方法は手軽ですが、影の具合が変わるので描き込みの少ないテクスチャ向けです。
+    - 色ごとにレイヤーが分かれていれば、グラデーションマップで元の濃淡を保ったまま色だけ変えるのがきれいです（[グラデーションマップ](/tips#gradient-map-recolor)）。
+    - 白髪にしたい場合は彩度を 0 にして、シェーダー側で色を重ねる方法もあります。
+    - 影・エッジ・光沢までこだわり始めると奥が深いので、まずは色相変更から試しましょう。
+  tags: [マテリアル]
+  articles: [unity/liltoon-basics]
+  source: discord
+
+- id: eye-texture-replace
+  question: 瞳のテクスチャを差し替える
+  answer: レイヤーが扱える画像編集ソフトで、元の顔（目）テクスチャの上に購入した瞳テクスチャを重ねて PNG で書き出し、アバターのテクスチャを差し替えます。対応品でない汎用の瞳は UV を見ながら配置します。
+  body: |-
+    1. GIMP、CLIP STUDIO PAINT、Photoshop などで元のテクスチャを開きます。
+    2. 瞳テクスチャを新しいレイヤーとして貼り付けます。アバター対応品ならそのまま位置が合います。汎用品は UV を書き出して重ね、位置を合わせます。
+    3. PNG で書き出し、アバターのテクスチャと入れ替えます。
+    - 瞳のきらめき（虹色の反射など）は MatCap と MatCap マスクで表現されていることが多いです。設定例として `.mat`（Unity のマテリアルファイル）が付いている場合は、Unity で開いて値を参考にします。
+    - 写真で瞳が強く光って見えるのは、アバター側の設定ではなくワールドのポストエフェクトの影響のこともあります。
+  tags: [マテリアル, 表情]
+  articles: [unity/liltoon-basics]
+  related: [uv]
+  source: discord
+
+- id: tights-texture-from-psd
+  question: 素肌テクスチャでタイツ・ストッキングを表現する（テクスチャ改変）
+  answer: 改変用 PSD に入っているタイツのレイヤーを UV に沿って切り取って使うか、肌テクスチャの上に暗い色のレイヤーを重ねて不透明度を下げると、肌の影が透けたタイツ風にできます。
+  body: |-
+    - **PSD のレイヤーを活用**: 素体の PSD にタイツのレイヤーがあれば、必要な長さで切り取ります。UV のレイヤーはポリゴン割りの設計図なので、UV の線に沿って切るときれいに仕上がります（歪みがあるので完全ではありません）。
+    - **半透明レイヤーで作る**: 新規レイヤーで該当範囲を選択して塗りつぶし、不透明度を 50% 程度にすると、下の肌の影が透けてタイツらしくなります。真っ黒より、茶色寄りの色の方が自然です。
+    - 靴を変えて足首まわりが見えるようになった場合は、足首から先のテクスチャも同じレイヤー・同じ色で塗り足します。部分ごとに別々に塗るより確実です。
+    - 日焼け肌も同じ考え方で、肌に半透明の色レイヤーを重ね、日焼け跡を残したい部分を消していきます。レイヤーの合成モード（乗算・焼き込みなど）を切り替えて発色を比べると良い色が見つかります。
+  tags: [マテリアル, 衣装]
+  related: [uv]
+  source: discord
+
+- id: transparent-render-queue
+  question: 透過したメッシュ越しに別の透過メッシュが消える・角度で見えなくなる
+  answer: 半透明（Transparent）どうしの描画順は、メッシュの中心位置で決まるため角度で入れ替わります。マテリアルの Render Queue で順番を固定し、内側を小さく・外側を大きくします。同じマテリアルを共有している場合は複製して分けます。
+  body: |-
+    - 例: 透過したローブ越しに中のフラスコ（透過）を見ると、後ろ斜めからだけ消える。
+    - 原因: 半透明の描画順はメッシュそのものではなく基準位置で判断されるため、カメラを回すと前後関係が入れ替わることがあります。
+    - 対処
+      1. 内側に見えるメッシュのマテリアルの **Render Queue** を小さく、外側を大きくします（例: 内側 2500 → 外側 2510。数値の小さい方が先に描画されます）。
+      2. 同じマテリアルを共有するメッシュが重なっている場合は、マテリアルを複製して別々に割り当て、Render Queue を分けます（Blender での作業は不要です）。
+    - 可能なら半透明より **Cutout（カットアウト）を優先** すると、描画順の問題が起きません。
+    - 眼鏡のレンズ越しにまぶたが消える、といったケースも同じ原因です（まぶたの Queue < 眼鏡の Queue）。
+    - ZWrite（深度書き込み）の設定と組み合わせて調整するケースもあります。
+  tags: [Unity, マテリアル]
+  source: discord
+
+- id: transparent-backface
+  question: 透過部分が表からは透けるのに裏からだと透けない
+  answer: lilToon なら描画モードを半透明にして 2 パス（両面を順に描画）にすると直ることがあります。カットアウトで済むならカットアウトを優先し、裏面が透けない場合はメッシュの面の向きやテクスチャの修正が必要なこともあります。
+  body: |-
+    - lilToon で `半透明` + `2パス` にすると解消した事例があります。
+    - 余分なメッシュを透過で隠す構造（VRoid 衣装など）では Cutout が使われていることが多く、その場合は Cutout のまま直す方が、描画順で消える問題が起きずおすすめです。
+    - Cutout で裏側だけおかしい場合は、メッシュの面が反転している、またはテクスチャのアルファの修正が必要な可能性があります。
+  tags: [Unity, マテリアル]
+  articles: [unity/liltoon-basics]
+  source: discord
+
+- id: outline-thick-after-blender
+  question: Blender を通したら輪郭線（アウトライン）が太くなった
+  answer: Blender を通したことでモデルのスケールが変わり、アウトラインの幅が相対的に太く見えています。マテリアルのアウトライン幅を細くするか 0 にします。
+  body: |-
+    - マテリアル（シェーダー）のアウトライン設定（lilToon なら輪郭線設定、UTS2 なら Outline Settings）で幅を小さくします。
+    - しっぽなどが謎の物体に包まれて見えるのも、太くなったアウトラインのことがあります。アウトラインには色も付けられるので、色が違って見える場合もあります。
+    - そもそもスケールが変わらないよう、Blender で `Ctrl+A` によるスケール適用や FBX 書き出し設定（スケール）を見直すのも有効です。
+  tags: [Blender, Unity, マテリアル]
+  related: [apply-transform]
+  source: discord
+
+- id: rim-light-glow
+  question: 服が白く光って見える／光らせたような着色をしたい（リムライト・エミッション）
+  answer: 服が白っぽく光る原因の多くはリムライトやエミッションの強さです。逆に、ライトが当たったような光り方はテクスチャだけでは難しく、リムライトかエミッションで表現します。
+  body: |-
+    - **白く光ってしまう**: シェーダーのリムライトの色を暗くする（または不透明度 A を下げる）、エミッションを確認します。特殊なライト環境のアプリ（Beat Saber など）ではリムライト対策をしないと真っ白に光ることがあります。
+    - **一部だけ白い**: ファスナーなど別マテリアルの設定し忘れのことがあります。
+    - **光らせたような着色をしたい**: 色を変えるだけならテクスチャ編集で可能ですが、光っているような見え方はリムライトかエミッションでないと表現できません。
+    - lilToon から MToon に変換すると白っぽくなる場合も、リムライトとエミッションを黒くすると改善します。
+  tags: [マテリアル, VRM]
+  source: discord
+
+- id: expression-blink-not-working
+  question: 表情で設定した「目閉じ」が VRChat で反映されない
+  answer: 目閉じ（まばたき）と同じシェイプキーを表情で使うと、自動まばたきとの干渉を防ぐ仕組みで動かないことがあります。表情のステートで自動まばたきを止める設定（Tracking Control やアバター独自の Parameter Driver）を確認します。
+  body: |-
+    - 例えば半目（目閉じ 50）の表情中に自動まばたきが加わると 150 になって破綻するため、多くのアバターは表情中にまばたきを止める仕組みを持っています。
+    - 確認するところ
+      - FX レイヤーの手のジェスチャー用ステートに付いている **VRC Animator Tracking Control**（Eyes & Eyelids を Animation にするとまばたきを止める）や、アバター独自の **Avatar Parameter Driver**（自動まばたき制御用パラメーター）。
+      - 目閉じを入れた表情だけ、自動まばたきの扱い（パラメーターの値など）が正しいか確認し、必要に応じて変更します。
+    - Write Defaults の ON/OFF が混在していると思った通りに動かない原因になります（[Write Defaults](/glossary#write-defaults)）。
+    - 当時は VRCAvatarEditor で表情アニメーションを作成・設定する方法がよく使われていました。
+  tags: [Unity, VRChat, 表情, アニメーション]
+  source: discord
+
+- id: default-face-reverts
+  question: Unity でデフォルトの表情（シェイプキー）を変えたのに VRChat では元に戻る
+  answer: FX レイヤーの手のジェスチャー用レイヤーに、待機時（Idle など）に表情シェイプキーを 0 に戻すアニメーション（Face Default など）が入っているためです。そのアニメーションのシェイプキー値を変えます。
+  body: |-
+    - Hierarchy で Body のシェイプキーを変えても、アニメーションが常に値を上書きするため反映されません。
+    - FX コントローラーの `Left Hand` / `Right Hand` などのレイヤーで、Idle（手を開いた状態）や Fist などのデフォルト表情に使われているアニメーション（例: `Face Default`）を開き、目的のシェイプキーの値に変更します。
+    - 表情用のエディタ拡張を使えば、デフォルト表情の変更を GUI で行えます。
+    - Write Defaults が混在していると思った通りにならないことがあります。
+  tags: [VRChat, 表情, アニメーション, リギング]
+  source: discord
+
+- id: animator-null-motion-stops
+  question: アニメーター（FX）のステートを切り替えたら、別の揺れものやギミックが止まった
+  answer: ステートの Motion が空（None）だったり、コピー時に別のアニメーションを入れ間違えたりしていると、思わぬプロパティが止まります。Avatar のデバッグ表示やエミュレーターで、実際にどのステートへ遷移しているか確認します。
+  body: |-
+    - ステートの `Motion` が空のままだと、そのレイヤーの動作が止まることがあります。
+    - コントローラーのコピーで起きやすい事故
+      - 編集したつもりが別アバターのコントローラーだった
+      - コピーしたのに GUID の関係で元（マスター）と同期していた／SDK 更新で中身が消えた
+      - コピー元のアニメーションを編集してしまい、別のステートにも影響した
+    - 遷移の確認方法: VRChat のアクションメニューにあるデバッグ表示で、パラメーターやメニューの値の変化を確認できます。Unity 上では Av3Emulator や Gesture Manager で確認できます。
+    - ステートの分岐を複雑にするほど事故が起きやすくなります。
+  tags: [Unity, アニメーション, PhysBone]
+  source: discord
+
+- id: afk-motion-custom
+  question: AFK モーション（離席時のポーズ）を自作する
+  answer: Blender で作ったアニメーションを FBX で書き出して Unity の AnimationClip として使うか、Unity 上で直接 AnimationClip を作ります。Unity での作成には有料アセットの Very Animation が便利です。
+  body: |-
+    - **Blender で作る**: アニメーションを付けたアーマチュアを FBX で書き出し、Unity で FBX を展開すると再生マークのアイコン（AnimationClip）が入っているので、それを Animator Controller に入れます。Rig を Humanoid にして、アバターに合う形でクリップを使います。
+    - **Unity で作る**: Animation ウィンドウで直接作るか、Very Animation（有料、セールになることがあります）を使うとポーズ付けが楽です。
+    - **フルトラッキングがある場合**: 実際にポーズを取って録画する方法もあります。
+    - VRChat の AFK は、作法どおり Avatars 3.0 の Playable Layers（Base / Locomotion 側など、AFK 状態に対応するレイヤー）で設定するのが確実です。FBX のアニメーションをそのまま使う抜け道的な方法では、他の人から正しく見えない可能性があります。
+  tags: [Blender, Unity, VRChat, アニメーション]
+  source: discord
+
+- id: speed-based-effect-blendtree
+  question: 移動速度に応じてエフェクトを出したい（FX で計算できる？）
+  answer: FX レイヤーではパラメーターの四則演算は基本的にできません。VelocityX / VelocityZ などを入力にした 2D の Blend Tree を作り、最高速度の位置にエフェクトを ON にするアニメーションを置く方法で実現できます。
+  body: |-
+    - Animator のパラメーターで √(x²+y²) のような計算をするのは基本的にできません（ステートで算術フローを組めなくはないですが非常に手間です）。
+    - 代わりに、移動速度パラメーターを軸にした **2D Blend Tree** を使います。
+      - 前後左右の通常移動にはエフェクト OFF のアニメーション、前方向の外側（最高速度）の点にだけエフェクト（パーティクル）ON のアニメーションを置きます。
+    - 移動速度でモーションを切り替える販売アセット（ホバーモーションなど）の Blend Tree が参考になります。
+  tags: [Unity, VRChat, アニメーション]
+  source: discord
+
+- id: physbone-root-endpoint
+  question: PhysBone の Root Transform・Endpoint Position・Multi Child Type の考え方
+  answer: PhysBone は Root Transform に指定したボーンの子から揺れます。Unity のボーンは点なので、子のない単一ボーンは向きが決まらず揺れません（Endpoint Position で補います）。子が複数ある場合の根元の傾き方は Multi Child Type で決まります。
+  body: |-
+    - **Root Transform**: ここに指定したボーンより下が揺れます。空欄にすると、コンポーネントを付けたオブジェクト自身がルートになります。
+    - **ボーンは点**: Unity のボーンには長さがなく、次の点（子ボーンや `_end`）との位置関係で向きが決まります。
+      - 子のない単一ボーンに PhysBone を付けても揺れません。
+      - リーフボーン（`〜_end`）があると、その手前のボーンが揺れるようになります。
+      - リーフボーンがない場合は **Endpoint Position** で末端の点を仮想的に追加します（単一ボーンにも長さを与えるイメージ）。
+    - **Multi Child Type**: ルートの直下に子が複数ある場合、どの子に合わせてルートを傾けるか決められないため、既定（`Ignore`）ではルートは固定されます。`First`（最初の子に従う）や `Average`（平均）に変えられます。毛先が枝分かれしているボーンなどで検討します。
+    - **作者の Root 指定ミスに注意**: DynamicBone の感覚で Root を指定していて、本来揺れるべき根元が揺れない（または逆）アバターもあります。根元のボーンにウェイトが乗っているかで判断できます。
+    - ボーン構造を変えるのが面倒なときは、角度制限（Limit）のカーブで根元だけ角度 0 にして固定する方法もあります。
+  tags: [Unity, PhysBone, リギング]
+  source: discord
+
+- id: physbone-grab-not-working
+  question: Unity のプレビューでは掴めるのに VRChat で PhysBone が掴めない
+  answer: PhysBone の Allow Grabbing が有効か、アニメーションで掴み可否を切り替えていないかを確認し、SDK を最新にします。VRChat 側の一時的な不具合の場合は、インタラクトの設定を一度 OFF→ON にすると直ることがあります。
+  body: |-
+    - PhysBone の `Grab & Pose` 設定で **Allow Grabbing** が有効になっているか確認します。
+    - アニメーションで PhysBone の有効／無効や掴み可否を切り替えている場合、その設定も確認します。
+    - VRChat SDK を最新にします。
+    - 当時は VRChat 側の不具合で掴めないことがあり、VRChat 内のインタラクト設定を OFF→ON にすると直るケースがありました。
+    - Unity の再生モードで、思わぬ場所で掴めてしまう場合は、コライダーやボーンの判定位置（Radius など）を確認します。
+  tags: [Unity, VRChat, PhysBone]
+  source: discord
+
+- id: physbone-initially-off-object
+  question: 最初は非表示のオブジェクトを表示すると、揺れものや追従が T ポーズの位置からずれる
+  answer: Hierarchy で OFF の状態から再生を始めたオブジェクトは、表示されたときに T ポーズ時の位置を基準に動き始めることがあります。初期状態を ON にしてアニメーションで隠す、などで回避します。
+  body: |-
+    - 事例: 手の動きには追従するものの、初期位置が T ポーズ時の場所になってずれました（エミュレーター上でも VRChat 上でも発生）。
+    - 対処の例
+      - オブジェクトは ON のままにし、アニメーションで非表示にする（Mesh Renderer を OFF にするなど）。
+      - 表示を切り替えたあと位置がリセットされるか、実機で確認する。
+  tags: [Unity, PhysBone, アニメーション]
+  source: discord
+
+- id: dynamicbone-to-physbone
+  question: 揺れもの（DynamicBone / PhysBone）の設定を別のモデルへ移したい
+  answer: コンポーネントの設定をボーン名ベースで一括コピーするエディタ拡張（CopyComponentsByRegex など）を使うと楽です。FBX を更新するだけなら、Prefab が参照する FBX をエクスプローラーで上書きすれば設定を保てることがあります。
+  body: |-
+    - Blender で修正した FBX を持ち込むたびに揺れもの・コライダーを全部設定し直すのは大変です。
+    - **コンポーネントのコピー**: 正規表現でボーン名を対応付けてコンポーネントをコピーするツール（CopyComponentsByRegex）が使えます。座標系が違うモデル間では向きの事故に注意します。
+    - **FBX の上書き**: Prefab 内のパーツは FBX を参照しているので、FBX ファイルを **エクスプローラーで上書き** すれば設定を保ったまま更新できる場合があります（Unity にドラッグ＆ドロップすると別名ファイルになるので注意）。ただし構造が変わると Hierarchy 上のモデルが壊れることもあります。
+    - **現行の方法**: Modular Avatar で衣装・小物をプレハブとして分けておけば、元アバターの更新時に付け直す手間が減ります。
+    - 当時は有料アセット DynamicBone を使っていましたが、2022 年 4 月以降は VRChat 標準の PhysBone が使われています。SDK には DynamicBone から PhysBone への変換機能があります。
+  tags: [Blender, Unity, PhysBone]
+  source: discord
+
+- id: dynamicbone-distant-disable-old
+  question: Unity 上で DynamicBone が揺れない（当時）
+  answer: DynamicBone の Distant Disable が有効だと、カメラから離れているとき計算が止まり、Unity のプレビューで揺れません。Main Camera を無効にすると揺れるようになります。現在は PhysBone が標準です。
+  body: |-
+    > DynamicBone は当時の有料アセットです。現在の VRChat では PhysBone を使います。
+
+    - `Distant Disable` は、揺れものからカメラ（プレイヤー視点）が離れたら計算を止める軽量化機能です。
+    - Unity では Main Camera が基準になるため、プレビューで揺れません。Hierarchy の Main Camera を無効にすると揺れるようになります（設定自体は ON のままが推奨されていました）。
+    - 新しい DynamicBone で追加された Blend Weight は VRChat では機能していなかったため、1 のままでよいとされていました。
+  tags: [Unity, PhysBone]
+  source: discord
+
+- id: arm-clipping-ik
+  question: 腕を反対側に持っていくと体にめり込む
+  answer: トラッカーがない部位は IK で位置を計算しているため、アバターの体形によっては腕が体にめり込むのはほぼ避けられません。肘トラッカーを付ける、アプリ側の腕のオフセットを調整するなどで軽減できます。
+  body: |-
+    - 中間の関節（肘など）は IK で推定されるため、自分の体と腕の長さや体の厚みが違うアバターでは、想定した姿勢になりません。
+    - 軽減策
+      - 肘トラッカーを使う
+      - アプリ側の腕のオフセットや IK 設定を調整する（アプリごとに IK の計算方式が違います）
+      - アバターの腕の長さなど体形を調整する
+    - 足組み・正座などのポーズも、体形の比率や補助ボーンの有無で再現性が変わります。
+  tags: [VRChat, リギング]
+  source: discord
+
+- id: vrm-export-flow
+  question: 着せ替えたアバターを VRM にする流れ（正規化 → 設定 → 再出力）
+  answer: Unity で着せ替えたモデルを一度 VRM として出力（正規化）し、できた VRM に BlendShape（表情）や SpringBone、FirstPerson を設定してから、もう一度 VRM 出力します。
+  body: |-
+    1. Unity で着せ替えます（ボーンの入れ子を正しく行うこと）。
+    2. **1 回目の VRM 出力（正規化）**: ポーズや回転を正規化した VRM ができます。
+    3. できた VRM を読み込み、BlendShape Proxy（表情）、SpringBone（揺れもの）、FirstPerson を設定します。
+    4. **2 回目の VRM 出力** で完成です。
+
+    **効率化のコツ**
+
+    - 髪型や下着など必ず使う最低限の状態で一度正規化し、表情・揺れものを設定した「VRM 素体」を作っておくと、以降はそこに着せ替えと揺れもの・表示設定だけ追加すれば済みます。
+    - 表情の BlendShape 設定（BlendShapeAvatar アセット）は、同じアバターなら過去に作ったものを使い回せます。パーフェクトシンクのように数が多い場合は特に有効です。
+    - 素体の状態で髪や耳の揺れを設定した Prefab を保存しておくと、服の揺れだけ設定すればよくなります。
+    - VRChat 用アバターから VRM を書き出すツール（VRChat 向け設定を読み替えるもの）もあります。出力サイズや安定性はツールにより差があります。
+  tags: [Unity, VRM, 衣装]
+  source: discord
+
+- id: vrm-normalize-pitfalls
+  question: VRM の正規化後に髪やしっぽの位置が BlendShape プレビューで合わない
+  answer: 正規化前の着せ替え（ボーンの入れ子）を間違えていると、正規化後にずれます。正規化後に直す方法は再度の正規化しかないため、正規化前のモデルで修正してやり直します。正規化を何度も重ねるのも避けます。
+  body: |-
+    - 原因: Unity での着せ替え時に、ボーンの入れ方（入れ子）を間違えている。
+    - 正規化後のモデルを手で直すのは難しく、修復には再度の正規化が必要になります。
+    - 対処: 正規化前のモデルでボーン構成を修正し、1 回目の出力からやり直します。
+    - Prefab の `Overrides > Apply All` で直ることはありません。
+    - 不要なボーンを Unity 上で削除すると「必要なボーンがない」エラーになるため、正規化前は削除ではなく非アクティブにします（正規化で消えます）。
+  tags: [Unity, VRM, リギング]
+  source: discord
+
+- id: vrm-firstperson-settings
+  question: VRM をゲームで使うと自分の体が見えない（透明になる）
+  answer: VRM FirstPerson の設定で、体のメッシュが ThirdPersonOnly になっていると一人称視点では表示されません。体は Both、顔のメッシュは視界の邪魔になるので ThirdPersonOnly にするのがおすすめです。
+  body: |-
+    - `VRM First Person` コンポーネントの Renderers で各メッシュの表示設定を確認します。
+      - 体・手: `Both`
+      - 顔（頭）: `ThirdPersonOnly`（一人称で視界にちらつくため）
+    - `Auto` はアプリによっては二重に描画処理が走り、負荷が大きく増えることがあります。手動で設定するのがおすすめです。
+    - アプリ（MOD）側の設定で HMD に体を表示しないようにしている場合もあります。
+    - 衣装をオフにしたあと FirstPerson を設定し直していない、揺れものの設定に空欄（null）がある、などは読み込みエラーの原因になります。
+  tags: [Unity, VRM]
+  source: discord
+
+- id: vrm-mtoon-conversion
+  question: lilToon のアバターを VRM にすると見た目が変わる（MToon への変換）
+  answer: VRM 0.x は MToon シェーダーが前提で、それ以外は Standard 扱いになります。lilToon の「MToon に変換」機能で近い見た目の MToon を作れますが、MatCap のマスクなど MToon にない機能は再現されません。
+  body: |-
+    - VRM（0.x）では MToon を使います。lilToon など他のシェーダーのままだと Standard シェーダーとして出力され、金属っぽい見た目になります。
+    - **lilToon からの変換**: lilToon のマテリアル設定の下の方にある「MToon に変換」で、見た目が近い MToon マテリアルを作れます。メインカラーの焼き込みを聞かれるので、色調補正をした場合は焼き込んでから変換します。
+    - **再現できないもの**
+      - MatCap のマスク（MToon にはないため、MatCap がかかった部分は変換がうまくいかないことがあります）
+      - 平らな部分が多い肌などへの影の焼き込みは向きません（ゲーム内のライトを無視した影になるため）
+    - **白っぽくなる**: リムライトやエミッションを黒くすると改善します。
+    - **一部だけ MatCap を使いたい（宝石など）**
+      1. 該当メッシュを複製し、複製側は宝石部分だけ残して削除します。
+      2. 複製側の宝石のマテリアルに MatCap 入りのマテリアル、その他のスロットには完全に透明なマテリアルを入れます。
+      3. 元のメッシュからは MatCap を外します。
+      - Blender で宝石部分を別メッシュにしてしまうのが一番楽です。
+    - Beat Saber / VMC 系では MaterialChange 系 MOD を使って MatCap マスクのあるシェーダーに差し替える方法もあります（その場合、プロジェクトには MOD 用に改造されたシェーダーを入れ、通常版と混在させないよう注意します）。
+  tags: [VRM, マテリアル]
+  related: [liltoon]
+  source: discord
+
+- id: vrm-converter-merge-option
+  question: VRM Converter for VRChat で変換したらメッシュ（マテリアル）が 1 つに結合された
+  answer: 変換時のオプションにメッシュを結合するかどうかの設定があります。結合しない設定で変換し直せば、ゴーグルなどを別オブジェクトのまま扱えます。変換は別 Prefab として作られるので元データは残っています。
+  body: |-
+    - 変換時のオプションでメッシュ結合のチェックを外して変換し直します。
+    - 変換結果は別 Prefab として作られるので、元のデータはそのまま残っています。
+    - 既に 1 メッシュになっている場合、マテリアル単位でメッシュを分割するエディタ拡張（MeshSplitter など）で分けられることがあります。
+    - 揺れもの（PhysBone ⇔ SpringBone）の変換機能もありますが、コライダーには互換性がない部分があり、結局は手動調整が必要になることが多いです。
+  tags: [Unity, VRChat, VRM]
+  source: discord
+
+- id: vrm-load-error-null
+  question: VRM がビューアーやアプリで読み込めない（設定値が足りないエラー）
+  answer: 揺れもの（SpringBone）やコライダー、FirstPerson の設定に空欄（null）が残っていると、出力できても他のアプリで読み込めないことがあります。古い UniVRM ではこの状態でも出力できてしまうため、UniVRM を新しくして空欄を埋めます。
+  body: |-
+    - 確認するところ
+      - `VRM Spring Bone` の Root Bones などに空欄がないか（`Center` には Armature 配下のボーンを入れない）
+      - `VRM First Person` の Renderers に削除したメッシュの参照が残っていないか
+      - 衣装を削除・オフにしたあと、表示設定を設定し直したか
+    - 古い UniVRM（0.60 以前など）は null を含んだまま出力できてしまうことがあります。新しい UniVRM では出力時にエラーが表示されるので、エクスポート画面上部のエラーを確認します。
+    - Prefab を Unpack すること自体は問題ありませんが、Unpack 後に参照を壊す操作をしていないか確認します。
+    - マテリアルの空欄（null）があると出力自体ができません。
+  tags: [Unity, VRM]
+  source: discord
+
+- id: vrm-blendshape-setup
+  question: VRM で表情（まばたきなど）が動かない
+  answer: VRM ではモデルの VRM Blend Shape Proxy にある BlendShapeAvatar で、Blink などのクリップにシェイプキーを設定する必要があります。過去に作った BlendShapeAvatar を流用することもできます。
+  body: |-
+    - VRM モデルを選択し、`VRM Blend Shape Proxy` の BlendShapeAvatar をダブルクリックして、各クリップ（Blink、A、I、U など）に対応するシェイプキーを設定します。
+    - 同じアバターなら顔の頂点はほぼ変わらないので、最初に作った BlendShapeAvatar をそのまま割り当てて使い回せます。
+    - VRChat の場合は `VRC Avatar Descriptor` の Eye Look（まぶた）や Lip Sync でまばたき・口のシェイプキーを指定します。
+  tags: [Unity, VRM, 表情]
+  related: [avatar-descriptor]
+  source: discord
+
+- id: vroid-blender-beginner
+  question: VRoid で作ったモデルを Blender / Unity で改変するには？
+  answer: Blender での改変入門記事や、VRoid で出力したモデルに要素を足す記事が参考になります。小物を足すだけなら Unity の方が手軽です。
+  body: |-
+    - 参考になる記事は [リンク集](/links#reference) にあります（Blender でのアバター改変の入門記事、VRoid Studio で出力したモデルに Blender・Unity で要素を足す記事など）。古いバージョンの Blender で書かれた記事は、メニューの名前が今と違うことがあります。
+    - アイテムを足すだけなら Blender を使わず Unity で配置する方が楽です。
+    - 近年は VRoid Studio 側にも VRChat 向けアバターへ衣装を着せ替える機能が追加されています（ボーン位置・サイズの自動フィットが中心）。
+  tags: [Blender, Unity, VRM]
+  source: discord

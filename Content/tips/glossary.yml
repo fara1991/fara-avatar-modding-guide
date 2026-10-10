@@ -386,6 +386,18 @@
   tags: [Blender, ウェイト]
   articles: [rigging/parent-weights, rigging/weight-paint]
   related: [vertex-group, weight-paint-mode, data-transfer]
+  keywords: [正規化]
+  body: |-
+    **ウェイト（頂点グループ）とは**
+
+    ウェイトは「どの頂点がどのボーンにどれだけ追従するか」を 0〜1 で表したものです。Blender ではボーン名と同じ名前の頂点グループとして保存され、Armature モディファイアーがそれを使ってメッシュを変形します。
+
+    - 頂点グループ名とボーン名が一致していることで、メッシュとボーンが対応します。名前が違うと追従しません。
+    - 1 つの頂点に複数のボーンのウェイトが乗る場合、合計が 1 になるよう正規化されているのが基本です。
+    - ウェイトペイントモードでは、青（0）〜赤（1）の色で表示されます。
+    - 衣装を別のアバターに合わせるときは、素体からのウェイト転送と手塗りの調整を組み合わせます（[ウェイト転送](/howto#copy-weights)）。
+    - 非対応衣装の着せ替えで最も時間がかかるのがウェイト調整です。
+  source: discord
 
 - id: vertex-group
   term: 頂点グループ
@@ -414,6 +426,16 @@
   tags: [Blender, リギング, Unity]
   articles: [rigging/shape-keys]
   related: [blendshape-sync]
+  keywords: [Basis]
+  body: |-
+    **シェイプキーの基本**
+
+    - シェイプキーは Basis（基準の形）との差分で形を保存する
+    - 値は 0〜1 で、範囲の最小・最大を変えると 1 を超える変形もできる
+    - 編集モードでの変更は、アクティブなシェイプキーに入る
+    - 左右に分ける、ミラー、シェイプに反映（Propagate to Shapes）などの操作がある
+    - 関連: [Basis を編集したら戻る](/qa#shapekey-edit-basis)、[シェイプキーの転送](/qa#shapekey-transfer)
+  source: discord
 
 # ---------------------------------------------------------------- Blender: マテリアル・UV・書き出し
 - id: material
@@ -574,6 +596,16 @@
   tags: [Unity]
   articles: [avatar-clothing/unity-setup]
   related: [fbx]
+  body: |-
+    **Humanoid（ヒューマノイド）リグとは**
+
+    Unity の人型アバター用の共通ボーン定義です。Hips、Spine、Chest、Neck、Head、手足などの決まったボーンをモデルのボーンに割り当てることで、VRChat のトラッキングやアニメーションが動きます。
+
+    - FBX の `Rig` タブで Animation Type を `Humanoid` にし、`Configure` で割り当てを確認します。
+    - Humanoid に割り当てられたボーンは消してはいけません。髪・スカート・補助ボーンなど Humanoid 外のボーンは整理できます。
+    - Humanoid ボーンの角度はトラッキングやアニメーションで上書きされるため、ボーンを曲げて形を作っても VRChat では戻されます（足の形などはシェイプキーで作る理由）。
+    - 衣装を入れ子で着せる場合は、衣装の Humanoid 相当のボーンを同じ意味の素体ボーンの子にします。
+  source: discord
 
 - id: unitypackage
   term: unitypackage
@@ -711,3 +743,67 @@
   description: Modular Avatar などの「アップロード時に自動で処理する」ツールが共通で使う仕組み。元のシーンを壊さずに、ビルドの途中で変換する。
   tags: [Modular Avatar, Unity]
   related: [modular-avatar]
+
+# ---------------------------------------------------------------- Discord の改変相談から
+
+- id: leaf-bone
+  term: リーフボーン（_end）
+  reading: りーふぼーん
+  en: Leaf Bone
+  description: ボーン末端の「〜_end」は、Unity にボーンの長さ（向き）を伝えるための点です。ウェイトは乗っていないことが多く、揺らさないなら削除しても見た目は変わりませんが、揺れものの動き方には影響します。
+  body: |-
+    - Blender のボーンには長さ（Head と Tail）がありますが、Unity のボーンは「点」です。末端に `〜_end` の点を置くことで、その手前のボーンが次の点への方向を持てます。
+    - **揺れもの（PhysBone）との関係**
+      - 子のない単一ボーンに PhysBone を付けても、向きが決まらないので揺れません。
+      - リーフボーンがあると、その手前のボーンも揺れるようになります。
+      - リーフボーンがない場合は PhysBone の `Endpoint Position` で末端の点を仮想的に追加できます。
+    - 削除する場合は、ウェイトが乗っていないか（頂点グループに含まれていないか）を確認してからにします。
+  tags: [Blender, Unity, リギング, PhysBone]
+  articles: [avatar-clothing/export-fbx]
+  related: [bone, physbone]
+  keywords: [Endpoint Position]
+  source: discord
+
+- id: write-defaults
+  term: Write Defaults（WD）
+  reading: らいとでふぉると
+  en: Write Defaults
+  description: Animator のステートごとの設定で、アニメーションで指定していないプロパティを既定値に書き戻すかどうかを決めます。同じアバター内で ON と OFF が混在すると、表情やトグルが思った通りに動かない原因になります。
+  body: |-
+    - アニメーションの不具合で詰まったら、まず Write Defaults の混在を疑います。
+    - アバター本体の FX コントローラーの設定に合わせて、追加するギミックの WD も揃えます。
+    - Modular Avatar の Merge Animator には、アバターの WD 設定に合わせる機能（Match Avatar Write Defaults）があります。
+    - MMD ワールドの表情自動変化のように、WD ON を前提にした仕組みもあります。
+    - WD の混在を検出して警告してくれるツールもあります（当時はカメラギミックの導入ツールがチェッカー代わりに使われていました）。
+  tags: [Unity, VRChat, Modular Avatar, アニメーション]
+  related: [modular-avatar]
+  keywords: [Merge Animator]
+  source: discord
+
+- id: mmd-world
+  term: MMD ワールド
+  reading: えむえむでぃーわーるど
+  description: MMD ワールドは、ダンス用のアニメーションコントローラーをアバターに割り当て、Body メッシュの MMD 準拠のシェイプキーを直接動かしています。MMD 準拠のシェイプキー名があり、Write Defaults が ON のアバターで動作します。
+  body: |-
+    - ワールド側がアバターに専用のアニメーションコントローラーを割り当てます（ダンスモーションと一緒に表情のアニメーションが入っています）。
+    - 動く条件の目安: `Body` メッシュに MMD 準拠の名前のシェイプキー（あ・い・う・まばたき など）がある、Write Defaults の設定がワールドの想定に合っている。
+    - MMD のモーション・データの利用規約は配布元ごとに異なります。
+  tags: [VRChat, 表情, リギング]
+  related: [shape-key, write-defaults]
+  keywords: [MMD]
+  source: discord
+
+- id: compatible-outfit
+  term: 対応衣装 / 非対応衣装
+  reading: たいおういしょう
+  description: 対応衣装は特定のアバター向けにボーン構造・体形を合わせて作られた衣装で、Unity（Modular Avatar など）だけで着せられます。非対応衣装を着せるには、多くの場合 Blender で体形・ボーン・ウェイトを合わせる必要があります。
+  body: |-
+    - **対応衣装**: 商品ページに「○○対応」と書かれたもの。Modular Avatar の Setup Outfit などで着せるのが基本です。複数アバター対応の衣装は、どのアバター用のデータを使うか（フォルダ・Prefab）を確認します。
+    - **非対応衣装**: 体形・姿勢・ボーン構造が違うため、Blender での調整（位置・大きさ・関節位置合わせ、ウェイト転送、貫通対策）が必要なことが多いです。ボディラインの出ない服なら Unity での位置・サイズ調整だけで済む場合もあります。
+    - 体形や姿勢が独特なアバターは、非対応衣装の着せ替えがほぼ Blender 前提になります。
+    - Blender での着せ替えに慣れるには、専用服 → 似たスタイルの服 → 好きな服、の順に挑戦すると挫折しにくいです。単純な構造の服から始めるのがおすすめです。
+    - 改変・他アバターへの流用が規約上許可されているかを必ず確認します（[規約の確認](/tips#check-license-terms)）。
+  tags: [Blender, Unity, Modular Avatar, 衣装]
+  articles: [unity/modular-avatar-outfit, avatar-clothing/weight-transfer]
+  related: [setup-outfit, modular-avatar]
+  source: discord

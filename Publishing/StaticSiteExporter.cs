@@ -53,6 +53,8 @@ public static class StaticSiteExporter
             ["/glossary"] = "glossary.html",
             ["/howto"] = "howto.html",
             ["/tips"] = "tips.html",
+            ["/qa"] = "qa.html",
+            ["/links"] = "links.html",
             ["/search"] = "search.html",
             ["/search-index.json"] = "search-index.json",
         };

@@ -55,8 +55,10 @@ fara-blender-manual/
 │   │   ├── sections.yml      # 目次の大きな区切り（Blender / Unity / VRChat / 通しで作る）
 │   │   ├── categories.yml    # ロードマップの段階と並び順（section で区切りを指定）
 │   │   └── <category>/NN-slug.md
+│   ├── tips/                 # 用語集・何て名前？・TIPS・改変 Q&A
 │   ├── shortcuts.yml
-│   └── addons.yml
+│   ├── addons.yml
+│   └── links.yml             # リンク集
 ├── Components/
 │   ├── App.razor             # HTML ドキュメントのルート
 │   ├── Routes.razor          # ルーター・NotFound
@@ -96,7 +98,8 @@ fara-blender-manual/
 | `/practice` | 操作の練習（ブラウザ上の 3D ビューで Blender と同じキー操作を試す） |
 | `/practice/room?room=<ID>` | みんなで練習（同じ 3D ビューを複数人で操作する部屋） |
 | `/practice/unity` | Unity の練習（Unity エディターに似た画面で、Modular Avatar で衣装を着せる流れを試す） |
-| `/glossary` `/howto` `/tips` | 用語集・あの操作、何て名前？・TIPS |
+| `/glossary` `/howto` `/tips` `/qa` | 用語集・あの操作、何て名前？・TIPS・改変 Q&A |
+| `/links` | リンク集（Unity のツール・参考記事・BOOTH の商品など） |
 | `/learn/{category}` | カテゴリ内の記事一覧 |
 | `/learn/{category}/{slug}` | 記事 |
 | `/shortcuts?category=…` | ショートカット一覧（カテゴリで絞り込み） |

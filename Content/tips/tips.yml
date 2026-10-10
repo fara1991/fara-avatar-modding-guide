@@ -20,6 +20,19 @@
   tags: [Blender, 書き出し, モデリング]
   shortcuts: [Ctrl+A, N]
   articles: [basics/transform, avatar-clothing/export-fbx]
+  related: [apply-transform]
+  keywords: [Ctrl+A]
+  body: |-
+    **アバターと服を結合（Ctrl+J）したら大きさが変わった**
+
+    アーマチュアやメッシュのスケールが 1 になっていないと、結合時に片方の大きさが変わります。結合前にそれぞれ Ctrl+A → 全トランスフォームを適用してスケールを 1 にします。
+
+    1. `N` でサイドバーを開き、アバターと服それぞれのアーマチュア（とメッシュ）のスケールが `1` か確認します。
+    2. 1 でないものを選択し、`Ctrl+A` → **全トランスフォーム** を適用します。見た目はそのままでスケールが 1 になります。
+    3. 両方が 1 になった状態で結合します。
+    - メッシュ結合で「衣装が素体に対して大きく表示される」場合も同じく適用漏れが原因です。
+    - FBX の読み込み直後はアーマチュアに 0.01 などのスケールが付いていることがあります。
+  source: discord
 
 - id: flipped-normals
   title: 面が黒い・Unity で一部が透けて見えない
@@ -54,6 +67,21 @@
     - 入れたあとも直らなければ、マテリアルの Inspector でシェーダーを選び直す
   tags: [Unity, マテリアル]
   articles: [materials/for-unity]
+  related: [shader]
+  keywords: [Reimport, UTS2]
+  body: |-
+    **アバターや衣装がピンク色（マゼンタ）で表示されるのはなぜですか？**
+
+    マテリアルが参照しているシェーダーがプロジェクトに入っていないか、読み込みに失敗しています。作者が指定するシェーダーを導入し、直らなければシェーダーを Reimport します。
+
+    - ピンク色は「シェーダーが見つからない／コンパイルできない」状態です。
+    - 対処
+      1. アバター・衣装の説明書で指定されているシェーダー（lilToon、UTS2、Poiyomi など）を導入します。
+      2. 導入後も直らない場合は、該当シェーダーのフォルダを右クリック → `Reimport` を試します。
+      3. それでも駄目ならアバターのアセットを一度削除し、シェーダー → アバターの順にインポートし直します。
+    - マテリアルを選択し、Inspector 上部の `Shader` 欄が正しいシェーダーになっているかも確認します。
+    - VRM（MToon）向けの書き出しで MToon 以外のシェーダーを使うと、Standard シェーダー扱いになり金属のような見た目になることがあります（[VRM の MToon 変換](/qa#vrm-mtoon-conversion)）。
+  source: discord
 
 - id: ma-bone-mismatch
   title: Modular Avatar で服が体についてこない
@@ -78,6 +106,29 @@
   tags: [Blender, ウェイト, Unity]
   shortcuts: [Alt+S]
   articles: [avatar-clothing/weight-transfer]
+  related: [shape-key]
+  keywords: [DietShaper, メッシュ削除]
+  body: |-
+    **衣装から肌が突き抜ける（貫通する）ときの対策**
+
+    主な対策は、①見えない素体メッシュを消す、②素体を細くするシェイプキーを作る、③衣装を少し膨らませる、④素体と衣装の頂点数・位置を揃える、⑤ウェイトを揃える、です。関節まわりが特に貫通しやすいです。
+
+    **原因**
+
+    - 素体と衣装の頂点の数・位置が違うと、曲げたときにどちらかがはみ出します（頂点が少ない側が内側の頂点を突き抜けやすい）。
+    - 素体と衣装でウェイトや関節位置が違う。
+
+    **対策**
+
+    1. **素体メッシュを消す**: 衣装で隠れる部分なら一番確実です。メッシュが分かれていれば軽量化にもなります。
+    2. **素体を細くするシェイプキー**: 消すのが不安なら、肩・肘・膝・脚の付け根など関節まわりや脇の下を細くするシェイプキーを作り、衣装に合わせて値を入れます。Unity 側で調整できるので、非対応衣装も Unity だけで済む場合があります。
+    3. **衣装を少し膨らませる**: 貫通箇所だけ外側に出します。
+    4. **頂点数・位置を揃える**: 貫通箇所を細分化してポリゴンを増やす、など。
+    5. **ウェイトを揃える**: 素体からウェイトを転送します（[ウェイト転送](/howto#copy-weights)）。体のウェイトが入り組んだ箇所（Spine と Chest の境目など）は、捻ると貫通しやすくなります。
+    6. **素体に衣装と同じ色を塗る**: テクスチャ側でごまかす方法もあります。
+    - Unity だけで行う場合は、体を細くするシェイプキーを自動作成するエディタ拡張（DietShaper など）も使えます。
+    - 何枚も重なった衣装で肌が見えない部分は、貫通防止用のシェイプキーでまとめて絞るのが現実的です。
+  source: discord
 
 - id: fbx-leaf-bones
   title: Unity で余計なボーン（_end）が増えている
@@ -99,6 +150,21 @@
   tags: [Blender, Unity, 書き出し]
   shortcuts: [Ctrl+A]
   articles: [avatar-clothing/export-fbx]
+  keywords: [座標系, Rotation, FBX エクスポート]
+  body: |-
+    **Blender で合わせた服やアクセサリーが Unity では傾く・向きが変わる**
+
+    Blender（Z 上）と Unity（Y 上）の座標系の違いで、FBX 読み込み後に Rotation X が -89.98 のようなわずかにずれた値になることがあります。Blender 側で回転を整えて書き出し、Unity で Rotation が (0, 0, 0) になるようにします。
+
+    - 通常は FBX エクスポーター／インポーターが自動で変換するので、普段は気にしなくて大丈夫です。おかしくなったときだけ対処します（揺れものの動きがおかしくなる形で表れることもあります）。
+    - **シェイプキーのないメッシュの場合**（概要）
+      1. `Shift+S` → カーソルをワールド原点へ。ピボットポイント（`.`）を 3D カーソルにします。
+      2. 全オブジェクトを X 軸に -90° 回転 → 回転を適用 → X 軸に +90° 回転（適用しない）、の手順で、Blender 上の Rotation X が 90 の状態にします。
+      3. FBX を書き出し、Unity で Rig の向きや Rotation が (0, 0, 0) になっているか確認します。
+    - **シェイプキーのあるメッシュの場合**: メッシュを固定したまま座標軸だけを回転させる方法を使います（オブジェクトモードで実行）。
+    - 詳しい手順は外部記事「BlenderとUnityの座標系の違いを治す」を参照してください。
+    - Maya 製のアバターなどは、Blender を通すとスケールが 100 倍になる・回転値が残るなどの差が出ることがあります。
+  source: discord
 
 - id: bone-heat-failed
   title: 自動のウェイトで「Bone Heat Weighting」エラーが出る
@@ -121,6 +187,19 @@
     - すでにシェイプキーがある場合は、モディファイアーを残したまま書き出す（FBX 書き出しの「モディファイアーを適用」）か、シェイプキーを保ったまま適用するアドオンを使う
   tags: [Blender, リギング, モデリング]
   articles: [rigging/shape-keys, basics/modifiers]
+  keywords: [ApplyModifier, Transfer Weights, Basis]
+  body: |-
+    **シェイプキーがあるメッシュにモディファイアーを適用できない**
+
+    Blender の仕様で、シェイプキーを持つメッシュには通常モディファイアーを適用できません。シェイプキーを Basis に反映して削除するか、シェイプキーを保ったまま適用できるアドオンを使います。ウェイトだけならウェイトペイントモードの「ウェイトを転送」で適用不要にできます。
+
+    - 選択肢
+      1. **シェイプキーを使っていない** → 削除してから適用します。
+      2. **シェイプキーで形を調整していた** → 必要な形を Basis に反映してから全シェイプキーを削除し、適用します。
+      3. **シェイプキーを残したい** → シェイプキー付きメッシュにモディファイアーを適用できるアドオン（ApplyModifier など）を使います。
+    - **ウェイト転送が目的なら**: モディファイアーを使わず、ウェイトペイントモードの `ウェイト > ウェイトを転送（Transfer Weights）` を使うと、シェイプキーがあってもそのまま転送できます。
+    - Armature モディファイアーは **適用せずに残しておく** ものです（[服が動かない](/qa#clothes-not-following-bones)）。
+  source: discord
 
 - id: shape-keys-lost
   title: Unity でシェイプキー（ブレンドシェイプ）が出ない
@@ -164,6 +243,18 @@
     - 新しいプロジェクトは VCC / ALCOM から作る（Unity Hub から直接作らない）
   tags: [Unity, VRChat]
   articles: [avatar-clothing/unity-setup]
+  related: [vcc]
+  keywords: [Unity Hub, SDK 更新]
+  body: |-
+    **VRChat から Unity のバージョンを上げるよう言われたら**
+
+    VRChat が指定するパッチバージョンに上げ、合わせて VRChat SDK も更新します。同じマイナー系列（例: 2022.3.x）内の更新ならプロジェクトはそのまま移行できることが多いですが、事前にバックアップを取ります。
+
+    - VCC / ALCOM や Unity Hub から、指定されたバージョンの Unity をインストールし、プロジェクトのバージョンを切り替えます。
+    - Unity を上げたら VRChat SDK も最新に更新します。
+    - 当時の事例: 2022.3.6f1 → 2022.3.22f1 への移行はそのまま開け（初回起動は時間がかかる）、FBX のフレームレートに関する警告が出た程度でアップロードできました。
+    - 大きくバージョンが変わる場合（メジャー更新）は、新しいプロジェクトを作って移行する方が安全なこともあります。
+  source: discord
 
 - id: cannot-upload
   title: Build and Upload のボタンが押せない
@@ -194,6 +285,21 @@
     - 使わない衣装やギミックは、無効にするのではなく Tag を EditorOnly にするか削除する
   tags: [VRChat, モデリング]
   articles: [modeling/topology]
+  related: [performance-rank]
+  keywords: [Very Poor, Avatar Optimizer]
+  body: |-
+    **パフォーマンスランクが Very Poor になるのは普通ですか？**
+
+    最近の販売アバターは衣装切り替えなどを含むと Very Poor になることが多いです。ポリゴン数・メッシュ数・マテリアルスロット数・PhysBone 数などで決まるので、人の多い場所用に軽い版を用意すると親切です。
+
+    - ランクは複数の項目のうち最も悪い項目で決まります（ポリゴン数、Skinned Mesh 数、マテリアルスロット数、PhysBone のコンポーネント数・Transform 数・コライダー数など）。
+    - マテリアル数は「実際に使っているマテリアルの種類」ではなく **スロット数** で数えられます。
+    - 衣装を複数入れて切り替えると、非表示のメッシュもカウントされてすぐ上限を超えます。
+    - 目安として、集会など人の多い場所に行くときは衣装 1 着だけの軽量版アバターを別に用意する方法があります。
+    - 各ランクの具体的な上限値は VRChat 公式の「Avatar Performance Ranking System」ページで確認してください（PC/Android で異なります）。
+    - Cloth コンポーネントは評価が厳しく、すぐ Very Poor になります。
+    - 詳しい手順は [アバターの軽量化](/qa#avatar-lightweight) を参照してください。
+  source: discord
 
 - id: texture-too-large
   title: アバターのダウンロードサイズが大きい
@@ -236,3 +342,503 @@
   tags: [Blender]
   shortcuts: [Shift+S, Shift+A]
   articles: [basics/select, basics/origin-pivot-snap]
+
+# ---------------------------------------------------------------- Discord の改変相談から
+
+- id: fbx-import-settings-unity
+  title: Blender から書き出した FBX を Unity に入れたら確認する設定
+  summary: アバターごと書き出した FBX は Rig を Humanoid にし、Blend Shape Normals を None にします。Humanoid にしたら Configure でボーンの割り当てと向きも確認します。
+  body: |-
+    - FBX を選択して Inspector で次を設定し `Apply` します。
+      - `Model` タブ: **Blend Shape Normals を None**（シェイプキー使用時の陰影の乱れを防ぎます）
+      - `Rig` タブ: **Animation Type を Humanoid**
+    - `Rig` タブの `Configure...` で、各 Humanoid ボーン（Hips、Spine、Chest、Upper Chest など）が正しく割り当てられているか、体の向きが正しいかを確認します。
+    - 衣装単体の FBX は、Modular Avatar で着せる場合はアバターと同じ設定でなくても動作しますが、作者の指定があればそれに従います。
+  tags: [Blender, Unity, リギング]
+  articles: [avatar-clothing/export-fbx]
+  related: [humanoid]
+  source: discord
+
+- id: unitypackage-fbx
+  title: unitypackage 内の FBX を使う・取り出す
+  summary: Blender で編集するときは、unitypackage をインポートしたときに Assets に入る FBX を使うのが確実です。Project ウィンドウで右クリック → Show in Explorer でファイルの場所を開けます。
+  body: |-
+    - ZIP に同梱されている FBX と unitypackage 内の FBX が異なる（更新漏れ）ことがあります。**Unity で実際に使われるのは unitypackage 内のモデル** なので、編集元にはそちらを使うのが安全です。
+    - 取り出し方: Project ウィンドウで FBX を右クリック → `Show in Explorer`（Windows ではエクスプローラーで表示）。
+    - 編集した FBX で上書きするときは、Unity にドラッグ＆ドロップすると別名ファイルができます。上書きしたい場合はエクスプローラーで上書きするか、同名ファイルを上書きできるエディタ拡張（unity-overwriter）を使います。
+    - 一部のアバターは、FBX を Blender で編集すると足の位置などがずれる仕様のものもあります。作者の説明を確認してください。
+  tags: [Blender, Unity, 衣装]
+  source: discord
+
+- id: unity-project-organization
+  title: Unity プロジェクトの分け方（アバター単位・シーン単位）
+  summary: プロジェクトはアバターごと（または VRChat 用・VRM 用）に分け、衣装ごとにシーンや Prefab を分けて管理する方法がよく使われます。
+  body: |-
+    - 例 1: VRChat 用と VRM 用でプロジェクトを 1 つずつ作り、衣装ごとにシーンを作る。
+    - 例 2: アバターごとにプロジェクトを作り、素体の Prefab を用意しておき、衣装ごとにシーンや Prefab を保存する。
+    - 着せ終わったアバターは Prefab 化して Hierarchy から消しておくと、シーンが重くなりません。
+    - 素体が大きく更新されて互換性がなくなったら、新しいプロジェクトに作り直すのも手です。
+    - 衣装ごとにプロジェクトを作るとディスク容量が大きくなりがちです。共通で使うアニメーションやマテリアルは unitypackage に書き出しておくと移行が楽です。
+    - シーンは保存し忘れやすいので、切り替え前に `Ctrl+S` で保存しましょう。
+  tags: [Unity, 衣装]
+  related: [scene-view, prefab]
+  source: discord
+
+- id: check-license-terms
+  title: 改変・非対応衣装を着せる前に利用規約を確認する
+  summary: 改変や他アバター向けの調整、ウェイト転送などの可否は商品ごとの規約で決まります。「禁止と書いていない」ではなく「許可されている」ことを確認するのが安全です。
+  body: |-
+    - 確認するポイント（VN3 ライセンスなどの項目）
+      - 調整・改変の可否
+      - 他のデータを改変するための利用（他アバターの素体からのウェイト転送など）
+      - 配信・動画での利用、営利利用の可否
+    - 書かれていない項目は「不可」として扱う方が無難です。
+    - 専売衣装（特定ショップ向け）でも、規約で改変が許可されていれば自分で他アバターに合わせるのは問題ない場合があります。
+    - 素体からのウェイト転送は「素体データを他の衣装に流用」する行為になるので、規約で許可されているか確認してからにします。
+    - 規約は途中で変わることもあります。購入時点の規約を保存しておくと安心です。
+    - 配信・動画での利用は個別許可制の衣装もあります。
+  tags: [規約, 衣装]
+  source: discord
+
+- id: booth-author-bug-report
+  title: BOOTH の衣装に不具合（貫通など）があったときの作者への連絡
+  summary: まず説明書やシェイプキーの指定（体を絞る前提など）を確認し、素の状態で着せて再現することを確かめてから、質問の形で丁寧に問い合わせると行き違いが少なくなります。
+  body: |-
+    1. 説明書・商品ページで「素体のシェイプキーを絞る前提」などの指定がないか確認します。
+    2. 自分の改変ではなく、素の状態（作者指定の手順）で着せて再現するか確認します。
+    3. 連絡する場合は「○○の素体にそのまま着せると××が貫通するのですが、シェイプキーで絞る前提でしょうか？」のように、断定ではなく質問として伝えます。
+    - 作者が気づいていないだけ・手違いのこともあるので、伝えること自体は有益です。
+  tags: [規約, 衣装]
+  source: discord
+
+- id: editor-only-tag
+  title: アップロードしたくないオブジェクトには EditorOnly タグを付ける
+  summary: VRChat では非アクティブなオブジェクトもアップロードされます。作業用・退避用のオブジェクトはアバターの外に出すか、Tag を EditorOnly にするとビルド時に除外されます。
+  body: |-
+    - 非表示（非アクティブ）にしただけでは VRChat にアップロードされ、容量・負荷が増えます。
+    - 対処: アバターの外に出す、削除する、または Inspector の `Tag` を **EditorOnly** にします。
+    - 元アバターの Prefab Variant で作業していて削除できない要素がある場合に、EditorOnly が便利です。
+    - VRM 出力では非表示のオブジェクトは出力されません。
+  tags: [Unity, VRChat, 軽量化]
+  articles: [unity/pre-upload-check]
+  source: discord
+
+- id: blender-useful-shortcuts
+  title: 改変でよく使う Blender のショートカット
+  summary: リンク選択（L / Ctrl+L）、ループ選択（Alt+クリック）、対称選択（Shift+Ctrl+M）、非表示（H / Alt+H）、トランスフォーム適用（Ctrl+A）などは覚えておくと作業が大きく速くなります。
+  body: |-
+    | 操作 | キー | 用途 |
+    |---|---|---|
+    | サイドバー表示 | `N` | 位置・回転・スケールの数値確認 |
+    | リンク選択 | `L`（カーソル下）/ `Ctrl+L` | つながったメッシュ（ボタン、服の一部）をまとめて選択 |
+    | ループ選択 | `Alt+クリック` | 袖口・裾などの辺ループを選択 |
+    | 対称位置の頂点を選択 | `Shift+Ctrl+M` | 左右で同じ編集をしたいとき（選択 → 対称選択） |
+    | 非表示 / 再表示 | `H` / `Alt+H` | 編集したくない頂点を隠す |
+    | 選択以外を非表示 | `Shift+H` | 作業対象だけを残す |
+    | 適用メニュー | `Ctrl+A` | スケール・回転などを適用（全トランスフォーム） |
+    | 結合 | `Ctrl+J` | オブジェクト（メッシュ・アーマチュア）の結合 |
+    | 分離 | `P` | 選択部分を別オブジェクトにする |
+    | プロポーショナル編集 | `O` | 周囲の頂点もなめらかに動かす（ホイールで範囲） |
+    | ポーズのリセット | `Alt+G` / `Alt+R` / `Alt+S` | ポーズモードで位置・回転・拡縮を初期化 |
+    | ピボット変更 | `.`（ピリオド） | 回転・拡縮の中心（3D カーソル、個々の原点など） |
+    | 3D カーソル | `Shift+S` | カーソルをワールド原点などへ移動 |
+
+    - 複数オブジェクトの同じ値を一括変更するには、値を変更するときに `Alt` を押しながら確定します（[Alt で一括変更](/tips#blender-alt-multi-edit)）。
+  tags: [Blender]
+  shortcuts: [L, Ctrl+L, Alt+クリック, Ctrl+Shift+M, H, Alt+H, Ctrl+A]
+  source: discord
+
+- id: blender-alt-multi-edit
+  title: 複数オブジェクトの値を一括で変更する（Alt を押しながら）
+  summary: 複数オブジェクトを選択した状態で、プロパティの値を Alt を押しながら変更・確定すると、選択中のすべてのオブジェクトに同じ値が入ります。
+  body: |-
+    - 通常はアクティブ（最後に選んだ）オブジェクトの値しか変わりません。
+    - 値の入力欄で `Alt` を押しながら Enter で確定する、または `Alt` を押しながらドラッグ・チェックボックスをクリックすると、選択中の全オブジェクトに反映されます。
+    - モディファイアーの設定値やオブジェクトプロパティの一括変更に便利です。
+  tags: [Blender]
+  source: discord
+
+- id: blender-undo-steps
+  title: Blender の「元に戻す」回数を増やす
+  summary: Preferences の System → Undo Steps で元に戻せる回数を増やせます。増やしすぎるとメモリを多く使う点に注意します。バージョンを上げると設定が別になるので再設定が必要です。
+  body: |-
+    - `Edit > Preferences > System > Memory & Limits` の **Undo Steps** を増やします（初期値は 32）。
+    - 値を大きくするとメモリ使用量が増えます。PC のメモリに合わせて調整してください。
+    - 新しいバージョンの Blender は設定が別に保存されるので、バージョンアップ後に戻し忘れに注意します。
+  tags: [Blender]
+  source: discord
+
+- id: proportional-edit-connected-only
+  title: プロポーショナル編集で別パーツまで動いてしまうのを防ぐ（接続のみ）
+  summary: プロポーショナル編集の設定で「接続のみ（Connected Only）」にチェックを入れると、つながっているメッシュだけが影響を受けます。結合済みの服とボタンや素体が一緒に動くのを防げます。
+  body: |-
+    - 3D ビューポート上部のプロポーショナル編集アイコン横のメニューで **接続のみ（Connected Only）** を有効にします。
+    - 素体と服を結合（`Ctrl+J`）した状態でプロポーショナル編集を使うと、服を動かしたつもりで素体まで動き、タイツが凹むなどの原因になります。
+    - 代わりに、動かしたくない頂点を `H` で非表示にする方法もあります（[編集したくない部分を固定する](/tips#hide-vertices-while-editing)）。
+    - プロポーショナル編集を使わないときは `O` でオフにします。
+  tags: [Blender]
+  shortcuts: [O]
+  articles: [avatar-clothing/base-shape]
+  source: discord
+
+- id: hide-vertices-while-editing
+  title: ボタンなど変形させたくない部分を固定して編集する
+  summary: 服の形を変えるとき、ボタンやリボンなど形を保ちたいパーツは先に H で非表示にしておき、本体の調整後に位置だけ合わせるのが基本です。
+  body: |-
+    1. 編集モードでボタンなどを `L`（リンク選択）で選び、`H` で非表示にします。
+    2. 服本体をプロポーショナル編集などで調整します。
+    3. `Alt+H` で再表示し、ボタンを移動・回転で配置し直します。
+    - 選択部分だけ編集不可にする有料アドオン（Hide Only Vertex / Lock Vertex）もあります。
+    - プロポーショナル編集の「接続のみ」を使えば、つながっていないパーツは最初から影響を受けません。
+  tags: [Blender, 衣装]
+  shortcuts: [H, Alt+H]
+  source: discord
+
+- id: restore-symmetry
+  title: 左右対称だった頂点がずれた（ミラーが外れた）ときの直し方
+  summary: わずかなずれなら Blender 標準の「対称にスナップ（Snap to Symmetry）」で戻せることがあります。より確実に復元したい場合は RestoreSymmetry 系のアドオンを使います。
+  body: |-
+    - 編集モードで対象の頂点を選び、`メッシュ > 対称にスナップ（Snap to Symmetry）` を実行します。許容範囲内の頂点を対称位置に揃えます（大きなずれは直りません）。
+    - RestoreSymmetry アドオン: 左右非対称になったオブジェクトを対称に復元します。元は Blender 2.7 向けを 2.8 以降で動くように改修したもので、当時 3.0 でも動作した報告があります。最新版向けの fork もあります。
+    - アドオン（.py 単体）の入れ方: `Edit > Preferences > Add-ons` → 右上のメニューから `Install from Disk...` で .py を選択して有効化します（Blender 4.2 以降のメニュー名。古いバージョンでは `Install...`）。
+    - 元ファイルの時点でミラーが外れている頂点が混ざっていることもあります。
+  tags: [Blender]
+  source: discord
+
+- id: looptools
+  title: LoopTools でガタついたループをなめらかに整える
+  summary: LoopTools の Circle / Relax / Space などを使うと、シュリンクラップしたソックスの縁や、ボーンで縮めてガタついた部分をきれいに揃えられます。
+  body: |-
+    - 用途の例
+      - シュリンクラップしたソックス・タイツの縁を整える（Circle、Space）
+      - 胸のサイズ変更などでガタついたメッシュを均す（Relax）
+    - 導入: Blender 4.2 以降は `Edit > Preferences > Get Extensions` から LoopTools を検索してインストールします（以前は標準同梱アドオンで、有効化するだけでした）。
+    - 使い方: 編集モードで辺ループを選択 → 右クリックメニューまたは `Edit` メニューの LoopTools から実行します。
+  tags: [Blender, 衣装]
+  source: discord
+
+- id: transform-axis-normal
+  title: 円形に並んだボーンや頂点を中心方向へまとめて移動する
+  summary: トランスフォーム座標系を「ノーマル」、ピボットポイントを「それぞれの原点」にして Z 方向に移動すると、各要素を自分の向きに沿って動かせます。
+  body: |-
+    1. 移動したい複数のボーン（または頂点）を選択します。
+    2. 3D ビューポート上部の **トランスフォーム座標系** を `ノーマル` にします。
+    3. **ピボットポイント**（`.` キー）を `それぞれの原点` にします。
+    4. `G` → `Z`（座標系のローカル軸）で移動すると、各ボーンがそれぞれの向きに沿って中心方向へ動きます。
+    - スケールで縮めるとボーンの大きさまで変わりますが、この方法なら位置だけ動かせます。
+    - 胸周りのフィッティングでプロポーショナル編集と組み合わせるのにも便利です。
+  tags: [Blender, リギング]
+  articles: [basics/origin-pivot-snap]
+  related: [pivot-point]
+  source: discord
+
+- id: face-custom-normals
+  title: Blender で表情を編集したら特定のワールドで顔に皺のような影が出る
+  summary: トゥーン向けに整えられていた顔のカスタム法線が編集で崩れています。データ転送などで元の顔（または整形用メッシュ）からカスタム法線を転写し直すときれいになります。
+  body: |-
+    - 顔のシェイプキーやメッシュを Blender で編集すると、作者が設定していた **カスタム法線** が崩れ、ライトの強いワールドで皺のような影が出ることがあります。
+    - 対処: 元のメッシュなどから「データ転送」でカスタム法線を転写し直します（外部記事「blenderでToon用に顔の法線を整える」が参考になります）。
+    - 目など一部だけ転写しない（別メッシュにしてから結合）ことで、目だけリアル寄りの反射にするといった使い分けもできます。
+  tags: [Blender, 表情, マテリアル]
+  related: [normal, data-transfer]
+  source: discord
+
+- id: underwear-separate-mesh
+  title: 下着やスパッツは別メッシュにしておくと衣装に合わせて切り替えやすい
+  summary: 素体と一体化した下着などは Blender で別メッシュに分けておくと、衣装に応じて Unity で ON/OFF できます。透過テクスチャで消すより管理が楽です。
+  body: |-
+    - 下着・スパッツなどを別メッシュ（`P` → 選択で分離）にしておき、Unity でトグルできるようにします。
+    - 素体とは別ファイル（衣装側）に下着が付いているアバターでは、それを読み込んで下着だけ素体側へ移し、Armature モディファイアーを素体のアーマチュアに設定します。
+    - スパッツを描いた素肌テクスチャを用意してテクスチャで切り替える方法もあります。
+    - 下着姿のベースモデルを書き出しておき、服だけ着せ替える運用も便利です。
+  tags: [Blender, Unity, 衣装]
+  related: [separate]
+  source: discord
+
+- id: blender-vs-unity-fitting
+  title: Unity だけで着せるか、Blender を使うかの判断
+  summary: ボディラインが出ない服や対応衣装なら Unity だけで（位置合わせ・拡縮・シェイプキー・Unity 上のメッシュ編集ツール）なんとかなることが多いです。肌に埋まる・体形が大きく違う場合は Blender の方がきれいに仕上がります。
+  body: |-
+    - **Unity だけで済むことが多い例**
+      - 対応衣装、ボディラインの出ないゆったりした服
+      - 少しの隙間・はみ出しの修正（Unity 上で頂点を動かせるエディタ拡張を使う方法もあります）
+      - 見えない部分の体を消す・細くする（シェイプキーや Unity 上のメッシュ削除ツール）
+    - **Blender が向いている例**
+      - 衣装が肌に埋まる、体形・姿勢が独特なアバター
+      - ウェイトの調整が必要、ボーン位置を個別に合わせたい
+    - Blender でのボーン合わせ自体は Unity でやることと大差ありませんが、ボーンが見えて個別調整しやすく、破綻したときに頂点やウェイトをすぐ直せるのが利点です。
+    - ウェイトを触らずにボーンだけ個別に動かすと破綻が大きくなるので注意します。
+  tags: [Blender, Unity, 衣装]
+  related: [weight]
+  source: discord
+
+- id: skirt-bones-from-cone
+  title: ボーンのないスカートに揺れ用のボーンとウェイトを付ける
+  summary: スカートの形に近い円錐メッシュを作ってボーンとウェイトを付け、それをスカートにウェイト転送すると確実に揺れ用のウェイトが作れます。
+  body: |-
+    1. スカートに近い形の円錐メッシュを作り、放射状にスカート用ボーンを配置します（ボーン作成を補助するアドオンもあります）。
+    2. 円錐に自動ウェイトなどでウェイトを付け、きれいに整えます。
+    3. 円錐からスカートへウェイトを転送します（[ウェイト転送](/howto#copy-weights)）。
+    4. Unity で PhysBone を設定します。
+    - Cloth で揺れる前提のスカートを VRM などに変換する場合も、この方法でボーンを生やすことになります。
+  tags: [Blender, リギング, ウェイト, PhysBone]
+  articles: [avatar-clothing/weight-transfer]
+  source: discord
+
+- id: weight-check-tools
+  title: ウェイトの確認・微調整を楽にする方法
+  summary: ウェイトペイントモードで Ctrl+クリックでボーンを選ぶと、そのボーンのウェイトを確認できます。編集モードでウェイト値を表示する設定や、ちょっとした貫通をスクロールで直せる有料アドオンも便利です。
+  body: |-
+    - **ボーンごとのウェイト確認**: オブジェクトモードでアーマチュア → `Shift` + メッシュ選択 → ウェイトペイントモード → `Ctrl+クリック` でボーンを選びます。
+    - **編集モードで確認**: サイドバー（`N`）の `アイテム > 頂点ウェイト` で、選択頂点のウェイト値を数値で確認・編集できます。
+    - **ポーズを付けて確認**: ウェイトペイントモードでもボーンを回転させながら塗れるので、関節の破綻を見ながら直せます。
+    - 便利なアドオン（有料）: Handy Weight Edit（スクロールでウェイトを少しずつ変更）など。
+    - ウェイトが乗っていない頂点を探す機能を持つ多機能アドオンもあります。
+  tags: [Blender, ウェイト]
+  shortcuts: [Ctrl+クリック]
+  articles: [rigging/weight-paint]
+  related: [weight-paint-mode]
+  source: discord
+
+- id: hip-assist-bones
+  title: お尻・股関節の補助ボーンで座りポーズの破綻を減らす
+  summary: 股関節やお尻に補助ボーンがあると、座る・前かがみになるときのお尻の破綻が大きく減ります。補助ボーンは Humanoid ではないため、Constraint などで動かす仕組みが必要です。
+  body: |-
+    - 膝・股関節・お尻の補助ボーンは、座りや前かがみの見た目の改善効果が大きい部位です。
+    - 補助ボーンは Humanoid に含まれないので、トラッキングでは動きません。Constraint（VRChat では VRC Constraint）で親ボーンの回転を一部受け取るように設定します。
+    - 膝を二重関節にして Constraint でつなぐ方法、肘の痩せを防ぐツイストボーンの設定などは外部の記事で紹介されています（[ひざを二重関節と Constraint で修正する](/links#unity-constraint)、[肘関節が痩せるのを防止する TwistBone 設定](/links#twistbone-note)）。
+  tags: [Blender, リギング, ウェイト]
+  source: discord
+
+- id: gradient-map-recolor
+  title: グラデーションマップで元の濃淡を保ったまま色を変える
+  summary: CLIP STUDIO PAINT などのグラデーションマップレイヤーを使うと、元テクスチャの明暗をそのままに色だけを置き換えられます。元の色に引っ張られずに色変更できるので、髪やタイツの色変えに向いています。
+  body: |-
+    1. 色を変えたいレイヤー（髪、タイツなど）の上にグラデーションマップの色調補正レイヤーを追加します。
+    2. 目的の色の濃い部分と薄い部分をスポイトで取り、グラデーションに設定します。
+    3. 微調整してから書き出します。
+    - 色ごとにレイヤーが分かれているテクスチャ向けです。
+    - 色相を回すだけより自然になりやすい一方、細部の調整は必要です。
+  tags: [マテリアル]
+  source: discord
+
+- id: psd-compatibility
+  title: PSD を GIMP などで開くとレイヤーが崩れることがある
+  summary: PSD は Photoshop 独自の形式で、他のソフトでは一部の機能（調整レイヤーや合成モードなど）が再現されないことがあります。崩れる場合は作者推奨のソフトか、CLIP STUDIO PAINT などで開きます。
+  body: |-
+    - PSD は汎用フォーマットではなく、Photoshop と CLIP STUDIO PAINT の間でさえ完全には互換しません。
+    - GIMP で開いたときにレイヤーが壊れる PSD もあります。色改変を頻繁にするなら CLIP STUDIO PAINT などがあると便利です。
+    - 色を少し変えるだけなら、高機能な有料ソフトは割高に感じるかもしれません。まず無料の GIMP で試し、困ったら検討するのがおすすめです。
+  tags: [マテリアル]
+  source: discord
+
+- id: uv-map-name-unify
+  title: メッシュを結合・書き出しする前に UV マップ名を揃える
+  summary: 異なる UV マップ名のメッシュを結合すると、UV が壊れたり書き出し後にテクスチャが外れたりします。結合前に各メッシュの UV マップ名を同じにしておきます。
+  body: |-
+    - オブジェクトデータプロパティ（緑の▽）→ `UV マップ` で、最初の UV マップの名前を各メッシュで同じにします（例: すべて `UVMap`）。
+    - 結合（`Ctrl+J`）はアクティブオブジェクトの UV マップ名を基準にするため、名前が違うメッシュの UV は別レイヤー扱いになり、見た目が崩れます。
+  tags: [Blender, マテリアル]
+  articles: [materials/uv-unwrap]
+  related: [uv]
+  source: discord
+
+- id: animator-layer-priority
+  title: FX のレイヤーは下にあるものが優先される（同じプロパティを触る場合）
+  summary: Animator のレイヤーは上から順に評価され、同じプロパティを複数のレイヤーが動かすと下のレイヤーの値で上書きされます。リセット用のレイヤーは上に置きます。
+  body: |-
+    - 例: レイヤー A で OFF にした PhysBone をレイヤー B で ON にしていると、最終的には B（下）の値になります。
+    - 「全部リセット」するレイヤーを下に置くと、何をしても変わらなくなります。リセットは上、個別の ON は下に置きます。
+    - レイヤー数が多すぎると同期が取りにくくなる点にも注意します。
+    - 多数の PhysBone の ON/OFF をアニメーションに書くのが大変なら、PhysBone をまとめて数を減らす（[PhysBone のまとめ方](/tips#physbone-merge-components)）か、スクリプトでアニメーションを生成する方法があります。
+  tags: [Unity, アニメーション, PhysBone]
+  source: discord
+
+- id: animation-missing-path-f2
+  title: AnimationClip のプロパティが (Missing!) になったら F2 で階層を直せる
+  summary: オブジェクトの名前や階層を変えると、アニメーションのプロパティが (Missing!) になります。Animation ウィンドウで該当プロパティを選び F2 で名前（パス）を編集すると、付け直さずに修正できます。
+  body: |-
+    1. アバターを選択した状態で Animation ウィンドウを開き、対象のクリップを表示します。
+    2. `(Missing!)` になっているプロパティを選択して `F2` を押します。
+    3. 新しい階層パス（例: `Armature/Hips/...` やメッシュ名）に書き換えます。
+  tags: [Unity, アニメーション]
+  shortcuts: [F2]
+  source: discord
+
+- id: merge-animation-clips
+  title: 2 つの AnimationClip の内容を 1 つにまとめる
+  summary: Animation ウィンドウでコピー元のプロパティ（キー）を選択して Ctrl+C、まとめ先のクリップを開いて Ctrl+V で貼り付けられます。
+  body: |-
+    - 同じ Animator Controller（同じアバター）で扱えるクリップどうしなら、Animation ウィンドウ上でプロパティのキーフレームを `Ctrl+C` → `Ctrl+V` でコピーできます。
+    - 数個程度ならこの方法が手軽です。大量に作るならスクリプトで自動生成した方が楽です。
+  tags: [Unity, アニメーション]
+  shortcuts: [Ctrl+C, Ctrl+V]
+  source: discord
+
+- id: perfect-sync-tips
+  title: パーフェクトシンク（52 BlendShape）用シェイプキー作成のコツ
+  summary: 'BlendShape 名は大文字小文字を区別し、アプリ側の表記（例: BrowInnerUp）と完全に一致させます。トラッキングでは値が 0.3〜0.8 程度にしかならないことが多いので、各シェイプキーは大げさに作っておくと手戻りが少なくなります。'
+  body: |-
+    - **名前**: 大文字小文字を区別します。参考記事で `browInnerUp` と書かれていても、実際には `BrowInnerUp` でないと動かない場合がありました（使うアプリ・ランタイムのバージョンに合わせます）。
+    - **変化量**: iPhone のフェイストラッキングでは各値が 0.3〜0.8 程度にしかならないことが多く、値 1 を基準に作ると思ったより表情が変わりません。目（eye〜）以外は 2〜5 倍程度大げさに作り、やりすぎた分は Unity 側で最大値を下げて調整します。
+    - 主に VRM / VMC 系の配信・ゲーム向けの話です。VRChat でもフェイストラッキング用に同様の命名規則（Unified Expressions など）があり、規格ごとに名前が異なります。
+  tags: [Blender, リギング, 表情, VRM]
+  source: discord
+
+- id: physbone-merge-components
+  title: 髪の PhysBone をまとめてコンポーネント数を減らす
+  summary: 前髪・横髪・後ろ髪ごとに空のオブジェクトを作り、各ボーンのルートをその子にまとめて、空オブジェクトに PhysBone を 1 つずつ付けると、コンポーネント数を大幅に減らせます。
+  body: |-
+    1. 髪のルートボーン（Head など）の下に、前髪・横髪・後ろ髪用の空の GameObject を作ります。
+    2. それぞれの髪束のルートボーンを、対応する空オブジェクトの子にします。
+    3. 空オブジェクトに PhysBone を付け、Root Transform に空オブジェクトを指定します（揺れは子から反映されるので、空オブジェクト自体は揺れの計算対象外です）。
+    - もともと各髪束の PhysBone で根元側のボーンを Root に指定していた場合は、揺れ方が変わるので確認します。
+    - スカートはコライダー設定の都合で、髪ほど単純にはまとめられません。
+    - PhysBone のコンポーネント数は Performance Rank に影響します。多数の枝がある髪でも 1 つにまとめるとランクが上がることがあります。
+    - Blender でボーンのルートを整理し、最初から PhysBone をまとめられる構造にしておくのも有効です。
+  tags: [Unity, PhysBone, 軽量化]
+  related: [physbone, performance-rank]
+  source: discord
+
+- id: collider-v-shape
+  title: 細い紐やスカートのボーンが貫通するときは、コライダーを V 字に 2 つ置く
+  summary: ボーン 1 本に対してコライダー 1 つでは、ボーンの動き方によって貫通を防げません。大きめのコライダー 2 つで V 字の谷を作り、その上にボーンが乗るよう配置すると、動ける範囲を制限できます。
+  body: |-
+    - コライダーの線（境界）は足とボーンの間に来るように置くのが基本です。
+    - 絶対に貫通させたくない場合は、大きめのコライダーを 2 つ使って V 字の谷を作り、ボーンをその谷に乗せる配置にします（内側コライダーの代わり）。
+    - コライダーが増えると負荷も増えます。VRChat の PhysBone には `Inside` タイプのコライダーもあるので、まずそちらで足りるか検討します。
+    - VRM（SpringBone）には Inside コライダーがないため、この方法が特に有効です。
+  tags: [Unity, PhysBone, VRM]
+  source: discord
+
+- id: breast-physbone-dampen
+  title: 胸の PhysBone の揺れが大きすぎるときの抑え方（Constraint を併用）
+  summary: 揺れ方の雰囲気はよいが量が多すぎる場合、同じ構成の空ボーンを揺らし、そこへ元の胸ボーンを Parent Constraint（ソースの重み 0.4 程度）でつなぐと揺れを弱められることがあります。
+  body: |-
+    1. 胸ボーンと同じ位置・構成の空オブジェクトを作り、そちらに PhysBone を付けて揺らします。
+    2. 元の Breast ボーンに Constraint（VRChat では VRC Parent Constraint）を付け、ソースを揺れる空オブジェクトにして重み（Weight）を 0.4 程度にします。
+    3. 重みで揺れの量を調整します。
+    - 必ずうまくいくとは限らないので、実機で確認しながら調整します。
+  tags: [Unity, PhysBone, リギング]
+  source: discord
+
+- id: save-playmode-values-prefab
+  title: 再生中に調整した値を保存する（再生中にアバターを Project へドラッグ）
+  summary: 再生中に揺れものやコライダーの値を調整した場合、再生中に Hierarchy のアバタールートを Project ウィンドウへドラッグすると、その状態で新しい Prefab が作られます。値をメモして入力し直す手間が省けます。
+  body: |-
+    1. 再生モードで値を調整します。
+    2. 再生中に Hierarchy のアバタールートを Project ウィンドウへドラッグし、新しい Prefab を作ります。
+    3. 再生を止めたら、元のアバターを削除（または非表示）し、新しい Prefab を Hierarchy に置きます。
+    - コライダーの位置調整などで特に便利です。
+  tags: [Unity, PhysBone]
+  related: [prefab]
+  source: discord
+
+- id: knee-twist-bone-constraint
+  title: 膝の二重関節・腕のツイストボーンを Constraint で作る
+  summary: 膝を二重関節にして Constraint でつなぐ方法や、肘が痩せるのを防ぐツイストボーンの設定が外部記事で紹介されています。現在の VRChat では VRC Constraint を使えます。
+  body: |-
+    - 参考記事: [ひざを二重関節と Constraint で修正する](/links#unity-constraint)、[肘関節が痩せるのを防止する TwistBone 設定](/links#twistbone-note)
+    - 膝を二重関節にして Unity の Constraint でつなぐと、膝を曲げたときの形がきれいになります。
+    - 腕にツイストボーンを入れると、ひねったときに肘や手首が痩せるのを防げます。費用対効果のバランスがよい改善です。
+    - VRChat では 2024 年以降、軽量な **VRC Constraint** が使えます（Unity 標準の Constraint からの変換機能もあります）。
+    - VRM 0.x では Constraint が使えません。VRM 1.0 には独自の Constraint があり、Unity の Rotation Constraint はソースのグローバル座標、VRM 1.0 の Rotation Constraint はローカル座標に対する変化で制約するという違いがあります。
+  tags: [Blender, Unity, リギング]
+  source: discord
+
+- id: vrm-file-size
+  title: VRM のファイルサイズ・負荷を減らす
+  summary: VRM 出力時の Reduce Blendshape を有効にすると、使っていない BlendShape が削られて容量が大きく減ります。ほかにテクスチャサイズを下げる、揺れものとボーンを減らす、FirstPerson を手動設定するのが有効です。
+  body: |-
+    - **容量**
+      - VRM 出力時の `Reduce Blendshape` を有効にします（`Reduce Blendshape Clip` は喜怒哀楽以外の表情クリップも消えるので注意）。
+      - 顔のメッシュは他と結合しない（シェイプキーが他のメッシュにも複製されて巨大化します。結合で数百 MB になった例もあります）。
+      - テクスチャを 2048 → 1024 にする、使っていないシェイプキーを削除する。
+    - **負荷**
+      - 揺れもの（SpringBone）とボーンを減らす（衣装とアバターのボーンを入れ子ではなく統合する、使わないスカートボーンを消す）。
+      - メッシュをまとめる（VRM では頭を分けたいので 2 つ程度）。ただし必ず軽くなるとは限りません。
+      - FirstPerson を Auto ではなく手動で設定する（[FirstPerson 設定](/qa#vrm-firstperson-settings)）。
+  tags: [VRM, 軽量化, リギング]
+  source: discord
+
+- id: vrm-springbone-center
+  title: VRM の SpringBone でゲーム内移動時にスカートが破綻するのを防ぐ（Center の設定）
+  summary: SpringBone の Center に、アバタールート直下にある Armature 以外のオブジェクト（Secondary など）を入れると、ゲーム内で強制的に移動させられたときの破綻を防げることがあります。
+  body: |-
+    - SpringBone は通常ワールド座標で計算するため、ゲーム内で急に移動させられるとスカートなどが大きく遅れて破綻します。
+    - `Center` に基準となるオブジェクトを入れると、その座標系で計算され移動の影響を受けにくくなります。
+    - Center に入れるのは **アバタールート直下のオブジェクト**（Armature 以外）。アバタールートそのものや Armature 配下のボーンでは期待通りに動かず、揺れなくなることもあります。
+    - 外部記事「VRMSpringBoneにおけるゲーム内移動時のスカート貫通対策についてのメモ」が参考になります。実機で確認してください。
+  tags: [VRM, PhysBone]
+  source: discord
+
+- id: beatsaber-customsaber-dynamicbone
+  title: Beat Saber のカスタムセイバーで揺れもの（DynamicBone）が揺れない
+  summary: カスタムセイバー用の DynamicBone は専用版で、コンポーネント追加後に配下の Transform 変更を受け付けません。揺れるオブジェクトを配置し終えてから、DynamicBone を Root のボーンに直接付けます。
+  body: |-
+    - 専用の DynamicBone を使います。
+    - コンポーネントを追加して Root を設定した後は、下の階層の Transform の変更や追加が反映されません。**揺れるオブジェクトを完全に配置し終えてから** 取り付けます。
+    - DynamicBone は **Root のボーンに直接** 付けます（親オブジェクトに付けて Root を指定すると揺れなかった事例があります）。
+    - Unity 上で納得のいく揺れになっても、ゲーム内では演算の違いで揺れ方が変わることがあります。
+  tags: [Unity]
+  source: discord
+
+- id: beatsaber-material-change
+  title: Beat Saber 用アバターのマテリアル切り替え（MaterialChange 系 MOD）
+  summary: VMC / NalulunaAvatars 用の MaterialChange 系 MOD を使うと、VRM でも衣装の切り替えや lilToon 系の見た目を使えます。MOD 用に改造された lilToon を使う場合は、通常版の lilToon と同じプロジェクトに入れないようにします。
+  body: |-
+    - VMC 用と NalulunaAvatars 用で別の MOD があります（[リンク集](/links#reference)）。
+    - MOD 用の lilToon を使うプロジェクトには通常版の lilToon を入れません。入っていたら先に削除してから導入します。
+    - 透過（Transparent）どうしの重なりで表示が消える場合は Render Queue を調整します（[透過の描画順](/qa#transparent-render-queue)）。MOD のバージョンによっては不具合のこともあるので、作者に報告します。
+    - 一部の特殊なシェーダー設定（2 パス半透明など）には対応していない場合があります。
+  tags: [Unity, VRM, マテリアル]
+  source: discord
+
+- id: unity-scene-view-navigation
+  title: Unity の Scene ビューで視点を動かす・拡大する
+  summary: マウスホイールで拡大縮小、右ドラッグで視点の回転、中ボタン（ホイール）ドラッグで平行移動、Hierarchy でオブジェクトを選んで F キーでそのオブジェクトにフォーカスします。
+  body: |-
+    | 操作 | 方法 |
+    |---|---|
+    | 拡大・縮小 | マウスホイール |
+    | 視点の回転 | 右ボタンドラッグ（Alt + 左ドラッグでも周回） |
+    | 平行移動 | 中ボタン（ホイール）ドラッグ |
+    | 選択物にフォーカス | Hierarchy で選択して `F`（Scene ビュー上で） |
+    | 飛行移動 | 右ボタンを押しながら `W` `A` `S` `D` |
+    - 髪の毛だけアップで見たい場合は、Hierarchy で髪のオブジェクトを選んで `F` を押すと便利です。
+    - 表示がおかしくなったら `Window > Layouts` からレイアウトを選び直すと初期配置に戻せます。
+  tags: [Unity]
+  shortcuts: [F]
+  articles: [unity/editor-overview]
+  related: [scene-view]
+  source: discord
+
+- id: continuous-avatar-uploader
+  title: 複数のアバター（衣装違い）をまとめて連続アップロードする
+  summary: Continuous Avatar Uploader を使うと、設定ファイルに登録した複数のアバターを自動で順番にアップロードできます。素体が更新されて全衣装をアップし直すときに便利です。
+  body: |-
+    1. `Assets > Create > Avatar Upload Setting Group` で設定ファイルを作ります。
+    2. アップロードしたいアバター（VRC Avatar Descriptor の付いたオブジェクト）をドラッグして `Add Avatar` を押し、対象プラットフォームやオプションを設定します。
+    3. `Tools > Continuous Avatar Uploader` でウィンドウを開き、Groups に設定ファイルをセットします。
+    4. `Start Upload` を押すと順番にアップロードされます。
+    - 同じ作者の Avatar Optimizer（AAO）も軽量化に便利です。
+  tags: [Unity, VRChat]
+  source: discord
+
+- id: blender-addons-for-avatar
+  title: アバター改変でよく使われる Blender アドオン
+  summary: LoopTools（ループ整形）、シェイプキー付きメッシュにモディファイアーを適用するアドオン、ウェイト調整系のアドオンなどがよく使われます。CATS は本家の更新が止まっているため、Blender 4.5 では対応状況を確認してください。
+  body: |-
+    | アドオン | 用途 | 備考 |
+    |---|---|---|
+    | LoopTools | 辺ループを円形・均等に整える | Blender 4.2 以降は Extensions から導入 |
+    | ApplyModifier（など） | シェイプキー付きメッシュにモディファイアーを適用 | 同種の他アドオンもあります |
+    | Handy Weight Edit | スクロールでウェイトを少しずつ調整 | 有料 |
+    | Better FBX Importer & Exporter | FBX の入出力 | 有料。設定に注意（[法線](/qa#better-fbx-exporter-normals)） |
+    | RestoreSymmetry | 左右対称の復元 | 古いアドオン。fork あり |
+    | CATS Blender Plugin | 当時の定番（最適化、ポーズのレストポーズ適用、Decimation 等） | 本家は更新停止。2.9 以降で不具合報告あり。後継の Unofficial 版の対応バージョンを確認 |
+    - 配布先は [アドオン](/addons) のページにまとめています。
+    - アドオンは対応している Blender のバージョンが決まっているので、Blender を更新する前に確認します。
+    - どのアドオンを入れていたか忘れないよう、メモしておくと移行が楽です。
+  tags: [Blender]
+  source: discord

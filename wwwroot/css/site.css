@@ -2279,6 +2279,75 @@ main {
     padding-left: 1.1rem;
 }
 
+/* 「詳しく」（Markdown の本文） */
+.tip-body > summary {
+    color: var(--violet);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.tip-body-content {
+    margin-top: 0.4rem;
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+.tip-body-content > :last-child {
+    margin-bottom: 0;
+}
+
+.tip-body-content ul,
+.tip-body-content ol {
+    padding-left: 1.2rem;
+}
+
+.tip-body-content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    border-collapse: collapse;
+}
+
+.tip-body-content th,
+.tip-body-content td {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--border);
+    vertical-align: top;
+}
+
+.tip-keywords {
+    color: var(--bs-secondary-color);
+}
+
+/* ---------- リンク集 ---------- */
+.links-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.links-section,
+.link-item {
+    scroll-margin-top: 5rem;
+}
+
+.link-item {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.link-item:target {
+    border-radius: 6px;
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.45);
+}
+
+.link-name {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
 /* ---------- カード ---------- */
 .card {
     background: var(--surface);

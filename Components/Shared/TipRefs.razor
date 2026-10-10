@@ -1,7 +1,7 @@
 @inject ContentService Content
 
-@* 用語集・何て名前？・TIPS の各項目の「キー / 記事 / 関連する用語」 *@
-@if (Shortcuts.Count > 0 || Articles.Count > 0 || Related.Count > 0)
+@* 用語集・何て名前？・TIPS・Q&A の各項目の「キー / 記事 / 関連する用語 / 関連する言葉」 *@
+@if (Shortcuts.Count > 0 || Articles.Count > 0 || Related.Count > 0 || Keywords.Count > 0)
 {
     <div class="tip-refs">
         @if (Shortcuts.Count > 0)
@@ -45,6 +45,12 @@
                 }
             </div>
         }
+        @if (Keywords.Count > 0)
+        {
+            <div><span class="tip-refs-label">関連語</span>
+                <span class="tip-keywords">@string.Join(" / ", Keywords)</span>
+            </div>
+        }
     </div>
 }
 
@@ -52,4 +58,6 @@
     [Parameter] public IReadOnlyList<string> Shortcuts { get; set; } = [];
     [Parameter] public IReadOnlyList<string> Articles { get; set; } = [];
     [Parameter] public IReadOnlyList<string> Related { get; set; } = [];
+    /// <summary>用語集に無い関連語（リンクにせず文字のまま出す）</summary>
+    [Parameter] public IReadOnlyList<string> Keywords { get; set; } = [];
 }
