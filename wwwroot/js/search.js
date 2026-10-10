@@ -67,13 +67,17 @@
     return (start > 0 ? "…" : "") + text.slice(start, end) + (end < text.length ? "…" : "");
   }
 
+  // 一致した部分を <mark> で囲む。エスケープ前の文字列で一度に探すので、
+  // 後の語が前に挿入した <mark> や &amp; などの中に一致することはない
   function highlight(text, terms) {
-    let html = escapeHtml(text);
-    for (const term of terms) {
-      const pattern = new RegExp(escapeRegExp(escapeHtml(term)), "gi");
-      html = html.replace(pattern, (m) => `<mark>${m}</mark>`);
+    const pattern = new RegExp([...terms].sort((a, b) => b.length - a.length).map(escapeRegExp).join("|"), "gi");
+    let html = "";
+    let last = 0;
+    for (const m of text.matchAll(pattern)) {
+      html += escapeHtml(text.slice(last, m.index)) + `<mark>${escapeHtml(m[0])}</mark>`;
+      last = m.index + m[0].length;
     }
-    return html;
+    return html + escapeHtml(text.slice(last));
   }
 
   function escapeHtml(s) {

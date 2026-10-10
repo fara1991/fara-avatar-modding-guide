@@ -12,7 +12,10 @@ const tutorials = new Map();
 let active = null; // WebGL を使っている Tutorial
 
 function loadDone() {
-  try { return JSON.parse(localStorage.getItem(DONE_KEY) || "{}") || {}; } catch { return {}; }
+  try {
+    const v = JSON.parse(localStorage.getItem(DONE_KEY) || "{}");
+    return v && typeof v === "object" && !Array.isArray(v) ? v : {};
+  } catch { return {}; }
 }
 
 function saveDone(name) {
@@ -23,6 +26,13 @@ function saveDone(name) {
 
 function escapeHtml(s) {
   return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+/** 操作できなかったとき（opfail）の、手順に専用のヒントがない場合の案内 */
+function opfailHint(e, vp) {
+  if (e.reason === "objectmode") return "<kbd>Tab</kbd> で編集モードに入ってください。";
+  if (e.reason === "noselection") return vp?.mode === "edit" ? "先に頂点・辺・面を選択してください。" : "先にオブジェクトをクリックして選択してください。";
+  return e.reason; // ベベルなど、理由の文章がそのまま入っている
 }
 
 /** "Shift+A" → <kbd>Shift</kbd>+<kbd>A</kbd> */
@@ -201,6 +211,7 @@ class Tutorial {
 
   /** 最初の状態から、i 番目の手順の直前まで進めた状態にする */
   replayTo(i) {
+    clearTimeout(this.failTimer);
     const vp = this.vp;
     if (vp) {
       vp.silent = true;
@@ -238,6 +249,7 @@ class Tutorial {
   }
 
   advance(success = true) {
+    clearTimeout(this.failTimer); // 失敗後のやり直し待ちのあいだに進んだら、やり直さない
     this.index++;
     this.ctx = {};
     if (success) this.flashOk();
@@ -256,11 +268,12 @@ class Tutorial {
       // 少し待ってから戻す（確定やキャンセルの結果が一瞬見えるように）
       const target = this.groupStart(this.index);
       this.showMsg(`${fail} この操作の最初からやり直します。`, "warn");
-      setTimeout(() => { if (this.vp) { this.replayTo(target); this.showMsg(`${fail} この操作の最初からやり直しましょう。`, "warn"); } }, 400);
+      clearTimeout(this.failTimer);
+      this.failTimer = setTimeout(() => { if (this.vp) { this.replayTo(target); this.showMsg(`${fail} この操作の最初からやり直しましょう。`, "warn"); } }, 400);
       return;
     }
     const hint = step.hint?.(e, this.vp, this.ctx)
-      ?? (e.type === "opfail" ? "先にオブジェクトをクリックして選択してください。" : undefined)
+      ?? (e.type === "opfail" ? opfailHint(e, this.vp) : undefined)
       ?? (e.type === "opstart" && ["G", "R", "S"].includes(e.kind) && !e.extrude && !step.allowOp ? "移動・回転・スケールが始まりました。<kbd>Esc</kbd> か右クリックでキャンセルしてください。" : undefined);
     if (hint) this.showMsg(hint, "hint");
   }

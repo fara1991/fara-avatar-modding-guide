@@ -1,6 +1,7 @@
 using FaraBlenderManual.Data;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace FaraBlenderManual.Publishing;
 
@@ -11,10 +12,12 @@ namespace FaraBlenderManual.Publishing;
 /// </summary>
 public static class StaticSiteExporter
 {
-    private static readonly HashSet<string> MediaExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".mp4", ".webm",
-    };
+    private static readonly FileExtensionContentTypeProvider ContentTypes = new();
+
+    /// <summary>記事フォルダから配信する画像・動画か（Program.cs の /learn の配信と同じ判定）。</summary>
+    public static bool IsMedia(string path) =>
+        ContentTypes.TryGetContentType(path, out var type) &&
+        (type.StartsWith("image/", StringComparison.Ordinal) || type.StartsWith("video/", StringComparison.Ordinal));
 
     public static async Task ExportAsync(WebApplication app, string outputDir)
     {
@@ -25,6 +28,14 @@ public static class StaticSiteExporter
         using var http = new HttpClient { BaseAddress = new Uri(baseAddress) };
 
         outputDir = Path.GetFullPath(outputDir);
+        // 出力先は丸ごと消すので、プロジェクトのフォルダやその親（--export . など）は受け付けない
+        var projectDir = Path.TrimEndingDirectorySeparator(Path.GetFullPath(app.Environment.ContentRootPath));
+        var outputTrimmed = Path.TrimEndingDirectorySeparator(outputDir);
+        if (string.Equals(projectDir, outputTrimmed, StringComparison.OrdinalIgnoreCase) ||
+            projectDir.StartsWith(outputTrimmed + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException($"--export には専用の出力フォルダ（例: dist）を指定してください: {outputDir}");
+        }
         if (Directory.Exists(outputDir)) Directory.Delete(outputDir, recursive: true);
         Directory.CreateDirectory(outputDir);
 
@@ -83,7 +94,7 @@ public static class StaticSiteExporter
         // 記事の画像・動画（Content/learn/<category>/images/...）→ /learn/<category>/images/...
         var learnDir = Path.Combine(app.Environment.ContentRootPath, "Content", "learn");
         CopyDirectory(learnDir, Path.Combine(outputDir, "learn"),
-            file => MediaExtensions.Contains(Path.GetExtension(file)));
+            IsMedia);
 
         var fileCount = Directory.EnumerateFiles(outputDir, "*", SearchOption.AllDirectories).Count();
         logger.LogInformation("Exported {Pages} pages, {Files} files in total to {Dir}", pages.Count + 1, fileCount, outputDir);
