@@ -74,6 +74,8 @@ fara-blender-manual/
 │   │   ├── tutorial.js       # 記事内チュートリアル（::: practice）の案内
 │   │   ├── scenarios.js      # 記事内チュートリアルの手順
 │   │   ├── room.js           # みんなで練習（部屋）の通信
+│   │   ├── unity.js          # Unity エディターに似た練習用の画面（Hierarchy・Scene・Inspector・Project・VRChat SDK の再現）
+│   │   ├── unity-practice.js # /practice/unity のお題
 │   │   └── progress.js       # ページの完了の記録（localStorage）
 │   └── images/tutorials/     # 記事内チュートリアルの手順画像（tools/tutorial-images/ で生成）
 ├── tools/
@@ -93,6 +95,8 @@ fara-blender-manual/
 | `/learn` | 目次 |
 | `/practice` | 操作の練習（ブラウザ上の 3D ビューで Blender と同じキー操作を試す） |
 | `/practice/room?room=<ID>` | みんなで練習（同じ 3D ビューを複数人で操作する部屋） |
+| `/practice/unity` | Unity の練習（Unity エディターに似た画面で、Modular Avatar で衣装を着せる流れを試す） |
+| `/glossary` `/howto` `/tips` | 用語集・あの操作、何て名前？・TIPS |
 | `/learn/{category}` | カテゴリ内の記事一覧 |
 | `/learn/{category}/{slug}` | 記事 |
 | `/shortcuts?category=…` | ショートカット一覧（カテゴリで絞り込み） |

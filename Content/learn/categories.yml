@@ -32,6 +32,12 @@
   description: ボーンを入れてキャラクターを動かせるようにする。
   icon: bi-person-arms-up
 
+- id: unity
+  section: unity
+  title: Unity でアバターを整える
+  description: Unity の画面の見方、Modular Avatar での衣装の着せ方、lilToon、アップロード前の確認。
+  icon: bi-grid-3x3-gap
+
 - id: avatar-clothing
   section: practice
   title: 実践：アバター用衣装の作成

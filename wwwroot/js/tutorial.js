@@ -90,6 +90,8 @@ class Tutorial {
       el.innerHTML = `<div class="tut-error">チュートリアル「${escapeHtml(this.name)}」が見つかりません（wwwroot/js/scenarios.js）。</div>`;
       return;
     }
+    this.unity = this.scenario.engine === "unity";
+    el.dataset.engine = this.unity ? "unity" : "blender";
     this.build();
     this.renderStep();
     this.setImageMode(touchOnly, true);
@@ -113,7 +115,7 @@ class Tutorial {
         <div class="tut-msg" hidden></div>
       </div>
       <div class="tut-stage">
-        <div class="tut-vp practice-viewport"></div>
+        <div class="tut-vp ${this.unity ? "" : "practice-viewport"}"></div>
         <div class="tut-keys" aria-hidden="true"></div>
         <div class="tut-ok" aria-hidden="true"><i class="bi bi-check-lg"></i></div>
         <button type="button" class="tut-overlay"><span><i class="bi bi-play-fill" aria-hidden="true"></i> <span class="tut-overlay-text">クリックして始める</span></span></button>
@@ -139,7 +141,7 @@ class Tutorial {
       </div>`;
     const q = sel => this.el.querySelector(sel);
     this.ui = {
-      count: q(".tut-count"), bar: q(".tut-progress span"), text: q(".tut-text"), msg: q(".tut-msg"), bubble: q(".tut-bubble"),
+      count: q(".tut-count"), bar: q(".tut-progress span"), text: q(".tut-bubble .tut-text"), msg: q(".tut-bubble .tut-msg"), bubble: q(".tut-bubble"),
       stage: q(".tut-stage"), vp: q(".tut-vp"), keys: q(".tut-keys"), ok: q(".tut-ok"),
       overlay: q(".tut-overlay"), overlayText: q(".tut-overlay-text"), complete: q(".tut-complete"), completeText: q(".tut-complete-text"),
       numpad: q('[data-act="numpad"]'), modeBtn: q('[data-act="images"]'),
@@ -177,7 +179,7 @@ class Tutorial {
       const keys = (st.keys ?? []).map(keyHtml).join(" ");
       const mouse = st.mouse ? `<span class="tut-mouse-inline"><i class="bi bi-mouse" aria-hidden="true"></i> ${escapeHtml(st.mouse)}</span>` : "";
       return `<figure class="tut-step-card" aria-roledescription="手順" aria-label="${i + 1} / ${steps.length}">
-          <img src="${stepImage(this.name, i)}" alt="${escapeHtml(plainText(st.text))}" loading="lazy" width="1100" height="619" onerror="this.replaceWith(Object.assign(document.createElement('div'), { className: 'tut-step-noimg', textContent: '画像は準備中です' }))" />
+          <img src="${stepImage(this.name, i)}" alt="${escapeHtml(plainText(st.text))}" loading="lazy" width="1100" height="${this.unity ? 840 : 619}" onerror="this.replaceWith(Object.assign(document.createElement('div'), { className: 'tut-step-noimg', textContent: '画像は準備中です' }))" />
           <figcaption>
             <div class="tut-text"><span class="tut-step-no">${i + 1}</span><span>${st.text}</span></div>
             ${keys || mouse ? `<div class="tut-step-keys">${keys}${mouse}</div>` : ""}
@@ -252,9 +254,10 @@ class Tutorial {
     this.loading = true;
     this.ui.overlayText.textContent = "読み込み中…";
     try {
-      const { Viewport } = await import("./viewport.js");
+      // Unity の練習（engine: "unity"）と Blender の 3D ビューで、読み込むものを変える
+      const Editor = this.unity ? (await import("./unity.js")).UnityEditor : (await import("./viewport.js")).Viewport;
       if (active !== this) return; // 読み込み中に別のものが始まった
-      this.vp = new Viewport(this.ui.vp, {
+      this.vp = new Editor(this.ui.vp, {
         scene: this.scenario.scene,
         view: this.scenario.view,
         emulateNumpad: () => this.ui.numpad?.checked ?? false,

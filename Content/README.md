@@ -84,6 +84,8 @@ Blender の操作は文章だけでは伝わりにくいので、手順ごとに
 | `bevel-merge` | Ctrl+B、E → Esc で重複を作って M > 距離で、面を削除して Alt+クリック → F | modeling/bevel-knife-merge |
 | `mirror` | 中央にループカット → 左半分の面を削除 → ミラー | modeling/mirror-smooth |
 | `topology` | 統計を表示 → ループカット → 辺を溶解 | modeling/topology |
+| `unity-basics` | Unity: Hierarchy の開閉と選択、F、Alt+ドラッグ・ホイール・中ボタンの視点操作、W の矢印での移動、Inspector の数値、E / R / Q | unity/editor-overview |
+| `ma-outfit` | Unity: 衣装をアバターに入れる → Setup Outfit → 元の服を無効・EditorOnly → マテリアル → MA Blendshape Sync → VRChat SDK → Build & Test | unity/modular-avatar-outfit |
 
 ### 記事に置く
 
@@ -130,6 +132,30 @@ Blender の操作は文章だけでは伝わりにくいので、手順ごとに
 - `skip` でマウス位置に頼る操作（ループカットの辺など）は、`vp.findEdge(条件)` のように条件で対象を決めてください（再現のときはマウスの位置が決まっていないため）
 - 編集モードの操作はおおむね Blender と同じ結果になりますが、ベベルは分割数 1 だけ、差し込みは複数の面でも面ごと（Blender で I を 2 回押したとき）、ナイフ（K）・隠す（H）・編集モードの複製（Shift+D）は未対応です。ミラーはモディファイアーの代わりに上の「ミラー」ボタン（X 方向）で表示します
 - 動作確認は `dotnet run` で記事を開いて最後まで操作し、「次へ（スキップ）」だけでも最後まで進めることを確かめてください。`?debug=1` を付けると、ブラウザのコンソールから `__tutorials` で状態を見られます
+
+### Unity のチュートリアル
+
+`engine: "unity"` を付けたシナリオは、Blender の 3D ビューの代わりに Unity エディターに似た練習用の画面（`wwwroot/js/unity.js`）を使います。今あるのは `unity-basics`（unity/editor-overview）と `ma-outfit`（unity/modular-avatar-outfit）です。
+
+```js
+"my-unity": {
+  title: "…",
+  engine: "unity",
+  scene: { instances: ["Avatar"] },   // 最初に置く Prefab（Avatar / Hoodie）
+  steps: [
+    {
+      text: "Project の Hoodie を Avatar の上にドラッグしてください。",
+      mouse: "ドラッグ",
+      highlight: { project: "Hoodie", label: "Avatar へドラッグ" },  // hierarchy / project / inspector / menu / popup / sdk / tool / scene
+      done: e => e.type === "instantiate" && e.parentName === "Avatar",
+      skip: ed => ed.instantiate("Hoodie", ed.findByName("Avatar").id),
+    },
+  ],
+},
+```
+
+- イベントの一覧（`select` `instantiate` `reparent` `setupOutfit` `active` `tag` `material` `componentAdded` `sdk` `build` など）と、スキップで使えるメソッドは `unity.js` の先頭と「操作」の節にあります
+- 人形・衣装・VRChat SDK の画面は練習用のシミュレーションです。実在のアバターのデータは使っていません
 
 ### スマートフォン向けの手順画像
 
