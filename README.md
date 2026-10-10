@@ -48,8 +48,6 @@ dotnet run
 ```
 fara-blender-manual/
 ├── Content/                  # 記事・データ（Markdown / YAML）。書き方は Content/README.md 参照
-├── tools/screenshots/        # 記事用スクリーンショットの自動撮影（Blender を自動操作）。tools/screenshots/README.md 参照
-├── tools/tutorial-images/    # 記事内チュートリアルの手順画像（スマートフォン用）を、サイトの 3D ビューから撮る。Content/README.md 参照
 │   ├── learn/
 │   │   ├── categories.yml    # ロードマップの段階と並び順
 │   │   └── <category>/NN-slug.md
@@ -65,13 +63,17 @@ fara-blender-manual/
 │   ├── Models.cs             # 記事・ショートカット・アドオンのモデル
 │   └── ContentService.cs     # Content/ を読み込んで提供するサービス
 ├── wwwroot/                  # 静的ファイル（CSS、画像、JS）
-│   └── js/
-│       ├── viewport.js       # Blender と同じキー操作の 3D ビュー（Three.js）。/practice と記事内チュートリアルで共用
-│       ├── editmesh.js       # 編集モードのメッシュ（頂点・辺・面）と、押し出し・ループカットなどの操作
-│       ├── practice.js       # /practice のお題
-│       ├── tutorial.js       # 記事内チュートリアル（::: practice）の案内
-│       ├── scenarios.js      # 記事内チュートリアルの手順
-│       └── progress.js       # ページの完了の記録（localStorage）
+│   ├── js/
+│   │   ├── viewport.js       # Blender と同じキー操作の 3D ビュー（Three.js）。/practice と記事内チュートリアルで共用
+│   │   ├── editmesh.js       # 編集モードのメッシュ（頂点・辺・面）と、押し出し・ループカットなどの操作
+│   │   ├── practice.js       # /practice のお題
+│   │   ├── tutorial.js       # 記事内チュートリアル（::: practice）の案内
+│   │   ├── scenarios.js      # 記事内チュートリアルの手順
+│   │   └── progress.js       # ページの完了の記録（localStorage）
+│   └── images/tutorials/     # 記事内チュートリアルの手順画像（tools/tutorial-images/ で生成）
+├── tools/
+│   ├── screenshots/          # 記事用スクリーンショットの自動撮影（Blender を自動操作）。tools/screenshots/README.md 参照
+│   └── tutorial-images/      # 手順画像を、サイトの 3D ビューをヘッドレス Chrome で動かして撮る。Content/README.md 参照
 ├── Program.cs
 └── appsettings.json          # Site セクション（サイト名、対象 Blender バージョン、リポジトリ URL）
 ```
