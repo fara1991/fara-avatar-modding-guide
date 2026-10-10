@@ -42,6 +42,8 @@ shortcuts: [G, R, S]      # shortcuts.yml の key と一致させる
 
 Blender の操作は文章だけでは伝わりにくいので、手順ごとにスクリーンショットや GIF を添えてください。
 
+今ある `images/*.png` は `tools/screenshots/` のスクリプトで Blender を自動操作して撮ったものです。撮り直し方と新しいショットの足し方は [tools/screenshots/README.md](../tools/screenshots/README.md) を見てください。手で撮った画像を置いても構いません。
+
 1. 画像をカテゴリの `images/` に置く: `Content/learn/<category-id>/images/<slug>-<内容>.png`
 2. Markdown からは `images/` からの相対パスで参照する（`/learn/<category-id>/images/...` に自動で解決されます）
 
