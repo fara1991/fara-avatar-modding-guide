@@ -1,51 +1,80 @@
 # おすすめアドオン一覧
 #
-# status: 対応状況の短いラベル（バッジ表示。例: "Blender 4.x 非対応", "Extension"）
+# status: 対応状況の短いラベル（バッジ表示。例: "Blender 5.0 以降", "Extension"）
 # note:   補足（代替アドオン、インストール方法の違いなど）
-# 対象バージョンは appsettings.json の Site:BlenderVersion（現在 4.2）。
+# 対象バージョンは appsettings.json の Site:BlenderVersion（現在 4.5）。
+# Extension と書いてあるものは「編集 > プリファレンス > エクステンションを入手」から検索してインストールできる。
+# それ以外は配布元から ZIP をダウンロードして「ディスクからインストール」。
 
-- name: Hard Ops
-  description: ハードサーフェスモデリングを効率化するプロフェッショナル向けアドオン
-  type: モデリング
-  price: 有料
+- name: Node Wrangler
+  description: マテリアルノードの編集を速くする定番アドオン。画像テクスチャの一括読み込みやノードのプレビューができる
+  type: マテリアル
+  price: 無料
+  status: Extension
+  note: Blender 4.1 までは内蔵アドオンでした。4.2 以降は Extensions Platform からインストールします。
   features:
-    - 高度なブール演算
-    - ハードサーフェス用ツール群
-    - 自動トポロジー
-    - カスタムシェーダー
-  url: https://hardops.gumroad.com/
+    - Ctrl+Shift+クリックでノードの出力を一時的にプレビュー
+    - Ctrl+T で画像テクスチャにテクスチャ座標・マッピングを一括接続
+    - Ctrl+Shift+T で PBR テクスチャ一式を一括読み込み
+    - ノードの接続・切断のショートカット
+  url: https://extensions.blender.org/add-ons/node-wrangler/
 
-- name: Cats Blender Plugin
-  description: VRChat アバター作成に特化したアドオン。アバターの最適化やセットアップが簡単に
+- name: LoopTools
+  description: 頂点を円形に整える、平らにならす、間隔をそろえるなど、形を整える道具の詰め合わせ
+  type: モデリング
+  price: 無料
+  status: Extension
+  note: Blender 4.1 までは内蔵アドオンでした。4.2 以降は Extensions Platform からインストールします。編集モードの右クリックメニューか、サイドバーの「編集」タブに出ます。
+  features:
+    - Circle（選択した頂点を正円に並べる。袖口や襟の調整に）
+    - Flatten（平らにならす）
+    - Space（頂点の間隔を均等にする）
+    - Relax（なめらかにする）
+  url: https://extensions.blender.org/add-ons/looptools/
+
+- name: VRM Add-on for Blender
+  description: VRM 形式のインポート・エクスポートと、VRM 用のメタ情報や MToon マテリアルの編集ができる
   type: ゲーム開発
   price: 無料
-  status: 本家は開発停止（Blender 4.x 非対応）
-  note: 本家 (absolute-quantum) は更新が止まっており Blender 4.x では動作しません。4.x では有志が保守している「Cats Blender Plugin Unofficial」を使ってください。
+  status: Extension
+  note: Blender 4.2 以降に対応。VRM で配布されているアバターを Blender に読み込むときや、VRM で書き出すときに使います。VRChat 向けの FBX 書き出しには不要です。
   features:
-    - アバター最適化
-    - ボーン構造修正
-    - 表情作成支援
-    - Unity 連携
+    - VRM 0.x / 1.0 のインポート・エクスポート
+    - MToon マテリアルの編集
+    - VRM 用のボーン割り当て（Humanoid）の設定
+    - 表情（Expression）の設定
+  url: https://extensions.blender.org/add-ons/vrm/
+
+- name: Cats Blender Plugin（Unofficial）
+  description: VRChat アバター向けの整理・最適化ツール。ボーンの統合、マテリアルの結合、表情（ビジーム）の自動作成など
+  type: ゲーム開発
+  price: 無料
+  status: 最新版は Blender 5.0 以降
+  note: 本家（absolute-quantum）は開発が止まっています。有志が保守している Unofficial 版は、最新版が Blender 5.0 以降向けです。Blender 4.5 で使うときは、GitHub の Releases から 4.x 対応と書かれたバージョンを選んでください。インストールは「ディスクからインストール」で ZIP を選びます。
+  features:
+    - MMD / VRM / FBX などからの読み込みとボーン名の整理
+    - 空のボーン・頂点グループの一括削除
+    - マテリアルの結合（Material Combiner が必要）
+    - ビジーム（口パク）とアイトラッキングの設定
   url: https://github.com/teamneoneko/Cats-Blender-Plugin-Unofficial-
 
-- name: Animation Nodes
-  description: ノードベースでアニメーションを作成できるパワフルなアドオン
-  type: アニメーション
-  price: 無料
-  status: 更新が不定期
-  note: 公式リリースは Blender 3.x 向けが最後です。4.x で使う場合は GitHub の最新ビルドの対応状況を確認してください。
+- name: Material Combiner
+  description: 複数のマテリアルとテクスチャを 1 枚のアトラスにまとめて、マテリアル数を減らす
+  type: ゲーム開発
+  price: 無料（寄付歓迎）
+  status: GitHub の master から ZIP
+  note: Releases ではなく master ブランチの ZIP を「ディスクからインストール」してください（Releases 版だと「No module named」エラーが出ることがあります）。Cats からも呼び出せます。VRChat のパフォーマンスランクでマテリアル数を抑えるのに有効です。
   features:
-    - ノードベースアニメーション
-    - プロシージャルアニメーション
-    - パーティクルシステム連携
-    - 数学的アニメーション
-  url: https://github.com/JacquesLucke/animation_nodes
+    - 複数のマテリアルを 1 つにまとめる
+    - テクスチャを 1 枚のアトラスに結合
+    - 単色マテリアルも画像に変換して結合
+  url: https://github.com/Grim-es/material-combiner-addon
 
 - name: Extra Mesh Objects
   description: 歯車・パイプ・数学的な形状など、標準では含まれていない様々なメッシュを追加
   type: ユーティリティ
   price: 無料
-  status: Extension（4.2 以降）
+  status: Extension
   note: Blender 4.1 までは内蔵アドオン「Add Mesh：Extra Objects」でした。4.2 以降は Extensions Platform からインストールします。
   features:
     - 歯車・ボルトなどの機械部品
@@ -53,16 +82,3 @@
     - 数学的形状（多面体、曲面）
     - 装飾オブジェクト
   url: https://extensions.blender.org/add-ons/extra-mesh-objects/
-
-- name: Node Wrangler
-  description: マテリアルノード編集を効率化するアドオン
-  type: ユーティリティ
-  price: 無料
-  status: Extension（4.2 以降）
-  note: Blender 4.1 までは内蔵アドオンでした。4.2 以降は Extensions Platform からインストールします。
-  features:
-    - ノード自動接続（Ctrl+Shift+クリックでプレビュー）
-    - テクスチャセットの一括読み込み
-    - Principled BSDF への自動接続
-    - ショートカット拡張
-  url: https://extensions.blender.org/add-ons/node-wrangler/

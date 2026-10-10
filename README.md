@@ -48,6 +48,7 @@ dotnet run
 ```
 fara-blender-manual/
 ├── Content/                  # 記事・データ（Markdown / YAML）。書き方は Content/README.md 参照
+├── tools/screenshots/        # 記事用スクリーンショットの自動撮影（Blender を自動操作）。tools/screenshots/README.md 参照
 │   ├── learn/
 │   │   ├── categories.yml    # ロードマップの段階と並び順
 │   │   └── <category>/NN-slug.md
