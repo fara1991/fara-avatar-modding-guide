@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.ref_name == 'master' && 'production' || 'develop' }}
-      url: ${{ github.ref_name == 'master' && 'https://blender.app-fara.com' || 'https://blender.dev.app-fara.com' }}
+      url: ${{ github.ref_name == 'master' && 'https://blender.fara-labs.com' || 'https://blender-dev.fara-labs.com' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -53,9 +53,18 @@ jobs:
           name: site
           path: dist
 
+      # 開発環境が検索結果に載らないようにする
+      - name: Add noindex header (develop)
+        if: github.ref_name != 'master'
+        run: |
+          cat >> dist/_headers <<'HEADERS'
+          /*
+            X-Robots-Tag: noindex, nofollow
+          HEADERS
+
       - uses: cloudflare/wrangler-action@v3
         with:
           wranglerVersion: "4.149.0"
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env ${{ github.ref_name == 'master' && 'production' || 'dev' }}

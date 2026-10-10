@@ -15,8 +15,8 @@ Blender の操作方法を、基本からアバター用衣装の作成まで順
 
 | 環境 | URL | ブランチ |
 | --- | --- | --- |
-| 本番 | https://blender.app-fara.com | `master` |
-| 開発 | https://blender.dev.app-fara.com | `develop` |
+| 本番 | https://blender.fara-labs.com | `master` |
+| 開発 | https://blender-dev.fara-labs.com（Cloudflare Access で自分だけが閲覧可能） | `develop` |
 
 ## 技術スタック
 
@@ -102,12 +102,13 @@ npx wrangler deploy --env dev   # 手動で develop 環境へ（本番は --env 
 
 ### 初回設定
 
-1. GitHub リポジトリの Secrets に以下を登録
-   - `CLOUDFLARE_API_TOKEN`: Workers Scripts: Edit、Workers Routes: Edit、Zone: DNS: Edit（app-fara.com）を持つ API トークン
-   - `CLOUDFLARE_ACCOUNT_ID`
-2. `develop` ブランチを作成（`git checkout -b develop master && git push -u origin develop`）
-3. 最初のデプロイで `wrangler.toml` の `custom_domain = true` により Cloudflare が DNS レコードと証明書を自動作成します
-   - `blender.dev.app-fara.com` は 2 段のサブドメインなので、Universal SSL の `*.app-fara.com` ではカバーされません。証明書が発行されない場合は Advanced Certificate Manager（または Total TLS）が必要です
+1. GitHub リポジトリの **Settings → Secrets and variables → Actions** に以下を登録（値は fara-portfolio-site と同じものを使えます）
+   - Secrets: `CLOUDFLARE_API_TOKEN`（テンプレート Edit Cloudflare Workers、Zone Resources は `fara-labs.com`）
+   - Variables: `CLOUDFLARE_ACCOUNT_ID`
+2. Cloudflare の `fara-labs.com` の **DNS → Records** に `blender` / `blender-dev` のレコードが無いことを確認
+3. 最初のデプロイで `wrangler.toml` の `custom_domain = true` により Cloudflare が DNS レコードと証明書を自動作成します（数分かかります）
+4. 開発環境を自分だけに見せるため、Cloudflare **Zero Trust → Access → Applications** の確認用アプリケーションに public hostname `blender-dev.fara-labs.com` を追加します
+   - 開発環境には `X-Robots-Tag: noindex` も付けています
 
 ### 仕組み
 
