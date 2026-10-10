@@ -1,0 +1,78 @@
+@page "/practice/room"
+@inject IOptions<SiteOptions> Site
+
+<PageTitle>みんなで練習 - @Site.Value.Title</PageTitle>
+
+<nav aria-label="パンくず">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/practice">操作の練習</a></li>
+        <li class="breadcrumb-item active" aria-current="page">みんなで練習</li>
+    </ol>
+</nav>
+
+<h1>みんなで練習</h1>
+<p class="lead">URL を共有すると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
+
+@* 本体は wwwroot/js/room.js（3D ビューは viewport.js）。部屋の同期は worker/index.js の Durable Object *@
+<div id="room-lobby" class="card mb-4" hidden>
+    <div class="card-body">
+        <h2 class="h5">部屋を作る</h2>
+        <p class="mb-3">ログインは不要です。部屋を作ったら、表示される URL を一緒に練習する人に送ってください。</p>
+        <button type="button" class="btn btn-primary" id="room-create"><i class="bi bi-plus-lg" aria-hidden="true"></i> 部屋を作る</button>
+    </div>
+</div>
+
+<div id="room-main" class="row g-4" hidden>
+    <div class="col-lg-8">
+        <div class="practice-viewport" id="room-viewport" tabindex="0" aria-label="3D ビューポート"></div>
+        <div class="d-flex flex-wrap gap-2 align-items-center mt-2 small text-body-secondary">
+            <span>ビューをクリックしてからキーを押してください。使えるキーは <a href="/practice">操作の練習</a> と同じです。</span>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                <span>部屋</span>
+                <span class="room-status small" id="room-status" role="status">接続中…</span>
+            </div>
+            <div class="card-body">
+                <label class="form-label small" for="room-url">この URL を送ると、同じ部屋に入れます</label>
+                <div class="input-group input-group-sm mb-3">
+                    <input type="text" class="form-control" id="room-url" readonly />
+                    <button type="button" class="btn btn-outline-primary" id="room-copy">コピー</button>
+                </div>
+                <label class="form-label small" for="room-name">表示名（ほかの人に見えます。20 文字まで）</label>
+                <input type="text" class="form-control form-control-sm mb-3" id="room-name" maxlength="20" autocomplete="nickname" />
+                <h3 class="h6">参加している人</h3>
+                <ul class="room-peers mb-0" id="room-peers"></ul>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header fw-semibold">この部屋について</div>
+            <div class="card-body small">
+                <ul class="mb-0 ps-3">
+                    <li>共有されるのは、オブジェクトモードの追加・削除・複製・移動・回転・スケールです</li>
+                    <li><strong>編集モード（Tab）の変更は自分の画面だけ</strong>で、ほかの人には共有されません</li>
+                    <li>ほかの人が動かしているオブジェクトは、終わるまで動かせません（その人の色の枠が付きます）</li>
+                    <li>ほかの人が変更すると、<kbd>Ctrl</kbd>+<kbd>Z</kbd> でそれより前には戻せません</li>
+                    <li>「視点に合わせる」で、その人と同じ視点で見られます（自分で視点を動かすと解除）</li>
+                    <li>1 部屋 8 人まで、オブジェクトは 200 個まで。最後の変更から 24 時間で部屋の内容は消えます</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<noscript><div class="alert alert-warning">この機能には JavaScript が必要です。</div></noscript>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+    },
+    "integrity": {
+        "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js": "sha384-GY5FqjttLCFRt/McQbyaVdCk2O1IQtOeX8Py6NfD89BIAsIyJFRl4UgSXrk2vXAk"
+    }
+}
+</script>
+<script type="module" src="/js/room.js"></script>

@@ -18,6 +18,9 @@
 //   menu {menu}  add {kind, name}  duplicate {names}  delete {names | edit, what}  undo  redo  npanel {open}  edit {prop, axis, value}
 //   mode {mode, object}  selectmode {mode}  xray {on}  stats {on}  mirror {on, object}
 //   extrude {type}  inset  bevel  cuts {cuts}  loopcut {cuts}  merge {how, removed}  fill {made}  separate {name}
+//
+// 共同練習（room.js）用: オブジェクトには部屋で共通の ID（userData.rid）があり、roomState() / applyRemote() /
+// setRemotePeers()（ほかの人のカーソルと選択）/ getView() / setView() で同期する
 import * as THREE from "three";
 import { EditMesh, SHAPES } from "./editmesh.js";
 
@@ -37,6 +40,12 @@ export const PRIMITIVES = [
   { key: "torus", label: "トーラス" },
 ];
 const NAMES = { plane: "Plane", cube: "Cube", sphere: "Sphere", cylinder: "Cylinder", cone: "Cone", torus: "Torus" };
+
+function randomId() {
+  const a = new Uint8Array(8);
+  crypto.getRandomValues(a);
+  return [...a].map(b => (b % 36).toString(36)).join("");
+}
 
 export function near(a, b, eps = 0.05) { return Math.abs(a - b) <= eps; }
 export function nearAngle(rad, deg, eps = 1) {
@@ -69,6 +78,7 @@ const HUD_HTML = `
     </div>`).join("")}
   </div>
   <div class="vp-marker" hidden><span class="vp-marker-label"></span></div>
+  <div class="vp-remote"></div>
   <div class="practice-status">
     <span class="vp-status"></span>
     <span class="vp-numeric"></span>
@@ -227,6 +237,7 @@ export class Viewport {
     mesh.userData.em = EditMesh.fromData(data);
     if (fresh) mesh.userData.em.selectAll("vert"); // 追加したばかりのメッシュは、編集モードで全体が選択されている（Blender と同じ）
     mesh.userData.mirror = false;
+    mesh.userData.rid = randomId(); // 共同練習の部屋で、同じオブジェクトを指す ID
     mesh.name = this.uniqueName(NAMES[kind]);
     const outline = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xff9d2b }));
     outline.visible = false;
@@ -317,6 +328,8 @@ export class Viewport {
     const outline = obj.getObjectByName("outline");
     outline.geometry.dispose();
     outline.geometry = new THREE.EdgesGeometry(g, 20);
+    const remoteSel = obj.getObjectByName("remote-sel");
+    if (remoteSel) remoteSel.geometry = outline.geometry;
     obj.getObjectByName("mirror").visible = obj.userData.mirror;
     if (obj === this.editObj) this.rebuildOverlay(obj);
     this.updateStats();
@@ -436,7 +449,7 @@ export class Viewport {
     return {
       mode: this.mode, edit: this.editObj?.name ?? null,
       objects: this.objects.map(o => ({
-        kind: o.userData.kind, name: o.name, p: o.position.toArray(), r: o.rotation.toArray().slice(0, 3), s: o.scale.toArray(),
+        kind: o.userData.kind, name: o.name, rid: o.userData.rid, p: o.position.toArray(), r: o.rotation.toArray().slice(0, 3), s: o.scale.toArray(),
         sel: this.selected.includes(o), act: this.active === o, mesh: o.userData.em.toData(), mirror: o.userData.mirror,
       })),
     };
@@ -452,6 +465,7 @@ export class Viewport {
       m.rotation.set(d.r[0], d.r[1], d.r[2]);
       m.scale.fromArray(d.s);
       m.userData.mirror = d.mirror;
+      if (d.rid) m.userData.rid = d.rid;
       m.getObjectByName("mirror").visible = d.mirror;
       if (d.sel) this.selected.push(m);
       if (d.act) this.active = m;
@@ -877,6 +891,141 @@ export class Viewport {
     if (this.guideLine.visible) this.guideLine.material.opacity = 0.55 + 0.35 * Math.sin(performance.now() / 250);
     this.renderer.render(this.scene, this.camera);
     this.updateMarker();
+    this.updateRemoteCursors();
+  }
+
+  // ---------------------------------------------------------------- 共同練習（room.js）
+  /** 部屋で共有する形: [{ id, kind, name, p, r（ラジアン）, s }]。編集モードで変えたメッシュの形は含まない */
+  roomState() {
+    const r = n => Math.round(n * 10000) / 10000;
+    return this.objects.map(o => ({
+      id: o.userData.rid, kind: o.userData.kind, name: o.name,
+      p: o.position.toArray().map(r), r: [o.rotation.x, o.rotation.y, o.rotation.z].map(r), s: o.scale.toArray().map(r),
+    }));
+  }
+
+  /**
+   * ほかの人の変更を反映する（イベントは出さない）。upsert は追加か変形、delete は削除。
+   * 取り消しの記録は、ほかの人の変更と食い違うので消す
+   */
+  applyRemote({ upsert = [], delete: del = [] }, { keepUndo = false } = {}) {
+    const silent = this.silent;
+    this.silent = true;
+    for (const d of upsert) {
+      let o = this.objects.find(x => x.userData.rid === d.id);
+      if (!o) {
+        o = this.addObject(d.kind);
+        o.userData.rid = d.id;
+      }
+      o.name = d.name;
+      o.position.fromArray(d.p);
+      o.rotation.set(d.r[0], d.r[1], d.r[2]);
+      o.scale.fromArray(d.s);
+    }
+    for (const id of del) {
+      const o = this.objects.find(x => x.userData.rid === id);
+      if (o) this.removeObject(o);
+    }
+    if (upsert.length) this.setXray(this.xray, true);
+    if (!keepUndo && (upsert.length || del.length)) { this.undoStack = []; this.redoStack = []; }
+    this.refreshSelection();
+    this.updateRemoteSelection();
+    this.silent = silent;
+  }
+
+  /** 部屋に入ったとき: シーンを丸ごと置き換える */
+  loadRoomScene(objects) {
+    const silent = this.silent;
+    this.silent = true;
+    this.resetScene([]);
+    this.applyRemote({ upsert: objects });
+    this.silent = silent;
+  }
+
+  /**
+   * ほかの参加者の表示。peers: [{ id, name, color, cursor: [x,y,z] | null, selection: [rid], locks: [rid] }]
+   * カーソルは名前付きの点、選択と操作中のオブジェクトはその人の色の枠で表示する
+   */
+  setRemotePeers(peers) {
+    this.remotePeers = peers;
+    const box = this.root.querySelector(".vp-remote");
+    const keep = new Set(peers.map(p => p.id));
+    for (const el of [...box.children]) if (!keep.has(el.dataset.peer)) el.remove();
+    for (const p of peers) {
+      let el = box.querySelector(`[data-peer="${p.id}"]`);
+      if (!el) {
+        el = document.createElement("div");
+        el.className = "vp-remote-cursor";
+        el.dataset.peer = p.id;
+        el.innerHTML = '<span class="dot"></span><span class="name"></span>';
+        box.appendChild(el);
+      }
+      el.style.setProperty("--peer", p.color);
+      el.querySelector(".name").textContent = p.name; // 表示名は文字としてだけ扱う
+    }
+    this.updateRemoteSelection();
+    this.updateRemoteCursors();
+  }
+
+  updateRemoteCursors() {
+    const box = this.root.querySelector(".vp-remote");
+    if (!box || !this.remotePeers) return;
+    for (const p of this.remotePeers) {
+      const el = box.querySelector(`[data-peer="${p.id}"]`);
+      if (!el) continue;
+      if (!p.cursor) { el.hidden = true; continue; }
+      const v = new THREE.Vector3(...p.cursor);
+      const ndc = v.clone().project(this.camera);
+      if (ndc.z > 1 || Math.abs(ndc.x) > 1.2 || Math.abs(ndc.y) > 1.2) { el.hidden = true; continue; }
+      const s = this.toScreen(v);
+      el.hidden = false;
+      el.style.transform = `translate(${s.x}px, ${s.y}px)`;
+    }
+  }
+
+  /** ほかの人が選択・操作しているオブジェクトに、その人の色の枠を付ける */
+  updateRemoteSelection() {
+    const color = new Map();
+    for (const p of this.remotePeers ?? []) {
+      for (const id of p.selection ?? []) if (!color.has(id)) color.set(id, p.color);
+      for (const id of p.locks ?? []) color.set(id, p.color); // 操作中の人を優先
+    }
+    for (const o of this.objects) {
+      let line = o.getObjectByName("remote-sel");
+      const c = color.get(o.userData.rid);
+      if (!c) { if (line) line.visible = false; continue; }
+      const outline = o.getObjectByName("outline");
+      if (!line) {
+        line = new THREE.LineSegments(outline.geometry, new THREE.LineBasicMaterial({ color: c, depthTest: false, transparent: true, opacity: 0.9 }));
+        line.name = "remote-sel";
+        line.renderOrder = 8;
+        o.add(line);
+      }
+      line.geometry = outline.geometry;
+      line.material.color.set(c);
+      line.visible = true;
+    }
+  }
+
+  /** マウスの下のワールド座標（オブジェクトの表面か、床 Z = 0）。どちらにも当たらなければ null */
+  pointAt(e) {
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(this.ndc(e), this.camera);
+    const hit = ray.intersectObjects(this.objects, false)[0];
+    if (hit) return hit.point;
+    const p = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), new THREE.Vector3());
+    return p && p.length() < 500 ? p : null;
+  }
+
+  getView() {
+    const v = this.view;
+    return { target: v.target.toArray(), dist: v.dist, theta: v.theta, phi: v.phi, ortho: this.ortho, name: v.name };
+  }
+
+  setView(v) {
+    this.view.target.fromArray(v.target);
+    Object.assign(this.view, { dist: v.dist, theta: v.theta, phi: v.phi, name: v.name || "ユーザー" });
+    this.ortho = v.ortho;
   }
 
   // ---------------------------------------------------------------- チュートリアル用のハイライト
@@ -998,6 +1147,13 @@ export class Viewport {
       if (this.selected.length === 0) {
         this.setStatus("先にオブジェクトを選択してください");
         this.emit("opfail", { kind, reason: "noselection" });
+        return;
+      }
+      // 共同練習: ほかの人が操作中のオブジェクトは動かせない
+      const blocked = this.options.canTransform?.(this.selected);
+      if (blocked) {
+        this.setStatus(blocked);
+        this.emit("opfail", { kind, reason: blocked });
         return;
       }
       start = this.selected.map(o => ({ o, p: o.position.clone(), q: o.quaternion.clone(), s: o.scale.clone() }));

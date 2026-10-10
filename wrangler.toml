@@ -1,18 +1,34 @@
-# Cloudflare Workers (Static Assets) の設定。
+# Cloudflare Workers の設定（静的ファイル + 共同練習の部屋）。
 # dist/ は `dotnet run -- --export dist` で生成する（.github/workflows/deploy.yml 参照）。
 #
 #   本番:     master  ブランチ → blender.fara-labs.com      (npx wrangler deploy --env production)
 #   develop:  develop ブランチ → blender-dev.fara-labs.com  (npx wrangler deploy --env dev)
+#
+# worker/index.js は /api/* だけを処理する（共同練習の部屋の WebSocket。部屋ごとに Durable Object）。
+# それ以外のパスはスクリプトを通らずに dist/ の静的ファイルが返る（run_worker_first）。
+# Durable Object は SQLite 版（new_sqlite_classes）なので Workers の無料プランでも使える。
 
 name = "fara-blender"
+main = "worker/index.js"
 compatibility_date = "2026-10-01"
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
 # /learn/basics → learn/basics.html、/learn/basics/ → /learn/basics へリダイレクト
 html_handling = "auto-trailing-slash"
 # 存在しないパスは 404.html を 404 ステータスで返す
 not_found_handling = "404-page"
+# /api/* だけ worker/index.js を先に通す
+run_worker_first = ["/api/*"]
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
 
 [env.production]
 name = "fara-blender"
@@ -22,8 +38,14 @@ routes = [
 
 [env.production.assets]
 directory = "./dist"
+binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
+run_worker_first = ["/api/*"]
+
+[[env.production.durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
 
 [env.dev]
 name = "fara-blender-dev"
@@ -33,5 +55,11 @@ routes = [
 
 [env.dev.assets]
 directory = "./dist"
+binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
+run_worker_first = ["/api/*"]
+
+[[env.dev.durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"

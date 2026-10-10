@@ -48,6 +48,7 @@ public static class StaticSiteExporter
             ["/shortcuts"] = "shortcuts.html",
             ["/addons"] = "addons.html",
             ["/practice"] = "practice.html",
+            ["/practice/room"] = "practice/room.html",
             ["/search"] = "search.html",
             ["/search-index.json"] = "search-index.json",
         };

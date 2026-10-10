@@ -69,11 +69,14 @@ fara-blender-manual/
 │   │   ├── practice.js       # /practice のお題
 │   │   ├── tutorial.js       # 記事内チュートリアル（::: practice）の案内
 │   │   ├── scenarios.js      # 記事内チュートリアルの手順
+│   │   ├── room.js           # みんなで練習（部屋）の通信
 │   │   └── progress.js       # ページの完了の記録（localStorage）
 │   └── images/tutorials/     # 記事内チュートリアルの手順画像（tools/tutorial-images/ で生成）
 ├── tools/
 │   ├── screenshots/          # 記事用スクリーンショットの自動撮影（Blender を自動操作）。tools/screenshots/README.md 参照
-│   └── tutorial-images/      # 手順画像を、サイトの 3D ビューをヘッドレス Chrome で動かして撮る。Content/README.md 参照
+│   ├── tutorial-images/      # 手順画像を、サイトの 3D ビューをヘッドレス Chrome で動かして撮る。Content/README.md 参照
+│   └── room-check/           # 共同練習の部屋（Durable Object）の動作確認スクリプト
+├── worker/index.js           # Cloudflare Worker（/api/* だけ）と、共同練習の部屋の Durable Object
 ├── Program.cs
 └── appsettings.json          # Site セクション（サイト名、対象 Blender バージョン、リポジトリ URL）
 ```
@@ -85,6 +88,7 @@ fara-blender-manual/
 | `/` | ホーム（ロードマップ） |
 | `/learn` | 目次 |
 | `/practice` | 操作の練習（ブラウザ上の 3D ビューで Blender と同じキー操作を試す） |
+| `/practice/room?room=<ID>` | みんなで練習（同じ 3D ビューを複数人で操作する部屋） |
 | `/learn/{category}` | カテゴリ内の記事一覧 |
 | `/learn/{category}/{slug}` | 記事 |
 | `/shortcuts?category=…` | ショートカット一覧（カテゴリで絞り込み） |
@@ -93,6 +97,30 @@ fara-blender-manual/
 旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へリダイレクトされます。
 
 各記事の「このページを完了にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `blender-manual.progress` に保存）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
+
+## みんなで練習（共同練習の部屋）
+
+`/practice/room` で「部屋を作る」と `?room=<ID>` 付きの URL ができ、その URL を開いた人どうしで 1 つの 3D ビューを操作できます。ログインはありません。
+
+```
+ブラウザ（wwwroot/js/room.js + viewport.js）
+   │  WebSocket  /api/rooms/<ID>/ws
+   ▼
+Worker（worker/index.js）── /api/* 以外は dist/ の静的ファイル（run_worker_first = ["/api/*"]）
+   │  部屋の ID ごとに 1 つ
+   ▼
+Durable Object「Room」（SQLite 版。WebSocket Hibernation）
+   - シーン（オブジェクトの種類・名前・位置・回転・スケール）を保存し、入った人に丸ごと送る
+   - 確定した変更（追加・変形・削除）を全員に配る。同じオブジェクトへの変更はサーバーに届いた順（後勝ち）
+   - 操作中のオブジェクトのロック、操作中の変形・カーソル・選択・視点の中継（保存しない）
+```
+
+- 共有するのはオブジェクトモードの追加・削除・複製・移動・回転・スケール。**編集モードの変更は自分の画面だけ**
+- 上限: 1 部屋 8 人、オブジェクト 200 個、1 メッセージ 16 KB、1 人あたり平均 40 通 / 秒（瞬間 80 通）。表示名は 20 文字（制御文字は除去、画面には文字として表示）
+- サーバーは受け取ったメッセージの形式と値の範囲（座標 ±1000 m、スケール 0.001〜1000、種類は 6 種類など）をすべて確かめ、不正なものは捨てる。不正なものが続くと切断
+- 最後の変更から 24 時間で部屋の内容を消す（Durable Object のアラーム）。60 秒何も届かない接続は外す（クライアントは 20 秒ごとに ping。ping の応答は Durable Object を起こさない）
+- ほかの人の変更を受け取ると、取り消し（<kbd>Ctrl</kbd>+<kbd>Z</kbd>）の記録は消える（食い違いを防ぐため）
+- `dotnet run` だけでは `/api` がないので部屋は使えない。確認は書き出してから `npx wrangler dev`（Durable Object もローカルで動く）。`node tools/room-check/check.mjs http://localhost:8787` で同期・上限・入力の検査をまとめて確かめられる
 
 ## 記事を追加する
 
@@ -105,7 +133,7 @@ fara-blender-manual/
 
 ## デプロイ（Cloudflare）
 
-`master` / `develop` への push で `.github/workflows/deploy.yml` が動き、静的サイトを書き出して Cloudflare Workers (Static Assets) にデプロイします。Pull Request ではビルドと書き出しだけ行います。
+`master` / `develop` への push で `.github/workflows/deploy.yml` が動き、静的サイトを書き出して Cloudflare Workers にデプロイします（静的ファイル + `worker/index.js` の Worker と Durable Object。設定は `wrangler.toml`）。Pull Request ではビルドと書き出しだけ行います。
 
 ```bash
 # ローカルで書き出して確認する
