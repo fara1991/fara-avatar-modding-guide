@@ -1,9 +1,13 @@
 // 記事内チュートリアル（::: practice <名前>）の手順。キーが Markdown に書く名前。
 // 書き方は Content/README.md の「操作の練習を記事に埋め込む」を参照。
 //
-// シナリオ: { title, scene?, view?, numpad?, steps: [ステップ...] }
+// シナリオ: { title, engine?, scene?, view?, numpad?, steps: [ステップ...] }
+//   engine "unity" なら Unity の練習画面（wwwroot/js/unity.js）を使う。既定は Blender の 3D ビュー（viewport.js）
 //   scene  最初に置くオブジェクト [{ kind, name?, p?: [x,y,z], r?: [度...], s?: [...] }]。省略時は立方体 1 つ
 //   view   最初の視点 { dist: 距離, target: [x,y,z] }（省略時は Blender の既定。編集モードは近めにすると選びやすい）
+//   scene  Unity の場合は { instances: ["Avatar"] }（最初に置く Prefab）
+//   Unity の highlight は { hierarchy: 名前, project: アセット, inspector: "active" | "tag" | "add-component" | "material-slot-0" | "p-0",
+//                          menu: "VRChat SDK", popup: "setup-outfit" | "sdk-panel", sdk: "build-test", tool: "move", scene: true, label }
 //   numpad true なら「テンキーを模倣」のチェックボックスを出す
 //
 // ステップ:
@@ -672,6 +676,189 @@ export const SCENARIOS = {
         skip: vp => { vp.closeMenu(); vp.deleteEdit("dissolve"); },
       },
       tabStep(false, "<kbd>Tab</kbd> でオブジェクトモードに戻ってください。"),
+    ],
+  },
+
+  // ---------------------------------------------------------------- Unity（engine: "unity"）
+  // unity/editor-overview
+  "unity-basics": {
+    title: "Unity の画面を動かしてみる",
+    engine: "unity",
+    scene: { instances: ["Avatar"] },
+    steps: [
+      {
+        mouse: "▶ をクリック", highlight: { hierarchy: "Avatar", label: "▶ をクリック" },
+        text: "Hierarchy の「Avatar」の左にある ▶ をクリックして、中身を開いてください。",
+        done: e => e.type === "expand" && e.name === "Avatar" && e.expanded,
+        skip: ed => ed.expandByName("Avatar"),
+      },
+      {
+        mouse: "左クリック", highlight: { hierarchy: "Body", label: "クリック" },
+        text: "「Body」をクリックして選んでください。右の Inspector に、そのオブジェクトの設定（コンポーネント）が表示されます。",
+        done: e => e.type === "select" && e.name === "Body",
+        hint: e => e.type === "select" ? "Avatar の中の「Body」をクリックしてください。" : undefined,
+        skip: ed => ed.selectByName("Avatar/Body"),
+      },
+      {
+        keys: ["F"], highlight: { scene: true, label: "ここにマウスを置いて F" },
+        text: "Scene ビューにマウスを置いて <kbd>F</kbd> を押すと、選んだものが画面の中心に大きく表示されます（Frame Selected）。",
+        done: e => e.type === "view" && e.action === "frame",
+        skip: ed => ed.frameSelected(),
+      },
+      {
+        keys: ["Alt"], mouse: "Alt+左ドラッグ",
+        text: "<kbd>Alt</kbd> を押しながら左ドラッグで、視点を回してください（Blender のホイールボタンのドラッグにあたります）。",
+        done: e => e.type === "view" && e.action === "orbit",
+        skip: ed => ed.orbitBy(0.6),
+      },
+      {
+        mouse: "ホイールを回す",
+        text: "ホイールを回して、近づいたり離れたりしてください。",
+        done: (e, ed, ctx) => e.type === "view" && e.action === "zoom" && (ctx.n = (ctx.n ?? 0) + 1) >= 2,
+        skip: ed => { ed.view.dist *= 0.8; },
+      },
+      {
+        mouse: "ホイールボタンでドラッグ",
+        text: "ホイールボタン（中ボタン）を押したままドラッグして、視点を平行移動してください。",
+        done: e => e.type === "view" && e.action === "pan",
+        skip: ed => { ed.view.target.x += 0.2; },
+      },
+      {
+        mouse: "左クリック", highlight: { hierarchy: "Avatar", label: "クリック" },
+        text: "Hierarchy で「Avatar」をクリックして選んでください。",
+        done: e => e.type === "select" && e.name === "Avatar",
+        skip: ed => ed.selectByName("Avatar"),
+      },
+      {
+        keys: ["W"], highlight: { tool: "move" },
+        text: "<kbd>W</kbd> で移動ツールにしてください。Scene に赤・緑・青の矢印（X / Y / Z）が出ます。",
+        done: e => e.type === "tool" && e.tool === "move",
+        skip: ed => ed.setTool("move"),
+      },
+      {
+        mouse: "赤い矢印をドラッグ", highlight: { scene: true, label: "赤い矢印をドラッグ" },
+        text: "赤い矢印をドラッグして、アバターを横（X 方向）に動かしてください。",
+        done: e => e.type === "transform" && e.kind === "move",
+        hint: e => e.type === "select" && !e.name ? "矢印の先の三角の部分をつかんでドラッグしてください。" : undefined,
+        skip: ed => { const n = ed.findByName("Avatar"); ed.setTransformValue(n.id, "p", 0, 0.5); },
+      },
+      {
+        highlight: { inspector: "p-0", label: "0 と入力して Enter" },
+        text: "Inspector の Transform の <strong>Position の X</strong> に <kbd>0</kbd> と入力して <kbd>Enter</kbd>。元の位置に戻ります。数値で正確に置けるのは Blender のサイドバー（<kbd>N</kbd>）と同じです。",
+        done: e => e.type === "edit" && e.prop === "p" && e.axis === 0 && e.value === 0,
+        hint: e => e.type === "edit" ? "Position の X（いちばん左の欄）に 0 を入れてください。" : undefined,
+        skip: ed => { const n = ed.findByName("Avatar"); ed.setTransformValue(n.id, "p", 0, 0); },
+      },
+      {
+        keys: ["E"], highlight: { tool: "rotate" },
+        text: "<kbd>E</kbd> で回転ツールにしてください（輪をドラッグで回転）。",
+        done: e => e.type === "tool" && e.tool === "rotate",
+        skip: ed => ed.setTool("rotate"),
+      },
+      {
+        keys: ["R"], highlight: { tool: "scale" },
+        text: "<kbd>R</kbd> で拡大縮小ツールにしてください（Blender の S にあたります）。",
+        done: e => e.type === "tool" && e.tool === "scale",
+        skip: ed => ed.setTool("scale"),
+      },
+      {
+        keys: ["Q"], highlight: { tool: "hand" },
+        text: "<kbd>Q</kbd> で手のツールにしてください。左ドラッグで視点を平行移動できます。",
+        done: e => e.type === "tool" && e.tool === "hand",
+        skip: ed => ed.setTool("hand"),
+      },
+    ],
+  },
+
+  // unity/modular-avatar-outfit
+  "ma-outfit": {
+    title: "Modular Avatar で衣装を着せる",
+    engine: "unity",
+    scene: { instances: ["Avatar"] },
+    steps: [
+      {
+        group: "put", mouse: "Avatar の上へドラッグ", highlight: { project: "Hoodie", label: "Hierarchy の Avatar へドラッグ" },
+        text: "下の Project ウィンドウの衣装「Hoodie」を、Hierarchy の「Avatar」の <strong>上</strong> までドラッグして離してください。衣装がアバターの中（子）に入ります。",
+        done: e => (e.type === "instantiate" && e.asset === "Hoodie" && e.parentName === "Avatar") || (e.type === "reparent" && e.name === "Hoodie" && e.parentName === "Avatar"),
+        hint: e =>
+          e.type === "instantiate" && !e.parentName ? "いちばん外（ルート）に置かれました。Hierarchy の Hoodie を、Avatar の上にドラッグして入れてください。" :
+          e.type === "instantiate" ? `「${e.parentName}」の中に入りました。Ctrl+Z で戻して、Avatar の上で離してください。` : undefined,
+        skip: ed => ed.instantiate("Hoodie", ed.findByName("Avatar").id),
+      },
+      {
+        group: "setup", mouse: "右クリック", highlight: { hierarchy: "Hoodie", label: "右クリック" },
+        text: "Hierarchy の「Hoodie」を <strong>右クリック</strong> してください。",
+        done: e => e.type === "contextmenu" && e.name === "Hoodie",
+        hint: e => e.type === "contextmenu" ? "「Hoodie」（衣装のいちばん上）で右クリックしてください。" : undefined,
+        skip: ed => ed.contextMenuByName("Avatar/Hoodie"),
+      },
+      {
+        group: "setup", mouse: "メニューをクリック", highlight: { popup: "setup-outfit", label: "クリック" },
+        text: "メニューの <strong>Modular Avatar ▸ Setup Outfit</strong> を選んでください。衣装のアーマチュアに <strong>MA Merge Armature</strong> が付き、アップロード時にアバターのボーンへ統合されます。",
+        done: e => e.type === "setupOutfit" && e.ok,
+        hint: e => e.type === "setupOutfit" ? e.reason : undefined,
+        fail: e => e.type === "select" ? "メニューが閉じました。" : undefined,
+        skip: ed => ed.setupOutfit(ed.findByName("Avatar/Hoodie").id),
+      },
+      {
+        mouse: "左クリック", highlight: { hierarchy: "Shirt_Default", label: "クリック" },
+        text: "次は、アバターが最初から着ている服を外します。Hierarchy の「Avatar」の中の <strong>Shirt_Default</strong> を選んでください。",
+        done: e => e.type === "select" && e.name === "Shirt_Default",
+        hint: e => e.type === "select" ? "Avatar の ▶ を開いて、「Shirt_Default」を選んでください。" : undefined,
+        skip: ed => ed.selectByName("Avatar/Shirt_Default"),
+      },
+      {
+        mouse: "チェックを外す", highlight: { inspector: "active", label: "チェックを外す" },
+        text: "Inspector の左上のチェックを外して、Shirt_Default を無効にしてください。Scene から消えます。",
+        done: e => e.type === "active" && e.name === "Shirt_Default" && !e.active,
+        skip: ed => ed.setActive(ed.findByName("Avatar/Shirt_Default").id, false),
+      },
+      {
+        mouse: "Tag を選ぶ", highlight: { inspector: "tag", label: "EditorOnly を選ぶ" },
+        text: "無効にしただけでは、アップロードに含まれて重さ（ランク）にも数えられます。<strong>Tag</strong> を <strong>EditorOnly</strong> にして、アップロードから外してください。",
+        done: e => e.type === "tag" && e.name === "Shirt_Default" && e.tag === "EditorOnly",
+        hint: e => e.type === "tag" ? "Tag の一覧から EditorOnly を選んでください。" : undefined,
+        skip: ed => ed.setTag(ed.findByName("Avatar/Shirt_Default").id, "EditorOnly"),
+      },
+      {
+        mouse: "左クリック", highlight: { hierarchy: "Hoodie", label: "▶ を開いて Hoodie_Mesh を選ぶ" },
+        text: "衣装の見た目（マテリアル）を変えます。Hoodie の ▶ を開いて <strong>Hoodie_Mesh</strong> を選んでください（Scene でパーカーをクリックしても選べます）。",
+        done: e => e.type === "select" && e.name === "Hoodie_Mesh",
+        hint: e => e.type === "select" ? "Hoodie の中の「Hoodie_Mesh」を選んでください。" : undefined,
+        skip: ed => ed.selectByName("Hoodie/Hoodie_Mesh"),
+      },
+      {
+        mouse: "Element 0 へドラッグ", highlight: { project: "Hoodie_lilToon", label: "Inspector の Element 0 へドラッグ" },
+        text: "Project の <strong>Hoodie_lilToon</strong> を、Inspector の Skinned Mesh Renderer の <strong>Materials &gt; Element 0</strong> の欄までドラッグしてください。",
+        done: e => e.type === "material" && e.name === "Hoodie_Mesh" && /lilToon|Red/.test(e.material),
+        hint: e => e.type === "material" ? "Hoodie_Mesh を選んだ状態で、Element 0 の欄で離してください。" : undefined,
+        skip: ed => ed.assignMaterial(ed.findByName("Hoodie/Hoodie_Mesh").id, 0, "Hoodie_lilToon"),
+      },
+      {
+        mouse: "Add Component", highlight: { inspector: "add-component", label: "クリックして blend と入力" },
+        text: "体型の変更（ブレンドシェイプ）に服を合わせます。Inspector の <strong>Add Component</strong> を押し、<kbd>blend</kbd> と入力して <strong>MA Blendshape Sync</strong> を選んでください。",
+        done: e => e.type === "componentAdded" && e.component === "MABlendshapeSync",
+        hint: e => e.type === "componentAdded" ? "MA Blendshape Sync を追加してください。" : undefined,
+        skip: ed => ed.addComponent(ed.findByName("Hoodie/Hoodie_Mesh").id, "MABlendshapeSync"),
+      },
+      {
+        group: "sdk", mouse: "メニューをクリック", highlight: { menu: "VRChat SDK", label: "クリック" },
+        text: "上のメニューの <strong>VRChat SDK</strong> を開いてください。",
+        done: e => e.type === "menu" && e.menu === "VRChat SDK",
+        skip: ed => { const r = ed.root.querySelector('[data-menu="VRChat SDK"]').getBoundingClientRect(); ed.openMenu("VRChat SDK", r.left, r.bottom); },
+      },
+      {
+        group: "sdk", mouse: "クリック", highlight: { popup: "sdk-panel", label: "クリック" },
+        text: "<strong>Show Control Panel</strong> を選ぶと、アップロード用の画面（Builder）が開きます。パフォーマンスランクと、確認のメッセージを見てください。",
+        done: e => e.type === "sdk" && e.open,
+        skip: ed => ed.openSDK(),
+      },
+      {
+        mouse: "クリック", highlight: { sdk: "build-test", label: "クリック" },
+        text: "<strong>Build &amp; Test</strong> を押して、自分の PC の VRChat だけで試します（練習なので実際には送信しません）。腕を振ったとき、衣装がついてくれば成功です。",
+        done: e => e.type === "build" && e.kind === "test",
+        skip: ed => ed.build("test"),
+      },
     ],
   },
 };

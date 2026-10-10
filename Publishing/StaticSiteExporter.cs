@@ -49,6 +49,7 @@ public static class StaticSiteExporter
             ["/addons"] = "addons.html",
             ["/practice"] = "practice.html",
             ["/practice/room"] = "practice/room.html",
+            ["/practice/unity"] = "practice/unity.html",
             ["/glossary"] = "glossary.html",
             ["/howto"] = "howto.html",
             ["/tips"] = "tips.html",

@@ -18,6 +18,10 @@ Modular Avatar は、服のアーマチュアをアバターのアーマチュ�
 
 この記事には Unity の画面写真がありません。項目名で探してください。
 
+::: tip
+衣装を入れる → Setup Outfit → 元の服を外す → マテリアル → Blendshape Sync → Build & Test の流れは、[Modular Avatar で衣装を着せる](/learn/unity/modular-avatar-outfit) の練習用の画面で 1 つずつ試せます。
+:::
+
 ## 1. 服を取り込む
 
 1. Unity で、アバターがセットアップ済みのプロジェクトを開く

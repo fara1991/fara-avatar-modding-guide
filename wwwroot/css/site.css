@@ -357,6 +357,691 @@ body {
     color: #b45309;
 }
 
+/* ---------- Unity の練習（wwwroot/js/unity.js）。Unity のダークテーマに近い色で、サイトのテーマに関わらず同じ ---------- */
+.unity-editor {
+    --ue-bg: #383838;
+    --ue-panel: #282828;
+    --ue-tab: #3c3c3c;
+    --ue-line: #1d1d1d;
+    --ue-text: #d2d2d2;
+    --ue-muted: #9a9a9a;
+    --ue-sel: #2c5d87;
+    --ue-input: #2a2a2a;
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(130px, 22%) 1fr minmax(170px, 28%);
+    grid-template-rows: 22px 28px 1fr 118px 20px;
+    grid-template-areas:
+        "menu menu menu"
+        "tools tools tools"
+        "hier scene insp"
+        "proj proj insp"
+        "status status status";
+    height: 560px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--ue-bg);
+    color: var(--ue-text);
+    font-family: system-ui, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+    font-size: 12px;
+    user-select: none;
+    outline: none;
+}
+
+.practice-embed .tut-vp.unity-editor {
+    aspect-ratio: auto;
+}
+
+/* 記事内チュートリアル（Unity）: 読み込む前の枠と、スマートフォン用の画像の比率 */
+.practice-embed[data-engine="unity"] .tut-vp:not(.unity-editor) {
+    height: 560px;
+    border-radius: 8px;
+    background: #383838;
+}
+
+.practice-embed[data-engine="unity"] .tut-step-card img,
+.practice-embed[data-engine="unity"] .tut-step-noimg {
+    aspect-ratio: 1100 / 840;
+}
+
+.unity-editor button {
+    color: inherit;
+    font: inherit;
+}
+
+.ue-menubar {
+    grid-area: menu;
+    display: flex;
+    background: #1f1f1f;
+}
+
+.ue-menubar button {
+    padding: 0 8px;
+    border: 0;
+    background: none;
+}
+
+.ue-menubar button:hover {
+    background: #3e3e3e;
+}
+
+.ue-toolbar {
+    grid-area: tools;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 6px;
+    border-bottom: 1px solid var(--ue-line);
+    background: #2b2b2b;
+}
+
+.ue-toolbar [data-tool] {
+    width: 26px;
+    height: 22px;
+    border: 1px solid #1a1a1a;
+    border-radius: 3px;
+    background: #4a4a4a;
+}
+
+.ue-toolbar [data-tool].is-on {
+    background: #5d84b5;
+    color: #fff;
+}
+
+.ue-toolbar-sep {
+    width: 10px;
+}
+
+.ue-toolbar-label {
+    padding: 2px 6px;
+    border: 1px solid #1a1a1a;
+    border-radius: 3px;
+    background: #3e3e3e;
+    color: var(--ue-muted);
+}
+
+.ue-play {
+    display: flex;
+    gap: 2px;
+    margin: 0 auto;
+    color: var(--ue-muted);
+    font-size: 14px;
+}
+
+.ue-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-right: 1px solid var(--ue-line);
+    border-bottom: 1px solid var(--ue-line);
+    background: var(--ue-panel);
+}
+
+.ue-hierarchy { grid-area: hier; }
+.ue-scene { grid-area: scene; }
+.ue-inspector { grid-area: insp; border-right: 0; }
+.ue-project { grid-area: proj; }
+
+.ue-tab {
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    border-bottom: 1px solid var(--ue-line);
+    background: var(--ue-tab);
+    font-weight: 600;
+}
+
+.ue-hier-list,
+.ue-insp-body,
+.ue-proj-grid {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.ue-scene-row {
+    padding: 2px 6px;
+    background: #323232;
+    color: var(--ue-muted);
+}
+
+.ue-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 20px;
+    padding-right: 4px;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.ue-row:hover {
+    background: #303030;
+}
+
+.ue-row.is-selected {
+    background: var(--ue-sel);
+    color: #fff;
+}
+
+.ue-row.is-prefab .ue-row-name {
+    color: #7fb4ff;
+}
+
+.ue-row.is-inactive {
+    opacity: 0.5;
+}
+
+.ue-fold {
+    flex: 0 0 12px;
+    font-size: 9px;
+    text-align: center;
+    color: var(--ue-muted);
+}
+
+.ue-row-icon {
+    color: var(--ue-muted);
+}
+
+.ue-row-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ue-row-tag {
+    margin-left: auto;
+    padding: 0 4px;
+    border-radius: 3px;
+    background: #4d3b1c;
+    color: #ffcf70;
+    font-size: 10px;
+}
+
+.ue-hier-empty {
+    min-height: 40px;
+}
+
+.ue-scene-view {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.ue-scene-view canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.ue-scene-info {
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    color: #f0f0f0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+}
+
+.ue-preview {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.ue-preview[hidden] { display: none; }
+
+.ue-preview-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(20, 20, 20, 0.88);
+    color: #f0f0f0;
+}
+
+.ue-preview-box .bi {
+    color: #5fd068;
+    font-size: 16px;
+}
+
+.ue-progress {
+    flex: 0 0 60px;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: #444;
+}
+
+.ue-progress span {
+    display: block;
+    width: 40%;
+    height: 100%;
+    background: #5d84b5;
+    animation: ue-progress 0.9s linear infinite;
+}
+
+@keyframes ue-progress {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+}
+
+.ue-insp-empty {
+    padding: 10px;
+    color: var(--ue-muted);
+}
+
+.ue-insp-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    background: #3a3a3a;
+}
+
+.ue-name {
+    flex: 1;
+    min-width: 0;
+    padding: 1px 4px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: var(--ue-input);
+    color: var(--ue-text);
+}
+
+.ue-tagrow {
+    padding: 4px 6px;
+    background: #3a3a3a;
+    border-bottom: 1px solid var(--ue-line);
+}
+
+.ue-tag {
+    flex: 1;
+    padding: 0 2px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: var(--ue-input);
+    color: var(--ue-text);
+}
+
+.ue-comp {
+    border-bottom: 1px solid var(--ue-line);
+}
+
+.ue-comp-head {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 6px;
+    background: #333;
+    font-size: 11.5px;
+}
+
+.ue-comp-head .bi {
+    font-size: 8px;
+    color: var(--ue-muted);
+}
+
+.ue-comp-body {
+    padding: 3px 6px 6px;
+}
+
+.ue-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 20px;
+}
+
+.ue-field-label {
+    flex: 0 0 38%;
+    overflow: hidden;
+    color: var(--ue-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ue-vec {
+    display: flex;
+    flex: 1;
+    gap: 3px;
+    min-width: 0;
+}
+
+.ue-num {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    margin: 0;
+}
+
+.ue-num input::-webkit-inner-spin-button,
+.ue-num input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.ue-num input {
+    appearance: textfield;
+    -moz-appearance: textfield;
+    width: 100%;
+    min-width: 0;
+    padding: 0 2px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: var(--ue-input);
+    color: var(--ue-text);
+    font-size: 11px;
+}
+
+.ue-objfield {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0 4px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: var(--ue-input);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ue-muted {
+    color: var(--ue-muted);
+}
+
+.ue-addcomp-wrap {
+    padding: 10px;
+    text-align: center;
+}
+
+.ue-addcomp {
+    width: 80%;
+    padding: 3px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: #585858;
+}
+
+.ue-proj-path {
+    padding: 2px 8px;
+    color: var(--ue-muted);
+    border-bottom: 1px solid var(--ue-line);
+}
+
+.ue-proj-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 4px;
+    padding: 6px;
+}
+
+.ue-asset {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 74px;
+    padding: 3px 2px;
+    border-radius: 4px;
+    text-align: center;
+    cursor: grab;
+}
+
+.ue-asset .bi {
+    font-size: 26px;
+    color: #7fb4ff;
+}
+
+.ue-asset span {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 10.5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ue-asset:hover {
+    background: #3a3a3a;
+}
+
+.ue-status {
+    grid-area: status;
+    padding: 2px 8px;
+    overflow: hidden;
+    background: #1f1f1f;
+    color: var(--ue-muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ue-popup {
+    position: absolute;
+    z-index: 20;
+}
+
+.ue-popup[hidden] { display: none; }
+
+.ue-menu {
+    min-width: 180px;
+    padding: 3px;
+    border: 1px solid #111;
+    border-radius: 4px;
+    background: #2d2d2d;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.ue-menu button {
+    display: block;
+    width: 100%;
+    padding: 3px 8px;
+    border: 0;
+    border-radius: 3px;
+    background: none;
+    text-align: left;
+}
+
+.ue-menu button:hover:not(:disabled) {
+    background: var(--ue-sel);
+    color: #fff;
+}
+
+.ue-menu button:disabled {
+    color: #6c6c6c;
+}
+
+.ue-menu-title {
+    padding: 2px 8px 4px;
+    color: var(--ue-muted);
+}
+
+.ue-addmenu {
+    width: 230px;
+}
+
+.ue-addsearch {
+    width: 100%;
+    margin-bottom: 3px;
+    padding: 2px 6px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: var(--ue-input);
+    color: var(--ue-text);
+}
+
+.ue-addlist {
+    max-height: 200px;
+    overflow: auto;
+}
+
+.ue-sdk {
+    position: absolute;
+    left: 50%;
+    top: 56px;
+    z-index: 15;
+    width: min(420px, 92%);
+    transform: translateX(-50%);
+    border: 1px solid #111;
+    border-radius: 6px;
+    background: #2e2e2e;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.ue-sdk[hidden] { display: none; }
+
+.ue-sdk-head {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background: #1f1f1f;
+    font-weight: 600;
+}
+
+.ue-sdk-head button {
+    border: 0;
+    background: none;
+}
+
+.ue-sdk-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 4px 8px 0;
+}
+
+.ue-sdk-tabs span {
+    padding: 2px 10px;
+    border-radius: 4px 4px 0 0;
+    background: #3a3a3a;
+    color: var(--ue-muted);
+}
+
+.ue-sdk-tabs .is-on {
+    background: #4a4a4a;
+    color: #fff;
+}
+
+.ue-sdk-body {
+    display: grid;
+    gap: 6px;
+    padding: 8px;
+    border-top: 1px solid var(--ue-line);
+}
+
+.ue-note {
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.ue-note-warn { background: #4d3b1c; color: #ffd38a; }
+.ue-note-info { background: #24394f; color: #b9d8ff; }
+
+.ue-perf {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ue-perf td,
+.ue-perf th {
+    padding: 2px 4px;
+    border-bottom: 1px solid #3a3a3a;
+    text-align: left;
+}
+
+.ue-rank {
+    padding: 0 5px;
+    border-radius: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+}
+
+.ue-rank-0 { background: #2f7d3c; color: #fff; }
+.ue-rank-1 { background: #3b78b5; color: #fff; }
+.ue-rank-2 { background: #b58a2e; color: #fff; }
+.ue-rank-3 { background: #b5552e; color: #fff; }
+.ue-rank-4 { background: #8e2b2b; color: #fff; }
+
+.ue-sdk-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.ue-sdk-buttons button {
+    flex: 1;
+    padding: 4px;
+    border: 1px solid #111;
+    border-radius: 4px;
+    background: #4f6f97;
+    color: #fff;
+}
+
+.ue-ghost {
+    position: absolute;
+    z-index: 30;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(44, 93, 135, 0.95);
+    color: #fff;
+    pointer-events: none;
+}
+
+.ue-drop {
+    outline: 2px solid #7fb4ff;
+    outline-offset: -2px;
+}
+
+/* チュートリアルの案内（setHighlight） */
+.unity-editor .ue-hl {
+    outline: 2px solid var(--violet);
+    outline-offset: -1px;
+    animation: vp-pulse 1.2s ease-in-out infinite;
+}
+
+.ue-hl-label {
+    position: absolute;
+    z-index: 25;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--violet-deep);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    transform: translate(-50%, -100%);
+    pointer-events: none;
+}
+
+.ue-hl-label[hidden] { display: none; }
+
+@media (max-width: 640px) {
+    .unity-editor {
+        grid-template-columns: 34% 1fr;
+        grid-template-rows: 22px 28px 1fr 160px 90px 20px;
+        grid-template-areas:
+            "menu menu"
+            "tools tools"
+            "scene scene"
+            "hier insp"
+            "proj proj"
+            "status status";
+        height: 640px;
+    }
+
+    .ue-menubar {
+        overflow-x: auto;
+    }
+}
+
 /* 3D ビュー上部のボタン（選択モード・透過・統計・ミラー） */
 .vp-tools {
     position: absolute;
