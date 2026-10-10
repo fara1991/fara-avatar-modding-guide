@@ -4,14 +4,14 @@
 #   本番:     master  ブランチ → avatar.fara-labs.com      (npx wrangler deploy --env production)
 #   develop:  develop ブランチ → avatar-dev.fara-labs.com  (npx wrangler deploy --env dev)
 #   旧アドレスの blender.fara-labs.com も本番の Worker に向け、worker/index.js で avatar.fara-labs.com へ 301 する。
-#   Worker 名は本番 fara-blender、develop は fara-avatar-dev（ダッシュボードで改名済み）。
+#   Worker 名は本番 fara-avatar、develop は fara-avatar-dev。
 #   ここの name はダッシュボードの Worker 名と一致させる（違うと別の Worker が新しく作られる）。
 #
 # すべてのリクエストが worker/index.js を通る（run_worker_first = true。旧アドレスの転送のため）。
 # /api/rooms/<ID>/ws は共同練習の部屋（部屋ごとに Durable Object）、それ以外は env.ASSETS で dist/ の静的ファイルを返す。
 # Durable Object は SQLite 版（new_sqlite_classes）なので Workers の無料プランでも使える。
 
-name = "fara-blender"
+name = "fara-avatar"
 main = "worker/index.js"
 compatibility_date = "2026-10-01"
 
@@ -34,7 +34,7 @@ tag = "v1"
 new_sqlite_classes = ["Room"]
 
 [env.production]
-name = "fara-blender"
+name = "fara-avatar"
 routes = [
   { pattern = "avatar.fara-labs.com", custom_domain = true },
   { pattern = "blender.fara-labs.com", custom_domain = true }, # 旧アドレス（avatar へ 301）

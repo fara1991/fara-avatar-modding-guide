@@ -19,7 +19,7 @@
 | 本番 | https://avatar.fara-labs.com | `master` |
 | 開発 | https://avatar-dev.fara-labs.com（Cloudflare Access で自分だけが閲覧可能） | `develop` |
 
-旧アドレスの https://blender.fara-labs.com は、パスを保ったまま新アドレスへ 301 で転送します（`worker/index.js`）。Cloudflare の Worker 名は本番 `fara-blender`、develop `fara-avatar-dev` です（`wrangler.toml` の `name` はダッシュボードの Worker 名と一致させる。違うと別の Worker が作られる）。
+旧アドレスの https://blender.fara-labs.com は、パスを保ったまま新アドレスへ 301 で転送します（`worker/index.js`）。Cloudflare の Worker 名は本番 `fara-avatar`、develop `fara-avatar-dev` です（`wrangler.toml` の `name` はダッシュボードの Worker 名と一致させる。違うと別の Worker が作られる）。
 
 ## 技術スタック
 
