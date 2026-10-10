@@ -258,6 +258,90 @@ body {
     margin-right: 0.15rem;
 }
 
+/* 3D ビュー上部のボタン（選択モード・透過・統計・ミラー） */
+.vp-tools {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    z-index: 3;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.vp-tools-edit {
+    display: inline-flex;
+}
+
+.vp-tools-edit[hidden] {
+    display: none;
+}
+
+.vp-tools button {
+    padding: 2px 9px;
+    border: 1px solid #1f1f1f;
+    background: #545454;
+    color: #e6e6e6;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.vp-tools > button {
+    border-radius: 4px;
+}
+
+.vp-tools-edit button:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.vp-tools-edit button:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.vp-tools button:hover:not(:disabled) {
+    background: #656565;
+}
+
+.vp-tools button.is-on {
+    background: #4772b3;
+    color: #fff;
+}
+
+.vp-tools button:disabled {
+    opacity: 0.5;
+}
+
+.vp-tools button.is-highlight {
+    position: relative;
+    z-index: 1;
+    outline: 2px solid var(--violet);
+    animation: vp-pulse 1.2s ease-in-out infinite;
+}
+
+.vp-stats {
+    margin-top: 0.4rem;
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+.vp-stats[hidden] {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .vp-tools {
+        left: auto;
+        right: 6px;
+        transform: none;
+    }
+
+    .vp-tools button {
+        padding: 1px 6px;
+    }
+}
+
 /* 案内中の対象（viewport.js の setHighlight） */
 .practice-viewport .vp-view.is-highlight {
     display: inline-block;

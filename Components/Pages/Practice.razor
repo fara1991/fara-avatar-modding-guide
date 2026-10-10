@@ -4,7 +4,7 @@
 <PageTitle>操作の練習 - @Site.Value.Title</PageTitle>
 
 <h1>操作の練習</h1>
-<p class="lead">ブラウザ上の 3D ビューで、Blender と同じキー操作を試せます。下のお題を順にこなしてください。</p>
+<p class="lead">ブラウザ上の 3D ビューで、Blender と同じキー操作を試せます。下のお題を順にこなしてください。<kbd>Tab</kbd> で編集モードにも入れます。</p>
 <p class="text-body-secondary small">各記事の「やってみよう」では、同じビューで 1 キーずつ案内付きで操作できます（<a href="/learn/basics/transform">移動・回転・スケール</a> など）。ここは案内なしで自由に試す場所です。</p>
 
 @* 本体は wwwroot/js/practice.js と viewport.js（Three.js）。静的 SSR なので、ここは枠と文言だけ *@
@@ -51,6 +51,20 @@
                         <tr><td><kbd>X</kbd> / <kbd>Delete</kbd></td><td>削除</td></tr>
                         <tr><td><kbd>N</kbd></td><td>サイドバー（位置・回転・スケール）</td></tr>
                         <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>元に戻す / やり直し</td></tr>
+                        <tr><td><kbd>Alt</kbd>+<kbd>Z</kbd></td><td>透過表示</td></tr>
+                        <tr class="table-group-divider"><th colspan="2">編集モード</th></tr>
+                        <tr><td><kbd>Tab</kbd></td><td>編集モードの出入り</td></tr>
+                        <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>頂点 / 辺 / 面の選択モード</td></tr>
+                        <tr><td><kbd>Alt</kbd>+クリック / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+クリック</td><td>ループ / リング選択</td></tr>
+                        <tr><td><kbd>L</kbd> / <kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>つながった部分を選択</td></tr>
+                        <tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>選択を反転</td></tr>
+                        <tr><td><kbd>Ctrl</kbd>+<kbd>Numpad +</kbd> / <kbd>-</kbd></td><td>選択を広げる / 狭める</td></tr>
+                        <tr><td><kbd>E</kbd> / <kbd>I</kbd></td><td>押し出し / 差し込み</td></tr>
+                        <tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>ループカット（ホイールで本数、右クリックで中央）</td></tr>
+                        <tr><td><kbd>Ctrl</kbd>+<kbd>B</kbd></td><td>ベベル（分割数 1 のみ）</td></tr>
+                        <tr><td><kbd>X</kbd></td><td>削除（頂点 / 辺 / 面 / 辺を溶解）</td></tr>
+                        <tr><td><kbd>M</kbd> / <kbd>F</kbd> / <kbd>P</kbd></td><td>マージ / 面を張る / 分離</td></tr>
+                        <tr><td>上のボタン</td><td>透過・統計・ミラー（X 方向）の表示</td></tr>
                     </tbody>
                 </table>
             </div>

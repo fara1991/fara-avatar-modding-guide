@@ -1,8 +1,9 @@
 // 記事内チュートリアル（::: practice <名前>）の手順。キーが Markdown に書く名前。
 // 書き方は Content/README.md の「操作の練習を記事に埋め込む」を参照。
 //
-// シナリオ: { title, scene?, numpad?, steps: [ステップ...] }
+// シナリオ: { title, scene?, view?, numpad?, steps: [ステップ...] }
 //   scene  最初に置くオブジェクト [{ kind, name?, p?: [x,y,z], r?: [度...], s?: [...] }]。省略時は立方体 1 つ
+//   view   最初の視点 { dist: 距離, target: [x,y,z] }（省略時は Blender の既定。編集モードは近めにすると選びやすい）
 //   numpad true なら「テンキーを模倣」のチェックボックスを出す
 //
 // ステップ:
@@ -24,20 +25,21 @@ const UNIT = { G: " m", R: "°", S: " 倍" };
 
 /** G / R / S → 軸 → 数値 → Enter を 1 キーずつ案内するステップ群 */
 function opSteps({ key, axis = null, value, target = "Cube", group, first }) {
+  const hl = (extra = {}) => (target ? { object: target, ...extra } : extra);
   const name = OP_NAME[key];
   const A = axis?.toUpperCase();
   const interrupted = e =>
     e.type === "cancel" ? "キャンセルされました。" :
     e.type === "confirm" ? "途中で確定されました。" : undefined;
   const steps = [{
-    group, keys: [key], highlight: { object: target },
+    group, keys: [key], highlight: hl(),
     text: first ?? `<kbd>${key}</kbd> を押して${name}を始めてください。`,
     done: e => e.type === "opstart" && e.kind === key,
     hint: e => e.type === "opstart" ? `${OP_NAME[e.kind]}が始まりました。<kbd>Esc</kbd> でキャンセルしてから <kbd>${key}</kbd> を押してください。` : undefined,
     skip: vp => vp.startOp(key),
   }];
   if (axis) steps.push({
-    group, keys: [A], highlight: { object: target, axis },
+    group, keys: [A], highlight: hl({ axis }),
     text: `<kbd>${A}</kbd> を押して、${A} 軸の方向だけに固定してください。${A} 軸の線が表示されます。`,
     done: e => e.type === "axis" && e.axis === axis && !e.exclude,
     hint: e =>
@@ -48,7 +50,7 @@ function opSteps({ key, axis = null, value, target = "Cube", group, first }) {
     skip: vp => vp.setAxis(axis, false),
   });
   steps.push({
-    group, keys: [...value], highlight: { object: target, axis },
+    group, keys: [...value], highlight: hl({ axis }),
     text: `数字で <kbd>${value}</kbd> と入力してください。${name}の量がちょうど ${value}${UNIT[key]} になります。`,
     done: e => e.type === "numeric" && e.value === value,
     hint: e =>
@@ -62,7 +64,7 @@ function opSteps({ key, axis = null, value, target = "Cube", group, first }) {
     },
   });
   steps.push({
-    group, keys: ["Enter"], highlight: { object: target },
+    group, keys: ["Enter"], highlight: hl(),
     text: `<kbd>Enter</kbd> で確定してください（左クリックでも確定できます）。`,
     done: e => e.type === "confirm" && e.value === value && e.axis === axis,
     fail: e =>
@@ -96,6 +98,108 @@ function numpadStep(key, ctrl, viewName, text) {
     skip: vp => vp.numpadView(key, ctrl),
   };
 }
+
+
+// ---------------------------------------------------------------- 編集モード用
+const MODE_KEY = { vert: "1", edge: "2", face: "3" };
+const MODE_NAME = { vert: "頂点", edge: "辺", face: "面" };
+
+/** Tab で編集モード（on）/ オブジェクトモードへ */
+function tabStep(on, text, group) {
+  return {
+    group, keys: ["Tab"], text,
+    done: e => e.type === "mode" && e.mode === (on ? "edit" : "object"),
+    hint: e => e.type === "opfail" && e.kind === "Tab" ? "先にオブジェクトをクリックして選択してください。" : undefined,
+    skip: vp => vp.toggleEditMode(on),
+  };
+}
+
+/** 1 / 2 / 3 で選択モード */
+function selectModeStep(mode, text, group) {
+  return {
+    group, keys: [MODE_KEY[mode]], highlight: { tool: mode },
+    text: text ?? `<kbd>${MODE_KEY[mode]}</kbd> を押して${MODE_NAME[mode]}選択モードにしてください（上の「${MODE_NAME[mode]}」ボタンでも切り替えられます）。`,
+    done: e => e.type === "selectmode" && e.mode === mode,
+    hint: e => e.type === "view" && e.action === "axis" ? "「テンキーを模倣」がオンだと、数字キーは視点の切り替えになります。上のボタンで切り替えてください。" : undefined,
+    skip: vp => vp.setSelectMode(mode),
+  };
+}
+
+/** 編集モードの操作（E / I / Ctrl+B）→ 数値 → Enter */
+function editOpSteps({ keys, kind, extrude = false, value, unit, name, group, first, start }) {
+  const isStart = e => e.type === "opstart" && e.kind === kind && (!extrude || e.extrude);
+  const interrupted = e =>
+    e.type === "cancel" ? "キャンセルされました。" :
+    e.type === "confirm" ? "途中で確定されました。" : undefined;
+  return [
+    {
+      group, keys: [keys], text: first,
+      done: isStart,
+      hint: e =>
+        e.type === "opfail" ? (e.reason === "noselection" ? "先に面や辺を選択してください。" : e.reason === "objectmode" ? "<kbd>Tab</kbd> で編集モードに入ってください。" : e.reason) :
+        e.type === "opstart" ? "別の操作が始まりました。<kbd>Esc</kbd> でキャンセルしてください。" : undefined,
+      skip: start,
+    },
+    {
+      group, keys: [...value],
+      text: `数字で <kbd>${value}</kbd> と入力してください（${name}が ${value}${unit} になります）。`,
+      done: e => e.type === "numeric" && e.value === value,
+      hint: e => e.type === "numeric" && !value.startsWith(e.value) ? `「${e.value}」になっています。<kbd>Backspace</kbd> で消して ${value} と入力してください。` : undefined,
+      fail: interrupted,
+      skip: vp => { while (vp.op && vp.op.numeric) vp.typeNumeric("Backspace"); for (const ch of value) vp.typeNumeric(ch); },
+    },
+    {
+      group, keys: ["Enter"], text: "<kbd>Enter</kbd> で確定してください（左クリックでも確定できます）。",
+      done: e => e.type === "confirm" && e.kind === kind && e.value === value,
+      fail: e => e.type === "cancel" ? "キャンセルされました。" : e.type === "confirm" ? "入力が変わったまま確定されました。" : undefined,
+      skip: vp => vp.confirmOp(),
+    },
+  ];
+}
+
+/** ワールド座標の点 at の近くの面・辺をクリックで選ぶ */
+function editClickStep({ text, at, label = "クリック", group, done, hint, skip, mouse = "左クリック" }) {
+  return { group, text, mouse, highlight: { at, label }, done, hint, skip };
+}
+
+/** Ctrl+R → ホイールで本数 → クリック → 位置（右クリックで中央） */
+function loopCutSteps({ at, cuts = 1, edge, group = "loopcut", where, center = false }) {
+  const steps = [{
+    group, keys: ["Ctrl+R"], highlight: { at, label: "ここに置く" },
+    text: `<kbd>Ctrl</kbd>+<kbd>R</kbd> を押して、${where}にマウスを置いてください。黄色い線でカットの位置が表示されます。`,
+    done: e => e.type === "opstart" && e.kind === "loopcut",
+    hint: e => e.type === "opfail" && e.reason === "objectmode" ? "<kbd>Tab</kbd> で編集モードに入ってください。" : undefined,
+    skip: vp => vp.startLoopCut(),
+  }];
+  if (cuts > 1) steps.push({
+    group, mouse: "ホイールを回す", highlight: { at, label: "ここ" },
+    text: `黄色い線が出ている状態でホイールを回して、${cuts} 本にしてください。`,
+    done: e => e.type === "cuts" && e.cuts === cuts,
+    hint: e => e.type === "cuts" ? `今は ${e.cuts} 本です。${e.cuts > cuts ? "逆に回して減らして" : "もう少し回して"}ください。` : undefined,
+    fail: e => e.type === "cancel" && e.kind === "loopcut" ? "ループカットをやめました。" : undefined,
+    skip: vp => vp.setCuts(cuts),
+  });
+  steps.push({
+    group, mouse: "左クリック", highlight: { at, label: "クリック" },
+    text: "黄色い線が出ている状態で <strong>左クリック</strong> して、辺を入れてください。",
+    done: e => e.type === "loopcut" && e.cuts === cuts,
+    hint: e => e.type === "loopcut" ? `${e.cuts} 本で入りました。` : undefined,
+    fail: e => e.type === "cancel" && e.kind === "loopcut" ? "ループカットをやめました。" : e.type === "loopcut" && e.cuts !== cuts ? `本数が ${cuts} 本ではありませんでした。` : undefined,
+    skip: vp => vp.commitLoopCut(vp.findEdge(edge)),
+  });
+  steps.push({
+    group, mouse: center ? "右クリック" : "動かしてクリック / 右クリック",
+    text: center
+      ? "続けて位置を決めます。今回は <strong>右クリック</strong>（または <kbd>Esc</kbd>）で、ちょうど真ん中に入れてください。"
+      : "マウスを動かすと辺が滑ります。クリックで確定、<strong>右クリック</strong> だとちょうど真ん中に入ります。",
+    done: e => e.type === "confirm" && e.kind === "slide" && (!center || e.centered),
+    fail: e => e.type === "confirm" && e.kind === "slide" ? "真ん中からずれました。右クリックで真ん中に入れましょう。" : undefined,
+    skip: vp => vp.cancelOp(),
+  });
+  return steps;
+}
+
+const isEdit = e => e.type === "select" && e.edit;
 
 export const SCENARIOS = {
   // getting-started/navigation（前半）
@@ -294,6 +398,280 @@ export const SCENARIOS = {
         done: e => e.type === "undo",
         skip: vp => vp.undo(),
       },
+    ],
+  },
+
+  // modeling/edit-mode
+  "edit-mode": {
+    title: "編集モードの選択",
+    view: { dist: 9 },
+    scene: [{ kind: "sphere", name: "Sphere", s: [2.4, 2.4, 2.4] }],
+    steps: [
+      clickStep("Sphere", "まず球をクリックして選択してください。"),
+      tabStep(true, "<kbd>Tab</kbd> で編集モードに入ってください。左上が「編集モード」になり、頂点が点で表示されます。"),
+      selectModeStep("edge"),
+      {
+        group: "loop", mouse: "Alt+左クリック", keys: ["Alt"], highlight: { at: [-1.84, -1.51, 0], label: "Alt+クリック" },
+        text: "赤道（真ん中の横の辺）の上で <kbd>Alt</kbd>+クリックして、一周ぶんの辺ループを選んでください。",
+        done: e => isEdit(e) && e.source === "loop" && e.counts.edges >= 30,
+        hint: e =>
+          isEdit(e) && e.source === "loop" ? "縦方向のループになりました。横向きの辺の上で Alt+クリックしてください。" :
+          isEdit(e) ? "<kbd>Alt</kbd> を押したままクリックします。" : undefined,
+        skip: vp => vp.selectLoopWhere(({ c, d }) => Math.abs(c.z) < 0.01 && Math.abs(d.z) < 0.01),
+      },
+      ...opSteps({ key: "S", value: "1.2", target: null, group: "loop-scale", first: "選んだループだけを大きくします。<kbd>S</kbd> を押してください。" }),
+      selectModeStep("face"),
+      {
+        keys: ["A"], text: "<kbd>A</kbd> で、すべての面を選択してください。",
+        done: e => isEdit(e) && e.source === "all",
+        skip: vp => vp.selectAll(true),
+      },
+      {
+        keys: ["Alt+A"], text: "<kbd>Alt</kbd>+<kbd>A</kbd> で、選択を解除してください。",
+        done: e => isEdit(e) && e.source === "none",
+        skip: vp => vp.selectAll(false),
+      },
+      {
+        keys: ["Alt+Z"], highlight: { tool: "xray" },
+        text: "<kbd>Alt</kbd>+<kbd>Z</kbd> で透過表示にしてください。裏側の面も選べるようになります。",
+        done: e => e.type === "xray" && e.on,
+        skip: vp => vp.setXray(true),
+      },
+      {
+        mouse: "左ドラッグで囲む",
+        text: "何もないところから左ドラッグして、球の <strong>上半分</strong> を囲んでください（裏側の面も選ばれます）。",
+        done: e => isEdit(e) && e.source === "box" && e.counts.faces >= 100,
+        hint: e => isEdit(e) && e.source === "box" ? `選べたのは ${e.counts.faces} 面でした。もっと大きく囲んでください。` : undefined,
+        skip: vp => vp.editSelectWhere(({ center }) => center.z > 0),
+      },
+      {
+        keys: ["Alt+Z"], highlight: { tool: "xray" },
+        text: "もう一度 <kbd>Alt</kbd>+<kbd>Z</kbd> で、透過表示を元に戻してください。",
+        done: e => e.type === "xray" && !e.on,
+        skip: vp => vp.setXray(false),
+      },
+      tabStep(false, "<kbd>Tab</kbd> でオブジェクトモードに戻ってください。"),
+    ],
+  },
+
+  // modeling/extrude-inset-loopcut
+  "extrude-inset-loopcut": {
+    title: "押し出し・差し込み・ループカット",
+    view: { dist: 7.5, target: [0, 0, 0.4] },
+    steps: [
+      clickStep("Cube", "立方体をクリックして選択してください。"),
+      tabStep(true, "<kbd>Tab</kbd> で編集モードに入ってください。"),
+      selectModeStep("face"),
+      editClickStep({
+        group: "top", at: [0, 0, 1], text: "立方体の <strong>上の面</strong> をクリックして、その面だけを選んでください。",
+        done: (e, vp) => isEdit(e) && e.counts.faces === 1 && vp.editInfo().faces[0]?.normal.z > 0.9,
+        hint: e => isEdit(e) ? "上の面（矢印のところ）だけをクリックしてください。" : undefined,
+        skip: vp => vp.editSelectWhere(({ normal }) => normal.z > 0.9),
+      }),
+      ...editOpSteps({
+        keys: "E", kind: "G", extrude: true, value: "1", unit: " m", name: "押し出す長さ", group: "extrude",
+        first: "<kbd>E</kbd> を押して押し出してください。面が引き出され、マウスで長さが変わります（面の向きに固定されています）。",
+        start: vp => vp.extrude(),
+      }),
+      ...editOpSteps({
+        keys: "I", kind: "I", value: "0.3", unit: " m", name: "差し込みの幅", group: "inset",
+        first: "続けて <kbd>I</kbd> を押して、面の内側に面を差し込んでください。マウスを面の中心に近づけるほど幅が広がります。",
+        start: vp => vp.inset(),
+      }),
+      ...editOpSteps({
+        keys: "E", kind: "G", extrude: true, value: "-0.5", unit: " m", name: "押し出す長さ", group: "dent",
+        first: "内側の面を <kbd>E</kbd> で押し出し、マイナスの値で <strong>へこませ</strong> ます。<kbd>E</kbd> を押してください。",
+        start: vp => vp.extrude(),
+      }),
+      ...loopCutSteps({
+        at: [-1, -1, 0], cuts: 2, where: "手前の左の縦の辺",
+        edge: ({ c, d }) => Math.abs(d.z) > 0.9 && c.x < -0.9 && c.y < -0.9 && Math.abs(c.z) < 0.1,
+      }),
+      tabStep(false, "<kbd>Tab</kbd> でオブジェクトモードに戻ってください。"),
+    ],
+  },
+
+  // modeling/bevel-knife-merge
+  "bevel-merge": {
+    title: "ベベル・マージ・面を張る",
+    view: { dist: 7 },
+    steps: [
+      clickStep("Cube", "立方体をクリックして選択してください。"),
+      tabStep(true, "<kbd>Tab</kbd> で編集モードに入ってください。"),
+      selectModeStep("edge"),
+      editClickStep({
+        group: "edge", at: [0, -1, 1], text: "上の面の <strong>手前の辺</strong> をクリックして、その辺だけを選んでください。",
+        done: e => isEdit(e) && e.counts.edges === 1,
+        hint: e => isEdit(e) ? "辺を 1 本だけ選びます。矢印の辺をクリックしてください。" : undefined,
+        skip: vp => vp.editSelectWhere(({ c }) => c.y < -0.9 && c.z > 0.9),
+      }),
+      ...editOpSteps({
+        keys: "Ctrl+B", kind: "B", value: "0.3", unit: " m", name: "面取りの幅", group: "bevel",
+        first: "<kbd>Ctrl</kbd>+<kbd>B</kbd> でベベルを始めてください。マウスを離すほど面取りの幅が広がります。",
+        start: vp => vp.bevel(),
+      }),
+      selectModeStep("face"),
+      editClickStep({
+        group: "dup", at: [0, 0.2, 1], text: "上の面をクリックして選んでください。",
+        done: (e, vp) => isEdit(e) && e.counts.faces === 1 && vp.editInfo().faces[0]?.normal.z > 0.9,
+        hint: e => isEdit(e) ? "上の面だけをクリックしてください。" : undefined,
+        skip: vp => vp.editSelectWhere(({ normal, center }) => normal.z > 0.9 && center.z > 0.9),
+      }),
+      {
+        group: "dup", keys: ["E"],
+        text: "わざと重複した頂点を作ります。<kbd>E</kbd> を押してください。",
+        done: e => e.type === "opstart" && e.extrude,
+        skip: vp => vp.extrude(),
+      },
+      {
+        group: "dup", keys: ["Esc"],
+        text: "すぐに <kbd>Esc</kbd> でキャンセルしてください。見た目は戻りますが、押し出した面は同じ位置に <strong>重なって残って</strong> います。",
+        done: e => e.type === "cancel" && e.extrude,
+        fail: e => e.type === "confirm" ? "確定されました。もう一度やりましょう。" : undefined,
+        skip: vp => vp.cancelOp(),
+      },
+      selectModeStep("vert"),
+      {
+        keys: ["A"], text: "<kbd>A</kbd> ですべての頂点を選択してください。",
+        done: e => isEdit(e) && e.source === "all",
+        skip: vp => vp.selectAll(true),
+      },
+      {
+        group: "merge", keys: ["M"], text: "<kbd>M</kbd> でマージのメニューを出してください。",
+        done: e => e.type === "menu" && e.menu === "merge",
+        skip: vp => vp.showMergeMenu(),
+      },
+      {
+        group: "merge", mouse: "メニューをクリック",
+        text: "「距離で」をクリックしてください。重なった頂点がまとめられ、下に消えた数が出ます。",
+        done: e => e.type === "merge" && e.how === "distance" && e.removed > 0,
+        fail: e => e.type === "merge" && e.how !== "distance" ? "「距離で」以外を選びました。" : undefined,
+        hint: e => e.type === "merge" ? "重なった頂点がありませんでした。" : undefined,
+        skip: vp => { vp.closeMenu(); vp.mergeEdit("distance"); },
+      },
+      selectModeStep("face"),
+      editClickStep({
+        group: "hole", at: [0, 0.2, 1], text: "もう一度、上の面をクリックして選んでください。",
+        done: (e, vp) => isEdit(e) && e.counts.faces === 1 && vp.editInfo().faces[0]?.normal.z > 0.9,
+        hint: e => isEdit(e) ? "上の面だけをクリックしてください。" : undefined,
+        skip: vp => vp.editSelectWhere(({ normal, center }) => normal.z > 0.9 && center.z > 0.9),
+      }),
+      {
+        group: "hole", keys: ["X"], text: "<kbd>X</kbd> で削除のメニューを出してください。",
+        done: e => e.type === "menu" && e.menu === "delete",
+        skip: vp => vp.showDeleteMenu(),
+      },
+      {
+        group: "hole", mouse: "メニューをクリック", text: "「面」をクリックして、上の面を削除してください。穴が開きます。",
+        done: e => e.type === "delete" && e.edit && e.what === "face",
+        fail: e => e.type === "delete" ? "「面」以外で削除しました。" : undefined,
+        skip: vp => { vp.closeMenu(); vp.deleteEdit("face"); },
+      },
+      selectModeStep("edge"),
+      {
+        group: "fill", mouse: "Alt+左クリック", keys: ["Alt"], highlight: { at: [0, -0.7, 1], label: "Alt+クリック" },
+        text: "穴のふちの辺を <kbd>Alt</kbd>+クリックして、ふちを一周選んでください。",
+        done: e => isEdit(e) && e.source === "loop" && e.counts.edges === 4,
+        hint: e => isEdit(e) ? "穴のふち（矢印の辺）を Alt+クリックしてください。" : undefined,
+        skip: vp => vp.selectLoopWhere(({ c, d }) => c.z > 0.99 && c.y < -0.6 && Math.abs(d.x) > 0.9),
+      },
+      {
+        group: "fill", keys: ["F"], text: "<kbd>F</kbd> で穴に面を張ってください。",
+        done: e => e.type === "fill" && e.made === "face",
+        skip: vp => vp.fillEdit(),
+      },
+      tabStep(false, "<kbd>Tab</kbd> でオブジェクトモードに戻ってください。"),
+    ],
+  },
+
+  // modeling/mirror-smooth
+  mirror: {
+    title: "半分を消してミラーで作る",
+    view: { dist: 7 },
+    numpad: true,
+    steps: [
+      clickStep("Cube", "立方体をクリックして選択してください。"),
+      tabStep(true, "<kbd>Tab</kbd> で編集モードに入ってください。"),
+      ...loopCutSteps({
+        at: [0.4, -1, 1], center: true, where: "上の面の手前の辺（左右にのびる辺）",
+        edge: ({ c, d }) => Math.abs(d.x) > 0.9 && c.y < -0.9 && c.z > 0.9,
+      }),
+      selectModeStep("face"),
+      numpadStep("1", false, "前", "<kbd>Numpad 1</kbd> で正面から見てください（テンキーがなければ下の「テンキーを模倣」をオンにして <kbd>1</kbd>）。"),
+      {
+        keys: ["Alt+Z"], highlight: { tool: "xray" },
+        text: "<kbd>Alt</kbd>+<kbd>Z</kbd> で透過表示にしてください。裏側の面もまとめて囲めるようになります。",
+        done: e => e.type === "xray" && e.on,
+        skip: vp => vp.setXray(true),
+      },
+      {
+        group: "half", mouse: "左ドラッグで囲む",
+        text: "真ん中の線より <strong>左側</strong>（X がマイナス側）の面を、ドラッグで囲んで選んでください。",
+        done: (e, vp) => isEdit(e) && e.source === "box" && e.counts.faces === 5 && vp.editInfo().faces.every(f => f.center.x < 0),
+        hint: (e, vp) => isEdit(e) && e.source === "box"
+          ? (vp.editInfo().faces.some(f => f.center.x > 0) ? "右側の面まで入っています。真ん中の線より左だけを囲んでください。" : `選べたのは ${e.counts.faces} 面でした（左半分は 5 面）。上下にも大きめに囲んでください。`)
+          : undefined,
+        skip: vp => vp.editSelectWhere(({ center }) => center.x < -0.01),
+      },
+      {
+        group: "half", keys: ["X"], text: "<kbd>X</kbd> で削除のメニューを出してください。",
+        done: e => e.type === "menu" && e.menu === "delete",
+        skip: vp => vp.showDeleteMenu(),
+      },
+      {
+        group: "half", mouse: "メニューをクリック", text: "「面」をクリックして、左半分を削除してください。",
+        done: (e, vp) => e.type === "delete" && e.edit && e.what === "face" && vp.editInfo().verts.every(p => p.x > -0.001),
+        fail: e => e.type === "delete" ? "左半分がきれいに消えませんでした。" : undefined,
+        skip: vp => { vp.closeMenu(); vp.deleteEdit("face"); },
+      },
+      tabStep(false, "<kbd>Tab</kbd> でオブジェクトモードに戻ってください。"),
+      {
+        highlight: { tool: "mirror" }, mouse: "上の「ミラー」をクリック",
+        text: "上の「ミラー」ボタンを押して、ミラー モディファイアーを付けてください（Blender ではプロパティのモディファイアーから追加します）。左半分が鏡写しで表示されます。",
+        done: e => e.type === "mirror" && e.on,
+        skip: vp => vp.setMirror(true),
+      },
+    ],
+  },
+
+  // modeling/topology
+  topology: {
+    title: "統計を見ながら辺を足す・溶解する",
+    view: { dist: 7 },
+    steps: [
+      clickStep("Cube", "立方体をクリックして選択してください。"),
+      {
+        highlight: { tool: "stats" }, mouse: "上の「統計」をクリック",
+        text: "上の「統計」ボタンを押して、頂点・辺・面・三角形の数を表示してください（Blender ではオーバーレイ > 統計）。",
+        done: e => e.type === "stats" && e.on,
+        skip: vp => vp.setStats(true),
+      },
+      tabStep(true, "<kbd>Tab</kbd> で編集モードに入ってください。統計が「選択 / 全体」の表示になります。"),
+      ...loopCutSteps({
+        at: [-1, -1, 0], center: true, where: "手前の左の縦の辺",
+        edge: ({ c, d }) => Math.abs(d.z) > 0.9 && c.x < -0.9 && c.y < -0.9 && Math.abs(c.z) < 0.1,
+      }),
+      selectModeStep("edge", "<kbd>2</kbd> で辺選択モードにしてください。面が 6 → 10 に増えたことを統計で確かめましょう。"),
+      {
+        group: "dissolve", mouse: "Alt+左クリック", keys: ["Alt"], highlight: { at: [0, -1, 0], label: "Alt+クリック" },
+        text: "今入れた辺（手前の真ん中の横の辺）を <kbd>Alt</kbd>+クリックして、ループを一周選んでください。",
+        done: e => isEdit(e) && e.source === "loop" && e.counts.edges === 4,
+        hint: e => isEdit(e) ? "真ん中の横の辺（矢印）を Alt+クリックしてください。" : undefined,
+        skip: vp => vp.selectLoopWhere(({ c, d }) => Math.abs(c.z) < 0.01 && c.y < -0.9 && Math.abs(d.x) > 0.9),
+      },
+      {
+        group: "dissolve", keys: ["X"], text: "<kbd>X</kbd> で削除のメニューを出してください。",
+        done: e => e.type === "menu" && e.menu === "delete",
+        skip: vp => vp.showDeleteMenu(),
+      },
+      {
+        group: "dissolve", mouse: "メニューをクリック",
+        text: "「辺を溶解」をクリックしてください。穴を開けずに辺だけが消え、面の数が元の 6 に戻ります。",
+        done: e => e.type === "delete" && e.edit && e.what === "dissolve",
+        fail: e => e.type === "delete" ? "「辺を溶解」以外で削除したので、穴が開きました。" : undefined,
+        skip: vp => { vp.closeMenu(); vp.deleteEdit("dissolve"); },
+      },
+      tabStep(false, "<kbd>Tab</kbd> でオブジェクトモードに戻ってください。"),
     ],
   },
 };

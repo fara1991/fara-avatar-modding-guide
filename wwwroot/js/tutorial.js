@@ -39,6 +39,7 @@ function keyMatches(label, e) {
   if (l === "enter") return e.code === "Enter" || e.code === "NumpadEnter";
   if (l === "esc") return e.code === "Escape";
   if (l === "home") return e.code === "Home";
+  if (l === "tab") return e.code === "Tab";
   if (l.startsWith("numpad ")) {
     const k = l.slice(7);
     return k === "." ? e.code === "NumpadDecimal" || e.key === "." : e.code === `Numpad${k}` || e.code === `Digit${k}`;
@@ -146,6 +147,7 @@ class Tutorial {
       if (active !== this) return; // 読み込み中に別のものが始まった
       this.vp = new Viewport(this.ui.vp, {
         scene: this.scenario.scene,
+        view: this.scenario.view,
         emulateNumpad: () => this.ui.numpad?.checked ?? false,
         wheelNeedsFocus: true,
       });
@@ -259,7 +261,7 @@ class Tutorial {
     }
     const hint = step.hint?.(e, this.vp, this.ctx)
       ?? (e.type === "opfail" ? "先にオブジェクトをクリックして選択してください。" : undefined)
-      ?? (e.type === "opstart" && !step.allowOp ? "移動・回転・スケールが始まりました。<kbd>Esc</kbd> か右クリックでキャンセルしてください。" : undefined);
+      ?? (e.type === "opstart" && ["G", "R", "S"].includes(e.kind) && !e.extrude && !step.allowOp ? "移動・回転・スケールが始まりました。<kbd>Esc</kbd> か右クリックでキャンセルしてください。" : undefined);
     if (hint) this.showMsg(hint, "hint");
   }
 
