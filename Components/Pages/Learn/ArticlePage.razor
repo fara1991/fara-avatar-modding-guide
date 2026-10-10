@@ -24,9 +24,11 @@ else
         </ol>
     </nav>
 
-    <header class="article-header mb-4">
+    @* data-progress-page / data-article / data-progress-toggle は wwwroot/js/progress.js が見る（完了の記録） *@
+    <header class="article-header mb-4" data-progress-page="@article.Id">
         <h1>@article.Title</h1>
         <div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary small">
+            <span class="done-mark badge-done" data-article="@article.Id"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> 完了</span>
             <DifficultyBadge Difficulty="@article.Difficulty" />
             <span><i class="bi bi-box" aria-hidden="true"></i> Blender @(article.BlenderVersion ?? Site.Value.BlenderVersion)</span>
             @if (article.Updated is { } updated)
@@ -70,7 +72,14 @@ else
         }
     </div>
 
-    <nav class="article-nav d-flex justify-content-between gap-3 mt-5 pt-4 border-top" aria-label="前後の記事">
+    <div class="article-complete d-flex flex-wrap align-items-center gap-3 mt-5">
+        <button type="button" class="btn btn-progress" data-progress-toggle="@article.Id" aria-pressed="false">
+            <i class="bi bi-circle" aria-hidden="true"></i> このページを完了にする
+        </button>
+        <span class="small text-body-secondary">完了の記録はこのブラウザにだけ保存されます。</span>
+    </div>
+
+    <nav class="article-nav d-flex justify-content-between gap-3 mt-4 pt-4 border-top" aria-label="前後の記事">
         @if (prev is not null)
         {
             <a href="@prev.Url" class="btn btn-outline-secondary text-start">
@@ -88,6 +97,19 @@ else
             </a>
         }
     </nav>
+
+    @if (article.PracticeScenarios.Count > 0)
+    {
+        @* 記事内チュートリアル（::: practice）。three.js は埋め込みが画面に入ったときに tutorial.js が読み込む *@
+        <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+            }
+        }
+        </script>
+        <script type="module" src="/js/tutorial.js"></script>
+    }
 }
 
 @code {

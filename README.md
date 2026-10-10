@@ -63,7 +63,13 @@ fara-blender-manual/
 ├── Data/
 │   ├── Models.cs             # 記事・ショートカット・アドオンのモデル
 │   └── ContentService.cs     # Content/ を読み込んで提供するサービス
-├── wwwroot/                  # 静的ファイル（CSS、画像）
+├── wwwroot/                  # 静的ファイル（CSS、画像、JS）
+│   └── js/
+│       ├── viewport.js       # Blender と同じキー操作の 3D ビュー（Three.js）。/practice と記事内チュートリアルで共用
+│       ├── practice.js       # /practice のお題
+│       ├── tutorial.js       # 記事内チュートリアル（::: practice）の案内
+│       ├── scenarios.js      # 記事内チュートリアルの手順
+│       └── progress.js       # ページの完了の記録（localStorage）
 ├── Program.cs
 └── appsettings.json          # Site セクション（サイト名、対象 Blender バージョン、リポジトリ URL）
 ```
@@ -82,11 +88,13 @@ fara-blender-manual/
 
 旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へリダイレクトされます。
 
+各記事の「このページを完了にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `blender-manual.progress` に保存）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
+
 ## 記事を追加する
 
 1. `Content/learn/<category>/` に `NN-slug.md` を作る（`NN` は表示順、`slug` が URL になる）
 2. 先頭の YAML フロントマターに `title` / `description` / `difficulty` などを書く
-3. 本文を Markdown で書く（`::: tip` / `::: warning` ブロックが使える）
+3. 本文を Markdown で書く（`::: tip` / `::: warning` ブロック、操作のチュートリアルを埋め込む `::: practice <名前>` が使える）
 
 詳しくは [Content/README.md](Content/README.md) を参照してください。
 新しいカテゴリを追加するときは `Content/learn/categories.yml` に追記し、同名のディレクトリを作ります。

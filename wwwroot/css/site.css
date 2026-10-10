@@ -258,6 +258,550 @@ body {
     margin-right: 0.15rem;
 }
 
+/* 案内中の対象（viewport.js の setHighlight） */
+.practice-viewport .vp-view.is-highlight {
+    display: inline-block;
+    margin-left: -6px;
+    padding: 0 6px;
+    border-radius: 4px;
+    background: rgba(168, 85, 247, 0.6);
+    animation: vp-pulse 1.2s ease-in-out infinite;
+}
+
+.vp-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.vp-marker-label {
+    position: absolute;
+    left: 0;
+    bottom: 12px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--violet-deep);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+    animation: vp-bob 1s ease-in-out infinite;
+}
+
+.vp-marker-label::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--violet-deep);
+}
+
+@keyframes vp-bob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -5px); }
+}
+
+@keyframes vp-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); }
+    50% { box-shadow: 0 0 0 4px rgba(168, 85, 247, 0); }
+}
+
+/* ---------- 記事内チュートリアル（::: practice、wwwroot/js/tutorial.js） ---------- */
+.practice-embed {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--surface);
+    line-height: 1.6;
+}
+
+.practice-embed:not(.is-ready) {
+    min-height: 12rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bs-secondary-color);
+}
+
+.practice-embed:not(.is-ready)::before {
+    content: "3D ビューを準備しています…";
+}
+
+.tut-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.tut-label {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--violet), var(--indigo));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.tut-title {
+    font-weight: 700;
+}
+
+.tut-count {
+    margin-left: auto;
+    color: var(--bs-secondary-color);
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.85rem;
+}
+
+.tut-progress {
+    height: 4px;
+    margin-bottom: 0.75rem;
+    border-radius: 2px;
+    background: var(--border);
+    overflow: hidden;
+}
+
+.tut-progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--grad);
+    transition: width 0.3s ease-out;
+}
+
+.tut-intro {
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.tut-intro > :last-child {
+    margin-bottom: 0;
+}
+
+.tut-touch-note {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    border-radius: 6px;
+    background: rgba(251, 191, 36, 0.12);
+    font-size: 0.85rem;
+}
+
+/* 案内の吹き出し（下のビューを指す） */
+.tut-bubble {
+    position: relative;
+    margin-bottom: 14px;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--bs-secondary-bg);
+}
+
+.tut-bubble::before,
+.tut-bubble::after {
+    content: "";
+    position: absolute;
+    left: 1.6rem;
+    top: 100%;
+    border: 9px solid transparent;
+    border-top-color: var(--border-strong);
+}
+
+.tut-bubble::after {
+    left: calc(1.6rem + 1px);
+    border-width: 8px;
+    border-top-color: var(--bs-secondary-bg);
+}
+
+.tut-bubble.is-ok {
+    animation: tut-flash 0.7s ease-out;
+}
+
+@keyframes tut-flash {
+    0% { box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.6); border-color: #4ade80; }
+    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+.tut-text {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+}
+
+.tut-step-no {
+    flex: 0 0 1.6rem;
+    height: 1.6rem;
+    margin-top: 0.05rem;
+    border-radius: 50%;
+    background: var(--violet-deep);
+    color: #fff;
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tut-msg {
+    margin-top: 0.4rem;
+    margin-left: 2.2rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.tut-msg.is-ok {
+    background: rgba(74, 222, 128, 0.14);
+    color: #86efac;
+    font-weight: 600;
+}
+
+.tut-msg.is-hint,
+.tut-msg.is-info {
+    background: rgba(103, 232, 249, 0.12);
+}
+
+.tut-msg.is-warn {
+    background: rgba(251, 191, 36, 0.16);
+}
+
+.tut-stage {
+    position: relative;
+}
+
+.practice-embed.is-focused .tut-vp {
+    border-color: var(--violet);
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.45);
+}
+
+/* 画面下のキー表示。押すと沈む */
+.tut-keys {
+    position: absolute;
+    left: 50%;
+    bottom: 34px;
+    z-index: 2;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    color: #ddd;
+    pointer-events: none;
+}
+
+.practice-embed .tut-keys kbd {
+    padding: 4px 10px;
+    border: 1px solid #6b6b6b;
+    border-radius: 6px;
+    background: #2b2b2b;
+    box-shadow: 0 3px 0 #111;
+    color: #fff;
+    font-size: 1rem;
+    transition: transform 0.08s, background-color 0.08s, box-shadow 0.08s;
+}
+
+.practice-embed .tut-keys kbd.is-pressed {
+    transform: translateY(3px);
+    background: var(--violet-deep);
+    box-shadow: 0 0 0 #111;
+}
+
+.tut-mouse {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #eee;
+    font-size: 0.8rem;
+}
+
+.tut-ok {
+    position: absolute;
+    right: 16px;
+    top: 14px;
+    z-index: 4;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.92);
+    color: #fff;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tut-ok.is-on {
+    animation: tut-pop 0.7s ease-out;
+}
+
+@keyframes tut-pop {
+    0% { opacity: 0; transform: scale(0.5); }
+    25% { opacity: 1; transform: scale(1.1); }
+    60% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1); }
+}
+
+.tut-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    border: none;
+    border-radius: 8px;
+    background: rgba(12, 6, 22, 0.55);
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.tut-overlay[hidden] {
+    display: none;
+}
+
+.tut-overlay > span {
+    padding: 0.6rem 1.3rem;
+    border-radius: 999px;
+    background: var(--violet-deep);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.tut-overlay.is-light {
+    background: rgba(12, 6, 22, 0.25);
+}
+
+.tut-overlay.is-light > span {
+    font-size: 0.9rem;
+}
+
+.tut-complete {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    padding: 1rem;
+    border-radius: 8px;
+    background: rgba(20, 10, 38, 0.85);
+    color: #fff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.tut-complete[hidden] {
+    display: none;
+}
+
+.tut-complete-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.tut-complete-title .bi {
+    color: #fbbf24;
+}
+
+.tut-toolbar .btn-outline-secondary {
+    --bs-btn-color: var(--bs-body-color);
+    --bs-btn-border-color: var(--border-strong);
+    --bs-btn-hover-color: var(--bs-body-color);
+    --bs-btn-hover-bg: rgba(168, 85, 247, 0.12);
+    --bs-btn-hover-border-color: var(--violet);
+}
+
+.tut-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+
+.tut-error {
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.practice-viewport .tut-error {
+    color: #e6e6e6;
+}
+
+@media (max-width: 640px) {
+    .tut-tip {
+        display: none;
+    }
+
+    .practice-embed {
+        padding: 0.75rem;
+    }
+
+    .practice-embed .tut-keys kbd {
+        font-size: 0.8rem;
+        padding: 2px 7px;
+    }
+
+    .practice-npanel {
+        width: 160px;
+    }
+}
+
+[data-bs-theme="light"] .tut-msg.is-ok {
+    background: rgba(22, 163, 74, 0.12);
+    color: #15803d;
+}
+
+[data-bs-theme="light"] .tut-msg.is-hint,
+[data-bs-theme="light"] .tut-msg.is-info {
+    background: rgba(8, 145, 178, 0.1);
+}
+
+[data-bs-theme="light"] .tut-msg.is-warn {
+    background: rgba(217, 119, 6, 0.12);
+}
+
+[data-bs-theme="light"] .practice-embed {
+    box-shadow: 0 2px 10px rgba(80, 40, 140, 0.08);
+}
+
+/* ---------- 完了の記録（wwwroot/js/progress.js） ---------- */
+.done-mark {
+    display: none;
+}
+
+.is-done .done-mark,
+.done-mark.is-done {
+    display: inline-flex;
+}
+
+.badge-done {
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1px 8px;
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    border-radius: 999px;
+    background: rgba(74, 222, 128, 0.12);
+    color: #86efac;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.article-card.is-done {
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+.roadmap-articles li.is-done .done-mark {
+    display: inline;
+    margin-left: 0.3rem;
+    color: #4ade80;
+}
+
+.roadmap-articles li.is-done > a {
+    color: var(--bs-secondary-color);
+}
+
+.category-progress {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(168, 85, 247, 0.18);
+    color: var(--bs-body-color);
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+
+.category-progress.is-complete {
+    background: rgba(74, 222, 128, 0.22);
+    color: #86efac;
+}
+
+.sidebar .category-progress {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.sidebar .category-progress.is-complete {
+    background: rgba(74, 222, 128, 0.3);
+    color: #dcfce7;
+}
+
+.btn-progress {
+    --bs-btn-color: var(--bs-body-color);
+    --bs-btn-border-color: var(--border-strong);
+    --bs-btn-hover-color: var(--bs-body-color);
+    --bs-btn-hover-bg: rgba(74, 222, 128, 0.12);
+    --bs-btn-hover-border-color: #4ade80;
+    --bs-btn-active-bg: rgba(74, 222, 128, 0.2);
+    --bs-btn-active-border-color: #4ade80;
+}
+
+.btn-progress.is-done {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #16a34a;
+    --bs-btn-border-color: #16a34a;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #15803d;
+    --bs-btn-hover-border-color: #15803d;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #166534;
+}
+
+.progress-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+}
+
+.progress-track span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+    transition: width 0.3s ease-out;
+}
+
+[data-bs-theme="light"] .badge-done {
+    border-color: rgba(22, 163, 74, 0.4);
+    background: rgba(22, 163, 74, 0.1);
+    color: #15803d;
+}
+
+[data-bs-theme="light"] .roadmap-articles li.is-done .done-mark {
+    color: #16a34a;
+}
+
+[data-bs-theme="light"] .category-progress {
+    background: #ede9fe;
+}
+
+[data-bs-theme="light"] .category-progress.is-complete {
+    background: rgba(22, 163, 74, 0.15);
+    color: #15803d;
+}
+
+[data-bs-theme="light"] .sidebar .category-progress {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
 h1, h2, h3, .navbar-brand {
     font-family: "Outfit", "Zen Kaku Gothic New", system-ui, sans-serif;
 }
@@ -663,4 +1207,9 @@ kbd {
     font-weight: 600;
     padding: 2px 6px;
     white-space: nowrap;
+}
+
+[data-bs-theme="light"] .sidebar .category-progress.is-complete {
+    background: rgba(74, 222, 128, 0.3);
+    color: #dcfce7;
 }

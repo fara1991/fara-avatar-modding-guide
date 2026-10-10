@@ -30,6 +30,11 @@
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="@($"/learn/{category.Id}")">
                     <i class="bi @category.Icon" aria-hidden="true"></i> @category.Title
+                    @{ var ids = Content.GetArticles(category.Id).Select(a => a.Id).ToList(); }
+                    @if (ids.Count > 0)
+                    {
+                        <span class="category-progress ms-auto" data-category-progress="@category.Id" data-articles="@string.Join(' ', ids)" hidden></span>
+                    }
                 </NavLink>
             </div>
         }
