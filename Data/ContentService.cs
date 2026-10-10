@@ -1,7 +1,9 @@
 using System.Text.RegularExpressions;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
+using Markdig.Extensions.CustomContainers;
 using Markdig.Extensions.Yaml;
+using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using System.Net;
@@ -152,6 +154,8 @@ public sealed partial class ContentService
             }
         }
 
+        var scenarios = ConvertPracticeContainers(document, path);
+
         var front = new ArticleFrontMatter();
         if (document.Descendants<YamlFrontMatterBlock>().FirstOrDefault() is { } yamlBlock)
         {
@@ -176,7 +180,34 @@ public sealed partial class ContentService
             Shortcuts = front.Shortcuts,
             Html = html,
             PlainText = ToPlainText(html),
+            PracticeScenarios = scenarios,
         };
+    }
+
+    /// <summary>
+    /// 「::: practice transform」のコンテナを、操作のチュートリアルの埋め込み
+    /// （&lt;div class="practice-embed" data-scenario="transform"&gt;）にする。中身は wwwroot/js/tutorial.js が作る。
+    /// コンテナの中に書いた文章は、チュートリアルの上に説明として表示される。
+    /// </summary>
+    private List<string> ConvertPracticeContainers(MarkdownDocument document, string path)
+    {
+        var names = new List<string>();
+        foreach (var container in document.Descendants<CustomContainer>())
+        {
+            if (container.Info != "practice") continue;
+            var name = container.Arguments?.Trim() ?? string.Empty;
+            if (!ScenarioNameRegex().IsMatch(name))
+            {
+                _logger.LogWarning("{File}: \"::: practice\" needs a scenario name like \"::: practice transform\"", path);
+                continue;
+            }
+            var attributes = container.GetAttributes();
+            attributes.Classes?.Clear();
+            attributes.AddClass("practice-embed");
+            attributes.AddProperty("data-scenario", name);
+            names.Add(name);
+        }
+        return names;
     }
 
     private static bool IsRelative(string url) =>
@@ -201,6 +232,9 @@ public sealed partial class ContentService
 
     [GeneratedRegex(@"^(?<order>\d+)-(?<slug>[a-z0-9]+(?:-[a-z0-9]+)*)$")]
     private static partial Regex FileNameRegex();
+
+    [GeneratedRegex(@"^[a-z0-9]+(?:-[a-z0-9]+)*$")]
+    private static partial Regex ScenarioNameRegex();
 
     [GeneratedRegex("<[^>]+>")]
     private static partial Regex HtmlTagRegex();

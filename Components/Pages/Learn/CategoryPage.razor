@@ -20,7 +20,13 @@ else
         </ol>
     </nav>
 
-    <h1><i class="bi @category.Icon me-2" aria-hidden="true"></i>@category.Title</h1>
+    <h1>
+        <i class="bi @category.Icon me-2" aria-hidden="true"></i>@category.Title
+        @if (articles.Count > 0)
+        {
+            <span class="category-progress" data-category-progress="@category.Id" data-articles="@string.Join(' ', articles.Select(a => a.Id))" hidden></span>
+        }
+    </h1>
     <p class="lead">@category.Description</p>
 
     @if (articles.Count == 0)

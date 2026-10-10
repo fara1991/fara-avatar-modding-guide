@@ -19,8 +19,9 @@ shortcuts: [Shift+MMB, Ctrl+MMB, Numpad 1, Numpad 3, Numpad 7, Numpad 5, Numpad 
 
 ホイールボタンのないマウスやトラックパッドの場合は、[インストールと日本語化](/learn/getting-started/install) で説明した「3 ボタンマウスを再現」をオンにすると、<kbd>Alt</kbd>+左ドラッグで回せます。
 
-::: tip
-マウスとテンキーでの視点操作は、[操作の練習](/practice) のビューポートでも同じように試せます。
+下の 3D ビューで、実際にマウスを動かして試せます。
+
+::: practice navigation-mouse
 :::
 
 ## ナビゲーションギズモ
@@ -47,6 +48,9 @@ shortcuts: [Shift+MMB, Ctrl+MMB, Numpad 1, Numpad 3, Numpad 7, Numpad 5, Numpad 
 | <kbd>Numpad 5</kbd> | 透視投影と平行投影の切り替え |
 | <kbd>Numpad .</kbd> | 選択したものを画面の中心に表示 |
 | <kbd>Home</kbd> | シーン全体を表示 |
+
+::: practice navigation-numpad
+:::
 
 ![前からの平行投影](images/navigation-front-ortho.png)
 *左上に「前・平行投影」と表示される。テンキーで視点を切り替えると自動で平行投影になる*

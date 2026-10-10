@@ -1,4 +1,4 @@
-<a href="@Article.Url" class="article-card card h-100 text-decoration-none">
+<a href="@Article.Url" class="article-card card h-100 text-decoration-none" data-article="@Article.Id">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
             <h5 class="card-title mb-0">
@@ -8,7 +8,10 @@
                 }
                 @Article.Title
             </h5>
-            <DifficultyBadge Difficulty="@Article.Difficulty" />
+            <div class="d-flex flex-column align-items-end gap-1">
+                <DifficultyBadge Difficulty="@Article.Difficulty" />
+                <span class="done-mark badge-done"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> 完了</span>
+            </div>
         </div>
         <p class="card-text text-body-secondary mb-0">@Article.Description</p>
     </div>

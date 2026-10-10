@@ -27,8 +27,12 @@ public sealed class Article
     public required string Html { get; init; }
     /// <summary>本文のプレーンテキスト（検索インデックス用）</summary>
     public required string PlainText { get; init; }
+    /// <summary>本文に埋め込んだ操作のチュートリアル（::: practice &lt;名前&gt;）の名前。wwwroot/js/scenarios.js のキー</summary>
+    public IReadOnlyList<string> PracticeScenarios { get; init; } = [];
 
     public string Url => $"/learn/{Category}/{Slug}";
+    /// <summary>完了の記録（wwwroot/js/progress.js）に使うキー。例: basics/transform</summary>
+    public string Id => $"{Category}/{Slug}";
 }
 
 /// <summary>Markdown 先頭の YAML フロントマター。記事ファイルを書く人が触るのはここ。</summary>

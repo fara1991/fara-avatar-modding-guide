@@ -10,6 +10,10 @@
                 <h3 class="h5 mb-1">
                     <i class="bi @category.Icon me-1" aria-hidden="true"></i>
                     <a href="/learn/@category.Id" class="text-decoration-none">@category.Title</a>
+                    @if (articles.Count > 0)
+                    {
+                        <span class="category-progress" data-category-progress="@category.Id" data-articles="@string.Join(' ', articles.Select(a => a.Id))" hidden></span>
+                    }
                 </h3>
                 <p class="text-body-secondary mb-2">@category.Description</p>
                 @if (articles.Count == 0)
@@ -21,8 +25,9 @@
                     <ol class="roadmap-articles">
                         @foreach (var article in articles)
                         {
-                            <li>
+                            <li data-article="@article.Id">
                                 <a href="@article.Url">@article.Title</a>
+                                <i class="done-mark bi bi-check-circle-fill" title="完了" aria-label="完了"></i>
                                 <DifficultyBadge Difficulty="@article.Difficulty" />
                             </li>
                         }

@@ -33,7 +33,12 @@ shortcuts: [G, R, S]      # shortcuts.yml の key と一致させる
 ::: warning
 注意事項はこちら。
 :::
+
+::: practice transform
+:::
 ```
+
+`::: practice <名前>` は、操作のチュートリアル（下の「操作のチュートリアルを埋め込む」）を埋め込みます。
 
 - 開発中（`dotnet run`）はファイルを保存するだけでブラウザをリロードすれば反映されます。
 - ファイル名の番号は表示順にだけ使われ、URL には含まれません。
@@ -58,3 +63,62 @@ Blender の操作は文章だけでは伝わりにくいので、手順ごとに
 - 対応形式: png / jpg / gif / webp / svg / mp4 / webm（`Content/learn/` 以下の画像・動画だけが配信され、.md や .yml は配信されません）
 - ファイル名は `スラッグ-内容.png` のように記事が分かる名前にしてください
 - GIF は 10 秒以内・幅 800px 程度に。長いものは mp4/webm にして `<video src="images/x.mp4" autoplay loop muted></video>` で埋め込めます
+
+## 操作のチュートリアルを埋め込む
+
+記事の中に、Blender と同じキー操作で動かせる 3D ビューを置き、1 キーずつ案内できます（ゲームのチュートリアルのように、できたら自動で次の手順に進みます）。今あるものは次のとおりです。
+
+| 名前 | 内容 | 使っている記事 |
+|---|---|---|
+| `navigation-mouse` | ホイールボタンで回す・Shift で平行移動・ホイールでズーム・Home | getting-started/navigation |
+| `navigation-numpad` | テンキーで前 / 右 / 上 / 後ろ、Numpad 5、Numpad . | getting-started/navigation |
+| `select` | クリック・Shift+クリック・A / Alt+A・ボックス選択・Shift+A・X・Shift+D・Ctrl+Z | basics/select |
+| `transform` | G / R / S、軸の固定、数値入力、キャンセル、N、Ctrl+Z | basics/transform |
+
+### 記事に置く
+
+置きたい場所（その操作を説明する見出しのすぐ下など）に書きます。
+
+```markdown
+::: practice transform
+:::
+```
+
+- 中に文章を書くと、チュートリアルの上に説明として表示されます
+- 1 ページに複数置けます。3D ビュー（WebGL）が動くのは常に 1 つだけで、別のものを始めると前のものは一時停止します
+- 3D ビューは画面に入ったときに読み込まれるので、置いてもページは重くなりません
+- ページ内のチュートリアルを最後まで進めると、そのページが「完了」になります
+- スクリーンショットはそのまま残してください（Blender の実際の画面はチュートリアルでは再現しきれません）
+
+### 新しいチュートリアルを作る
+
+手順は `wwwroot/js/scenarios.js` の `SCENARIOS` に、名前をキーにして書きます（ここだけは JavaScript です）。
+
+```js
+"my-scenario": {
+  title: "立方体を上に動かす",
+  scene: [{ kind: "cube" }],          // 最初に置くもの。kind は plane / cube / sphere / cylinder / cone / torus
+  steps: [
+    clickStep("Cube", "立方体をクリックして選択してください。"),
+    ...opSteps({ key: "G", axis: "z", value: "2", group: "move" }), // G → Z → 2 → Enter を 4 手順に分けて案内
+    {
+      text: "<kbd>N</kbd> でサイドバーを開いてください。", // 案内文（HTML 可）
+      keys: ["N"],                                      // 画面下に出すキー。押すと光る（"Shift+A" で同時押し）
+      done: e => e.type === "npanel" && e.open,         // できたかどうか（e は 3D ビューのイベント）
+      skip: vp => vp.toggleNPanel(true),                // 「次へ（スキップ）」で、できた状態にする処理
+    },
+  ],
+},
+```
+
+- `done(e)` に届くイベントの種類（`select` / `opstart` / `axis` / `numeric` / `confirm` / `cancel` / `view` / `add` / `delete` / `undo` など）と中身は `wwwroot/js/viewport.js` の先頭に書いてあります
+- `hint(e)` で文字列を返すとヒントを表示し、`fail(e)` で文字列を返すと `group` の最初の手順からやり直しになります
+- `skip` は必ず書いてください。「やり直す」や一時停止からの再開は、最初の状態から前の手順の `skip` を順に実行して再現しています
+- `highlight: { object: "Cube", axis: "z", hud: "view" }` で、対象のオブジェクト・軸・左上の視点表示を目立たせます
+- 動作確認は `dotnet run` で記事を開いて最後まで操作し、「次へ（スキップ）」だけでも最後まで進めることを確かめてください。`?debug=1` を付けると、ブラウザのコンソールから `__tutorials` で状態を見られます
+
+### 完了の記録
+
+- 各記事の最後にある「このページを完了にする」か、ページ内のチュートリアルを最後まで進めると記録されます
+- 記録はブラウザの localStorage（`blender-manual.progress`）にだけ保存されます。目次ページの「記録を消す」で消せます
+- 確認用に、`/learn?debug=1&seed=basics/select,basics/transform` のように開くと、指定したページを完了にできます
