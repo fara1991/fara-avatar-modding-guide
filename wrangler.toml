@@ -3,8 +3,9 @@
 #
 #   本番:     master  ブランチ → avatar.fara-labs.com      (npx wrangler deploy --env production)
 #   develop:  develop ブランチ → avatar-dev.fara-labs.com  (npx wrangler deploy --env dev)
-#   旧アドレスの blender.fara-labs.com / blender-dev.fara-labs.com も同じ Worker に向け、worker/index.js で新アドレスへ 301 する。
-#   Worker 名（fara-blender / fara-blender-dev）は変えない（名前を変えると別の Worker が新しく作られるため）。
+#   旧アドレスの blender.fara-labs.com も本番の Worker に向け、worker/index.js で avatar.fara-labs.com へ 301 する。
+#   Worker 名は本番 fara-blender、develop は fara-avatar-dev（ダッシュボードで改名済み）。
+#   ここの name はダッシュボードの Worker 名と一致させる（違うと別の Worker が新しく作られる）。
 #
 # すべてのリクエストが worker/index.js を通る（run_worker_first = true。旧アドレスの転送のため）。
 # /api/rooms/<ID>/ws は共同練習の部屋（部屋ごとに Durable Object）、それ以外は env.ASSETS で dist/ の静的ファイルを返す。
@@ -51,10 +52,9 @@ name = "ROOMS"
 class_name = "Room"
 
 [env.dev]
-name = "fara-blender-dev"
+name = "fara-avatar-dev"
 routes = [
   { pattern = "avatar-dev.fara-labs.com", custom_domain = true },
-  { pattern = "blender-dev.fara-labs.com", custom_domain = true }, # 旧アドレス（avatar-dev へ 301）
 ]
 
 [env.dev.assets]
