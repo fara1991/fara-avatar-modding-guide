@@ -169,10 +169,10 @@ function loopCutSteps({ at, cuts = 1, edge, group = "loopcut", where, center = f
     text: `<kbd>Ctrl</kbd>+<kbd>R</kbd> を押して、${where}にマウスを置いてください。黄色い線でカットの位置が表示されます。`,
     done: e => e.type === "opstart" && e.kind === "loopcut",
     hint: e => e.type === "opfail" && e.reason === "objectmode" ? "<kbd>Tab</kbd> で編集モードに入ってください。" : undefined,
-    skip: vp => vp.startLoopCut(),
+    skip: vp => vp.previewLoopCut(edge),
   }];
   if (cuts > 1) steps.push({
-    group, mouse: "ホイールを回す", highlight: { at, label: "ここ" },
+    group, mouse: "ホイールを回す", highlight: { at, label: "ホイール" },
     text: `黄色い線が出ている状態でホイールを回して、${cuts} 本にしてください。`,
     done: e => e.type === "cuts" && e.cuts === cuts,
     hint: e => e.type === "cuts" ? `今は ${e.cuts} 本です。${e.cuts > cuts ? "逆に回して減らして" : "もう少し回して"}ください。` : undefined,
