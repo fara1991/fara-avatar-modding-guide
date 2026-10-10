@@ -7,6 +7,17 @@
     </div>
 
     <main>
+        @* サイト内検索（すべてのページ）。候補の表示は wwwroot/js/quicksearch.js。JS がなくても /search へ送信できる *@
+        <header class="site-header px-4">
+            <form action="/search" method="get" role="search" class="quick-search" id="quick-search">
+                <i class="bi bi-search quick-search-icon" aria-hidden="true"></i>
+                <input id="quick-search-input" name="q" type="search" class="form-control" placeholder="検索（例: 押し出し、Ctrl+R、ウェイト）"
+                       autocomplete="off" aria-label="サイト内を検索" role="combobox" aria-expanded="false" aria-controls="quick-search-list" aria-autocomplete="list" />
+                <span class="quick-search-hint" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+                <div id="quick-search-list" class="quick-search-list" role="listbox" aria-label="検索の候補" hidden></div>
+            </form>
+        </header>
+
         <article class="content px-4">
             @Body
         </article>
