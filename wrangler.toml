@@ -4,7 +4,7 @@
 #   本番:     master  ブランチ → blender.fara-labs.com      (npx wrangler deploy --env production)
 #   develop:  develop ブランチ → blender-dev.fara-labs.com  (npx wrangler deploy --env dev)
 
-name = "blender-manual"
+name = "fara-blender"
 compatibility_date = "2026-10-01"
 
 [assets]
@@ -15,7 +15,7 @@ html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
 
 [env.production]
-name = "blender-manual"
+name = "fara-blender"
 routes = [
   { pattern = "blender.fara-labs.com", custom_domain = true },
 ]
@@ -26,7 +26,7 @@ html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
 
 [env.dev]
-name = "blender-manual-dev"
+name = "fara-blender-dev"
 routes = [
   { pattern = "blender-dev.fara-labs.com", custom_domain = true },
 ]
