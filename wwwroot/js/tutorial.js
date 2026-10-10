@@ -4,6 +4,8 @@
 // - three.js と viewport.js は、埋め込みが画面に入ったときに初めて読み込む
 // - WebGL を使うビューはページ内で 1 つだけ。別のものを始めると、前のものは一時停止して「クリックして再開」になる
 // - 最後まで進むと、ページ内のチュートリアルがすべて終わっていればページを完了にする（progress.js）
+// - タッチだけの端末（スマートフォンなど）では 3D ビューを出さず、手順ごとの画像を横にめくるカードで見せる。
+//   PC でも「画像で見る」で切り替えられる。画像は tools/tutorial-images/ のスクリプトで作る（/images/tutorials/<名前>/NN.webp）
 import { SCENARIOS } from "./scenarios.js";
 
 const DONE_KEY = "blender-manual.tutorials"; // { シナリオ名: 完了日時 }
@@ -33,6 +35,18 @@ function opfailHint(e, vp) {
   if (e.reason === "objectmode") return "<kbd>Tab</kbd> で編集モードに入ってください。";
   if (e.reason === "noselection") return vp?.mode === "edit" ? "先に頂点・辺・面を選択してください。" : "先にオブジェクトをクリックして選択してください。";
   return e.reason; // ベベルなど、理由の文章がそのまま入っている
+}
+
+/** HTML の案内文から、画像の代替テキスト用の文字だけを取り出す */
+function plainText(html) {
+  const d = document.createElement("div");
+  d.innerHTML = html;
+  return d.textContent;
+}
+
+/** 手順 i（0 始まり）の画像の URL */
+export function stepImage(name, i) {
+  return `/images/tutorials/${name}/${String(i + 1).padStart(2, "0")}.webp`;
 }
 
 /** "Shift+A" → <kbd>Shift</kbd>+<kbd>A</kbd> */
@@ -78,6 +92,7 @@ class Tutorial {
     }
     this.build();
     this.renderStep();
+    this.setImageMode(touchOnly, true);
   }
 
   build() {
@@ -92,7 +107,7 @@ class Tutorial {
       </div>
       <div class="tut-progress" aria-hidden="true"><span></span></div>
       ${intro ? `<div class="tut-intro">${intro}</div>` : ""}
-      ${touchOnly ? `<div class="tut-touch-note"><i class="bi bi-keyboard" aria-hidden="true"></i> このチュートリアルはキーボードとマウスで操作します。スマートフォン・タブレットでは表示の確認だけになります。</div>` : ""}
+      ${this.stepsHtml()}
       <div class="tut-bubble" aria-live="polite">
         <div class="tut-text"></div>
         <div class="tut-msg" hidden></div>
@@ -112,6 +127,7 @@ class Tutorial {
         </div>
       </div>
       <div class="tut-toolbar">
+        <button type="button" class="btn btn-sm btn-outline-secondary tut-mode-btn" data-act="images" aria-pressed="false"></button>
         <button type="button" class="btn btn-sm btn-outline-primary" data-act="retry"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> やり直す</button>
         <button type="button" class="btn btn-sm btn-outline-secondary" data-act="skip">次へ（スキップ）<i class="bi bi-skip-forward-fill ms-1" aria-hidden="true"></i></button>
         <button type="button" class="btn btn-sm btn-link" data-act="restart">最初から</button>
@@ -126,11 +142,14 @@ class Tutorial {
       count: q(".tut-count"), bar: q(".tut-progress span"), text: q(".tut-text"), msg: q(".tut-msg"), bubble: q(".tut-bubble"),
       stage: q(".tut-stage"), vp: q(".tut-vp"), keys: q(".tut-keys"), ok: q(".tut-ok"),
       overlay: q(".tut-overlay"), overlayText: q(".tut-overlay-text"), complete: q(".tut-complete"), completeText: q(".tut-complete-text"),
-      numpad: q('[data-act="numpad"]'),
+      numpad: q('[data-act="numpad"]'), modeBtn: q('[data-act="images"]'),
+      track: q(".tut-steps-track"), stepCount: q(".tut-steps-count"),
     };
 
     this.el.addEventListener("click", e => {
       const act = e.target.closest("[data-act]")?.dataset.act;
+      if (act === "images") { this.setImageMode(!this.imageMode); return; }
+      if (act === "prev" || act === "next") { this.goCard(this.card + (act === "next" ? 1 : -1)); return; }
       if (act === "retry") this.retry();
       else if (act === "skip") this.skip();
       else if (act === "restart") this.restart();
@@ -143,6 +162,86 @@ class Tutorial {
     this.ui.overlay.addEventListener("click", () => this.onOverlay());
     this.ui.stage.addEventListener("focusin", () => this.updateOverlay());
     this.ui.stage.addEventListener("focusout", () => setTimeout(() => this.updateOverlay(), 0));
+    this.card = 0;
+    this.ui.track.addEventListener("scroll", () => {
+      const w = this.ui.track.clientWidth || 1;
+      const i = Math.round(this.ui.track.scrollLeft / w);
+      if (i !== this.card) { this.card = i; this.updateCards(); }
+    }, { passive: true });
+  }
+
+  // ---------------------------------------------------------------- 画像で見る（スマートフォン・「画像で見る」）
+  stepsHtml() {
+    const steps = this.scenario.steps;
+    const cards = steps.map((st, i) => {
+      const keys = (st.keys ?? []).map(keyHtml).join(" ");
+      const mouse = st.mouse ? `<span class="tut-mouse-inline"><i class="bi bi-mouse" aria-hidden="true"></i> ${escapeHtml(st.mouse)}</span>` : "";
+      return `<figure class="tut-step-card" aria-roledescription="手順" aria-label="${i + 1} / ${steps.length}">
+          <img src="${stepImage(this.name, i)}" alt="${escapeHtml(plainText(st.text))}" loading="lazy" width="1100" height="619" onerror="this.replaceWith(Object.assign(document.createElement('div'), { className: 'tut-step-noimg', textContent: '画像は準備中です' }))" />
+          <figcaption>
+            <div class="tut-text"><span class="tut-step-no">${i + 1}</span><span>${st.text}</span></div>
+            ${keys || mouse ? `<div class="tut-step-keys">${keys}${mouse}</div>` : ""}
+          </figcaption>
+        </figure>`;
+    }).join("");
+    return `<div class="tut-steps" hidden>
+        <div class="tut-steps-track" tabindex="0" aria-label="手順の画像（横にスワイプ）">${cards}</div>
+        <div class="tut-steps-nav">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-act="prev" aria-label="前の手順"><i class="bi bi-chevron-left" aria-hidden="true"></i> 前へ</button>
+          <span class="tut-steps-count small"></span>
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-act="next" aria-label="次の手順">次へ <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+        </div>
+        <p class="tut-steps-note small text-body-secondary mb-0">${touchOnly
+          ? "スマートフォン・タブレットでは、手順を画像で表示しています（3D ビューの操作にはキーボードとマウスが必要です）。"
+          : "各画像は、その手順を終えたあとの画面です。"}</p>
+      </div>`;
+  }
+
+  /** 画像で見る（on）/ 3D ビューで操作する（off） */
+  setImageMode(on, initial = false) {
+    this.imageMode = on;
+    this.el.classList.toggle("is-images", on);
+    this.el.querySelector(".tut-steps").hidden = !on;
+    const btn = this.ui.modeBtn;
+    btn.innerHTML = on
+      ? `<i class="bi bi-badge-3d" aria-hidden="true"></i> 3D ビューで操作する${touchOnly ? "（キーボードとマウスが必要）" : ""}`
+      : '<i class="bi bi-images" aria-hidden="true"></i> 画像で見る';
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    if (on) { this.suspend(); this.updateCards(); }
+    else if (!initial) this.activate();
+    this.renderStep();
+  }
+
+  goCard(i) {
+    const n = this.scenario.steps.length;
+    this.card = Math.max(0, Math.min(n - 1, i));
+    const t = this.ui.track;
+    t.scrollTo({ left: this.card * t.clientWidth, behavior: "smooth" });
+    this.updateCards();
+  }
+
+  updateCards() {
+    const n = this.scenario.steps.length;
+    this.ui.stepCount.textContent = `${this.card + 1} / ${n}`;
+    this.el.querySelector('[data-act="prev"]').disabled = this.card === 0;
+    this.el.querySelector('[data-act="next"]').disabled = this.card === n - 1;
+    if (this.imageMode) {
+      this.ui.count.textContent = `${this.card + 1} / ${n}`;
+      this.ui.bar.style.width = `${((this.card + 1) / n) * 100}%`;
+    }
+  }
+
+  /**
+   * 画像を作るとき用（tools/tutorial-images/）: k 番目の手順を終えた状態にして、その手順の案内（矢印など）を出す。
+   * ?debug=1 のときだけ window.__tutorials から呼べる
+   */
+  async captureStep(k) {
+    if (this.imageMode) this.setImageMode(false, true);
+    if (!this.vp) await this.activate();
+    this.el.classList.add("is-capturing");
+    this.replayTo(k + 1, true);
+    this.vp.setHighlight(this.scenario.steps[k].highlight ?? {});
+    return this.ui.vp.getBoundingClientRect().toJSON();
   }
 
   // ---------------------------------------------------------------- ビューの用意
@@ -209,8 +308,8 @@ class Tutorial {
     return i;
   }
 
-  /** 最初の状態から、i 番目の手順の直前まで進めた状態にする */
-  replayTo(i) {
+  /** 最初の状態から、i 番目の手順の直前まで進めた状態にする。keepStatus なら最後の操作のステータス表示を残す */
+  replayTo(i, keepStatus = false) {
     clearTimeout(this.failTimer);
     const vp = this.vp;
     if (vp) {
@@ -218,7 +317,7 @@ class Tutorial {
       vp.resetScene(this.scenario.scene);
       for (let k = 0; k < i && k < this.scenario.steps.length; k++) this.scenario.steps[k].skip?.(vp);
       vp.silent = false;
-      vp.setStatus("案内にしたがって操作してください");
+      if (!keepStatus) vp.setStatus("案内にしたがって操作してください");
     }
     this.index = i;
     this.ctx = {};
@@ -279,6 +378,7 @@ class Tutorial {
   }
 
   renderStep(okText = null) {
+    if (this.imageMode) { this.updateCards?.(); return; }
     const steps = this.scenario.steps;
     const n = steps.length;
     const i = Math.min(this.index, n);
@@ -359,8 +459,8 @@ const observer = new IntersectionObserver(entries => {
     const t = tutorials.get(entry.target);
     if (!t) continue;
     t.visible = entry.isIntersecting;
-    // 画面に入ったら読み込む。ほかのビューが見えているあいだは奪わない（クリックで切り替え）
-    if (entry.isIntersecting && !t.vp && (!active || !active.visible)) t.activate();
+    // 画面に入ったら読み込む。ほかのビューが見えているあいだは奪わない（クリックで切り替え）。画像で見ているときは読み込まない
+    if (entry.isIntersecting && !t.vp && !t.imageMode && (!active || !active.visible)) t.activate();
   }
 }, { rootMargin: "200px 0px" });
 

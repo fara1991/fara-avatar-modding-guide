@@ -1284,10 +1284,10 @@ export class Viewport {
     this.loopcut = null;
   }
 
-  updateLoopPreview() {
+  /** edge を省略するとマウスの下の辺。チュートリアルの再現では辺を指定する */
+  updateLoopPreview(edge = this.loopcut && this.pickEdge(this.mousePx(), 40)) {
     const lc = this.loopcut;
     if (!lc) return;
-    const edge = this.pickEdge(this.mousePx(), 40);
     lc.edge = edge;
     if (lc.preview) { lc.preview.geometry.dispose(); lc.preview.removeFromParent(); lc.preview = null; }
     if (!edge) return;
@@ -1312,7 +1312,7 @@ export class Viewport {
   setCuts(n) {
     if (!this.loopcut) return;
     this.loopcut.cuts = THREE.MathUtils.clamp(n, 1, 20);
-    this.updateLoopPreview();
+    this.updateLoopPreview(this.loopcut.edge ?? undefined);
     this.emit("cuts", { cuts: this.loopcut.cuts });
   }
 
@@ -1327,6 +1327,12 @@ export class Viewport {
     this.editChanged();
     this.emit("loopcut", { cuts });
     this.startMoveOp("slide", { slide: res.slide, cuts });
+  }
+
+  /** チュートリアル用: 条件に合う辺の上にマウスを置いたときと同じプレビューを出す */
+  previewLoopCut(fn) {
+    if (!this.loopcut) this.startLoopCut();
+    if (this.loopcut) this.updateLoopPreview(this.findEdge(fn));
   }
 
   /** チュートリアル用: 条件に合う辺でループカットを入れて、中央で確定する */
