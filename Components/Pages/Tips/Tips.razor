@@ -1,0 +1,36 @@
+@page "/tips"
+@inject ContentService Content
+@inject IOptions<SiteOptions> Site
+
+<PageTitle>TIPS - @Site.Value.Title</PageTitle>
+<HeadContent><meta name="description" content="スケールの未適用、法線の裏返り、Unity でピンクになる、Modular Avatar で服がついてこないなど、アバターづくりでよくあるつまずきと直し方です。" /></HeadContent>
+
+<h1>TIPS</h1>
+<p class="lead">アバターづくりでよくあるつまずきを、症状・原因・直し方でまとめました。言葉の意味は <a href="/glossary">用語集</a>、操作の名前は <a href="/howto">何て名前？</a> へ。</p>
+
+<TipsFilter Tags="@Content.TipTags(Content.Tips.Select(t => t.Tags))" Placeholder="症状で絞り込む（例: ピンク、黒い、ボーン）" HasDiscord="@Content.Tips.Any(t => t.Source == "discord")" Count="@Content.Tips.Count" />
+
+<div class="row g-3">
+    @foreach (var t in Content.Tips)
+    {
+        <div class="col-lg-6" data-tip-item>
+            <article class="tip-card card h-100" id="@t.Id" data-tags="@string.Join('|', t.Tags)" data-source="@t.Source">
+                <div class="card-body">
+                    <h2 class="h5 mb-2"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i><a href="#@t.Id" class="tip-anchor">@t.Title</a></h2>
+                    <TipTags Tags="@t.Tags" Source="@t.Source" />
+                    <dl class="tip-detail mb-2">
+                        <dt>症状</dt>
+                        <dd>@((MarkupString)ContentService.RenderInline(t.Symptom))</dd>
+                        <dt>原因</dt>
+                        <dd>@((MarkupString)ContentService.RenderInline(t.Cause))</dd>
+                        <dt>直し方</dt>
+                        <dd>@((MarkupString)ContentService.RenderInline(t.Fix))</dd>
+                    </dl>
+                    <TipRefs Shortcuts="@t.Shortcuts" Articles="@t.Articles" />
+                </div>
+            </article>
+        </div>
+    }
+</div>
+
+<script src="/js/tipsfilter.js" defer></script>

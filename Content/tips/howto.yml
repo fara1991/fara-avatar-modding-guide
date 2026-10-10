@@ -1,0 +1,413 @@
+# 「あの操作、何て名前？」: やりたいことから、操作の名前・メニューの場所・キーを引く。/howto に表示され、検索の対象になる。
+#
+#   id:        URL のアンカー（/howto#id）
+#   question:  やりたいこと（〜したい）
+#   answer:    操作の名前（日本語 UI）   answer_en: 英語 UI
+#   menu:      メニューの場所（日本語 UI） menu_en: 英語 UI
+#   shortcuts: キー
+#   note:      補足・似た操作との違い（Markdown）
+#   aliases:   同じ意味の別の言い方（検索用）
+#   tags / articles / source（manual / discord）は用語集と同じ
+#
+# 対象: Blender 4.5（日本語 UI）/ Unity 2022.3 + VRChat SDK3 + Modular Avatar
+
+# ---------------------------------------------------------------- Blender: 形を作る
+- id: merge-vertices
+  question: 頂点をくっつけたい
+  answer: マージ
+  answer_en: Merge
+  menu: 編集モード > メッシュ > マージ
+  menu_en: Edit Mode > Mesh > Merge
+  shortcuts: [M]
+  note: 「中心に」「カーソル位置に」「距離で」などから選ぶ。**オブジェクトどうし**を 1 つにしたいなら **統合**（<kbd>Ctrl</kbd>+<kbd>J</kbd>）。統合しただけでは頂点はくっつかないので、つなげたい頂点はそのあとマージする。
+  aliases: [頂点を結合, 頂点を一つにしたい, くっつける]
+  tags: [Blender, モデリング]
+  articles: [modeling/bevel-knife-merge]
+
+- id: remove-doubles
+  question: 重なった頂点をまとめて消したい
+  answer: 距離でマージ
+  answer_en: Merge by Distance
+  menu: 編集モード > メッシュ > マージ > 距離で
+  menu_en: Mesh > Merge > By Distance
+  shortcuts: [M]
+  note: <kbd>A</kbd> で全選択してから実行する。以前の名前は「重複頂点を削除（Remove Doubles）」。画面左下に消えた数が出る。
+  aliases: [重複頂点を削除, Remove Doubles, 重複を消す]
+  tags: [Blender, モデリング]
+  articles: [modeling/topology]
+
+- id: join-objects
+  question: 2 つのオブジェクトを 1 つにしたい
+  answer: 統合
+  answer_en: Join
+  menu: オブジェクトモード > オブジェクト > 統合
+  menu_en: Object > Join
+  shortcuts: [Ctrl+J]
+  note: 最後に選んだ（アクティブな）オブジェクトに、ほかがまとめられる。名前・原点・モディファイアーはアクティブ側のものが残る。
+  aliases: [結合, 合体, まとめる]
+  tags: [Blender]
+  articles: [basics/select]
+
+- id: separate-part
+  question: 一部を別のオブジェクトにしたい
+  answer: 分離
+  answer_en: Separate
+  menu: 編集モード > メッシュ > 分離
+  menu_en: Mesh > Separate
+  shortcuts: [P]
+  note: 「選択」で選んだ部分を、「パーツごと」でつながっていない部分ごとに分ける。同じオブジェクトのまま切り離すだけなら <kbd>Alt</kbd>+<kbd>M</kbd>（分割）。
+  aliases: [切り離す, 別オブジェクトにする]
+  tags: [Blender, モデリング]
+  articles: [modeling/bevel-knife-merge]
+
+- id: fill-hole
+  question: 穴をふさぎたい
+  answer: 面を作成（フィル）
+  answer_en: Fill
+  menu: 編集モード > 辺 / 面 > 面を作成
+  menu_en: Face > Fill
+  shortcuts: [F]
+  note: 穴のふちを <kbd>Alt</kbd>+クリックで選んで <kbd>F</kbd>。大きな N ゴンになるので、四角形で埋めたいときは「面 > グリッドフィル」。
+  aliases: [穴埋め, 面を張る]
+  tags: [Blender, モデリング]
+  articles: [modeling/bevel-knife-merge]
+
+- id: round-corner
+  question: 角を丸めたい
+  answer: ベベル
+  answer_en: Bevel
+  menu: 編集モード > 辺 > 辺をベベル
+  menu_en: Edge > Bevel Edges
+  shortcuts: [Ctrl+B]
+  note: ホイールで分割数を増やすと丸くなる。頂点だけを丸めるなら <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>（頂点ベベル）。
+  aliases: [面取り, 角を落とす]
+  tags: [Blender, モデリング]
+  articles: [modeling/bevel-knife-merge]
+
+- id: add-edge-loop
+  question: 辺を一周ぶん増やしたい
+  answer: ループカット
+  answer_en: Loop Cut and Slide
+  menu: 編集モード > 辺 > ループカットとスライド
+  menu_en: Edge > Loop Cut and Slide
+  shortcuts: [Ctrl+R]
+  note: 四角形がつながっているところにしか入らない。途中で止まるなら三角形か N ゴンがある。
+  aliases: [分割を増やす, 辺を足す]
+  tags: [Blender, モデリング]
+  articles: [modeling/extrude-inset-loopcut]
+
+- id: extend-face
+  question: 面を伸ばしたい
+  answer: 押し出し
+  answer_en: Extrude
+  menu: 編集モード > メッシュ > 押し出し
+  menu_en: Mesh > Extrude
+  shortcuts: [E]
+  note: 押したあと <kbd>Esc</kbd> でやめても、押し出した面は重なって残る。やめたときは <kbd>Ctrl</kbd>+<kbd>Z</kbd>。
+  aliases: [引き出す, 伸ばす]
+  tags: [Blender, モデリング]
+  articles: [modeling/extrude-inset-loopcut]
+
+- id: inner-face
+  question: 面の内側に、ひと回り小さい面を作りたい
+  answer: 面を差し込む
+  answer_en: Inset Faces
+  menu: 編集モード > 面 > 面を差し込む
+  menu_en: Face > Inset Faces
+  shortcuts: [I]
+  note: 複数の面を選んで <kbd>I</kbd> をもう一度押すと、面ごとに個別に差し込む。
+  aliases: [インセット, 縁取り]
+  tags: [Blender, モデリング]
+  articles: [modeling/extrude-inset-loopcut]
+
+- id: make-symmetric
+  question: 左右対称に作りたい
+  answer: ミラー モディファイアー
+  answer_en: Mirror Modifier
+  menu: プロパティ > モディファイアー > 追加 > 生成 > ミラー
+  menu_en: Properties > Modifiers > Add Modifier > Generate > Mirror
+  note: 半分だけ作って反対側を自動で作る。「クリッピング」と「マージ」をオンにすると中央が開かない。
+  aliases: [左右対称, シンメトリー]
+  tags: [Blender, モデリング]
+  articles: [modeling/mirror-smooth]
+
+- id: smooth-look
+  question: 角ばった見た目をなめらかにしたい
+  answer: スムーズシェード / 自動スムーズシェード
+  answer_en: Shade Smooth / Shade Auto Smooth
+  menu: オブジェクトモード > オブジェクト > スムーズシェード
+  menu_en: Object > Shade Smooth / Shade Auto Smooth
+  note: 頂点は増えない。角を残したいなら自動スムーズシェード。本当に頂点を増やしてなめらかにするのはサブディビジョンサーフェス。
+  aliases: [なめらか, スムーズ]
+  tags: [Blender, モデリング]
+  articles: [modeling/mirror-smooth]
+
+- id: fix-normals
+  question: 面の向き（表裏）をそろえたい
+  answer: 法線を外側に再計算
+  answer_en: Recalculate Outside
+  menu: 編集モード > メッシュ > ノーマル > 外側を再計算
+  menu_en: Mesh > Normals > Recalculate Outside
+  shortcuts: [Shift+N]
+  note: 全選択してから実行する。確認は「オーバーレイ > 面の向き」（表が青、裏が赤）。
+  aliases: [法線を直す, 裏返った面, 面の反転]
+  tags: [Blender, モデリング, Unity]
+  articles: [modeling/topology]
+
+- id: see-through
+  question: 裏側の頂点も選びたい
+  answer: 透過表示
+  answer_en: Toggle X-Ray
+  menu: 3D ビューのヘッダー右上のボタン
+  menu_en: 3D Viewport header > Toggle X-Ray
+  shortcuts: [Alt+Z]
+  note: ソリッド表示のままでは、見えている面の頂点しか選べない。ボックス選択の前にオンにする。
+  aliases: [X線, 透かす, 裏も選択]
+  tags: [Blender, モデリング]
+  articles: [modeling/edit-mode]
+
+- id: hide-parts
+  question: 作業の邪魔なものを一時的に隠したい
+  answer: 隠す / 選択以外を隠す
+  answer_en: Hide / Hide Unselected
+  menu: オブジェクト（メッシュ）> 表示 / 隠す
+  menu_en: Object (Mesh) > Show/Hide
+  shortcuts: [H, Shift+H, Alt+H]
+  note: <kbd>Alt</kbd>+<kbd>H</kbd> ですべて表示。アウトライナーの目のアイコンでも同じ。
+  aliases: [非表示, 隠す]
+  tags: [Blender]
+  articles: [basics/select, modeling/edit-mode]
+
+- id: count-polygons
+  question: 頂点数・ポリゴン数を見たい
+  answer: 統計
+  answer_en: Statistics
+  menu: 3D ビューのヘッダー > オーバーレイ > 統計
+  menu_en: Viewport Overlays > Statistics
+  note: 画面左上に頂点・辺・面・三角形の数が出る。VRChat は三角形の数で評価される。
+  aliases: [ポリゴン数, 頂点数, 三角形の数]
+  tags: [Blender, VRChat]
+  articles: [modeling/topology]
+
+# ---------------------------------------------------------------- Blender: 位置・大きさ
+- id: apply-scale
+  question: 今の大きさを「1 倍」として確定したい
+  answer: トランスフォームの適用
+  answer_en: Apply Transform
+  menu: オブジェクトモード > オブジェクト > 適用 > スケール（全トランスフォーム）
+  menu_en: Object > Apply > Scale (All Transforms)
+  shortcuts: [Ctrl+A]
+  note: 書き出す前や、ベベル・ソリッド化の前に行う。アーマチュアで変形しているメッシュは、アーマチュアと一緒に適用する。
+  aliases: [スケールを確定, スケールの適用, 大きさを確定]
+  tags: [Blender, 書き出し]
+  articles: [basics/transform, avatar-clothing/export-fbx]
+
+- id: move-origin
+  question: 原点（オブジェクトの中心）を移したい
+  answer: 原点を設定
+  answer_en: Set Origin
+  menu: オブジェクトモード > オブジェクト > 原点を設定
+  menu_en: Object > Set Origin
+  note: 「原点を 3D カーソルへ移動」「原点をジオメトリへ移動」など。原点を動かしても見た目の位置は変わらない。
+  aliases: [中心を変える, 原点を移動]
+  tags: [Blender]
+  articles: [basics/origin-pivot-snap]
+
+- id: cursor-to-center
+  question: 3D カーソルを中央に戻したい
+  answer: カーソル → ワールド原点
+  answer_en: Cursor to World Origin
+  menu: スナップ（Shift+S）> カーソル → ワールド原点
+  menu_en: Snap > Cursor to World Origin
+  shortcuts: [Shift+S]
+  note: 新しいものが変な場所に追加されるときはこれ。<kbd>Shift</kbd>+<kbd>C</kbd> だと、カーソルを戻して全体を表示する。
+  aliases: [カーソルを原点に, 3Dカーソルをリセット]
+  tags: [Blender]
+  articles: [basics/origin-pivot-snap]
+
+- id: rotate-around-point
+  question: 決まった点を中心に回したい
+  answer: ピボットポイント
+  answer_en: Transform Pivot Point
+  menu: 3D ビューのヘッダー > ピボットポイント
+  menu_en: Header > Transform Pivot Point
+  note: 「3D カーソル」にすると、カーソルの位置を中心に回る・拡大縮小する。
+  aliases: [回転の中心, 中心点]
+  tags: [Blender]
+  articles: [basics/origin-pivot-snap]
+
+# ---------------------------------------------------------------- Blender: 服・リギング
+- id: fit-to-body
+  question: 服を体の表面に沿わせたい
+  answer: シュリンクラップ モディファイアー
+  answer_en: Shrinkwrap Modifier
+  menu: プロパティ > モディファイアー > 追加 > 変形 > シュリンクラップ
+  menu_en: Add Modifier > Deform > Shrinkwrap
+  note: 「オフセット」で体から少し浮かせる。頂点を均等に膨らませるだけなら編集モードの <kbd>Alt</kbd>+<kbd>S</kbd>（法線方向に収縮 / 膨張）。
+  aliases: [体に吸い付ける, 沿わせる]
+  tags: [Blender, モデリング]
+  articles: [avatar-clothing/base-shape]
+
+- id: add-thickness
+  question: 服に厚みを付けたい
+  answer: ソリッド化 モディファイアー
+  answer_en: Solidify Modifier
+  menu: プロパティ > モディファイアー > 追加 > 生成 > ソリッド化
+  menu_en: Add Modifier > Generate > Solidify
+  note: スケールを適用していないと厚みが軸ごとに変わる。厚みの向きがおかしいときは法線を確認。
+  aliases: [厚み, 生地の厚さ]
+  tags: [Blender, モデリング]
+  articles: [basics/modifiers, avatar-clothing/base-shape]
+
+- id: copy-weights
+  question: 体のウェイトを服にコピーしたい
+  answer: データ転送 モディファイアー（頂点グループ）
+  answer_en: Data Transfer Modifier (Vertex Groups)
+  menu: プロパティ > モディファイアー > 追加 > 編集 > データ転送
+  menu_en: Add Modifier > Edit > Data Transfer
+  note: 「頂点データ > 頂点グループ」をオンにし、ソースに体を指定。先に「データレイヤーを生成」でボーンと同じ名前の頂点グループを作る。
+  aliases: [ウェイト転送, ウェイトをコピー]
+  tags: [Blender, ウェイト]
+  articles: [avatar-clothing/weight-transfer]
+
+- id: bind-to-armature
+  question: メッシュをボーンで動くようにしたい
+  answer: 親子付け（自動のウェイトで）
+  answer_en: Parent > With Automatic Weights
+  menu: オブジェクトモード > オブジェクト > ペアレント > 自動のウェイトで
+  menu_en: Object > Parent > With Automatic Weights
+  shortcuts: [Ctrl+P]
+  note: メッシュ → アーマチュアの順に選んで <kbd>Ctrl</kbd>+<kbd>P</kbd>。服なら自動より、体からのウェイト転送の方がきれいなことが多い。
+  aliases: [スキニング, ボーンを入れる, ウェイトを付ける]
+  tags: [Blender, リギング, ウェイト]
+  articles: [rigging/parent-weights]
+
+- id: pose-test
+  question: ボーンを動かして変形を確かめたい
+  answer: ポーズモード
+  answer_en: Pose Mode
+  menu: アーマチュアを選んでモード切り替え > ポーズモード
+  menu_en: Mode > Pose Mode
+  shortcuts: [Ctrl+Tab]
+  note: 確かめたら <kbd>Alt</kbd>+<kbd>R</kbd> / <kbd>Alt</kbd>+<kbd>G</kbd> で回転・位置を元に戻す。
+  aliases: [ポーズを付ける, 曲げて確認]
+  tags: [Blender, リギング]
+  articles: [rigging/armature]
+
+# ---------------------------------------------------------------- Unity
+- id: frame-object
+  question: Unity で選んだものを画面の真ん中に大きく表示したい
+  answer: Frame Selected
+  answer_en: Frame Selected
+  menu: Edit > Frame Selected
+  menu_en: Edit > Frame Selected
+  shortcuts: [F]
+  note: Scene ビューにマウスを置いて <kbd>F</kbd>。Hierarchy でダブルクリックしても同じ。Blender の <kbd>Numpad .</kbd> にあたる。
+  aliases: [注目, フォーカス, 選択を表示]
+  tags: [Unity]
+
+- id: dress-outfit
+  question: 衣装をアバターに着せたい
+  answer: Setup Outfit（Modular Avatar）
+  answer_en: "[ModularAvatar] Setup Outfit"
+  menu: 衣装をアバターの子にする → 衣装を右クリック > Modular Avatar > Setup Outfit
+  menu_en: Right-click outfit > Modular Avatar > Setup Outfit
+  note: 衣装のアーマチュアに MA Merge Armature が付き、アップロード時にアバターのボーンへ統合される。衣装がそのアバターに対応しているか先に確かめる。
+  aliases: [着せ替え, 衣装を入れる, 服を着せる]
+  tags: [Unity, Modular Avatar]
+  articles: [avatar-clothing/unity-setup]
+
+- id: hide-original
+  question: 元の服（アバターの初期衣装）を消したい
+  answer: GameObject を無効にする
+  answer_en: Deactivate GameObject
+  menu: Hierarchy で服のメッシュを選び、Inspector 左上のチェックを外す
+  menu_en: Inspector > uncheck the active checkbox
+  note: 無効にしたものもアップロードに含まれることがある。完全に外すなら Tag を EditorOnly にする（または削除）。
+  aliases: [服を脱がせる, 非表示, 元の服を隠す]
+  tags: [Unity]
+  articles: [avatar-clothing/unity-setup]
+
+- id: follow-body-shape
+  question: 体型の変更（シェイプキー）に服を合わせたい
+  answer: MA Blendshape Sync
+  answer_en: MA Blendshape Sync
+  menu: 服のメッシュの Inspector > Add Component > Modular Avatar > MA Blendshape Sync
+  menu_en: Add Component > Modular Avatar > MA Blendshape Sync
+  note: 体のブレンドシェイプの値を、服の同じ（または指定した）名前のブレンドシェイプに同期する。服側にも同じ形のシェイプキーが必要。
+  aliases: [シェイプキーを同期, 胸の大きさに合わせる]
+  tags: [Unity, Modular Avatar]
+  articles: [avatar-clothing/unity-setup]
+
+- id: change-material
+  question: Unity でマテリアルを差し替えたい
+  answer: マテリアルをスロットにドラッグ
+  answer_en: Materials (Element)
+  menu: メッシュの Inspector > Skinned Mesh Renderer > Materials
+  menu_en: Skinned Mesh Renderer > Materials > Element
+  note: Project ウィンドウのマテリアルを、Scene ビューのメッシュか Inspector の Element 欄にドラッグする。
+  aliases: [色を変える, マテリアルを変える]
+  tags: [Unity, マテリアル]
+  articles: [materials/for-unity]
+
+- id: add-jiggle
+  question: 髪やスカートを揺らしたい
+  answer: VRC Phys Bone
+  answer_en: VRC Phys Bone
+  menu: 揺らすボーンの根元の Inspector > Add Component > VRC Phys Bone
+  menu_en: Add Component > VRChat > VRC Phys Bone
+  note: Pull（戻る力）・Spring（揺れ）・Gravity などで調整。数が多いとパフォーマンスランクが下がる。
+  aliases: [揺れもの, PhysBone, 揺らす]
+  tags: [Unity, VRChat]
+
+# ---------------------------------------------------------------- VRChat
+- id: test-upload
+  question: アップロードする前に、VRChat の中で試したい
+  answer: Build & Test
+  answer_en: Build & Test
+  menu: VRChat SDK > Show Control Panel > Builder > Build & Test
+  menu_en: VRChat SDK > Show Control Panel > Builder > Build & Test (Your Avatar)
+  note: 自分の PC の VRChat でだけ使えるアバターとして読み込まれる（メニューの「アバター > その他」）。
+  aliases: [ローカルテスト, テストアップロード]
+  tags: [VRChat]
+
+- id: upload-avatar
+  question: アバターを VRChat にアップロードしたい
+  answer: Build and Upload
+  answer_en: Build and Upload
+  menu: VRChat SDK > Show Control Panel > Builder > Build and Upload
+  menu_en: VRChat SDK > Show Control Panel > Builder > Build and Upload
+  note: 先に Authentication でログインしておく。Builder に赤いエラーが出ているとアップロードできない。
+  aliases: [アップロード, 公開]
+  tags: [VRChat]
+
+- id: check-performance
+  question: アバターの重さ（ランク）を確かめたい
+  answer: パフォーマンスランク
+  answer_en: Avatar Performance Rank
+  menu: VRChat SDK > Show Control Panel > Builder（アバターを選んだ画面）
+  menu_en: Builder > Performance
+  note: 三角形の数・マテリアル数・PhysBone の数などの項目ごとに表示される。いちばん悪い項目がランクになる。
+  aliases: [重さ, Very Poor, ランク]
+  tags: [VRChat]
+  articles: [modeling/topology]
+
+- id: set-view-position
+  question: VRChat での目の高さを直したい
+  answer: View Position
+  answer_en: View Position
+  menu: アバターの Inspector > VRC Avatar Descriptor > View > Edit
+  menu_en: VRC Avatar Descriptor > View > Edit
+  note: Scene ビューの灰色の球を、両目の間に合わせる。
+  aliases: [視点の高さ, 目の位置]
+  tags: [VRChat, Unity]
+
+- id: upload-as-new
+  question: 同じアバターを、別のアバターとしてアップロードしたい
+  answer: Blueprint ID を外す（Detach）
+  answer_en: Pipeline Manager > Detach
+  menu: アバターの Inspector > Pipeline Manager > Detach
+  menu_en: Pipeline Manager > Detach (Optional)
+  note: 外さないと、前にアップロードしたアバターが上書きされる。
+  aliases: [上書きしない, 新しくアップロード]
+  tags: [VRChat]
