@@ -423,6 +423,7 @@
   note: Pull（戻る力）・Spring（揺れ）・Gravity などで調整。数が多いとパフォーマンスランクが下がる。
   aliases: [揺れもの, PhysBone, 揺らす]
   tags: [Unity, VRChat]
+  articles: [vrchat-features/physbone-contact]
 
 # ---------------------------------------------------------------- VRChat
 - id: test-upload
@@ -434,6 +435,7 @@
   note: 自分の PC の VRChat でだけ使えるアバターとして読み込まれる（アバターのメニューの **SDK Test Avatars** の欄）。アップロードはされない。
   aliases: [ローカルテスト, テストアップロード, Build and Test]
   tags: [VRChat]
+  articles: [vrchat/upload]
 
 - id: upload-avatar
   question: アバターを VRChat にアップロードしたい
@@ -444,6 +446,7 @@
   note: 先に Authentication でログインしておく。Builder に赤いエラーが出ているとアップロードできない。アップロードできるのはトラストランクが New User 以上のアカウント。
   aliases: [アップロード, 公開, Build and Upload]
   tags: [VRChat]
+  articles: [vrchat/upload, vrchat/upload-errors]
 
 - id: check-performance
   question: アバターの重さ（ランク）を確かめたい
@@ -454,7 +457,7 @@
   note: 三角形の数・マテリアル数・PhysBone の数などの項目ごとに表示される。いちばん悪い項目がランクになる。
   aliases: [重さ, Very Poor, ランク]
   tags: [VRChat]
-  articles: [modeling/topology]
+  articles: [modeling/topology, vrchat/performance-rank]
 
 - id: set-view-position
   question: VRChat での目の高さを直したい
@@ -558,7 +561,7 @@
     - Beat Saber / VMC など VRM 系では MaterialChange 系 MOD に対応したアニメーションを用意します。
   aliases: [トグル, 出し入れ, 表示切り替え, Expressions メニュー]
   tags: [Unity, VRChat, Modular Avatar, アニメーション]
-  articles: [unity/modular-avatar-outfit]
+  articles: [unity/modular-avatar-outfit, vrchat-features/expressions]
   related: [expressions]
   keywords: [Create Toggle, MA Menu Item, MA Menu Installer]
   source: discord

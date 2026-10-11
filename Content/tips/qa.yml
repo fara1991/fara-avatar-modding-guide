@@ -51,7 +51,7 @@
     - 当時は Unity 2019.4.31f1 を手動で入れ、SDK の「Build & Publish for Windows」を押したあと Game ビューでアバター名を入力して Upload していました。現在は Builder タブ内で完結します。
     - DynamicBone を持っていない場合は Missing Remover で欠けたスクリプトを消す手順がありましたが、PhysBone 対応アバターでは不要です。
   tags: [Unity, VRChat]
-  articles: [unity/pre-upload-check]
+  articles: [unity/pre-upload-check, vrchat/upload]
   related: [vcc, physbone]
   source: discord
 
@@ -152,7 +152,7 @@
     - 結合前に各メッシュの UV マップ名を揃え、`Ctrl+A` → 全トランスフォームを適用しておかないと、UV が壊れたりサイズが変わったりします。
     - MeshBaker で 1 メッシュ 1 マテリアルにしても必ず軽くなるとは限らず、シェイプキーが混ざるデメリットもあります。
   tags: [Blender, Unity, VRChat, 軽量化]
-  articles: [unity/pre-upload-check]
+  articles: [unity/pre-upload-check, vrchat/optimization]
   source: discord
 
 - id: meshbaker-old

@@ -621,7 +621,7 @@
   en: VRChat Creator Companion
   description: VRChat 用の Unity プロジェクトを作り、SDK や Modular Avatar などのパッケージを管理する公式のツール。ALCOM は同じことができる非公式のツール。
   tags: [Unity, VRChat]
-  articles: [avatar-clothing/unity-setup]
+  articles: [avatar-clothing/unity-setup, vrchat/vcc-project]
   related: [vrchat-sdk]
 
 # ---------------------------------------------------------------- VRChat
@@ -744,6 +744,24 @@
   tags: [Modular Avatar, Unity]
   related: [modular-avatar]
 
+- id: avatar-optimizer
+  term: Avatar Optimizer（AAO）
+  reading: あばたーおぷてぃまいざー
+  en: Avatar Optimizer
+  description: アップロード時に、使われていないものの削除やメッシュの結合などを自動で行い、アバターを軽くするツール。アバターのルートに AAO Trace And Optimize を付けるだけで使える。NDMF で動くので、元のデータは変わらない。
+  tags: [Unity, VRChat]
+  articles: [vrchat/optimization]
+  related: [ndmf, performance-rank]
+
+- id: contact
+  term: Contact（コンタクト）
+  reading: こんたくと
+  en: VRC Contact Sender / Receiver
+  description: アバターのどこかが触れたことを検知して、パラメーターの値に変える VRChat のコンポーネント。触れる側が Sender、触れられる側が Receiver。頭をなでられたら表情を変える、などのギミックに使う。
+  tags: [VRChat, Unity]
+  articles: [vrchat-features/physbone-contact]
+  related: [physbone, expressions]
+
 # ---------------------------------------------------------------- Discord の改変相談から
 
 - id: leaf-bone
@@ -777,6 +795,7 @@
     - MMD ワールドの表情自動変化のように、WD ON を前提にした仕組みもあります。
     - WD の混在を検出して警告してくれるツールもあります（当時はカメラギミックの導入ツールがチェッカー代わりに使われていました）。
   tags: [Unity, VRChat, Modular Avatar, アニメーション]
+  articles: [vrchat-features/fx-basics]
   related: [modular-avatar]
   keywords: [Merge Animator]
   source: discord
