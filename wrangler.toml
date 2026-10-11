@@ -1,13 +1,12 @@
 # Cloudflare Workers の設定（静的ファイル + 共同練習の部屋）。
 # dist/ は `dotnet run -- --export dist` で生成する（.github/workflows/deploy.yml 参照）。
 #
-#   本番:     master  ブランチ → avatar-modding.fara-labs.com      (npx wrangler deploy --env production)
-#   develop:  develop ブランチ → avatar-modding-dev.fara-labs.com  (npx wrangler deploy --env dev)
-#   旧アドレス（blender / avatar）も同じ Worker に向け、worker/index.js で新アドレスへ 301 する。
+#   本番:     master  ブランチ → avatar.fara-labs.com      (npx wrangler deploy --env production)
+#   develop:  develop ブランチ → avatar-dev.fara-labs.com  (npx wrangler deploy --env dev)
 #   Worker 名は本番 fara-avatar、develop は fara-avatar-dev。
 #   ここの name はダッシュボードの Worker 名と一致させる（違うと別の Worker が新しく作られる）。
 #
-# すべてのリクエストが worker/index.js を通る（run_worker_first = true。旧アドレスの転送のため）。
+# すべてのリクエストが worker/index.js を通る（run_worker_first = true。確認用ホストに noindex を付けるため）。
 # /api/rooms/<ID>/ws は共同練習の部屋（部屋ごとに Durable Object）、それ以外は env.ASSETS で dist/ の静的ファイルを返す。
 # Durable Object は SQLite 版（new_sqlite_classes）なので Workers の無料プランでも使える。
 
@@ -22,7 +21,7 @@ binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 # 存在しないパスは 404.html を 404 ステータスで返す
 not_found_handling = "404-page"
-# すべて worker/index.js を先に通す（旧アドレスの転送と /api のため）
+# すべて worker/index.js を先に通す（/api と、確認用ホストの noindex のため）
 run_worker_first = true
 
 [[durable_objects.bindings]]
@@ -36,9 +35,7 @@ new_sqlite_classes = ["Room"]
 [env.production]
 name = "fara-avatar"
 routes = [
-  { pattern = "avatar-modding.fara-labs.com", custom_domain = true },
-  { pattern = "avatar.fara-labs.com", custom_domain = true },         # 旧アドレス（avatar-modding へ 301）
-  { pattern = "blender.fara-labs.com", custom_domain = true }, # 旧アドレス（avatar へ 301）
+  { pattern = "avatar.fara-labs.com", custom_domain = true },
 ]
 
 [env.production.assets]
@@ -55,8 +52,7 @@ class_name = "Room"
 [env.dev]
 name = "fara-avatar-dev"
 routes = [
-  { pattern = "avatar-modding-dev.fara-labs.com", custom_domain = true },
-  { pattern = "avatar-dev.fara-labs.com", custom_domain = true },     # 旧アドレス（avatar-modding-dev へ 301）
+  { pattern = "avatar-dev.fara-labs.com", custom_domain = true },
 ]
 
 [env.dev.assets]
