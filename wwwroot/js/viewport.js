@@ -27,6 +27,11 @@ import { EditMesh, SHAPES } from "./editmesh.js";
 export const DEG = Math.PI / 180;
 const AXIS = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
 const AXIS_COLOR = { x: 0xff3352, y: 0x8bdc00, z: 0x2890ff, n: 0xffd84a };
+/** 複数行の文字を <br> 区切りで表示する（中身は HTML として解釈しない） */
+function setLines(el, lines) {
+  el.replaceChildren(...lines.flatMap((t, i) => (i ? [document.createElement("br"), String(t)] : [String(t)])));
+}
+
 const DEFAULT_VIEW = { dist: 11, theta: -Math.PI / 4 - Math.PI / 2, phi: 63 * DEG, name: "ユーザー" };
 const SELECT_MODES = { vert: "頂点", edge: "辺", face: "面" };
 
@@ -393,11 +398,12 @@ export class Viewport {
     if (!this.showStats) return;
     if (this.mode === "edit" && this.editObj) {
       const em = this.editObj.userData.em, s = em.stats(), c = em.counts();
-      el.innerHTML = `${this.editObj.name}<br>頂点 ${c.verts}/${s.verts}<br>辺 ${c.edges}/${s.edges}<br>面 ${c.faces}/${s.faces}<br>三角形 ${s.tris}`;
+      // オブジェクト名は部屋のほかの参加者も変えられるので、HTML ではなく文字として表示する
+      setLines(el, [this.editObj.name, `頂点 ${c.verts}/${s.verts}`, `辺 ${c.edges}/${s.edges}`, `面 ${c.faces}/${s.faces}`, `三角形 ${s.tris}`]);
     } else {
       const sum = { verts: 0, edges: 0, faces: 0, tris: 0 };
       for (const o of this.objects) { const s = o.userData.em.stats(); for (const k in sum) sum[k] += s[k]; }
-      el.innerHTML = `オブジェクト ${this.selected.length}/${this.objects.length}<br>頂点 ${sum.verts}<br>辺 ${sum.edges}<br>面 ${sum.faces}<br>三角形 ${sum.tris}`;
+      setLines(el, [`オブジェクト ${this.selected.length}/${this.objects.length}`, `頂点 ${sum.verts}`, `辺 ${sum.edges}`, `面 ${sum.faces}`, `三角形 ${sum.tris}`]);
     }
   }
 
@@ -1553,7 +1559,10 @@ export class Viewport {
     this.closeMenu();
     const menu = document.createElement("div");
     menu.className = "practice-menu";
-    menu.innerHTML = `<div class="title">${title}</div>`;
+    const head = document.createElement("div");
+    head.className = "title";
+    head.textContent = title;
+    menu.appendChild(head);
     for (const it of items) {
       const b = document.createElement("button");
       b.type = "button";
