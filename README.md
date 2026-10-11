@@ -161,7 +161,7 @@ npx wrangler deploy --env dev   # 手動で develop 環境へ（本番は --env 
 2. Cloudflare の `fara-labs.com` の **DNS → Records** に `avatar` / `avatar-dev` のレコードが無いことを確認
 3. 最初のデプロイで `wrangler.toml` の `custom_domain = true` により Cloudflare が DNS レコードと証明書を自動作成します（数分かかります）
 4. 開発環境を自分だけに見せるため、Cloudflare **Zero Trust → Access → Applications** の確認用アプリケーションに public hostname `avatar-dev.fara-labs.com` を追加します
-   - 開発環境には `X-Robots-Tag: noindex` も付けています
+   - 開発環境には `X-Robots-Tag: noindex` も付けています（`worker/index.js` が付ける。`wrangler.toml` の `env.dev.vars.NOINDEX`）
 
 ### 仕組み
 

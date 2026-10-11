@@ -42,16 +42,23 @@ const cube = id => ({ id, kind: "cube", name: "Cube", p: [0, 0, 0], r: [0, 0, 0]
 const a = await client("Alice");
 ok(a.welcome?.objects.length === 1 && a.welcome.objects[0].id === "cube0", "新しい部屋には立方体が 1 つある");
 const b = await client("Bob<script>\u0007");
-ok(b.welcome?.you.name === "Bob<script>", "表示名から制御文字を取り除く（HTML はクライアントで文字として表示）");
-ok(!!(await a.wait(m => m.t === "join" && m.peer.name === "Bob<script>")), "参加をほかの人に知らせる");
+ok(b.welcome?.you.name === "Bobscript", "表示名から制御文字と HTML の特殊文字を取り除く（クライアントでも文字として表示）");
+ok(!!(await a.wait(m => m.t === "join" && m.peer.name === "Bobscript")), "参加をほかの人に知らせる");
 
 // 追加・変形・削除
 a.send({ t: "ops", upsert: [{ ...cube("s1"), kind: "sphere", name: "Sphere", p: [3, 0, 0] }], delete: [] });
 ok(!!(await b.wait(m => m.t === "ops" && m.upsert?.some(o => o.id === "s1"))), "追加がほかの人に届く");
 b.send({ t: "ops", upsert: [{ ...cube("cube0"), p: [0, 0, 2] }], delete: [] });
 ok(!!(await a.wait(m => m.t === "ops" && m.upsert?.some(o => o.id === "cube0" && o.p[2] === 2))), "変形がほかの人に届く");
-a.send({ t: "ops", upsert: [], delete: ["s1"] });
+a.send({ t: "ops", upsert: [{ ...cube("n1"), name: "<img src=x onerror=alert(1)>" }], delete: [] });
+const named = await b.wait(m => m.t === "ops" && m.upsert?.some(o => o.id === "n1"));
+ok(named?.upsert.find(o => o.id === "n1").name === "img src=x onerror=alert(1)", "オブジェクト名から HTML の特殊文字を取り除く");
+a.send({ t: "lock", ids: ["s1"] });
+await b.wait(m => m.t === "locks" && m.locks.s1);
+const mark = b.msgs.length;
+a.send({ t: "ops", upsert: [], delete: ["s1", "n1"] });
 ok(!!(await b.wait(m => m.t === "ops" && m.delete?.includes("s1"))), "削除がほかの人に届く");
+ok(!!(await b.wait(m => m.t === "locks" && !m.locks.s1 && b.msgs.indexOf(m) >= mark)), "削除したもののロックが外れたことをほかの人に知らせる");
 
 // 遅れて入った人にはシーン全体
 const c = await client("Carol");
@@ -81,8 +88,9 @@ b.send({ t: "cursor", p: ["a", 0, 0] });
 b.send({ t: "nope" });
 b.send("not json");
 b.send("x".repeat(20000));
+b.send(JSON.stringify({ t: "name", name: "あ".repeat(6000) })); // 文字数は 16K 未満でも UTF-8 では 16KB を超える
 await sleep(300);
-ok(errs() - before === 8, "範囲外・不明な種類・不正な ID・0 のスケール・不正なカーソル・不明な型・JSON 以外・大きすぎるメッセージを拒否");
+ok(errs() - before === 9, "範囲外・不明な種類・不正な ID・0 のスケール・不正なカーソル・不明な型・JSON 以外・大きすぎるメッセージ（バイト数）を拒否");
 ok(!a.msgs.some(m => m.t === "ops" && m.upsert?.some(o => /^x/.test(o.id))), "拒否したものはほかの人に届かない");
 
 // オブジェクト数の上限（200）

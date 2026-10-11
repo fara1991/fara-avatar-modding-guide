@@ -1,6 +1,6 @@
 // Cloudflare Worker。すべてのリクエストがまずここを通る（wrangler.toml の run_worker_first = true）。
 // - /api/rooms/<部屋ID>/ws は共同練習の部屋（Durable Object）へ
-// - それ以外は静的ファイル（dist/）。確認用（*-dev）のホストには検索エンジン向けの noindex を付ける
+// - それ以外は静的ファイル（dist/）。確認用（env.dev の NOINDEX、または *-dev のホスト）には検索エンジン向けの noindex を付ける
 //
 // 共同練習の部屋（/practice/room）: 部屋ごとに 1 つの Durable Object（Room）が WebSocket をまとめ、
 // オブジェクトモードのシーン（立方体などの種類・名前・位置・回転・スケール）を全員で共有する。
@@ -44,13 +44,13 @@ export default {
       if (request.headers.get("Upgrade") !== "websocket") return new Response("expected websocket", { status: 426 });
       // 別のサイトのページから部屋につながれないように、同じホストからの接続だけ受け付ける
       const origin = request.headers.get("Origin");
-      if (origin && new URL(origin).host !== url.host) return new Response("forbidden", { status: 403 });
+      if (origin && originHost(origin) !== url.host) return new Response("forbidden", { status: 403 });
       const stub = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
       return stub.fetch(request);
     }
     if (url.pathname.startsWith("/api/")) return new Response("not found", { status: 404 });
     const res = await env.ASSETS.fetch(request);
-    if (url.hostname.endsWith("-dev.fara-labs.com")) {
+    if (env.NOINDEX === "true" || url.hostname.endsWith("-dev.fara-labs.com")) {
       const out = new Response(res.body, res);
       out.headers.set("X-Robots-Tag", "noindex, nofollow");
       return out;
@@ -59,14 +59,24 @@ export default {
   },
 };
 
+/** Origin ヘッダーのホスト。"null" など URL として読めないものは null（どのホストとも一致しない） */
+function originHost(origin) {
+  try { return new URL(origin).host; } catch { return null; }
+}
+
+const encoder = new TextEncoder();
+
 // ---------------------------------------------------------------- 値の確認
 const isNum = (v, lim) => typeof v === "number" && Number.isFinite(v) && Math.abs(v) <= lim;
 const vec3 = (v, check) => Array.isArray(v) && v.length === 3 && v.every(check);
 
-/** 表示名: 制御文字を除き、前後の空白を取り、長さを切る。HTML として使わない（クライアントは textContent で表示） */
+/**
+ * 表示名・オブジェクト名: 制御文字と HTML の特殊文字（< > & " '）を除き、前後の空白を取り、長さを切る。
+ * クライアントは textContent で表示するので HTML としては使わないが、念のためここでも取り除いておく
+ */
 export function cleanName(v, max = LIMITS.nameLength) {
   if (typeof v !== "string") return "";
-  return [...v.replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/g, "").trim()].slice(0, max).join("");
+  return [...v.replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff<>&"']/g, "").trim()].slice(0, max).join("");
 }
 
 /** オブジェクト 1 つ。不正なら null */
@@ -249,7 +259,9 @@ export class Room extends DurableObject {
   }
 
   async webSocketMessage(ws, data) {
-    if (typeof data !== "string" || data.length > LIMITS.messageBytes) return this.invalid(ws, "message too large");
+    // バイナリは受け付けない。大きさは UTF-8 のバイト数で比べる（1 文字は最大 3 バイトなので、短いものはエンコードせずに通す）
+    if (typeof data !== "string") return this.invalid(ws, "binary not supported");
+    if (data.length > LIMITS.messageBytes || (data.length * 3 > LIMITS.messageBytes && encoder.encode(data).length > LIMITS.messageBytes)) return this.invalid(ws, "message too large");
     this.seen.set(ws, Date.now());
     if (!this.allow(ws)) return this.send(ws, { t: "error", msg: "rate limited" });
     let msg;
@@ -342,10 +354,11 @@ export class Room extends DurableObject {
           applied.upsert.push(o);
         }
         const removes = [];
+        let unlocked = false;
         for (const id of del) {
           if (busy.includes(id) || !this.objects.has(id)) continue;
           this.objects.delete(id);
-          this.locks.delete(id);
+          if (this.locks.delete(id)) unlocked = true;
           removes.push(`o:${id}`);
           applied.delete.push(id);
         }
@@ -355,6 +368,8 @@ export class Room extends DurableObject {
           await this.touch();
           this.broadcast({ t: "ops", from: me.id, ...applied }, ws);
         }
+        // 消したオブジェクトのロックも外れたことを全員に知らせる
+        if (unlocked) this.broadcast(this.locksMessage());
         // 反映できなかったもの（ロック中・上限）は、送った人に正しい状態を返す
         const rejected = [...objs.filter(o => !applied.upsert.includes(o)).map(o => o.id), ...del.filter(id => !applied.delete.includes(id))];
         if (rejected.length) {

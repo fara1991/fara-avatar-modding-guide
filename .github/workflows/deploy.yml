@@ -54,14 +54,7 @@ jobs:
           name: site
           path: dist
 
-      # 開発環境が検索結果に載らないようにする
-      - name: Add noindex header (develop)
-        if: github.ref_name != 'master'
-        run: |
-          cat >> dist/_headers <<'HEADERS'
-          /*
-            X-Robots-Tag: noindex, nofollow
-          HEADERS
+      # 開発環境の noindex（X-Robots-Tag）は worker/index.js が付ける（wrangler.toml の env.dev.vars.NOINDEX）
 
       - uses: cloudflare/wrangler-action@v3
         with:
