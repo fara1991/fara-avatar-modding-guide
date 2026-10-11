@@ -8,7 +8,7 @@
 //   PC でも「画像で見る」で切り替えられる。画像は tools/tutorial-images/ のスクリプトで作る（/images/tutorials/<名前>/NN.webp）
 import { SCENARIOS } from "./scenarios.js";
 
-const DONE_KEY = "avatar-guide.tutorials"; // { シナリオ名: 完了日時 }
+const DONE_KEY = "avatar-modding-guide.tutorials"; // { シナリオ名: 完了日時 }
 const touchOnly = matchMedia("(hover: none) and (pointer: coarse)").matches;
 const tutorials = new Map();
 let active = null; // WebGL を使っている Tutorial

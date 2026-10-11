@@ -11,7 +11,7 @@
 
 - Blender 4.5 が `C:\Program Files\Blender Foundation\Blender 4.5\blender.exe` にある前提。違う場所なら `-Blender` で指定
 - 切り抜きと番号付けに Windows の Python と Pillow を使う: `py -3 -m pip install pillow`
-- 普段の Blender の設定は変更しない（`%TEMP%\fara-avatar-guide-shots\config` に撮影用の設定を作る）
+- 普段の Blender の設定は変更しない（`%TEMP%\fara-avatar-modding-guide-shots\config` に撮影用の設定を作る）
 - 撮影中はマウスやキーボードに触らない（メニューを開いて撮るショットがあるため）
 
 ## 仕組み
