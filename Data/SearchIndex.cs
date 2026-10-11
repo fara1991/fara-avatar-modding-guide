@@ -1,4 +1,4 @@
-namespace FaraBlenderManual.Data;
+namespace FaraAvatarGuide.Data;
 
 /// <summary>/search-index.json の1件。検索はクライアント側 (wwwroot/js/search.js) で部分一致により行う。</summary>
 public sealed record SearchEntry(

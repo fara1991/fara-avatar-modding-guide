@@ -1,4 +1,4 @@
-namespace FaraBlenderManual.Data;
+namespace FaraAvatarGuide.Data;
 
 /// <summary>目次の大きな区切り（Blender / Unity / VRChat など）。Content/learn/sections.yml で定義する。</summary>
 public sealed class LearnSection

@@ -38,8 +38,8 @@
 ### 実行
 
 ```bash
-git clone https://github.com/fara1991/fara-blender-manual.git
-cd fara-blender-manual
+git clone https://github.com/fara1991/fara-avatar-guide.git
+cd fara-avatar-guide
 dotnet run
 ```
 
@@ -49,7 +49,7 @@ dotnet run
 ## プロジェクト構造
 
 ```
-fara-blender-manual/
+fara-avatar-guide/
 ├── Content/                  # 記事・データ（Markdown / YAML）。書き方は Content/README.md 参照
 │   ├── learn/
 │   │   ├── sections.yml      # 目次の大きな区切り（Blender / Unity / VRChat / 通しで作る）

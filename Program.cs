@@ -1,8 +1,8 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using FaraBlenderManual.Components;
-using FaraBlenderManual.Data;
-using FaraBlenderManual.Publishing;
+using FaraAvatarGuide.Components;
+using FaraAvatarGuide.Data;
+using FaraAvatarGuide.Publishing;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 
