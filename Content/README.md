@@ -178,7 +178,7 @@ node tools/tutorial-images/capture.mjs http://localhost:8787 transform   # 指�
 ### 完了の記録
 
 - 各記事の最後にある「このページを完了にする」か、ページ内のチュートリアルを最後まで進めると記録されます
-- 記録はブラウザの localStorage（`blender-manual.progress`）にだけ保存されます。目次ページの「記録を消す」で消せます
+- 記録はブラウザの localStorage（`avatar-guide.progress`）にだけ保存されます。目次ページの「記録を消す」で消せます
 - 確認用に、`/learn?debug=1&seed=basics/select,basics/transform` のように開くと、指定したページを完了にできます
 
 ## 用語集・何て名前？・TIPS・改変 Q&A
