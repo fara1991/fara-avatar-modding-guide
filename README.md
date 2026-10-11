@@ -19,7 +19,7 @@
 | 本番 | https://avatar.fara-labs.com | `master` |
 | 開発 | https://avatar-dev.fara-labs.com（Cloudflare Access で自分だけが閲覧可能） | `develop` |
 
-旧アドレスの https://blender.fara-labs.com は、パスを保ったまま新アドレスへ 301 で転送します（`worker/index.js`）。Cloudflare の Worker 名は本番 `fara-avatar`、develop `fara-avatar-dev` です（`wrangler.toml` の `name` はダッシュボードの Worker 名と一致させる。違うと別の Worker が作られる）。
+Cloudflare の Worker 名は本番 `fara-avatar`、develop `fara-avatar-dev` です（`wrangler.toml` の `name` はダッシュボードの Worker 名と一致させる。違うと別の Worker が作られる）。
 
 ## 技術スタック
 
@@ -158,7 +158,7 @@ npx wrangler deploy --env dev   # 手動で develop 環境へ（本番は --env 
 1. GitHub リポジトリの **Settings → Secrets and variables → Actions** に以下を登録（値は fara-portfolio-site と同じものを使えます）
    - Secrets: `CLOUDFLARE_API_TOKEN`（テンプレート Edit Cloudflare Workers、Zone Resources は `fara-labs.com`）
    - Variables: `CLOUDFLARE_ACCOUNT_ID`
-2. Cloudflare の `fara-labs.com` の **DNS → Records** に `avatar` / `avatar-dev` のレコードが無いことを確認（旧アドレスの `blender` は転送用に Worker のカスタムドメインとして残す）
+2. Cloudflare の `fara-labs.com` の **DNS → Records** に `avatar` / `avatar-dev` のレコードが無いことを確認
 3. 最初のデプロイで `wrangler.toml` の `custom_domain = true` により Cloudflare が DNS レコードと証明書を自動作成します（数分かかります）
 4. 開発環境を自分だけに見せるため、Cloudflare **Zero Trust → Access → Applications** の確認用アプリケーションに public hostname `avatar-dev.fara-labs.com` を追加します
    - 開発環境には `X-Robots-Tag: noindex` も付けています
@@ -167,7 +167,7 @@ npx wrangler deploy --env dev   # 手動で develop 環境へ（本番は --env 
 
 - `dotnet run -- --export dist` が自身を起動して全ページを取得し、`dist/` に `index.html`、`learn/basics/transform.html` などを書き出します（`Publishing/StaticSiteExporter.cs`）
 - `wwwroot/` と `Content/learn/**/images/` もコピーされます
-- 旧 URL（パス）のリダイレクトは `dist/_redirects`、旧アドレス（ホスト）の転送は `worker/index.js`、404 は `dist/404.html` で処理します
+- 旧 URL（パス）のリダイレクトは `dist/_redirects`、404 は `dist/404.html` で処理します
 - すべてのリクエストが Worker を通るので（`run_worker_first = true`）、静的ファイルの配信も Workers のリクエスト数に数えられます（無料プランは 1 日 10 万リクエスト）
 - 記事を追加したら push するだけで反映されます
 
