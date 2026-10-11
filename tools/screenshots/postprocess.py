@@ -1,6 +1,6 @@
 """capture.py が書き出した post.json を読んで、切り抜きと番号付けを行う。
 
-    py -3 tools/screenshots/postprocess.py %TEMP%/fara-avatar-guide-shots/post.json
+    py -3 tools/screenshots/postprocess.py %TEMP%/fara-avatar-modding-guide-shots/post.json
 
 post.json の各項目:
     {"file": "C:/.../images/x.png", "crop": [x0, y0, x1, y1] | null,

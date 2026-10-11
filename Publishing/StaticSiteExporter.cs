@@ -1,9 +1,9 @@
-using FaraAvatarGuide.Data;
+using FaraAvatarModdingGuide.Data;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.StaticFiles;
 
-namespace FaraAvatarGuide.Publishing;
+namespace FaraAvatarModdingGuide.Publishing;
 
 /// <summary>
 /// 起動中のアプリから全ページを取得し、静的サイト（HTML + 静的ファイル）として書き出す。

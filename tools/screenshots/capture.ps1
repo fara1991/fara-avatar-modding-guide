@@ -5,7 +5,7 @@
 #   .\tools\screenshots\capture.ps1 -Blender "C:\Program Files\Blender Foundation\Blender 4.5\blender.exe"
 #
 # 撮影中は Blender のウィンドウが開いて自動で操作されます（1 〜 2 分）。触らずに待ってください。
-# 設定は一時フォルダ（%TEMP%\fara-avatar-guide-shots）に作るので、普段の Blender の設定は変わりません。
+# 設定は一時フォルダ（%TEMP%\fara-avatar-modding-guide-shots）に作るので、普段の Blender の設定は変わりません。
 # 撮影後は Python（Pillow が必要: py -3 -m pip install pillow）で切り抜きと番号付けを行います。
 param(
     [string[]]$Only = @(),
@@ -16,7 +16,7 @@ $ErrorActionPreference = "Stop"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repo = Resolve-Path (Join-Path $here "..\..")
 $out = Join-Path $repo "Content\learn"
-$work = Join-Path $env:TEMP "fara-avatar-guide-shots"
+$work = Join-Path $env:TEMP "fara-avatar-modding-guide-shots"
 $config = Join-Path $work "config"
 New-Item -ItemType Directory -Force -Path $config | Out-Null
 

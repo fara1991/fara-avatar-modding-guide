@@ -7,7 +7,7 @@
 // - 編集モード（Tab）の変更は送らない（自分の画面だけ）
 import { Viewport } from "./viewport.js";
 
-const NAME_KEY = "avatar-guide.name";
+const NAME_KEY = "avatar-modding-guide.name";
 const ROOM_RE = /^[a-z0-9]{6,32}$/;
 const TICK_MS = 80;
 const VIEW_MS = 250;

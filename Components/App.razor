@@ -9,7 +9,7 @@
     <script>
         // テーマ（ダーク / ライト）。描画前に localStorage の値を反映して、ちらつきを防ぐ
         (function () {
-            try { var t = localStorage.getItem("avatar-guide.theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-bs-theme", t); } catch (e) { }
+            try { var t = localStorage.getItem("avatar-modding-guide.theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-bs-theme", t); } catch (e) { }
             var q = new URLSearchParams(location.search).get("theme"); // ?theme=light で一時的に切り替え（確認用）
             if (q === "light" || q === "dark") document.documentElement.setAttribute("data-bs-theme", q);
             window.faraUpdateThemeButton = function () {
@@ -20,7 +20,7 @@
                 var h = document.documentElement;
                 var t = h.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
                 h.setAttribute("data-bs-theme", t);
-                try { localStorage.setItem("avatar-guide.theme", t); } catch (e) { }
+                try { localStorage.setItem("avatar-modding-guide.theme", t); } catch (e) { }
                 window.faraUpdateThemeButton();
             };
             document.addEventListener("DOMContentLoaded", window.faraUpdateThemeButton);

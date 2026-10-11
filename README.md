@@ -38,8 +38,8 @@
 ### 実行
 
 ```bash
-git clone https://github.com/fara1991/fara-avatar-guide.git
-cd fara-avatar-guide
+git clone https://github.com/fara1991/fara-avatar-modding-guide.git
+cd fara-avatar-modding-guide
 dotnet run
 ```
 
@@ -49,7 +49,7 @@ dotnet run
 ## プロジェクト構造
 
 ```
-fara-avatar-guide/
+fara-avatar-modding-guide/
 ├── Content/                  # 記事・データ（Markdown / YAML）。書き方は Content/README.md 参照
 │   ├── learn/
 │   │   ├── sections.yml      # 目次の大きな区切り（Blender / Unity / VRChat / 通しで作る）
@@ -107,7 +107,7 @@ fara-avatar-guide/
 
 旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へリダイレクトされます。
 
-各記事の「このページを完了にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `avatar-guide.progress` に保存）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
+各記事の「このページを完了にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `avatar-modding-guide.progress` に保存）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
 
 ## みんなで練習（共同練習の部屋）
 
