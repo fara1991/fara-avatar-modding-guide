@@ -11,7 +11,7 @@
 // 確認用: ?debug=1&seed=basics/select,basics/transform で指定したページを完了にする
 (function () {
   "use strict";
-  var KEY = "blender-manual.progress"; // { "category/slug": 完了日時 (ISO 8601) }
+  var KEY = "avatar-guide.progress"; // { "category/slug": 完了日時 (ISO 8601) }
 
   function load() {
     try {
@@ -42,7 +42,7 @@
     },
     reset: function () {
       save({});
-      try { localStorage.removeItem("blender-manual.tutorials"); } catch (e) { }
+      try { localStorage.removeItem("avatar-guide.tutorials"); } catch (e) { }
       decorate();
     },
   };

@@ -107,7 +107,7 @@ fara-avatar-guide/
 
 旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へリダイレクトされます。
 
-各記事の「このページを完了にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `blender-manual.progress` に保存）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
+各記事の「このページを完了にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `avatar-guide.progress` に保存）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
 
 ## みんなで練習（共同練習の部屋）
 
