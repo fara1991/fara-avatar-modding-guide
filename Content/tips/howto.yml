@@ -286,7 +286,7 @@
   note: 「頂点データ > 頂点グループ」をオンにし、ソースに体を指定。先に「データレイヤーを生成」でボーンと同じ名前の頂点グループを作る。
   aliases: [ウェイト転送, ウェイトをコピー]
   tags: [Blender, ウェイト]
-  articles: [avatar-clothing/weight-transfer]
+  articles: [avatar-clothing/weight-transfer, rigging/weight-check]
   related: [data-transfer]
   keywords: [最近接面の補間, Transfer Weights]
   body: |-
@@ -603,7 +603,7 @@
     - **グループ A から B の分を差し引く**: `頂点ウェイト合成（Vertex Weight Mix）` モディファイアーで、頂点グループ A に A、頂点グループ B に B を指定し、`ミックスモード` を `減算` にして、対象にする頂点（`頂点セット`）を選んでから適用します。
   aliases: [正規化, ウェイトを消す, 頂点ウェイト合成]
   tags: [Blender, ウェイト]
-  articles: [rigging/weight-paint]
+  articles: [rigging/weight-paint, rigging/weight-check]
   source: discord
 
 - id: hair-gloss
