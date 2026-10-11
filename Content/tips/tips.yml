@@ -288,7 +288,7 @@
     - 見えない面を消す、服の下の体を消す、マテリアルをまとめる（同じテクスチャにまとめる）
     - 使わない衣装やギミックは、無効にするのではなく Tag を EditorOnly にするか削除する
   tags: [VRChat, モデリング]
-  articles: [modeling/topology]
+  articles: [modeling/topology, vrchat/optimization]
   related: [performance-rank]
   keywords: [Very Poor, Avatar Optimizer]
   body: |-

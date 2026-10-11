@@ -38,6 +38,18 @@
   description: Unity の画面の見方、Modular Avatar での衣装の着せ方、lilToon、アップロード前の確認。
   icon: bi-grid-3x3-gap
 
+- id: vrchat
+  section: vrchat
+  title: VRChat にアップロードする
+  description: VCC でのプロジェクト作成、アップロード、つまずいたときの対処、パフォーマンスランク、軽量化、Android（Quest）対応。
+  icon: bi-cloud-upload
+
+- id: vrchat-features
+  section: vrchat
+  title: メニュー・表情・揺れもの
+  description: Expression メニューとパラメーター、表情と FX の基礎、PhysBone と Contact。
+  icon: bi-ui-radios-grid
+
 - id: avatar-clothing
   section: practice
   title: 実践：アバター用衣装の作成
