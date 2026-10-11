@@ -734,19 +734,19 @@ export class UnityEditor {
     return walk(arm.id);
   }
 
-  /** Build & Test / Build and Upload（実際には何も送らない） */
+  /** Build & Test / Build & Publish（実際には何も送らない） */
   build(kind) {
     const st = this.stats();
     if (!st) { this.setStatus("VRC Avatar Descriptor の付いたアバターがありません"); return; }
     this.closeSDK(true);
-    const label = kind === "test" ? "Build & Test" : "Build and Upload";
+    const label = kind === "test" ? "Build & Test" : "Build & Publish";
     this.showPreview(`${label}: ビルドしています…`, true);
     clearTimeout(this.previewTimer);
     this.previewTimer = setTimeout(() => {
       this.startPose(st);
       const followText = st.merged.size ? "衣装はアバターと一緒に動いています（Modular Avatar で統合済み）" : "衣装が体についてきていません（Setup Outfit をしていない）";
       this.showPreview(kind === "test"
-        ? `テスト用に読み込みました（VRChat の「アバター > その他」）。ランク: ${RANKS[st.overall]}。${followText}`
+        ? `テスト用に読み込みました（VRChat のアバターのメニューの SDK Test Avatars）。ランク: ${RANKS[st.overall]}。${followText}`
         : `アップロードしました（練習なので実際には送信していません）。ランク: ${RANKS[st.overall]}`);
       this.setStatus(`${label} が完了しました（ランク: ${RANKS[st.overall]}）`);
       this.emit("build", { kind, merged: st.merged.size > 0, rank: RANKS[st.overall] });
@@ -909,7 +909,7 @@ export class UnityEditor {
         <table class="ue-perf"><thead><tr><th>Performance</th><th></th><th><span class="ue-rank ue-rank-${st.overall}">${RANKS[st.overall]}</span></th></tr></thead><tbody>
           ${row("Triangles", "tris")}${row("Material Slots", "materials")}${row("Skinned Meshes", "skinned")}${row("Bones", "bones")}${row("PhysBone Components", "physbones")}
         </tbody></table>
-        <div class="ue-sdk-buttons"><button type="button" data-sdk="test" data-hl="build-test">Build &amp; Test</button><button type="button" data-sdk="upload" data-hl="build-upload">Build and Upload</button></div>
+        <div class="ue-sdk-buttons"><button type="button" data-sdk="test" data-hl="build-test">Build &amp; Test</button><button type="button" data-sdk="upload" data-hl="build-upload">Build &amp; Publish</button></div>
         <div class="ue-muted small">この画面は練習用のシミュレーションです。数値は目安で、実際には何もアップロードしません。</div>
       </div>`;
     this.applyHighlight();

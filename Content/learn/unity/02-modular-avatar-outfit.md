@@ -10,7 +10,7 @@ updated: 2026-10-11
 対応アバター向けに配られている衣装（Prefab）を、**Modular Avatar**（MA）で着せる基本の流れです。
 
 1. 衣装の Prefab を、Hierarchy のアバターの **中（子）** に入れる
-2. 衣装を右クリック > **Modular Avatar ▸ Setup Outfit**
+2. 衣装を右クリック > **Modular Avatar > Setup Outfit**
 3. アバターが最初から着ている服を外す（無効にして、Tag を **EditorOnly** に）
 4. 必要ならマテリアルを差し替える
 5. 体型のブレンドシェイプに服を合わせる（**MA Blendshape Sync**）
@@ -31,7 +31,7 @@ Project ウィンドウの衣装の Prefab を、Hierarchy のアバターの **
 
 ## 2. Setup Outfit
 
-衣装（Prefab のいちばん上）を右クリックして **Modular Avatar ▸ Setup Outfit** を選びます。衣装の `Armature` に **MA Merge Armature** が付き、アップロードするとき（ビルド時）に、衣装のボーンが同じ名前のアバターのボーンに統合されます。元のシーンは変わらないので、あとから外すのも簡単です。
+衣装（Prefab のいちばん上）を右クリックして **Modular Avatar > Setup Outfit** を選びます。衣装の `Armature` に **MA Merge Armature**、衣装のいちばん上に **MA Outfit Root** と **MA Mesh Settings** が付き、アップロードするとき（ビルド時）に、衣装のボーンが同じ名前のアバターのボーンに統合されます。元のシーンは変わらないので、あとから外すのも簡単です。
 
 服がついてこないときは [TIPS: Modular Avatar で服が体についてこない](/tips#ma-bone-mismatch) を見てください。
 
@@ -53,4 +53,4 @@ Project ウィンドウの衣装の Prefab を、Hierarchy のアバターの **
 
 ## 6. Build & Test で確かめる
 
-メニューの **VRChat SDK > Show Control Panel** で Builder を開き、**Build & Test** で自分の PC の VRChat だけに読み込んで、動かして確かめます。問題なければ **Build and Upload** でアップロードします（[アップロード前の確認](/learn/unity/pre-upload-check)）。
+メニューの **VRChat SDK > Show Control Panel** で Builder を開き、**Build & Test** で自分の PC の VRChat だけに読み込んで、動かして確かめます。問題なければ **Build & Publish** でアップロードします（[アップロード前の確認](/learn/unity/pre-upload-check)）。
