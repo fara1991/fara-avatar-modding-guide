@@ -50,6 +50,12 @@
   description: Expression メニューとパラメーター、表情と FX の基礎、PhysBone と Contact。
   icon: bi-ui-radios-grid
 
+- id: modding
+  section: practice
+  title: 実践：アバター改変
+  description: 買ったアバターの改変の進め方と、非対応衣装の着せ替え、首すげ替え、VRM への書き出し。
+  icon: bi-tools
+
 - id: avatar-clothing
   section: practice
   title: 実践：アバター用衣装の作成

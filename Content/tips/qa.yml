@@ -241,7 +241,7 @@
     - 当時（2.9 頃）にあった「Basis に適用」系のメニューは 3.1 で見当たらなくなったという報告があります。Blender 4.5 のメニュー構成は実機で確認してください。
     - 一度ずれてしまった後の修正は難しく、作り直した方が早いこともあります。
   tags: [Blender, リギング]
-  articles: [rigging/shape-keys]
+  articles: [rigging/shape-keys, rigging/shape-keys-modding]
   source: discord
 
 - id: shapekey-transfer
@@ -436,7 +436,7 @@
     - ボーン名を変えずにウェイト転送した（頂点グループにあるウェイトしか転送されません）。
     - モディファイアーのスパナアイコンが見えない → オブジェクトモードになっていない場合があります。
   tags: [Blender, ウェイト, 衣装, リギング]
-  articles: [rigging/parent-weights, avatar-clothing/weight-transfer]
+  articles: [rigging/parent-weights, avatar-clothing/weight-transfer, modding/outfit-checklist]
   related: [vertex-group, armature, weight-paint-mode]
   source: discord
 
@@ -526,6 +526,7 @@
     - 首と体で色や明るさが違う（[首の色合わせ](/qa#neck-color-match)、[首と体の明るさ](/qa#neck-body-brightness-mismatch)）。
     - 現在は「首すげ替え」を補助するツールもあり、当時より楽にできるようになっています。
   tags: [Blender, Unity, モデリング, リギング]
+  articles: [modding/head-swap]
   source: discord
 
 - id: transplant-eye-expression
@@ -648,7 +649,7 @@
     - 白髪にしたい場合は彩度を 0 にして、シェーダー側で色を重ねる方法もあります。
     - 影・エッジ・光沢までこだわり始めると奥が深いので、まずは色相変更から試しましょう。
   tags: [マテリアル]
-  articles: [unity/liltoon-basics]
+  articles: [unity/liltoon-basics, unity/recolor]
   source: discord
 
 - id: eye-texture-replace
@@ -690,6 +691,7 @@
     - 眼鏡のレンズ越しにまぶたが消える、といったケースも同じ原因です（まぶたの Queue < 眼鏡の Queue）。
     - ZWrite（深度書き込み）の設定と組み合わせて調整するケースもあります。
   tags: [Unity, マテリアル]
+  articles: [unity/display-issues]
   source: discord
 
 - id: transparent-backface
@@ -876,6 +878,7 @@
     - 素体の状態で髪や耳の揺れを設定した Prefab を保存しておくと、服の揺れだけ設定すればよくなります。
     - VRChat 用アバターから VRM を書き出すツール（VRChat 向け設定を読み替えるもの）もあります。出力サイズや安定性はツールにより差があります。
   tags: [Unity, VRM, 衣装]
+  articles: [modding/vrm-export]
   source: discord
 
 - id: vrm-normalize-pitfalls
