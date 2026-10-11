@@ -10,7 +10,7 @@ using System.Net;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace FaraBlenderManual.Data;
+namespace FaraAvatarGuide.Data;
 
 /// <summary>
 /// Content/ ディレクトリの Markdown / YAML を読み込んで提供する。
