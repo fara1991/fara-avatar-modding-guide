@@ -1,5 +1,5 @@
 // Cloudflare Worker。すべてのリクエストがまずここを通る（wrangler.toml の run_worker_first = true）。
-// - 旧アドレス（blender.fara-labs.com）は、パスを保ったまま新アドレスへ 301
+// - 旧アドレス（blender / avatar / avatar-dev）は、パスを保ったまま新アドレスへ 301
 // - /api/rooms/<部屋ID>/ws は共同練習の部屋（Durable Object）へ
 // - それ以外は静的ファイル（dist/）。確認用（*-dev）のホストには検索エンジン向けの noindex を付ける
 //
@@ -36,7 +36,9 @@ const COLORS = ["#f97316", "#22c55e", "#3b82f6", "#e879f9", "#facc15", "#14b8a6"
 const ROOM_ID = /^[a-z0-9]{6,32}$/;
 // サイト名の変更で移ったアドレス
 const HOST_REDIRECTS = {
-  "blender.fara-labs.com": "avatar.fara-labs.com",
+  "blender.fara-labs.com": "avatar-modding.fara-labs.com",
+  "avatar.fara-labs.com": "avatar-modding.fara-labs.com",
+  "avatar-dev.fara-labs.com": "avatar-modding-dev.fara-labs.com",
 };
 const OBJ_ID = /^[a-z0-9]{1,24}$/;
 

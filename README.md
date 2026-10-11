@@ -1,6 +1,6 @@
-# Avatar Manual（仮称）
+# Avatar Modding Guide
 
-アバターづくりの手順を、Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでまとめたマニュアルサイトです。
+アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。
 サイト名は `appsettings.json` の `Site:Title` にだけ書いてあり、画面の表示はすべてそこから取ります（名前を変えるときはそこだけ直す）。
 .NET 9 の Blazor Web App（静的サーバーサイドレンダリング）で実装し、記事は Markdown で管理しています。
 
@@ -16,10 +16,10 @@
 
 | 環境 | URL | ブランチ |
 | --- | --- | --- |
-| 本番 | https://avatar.fara-labs.com | `master` |
-| 開発 | https://avatar-dev.fara-labs.com（Cloudflare Access で自分だけが閲覧可能） | `develop` |
+| 本番 | https://avatar-modding.fara-labs.com | `master` |
+| 開発 | https://avatar-modding-dev.fara-labs.com（Cloudflare Access で自分だけが閲覧可能） | `develop` |
 
-旧アドレスの https://blender.fara-labs.com は、パスを保ったまま新アドレスへ 301 で転送します（`worker/index.js`）。Cloudflare の Worker 名は本番 `fara-avatar`、develop `fara-avatar-dev` です（`wrangler.toml` の `name` はダッシュボードの Worker 名と一致させる。違うと別の Worker が作られる）。
+旧アドレスの https://blender.fara-labs.com と https://avatar.fara-labs.com（開発は avatar-dev）は、パスを保ったまま新アドレスへ 301 で転送します（`worker/index.js`）。Cloudflare の Worker 名は本番 `fara-avatar`、develop `fara-avatar-dev` です（`wrangler.toml` の `name` はダッシュボードの Worker 名と一致させる。違うと別の Worker が作られる）。
 
 ## 技術スタック
 
@@ -158,9 +158,9 @@ npx wrangler deploy --env dev   # 手動で develop 環境へ（本番は --env 
 1. GitHub リポジトリの **Settings → Secrets and variables → Actions** に以下を登録（値は fara-portfolio-site と同じものを使えます）
    - Secrets: `CLOUDFLARE_API_TOKEN`（テンプレート Edit Cloudflare Workers、Zone Resources は `fara-labs.com`）
    - Variables: `CLOUDFLARE_ACCOUNT_ID`
-2. Cloudflare の `fara-labs.com` の **DNS → Records** に `avatar` / `avatar-dev` のレコードが無いことを確認（旧アドレスの `blender` は転送用に Worker のカスタムドメインとして残す）
+2. Cloudflare の `fara-labs.com` の **DNS → Records** に `avatar-modding` / `avatar-modding-dev` のレコードが無いことを確認（旧アドレスの `blender` / `avatar` / `avatar-dev` は転送用に Worker のカスタムドメインとして残す）
 3. 最初のデプロイで `wrangler.toml` の `custom_domain = true` により Cloudflare が DNS レコードと証明書を自動作成します（数分かかります）
-4. 開発環境を自分だけに見せるため、Cloudflare **Zero Trust → Access → Applications** の確認用アプリケーションに public hostname `avatar-dev.fara-labs.com` を追加します
+4. 開発環境を自分だけに見せるため、Cloudflare **Zero Trust → Access → Applications** の確認用アプリケーションに public hostname `avatar-modding-dev.fara-labs.com` を追加します
    - 開発環境には `X-Robots-Tag: noindex` も付けています
 
 ### 仕組み
