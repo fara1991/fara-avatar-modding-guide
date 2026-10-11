@@ -619,7 +619,7 @@
   term: VCC（VRChat Creator Companion）
   reading: ぶいしーしー
   en: VRChat Creator Companion
-  description: VRChat 用の Unity プロジェクトを作り、SDK や Modular Avatar などのパッケージを管理するツール。ALCOM は同じことができる別のツール。
+  description: VRChat 用の Unity プロジェクトを作り、SDK や Modular Avatar などのパッケージを管理する公式のツール。ALCOM は同じことができる非公式のツール。
   tags: [Unity, VRChat]
   articles: [avatar-clothing/unity-setup]
   related: [vrchat-sdk]
@@ -687,7 +687,7 @@
   term: Build & Test
   reading: びるどあんどてすと
   en: Build & Test
-  description: アバターを公開せずに、自分の PC の VRChat だけで試す機能（SDK の Builder）。試したあとで Build and Upload（公開）する。
+  description: アバターを公開せずに、自分の PC の VRChat だけで試す機能（SDK の Builder）。試したあとで Build & Publish（アップロード）する。
   tags: [VRChat]
   related: [vrchat-sdk]
 
@@ -704,8 +704,8 @@
 - id: setup-outfit
   term: Setup Outfit
   reading: せっとあっぷあうとふぃっと
-  en: "[ModularAvatar] Setup Outfit"
-  description: 衣装をアバターの中に入れたあと、衣装を右クリック > Modular Avatar > Setup Outfit で、衣装のアーマチュアに MA Merge Armature などを自動で付ける操作。
+  en: Modular Avatar > Setup Outfit
+  description: 衣装をアバターの中に入れたあと、衣装を右クリック > Modular Avatar > Setup Outfit で、衣装のアーマチュアに MA Merge Armature、衣装のルートに MA Outfit Root と MA Mesh Settings などを自動で付ける操作。
   tags: [Modular Avatar, Unity]
   articles: [avatar-clothing/unity-setup]
   related: [merge-armature, modular-avatar]
@@ -772,7 +772,8 @@
   body: |-
     - アニメーションの不具合で詰まったら、まず Write Defaults の混在を疑います。
     - アバター本体の FX コントローラーの設定に合わせて、追加するギミックの WD も揃えます。
-    - Modular Avatar の Merge Animator には、アバターの WD 設定に合わせる機能（Match Avatar Write Defaults）があります。
+    - Modular Avatar の Merge Animator には、アバターの WD 設定に合わせる設定（「アバターの Write Defaults 設定に合わせる」）があります。
+    - VRChat の公式の Animator は WD を Off で作っていて、公式はアバター全体で On / Off をそろえることをすすめています。Motion が空（None）のステートは On のように振る舞います。
     - MMD ワールドの表情自動変化のように、WD ON を前提にした仕組みもあります。
     - WD の混在を検出して警告してくれるツールもあります（当時はカメラギミックの導入ツールがチェッカー代わりに使われていました）。
   tags: [Unity, VRChat, Modular Avatar, アニメーション]

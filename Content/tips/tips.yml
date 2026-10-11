@@ -40,7 +40,7 @@
   cause: 面の表裏（法線）が裏返っている。ミラーや押し出しのあとに起きやすい。
   fix: |
     - 3D ビューの「オーバーレイ > 面の向き」で確認する（表が青、裏が赤）
-    - 編集モードで <kbd>A</kbd> → <kbd>Shift</kbd>+<kbd>N</kbd>（外側を再計算）
+    - 編集モードで <kbd>A</kbd> → <kbd>Shift</kbd>+<kbd>N</kbd>（面の向きを外側に揃える）
     - 直らない面だけ選んで「メッシュ > ノーマル > 反転」
   tags: [Blender, Unity, モデリング]
   shortcuts: [Shift+N, A]
@@ -133,9 +133,9 @@
 - id: fbx-leaf-bones
   title: Unity で余計なボーン（_end）が増えている
   symptom: 書き出した FBX を Unity に入れると、ボーンの先に「〜_end」というボーンが増えている。
-  cause: FBX 書き出しの「リーフボーンを追加」（Add Leaf Bones）がオンになっている。
+  cause: FBX 書き出しの「リーフボーン追加」（Add Leaf Bones）がオンになっている。
   fix: |
-    - FBX の書き出しで、アーマチュアの **リーフボーンを追加** をオフにする
+    - FBX の書き出しで、アーマチュアの **リーフボーン追加** をオフにする
     - あわせて「選択したオブジェクト」で、服とアーマチュアだけを書き出す
   tags: [Blender, Unity, 書き出し]
   articles: [avatar-clothing/export-fbx]
@@ -146,7 +146,8 @@
   cause: Blender（Z が上）と Unity（Y が上）の軸の違いが、オブジェクトの回転として残っている。
   fix: |
     - 書き出す前に <kbd>Ctrl</kbd>+<kbd>A</kbd> > 全トランスフォーム を適用する
-    - FBX 書き出しの「トランスフォーム」で、前方 -Z・上 Y、「変換を適用」を試す（衣装の配布元の推奨設定があればそれに従う）
+    - FBX 書き出しの「トランスフォーム」の前方 -Z・上 Y（既定値）を変えていないか確かめる（衣装の配布元の推奨設定があればそれに従う）
+    - 同じ欄の「トランスフォームを適用」は実験的な機能で、アーマチュアでは正しく動かないことがわかっているので、アバターでは使わない
   tags: [Blender, Unity, 書き出し]
   shortcuts: [Ctrl+A]
   articles: [avatar-clothing/export-fbx]
@@ -184,7 +185,7 @@
   cause: Blender は、シェイプキーを持つメッシュへのモディファイアーの適用を（そのままでは）できない。
   fix: |
     - シェイプキーを作る前に、ミラーなどのモディファイアーを適用しておく（作業の順番で避ける）
-    - すでにシェイプキーがある場合は、モディファイアーを残したまま書き出す（FBX 書き出しの「モディファイアーを適用」）か、シェイプキーを保ったまま適用するアドオンを使う
+    - すでにシェイプキーがある場合は、シェイプキーを保ったまま適用するアドオンを使う。FBX 書き出しの「モディファイアーを適用」をオンにすると、シェイプキーが書き出されなくなるので代わりにはならない
   tags: [Blender, リギング, モデリング]
   articles: [rigging/shape-keys, basics/modifiers]
   keywords: [ApplyModifier, Transfer Weights, Basis]
@@ -204,9 +205,9 @@
 - id: shape-keys-lost
   title: Unity でシェイプキー（ブレンドシェイプ）が出ない
   symptom: Blender で作ったシェイプキーが、Unity の Skinned Mesh Renderer の BlendShapes に出てこない。
-  cause: FBX 書き出しでシェイプキーが書き出されていない、またはモディファイアーの適用でシェイプキーが失われている。
+  cause: FBX 書き出しの「モディファイアーを適用」がオンになっていて、シェイプキーが書き出されていない。
   fix: |
-    - FBX 書き出しで、メッシュの「シェイプキー」がオンになっているか確かめる
+    - FBX 書き出しの **ジオメトリ > モディファイアーを適用** をオフにして書き出し直す（オンだとシェイプキーが書き出されない）
     - 書き出し前に、メッシュにシェイプキーが残っているか（プロパティ > データ > シェイプキー）確かめる
     - Unity 側で FBX の Import Settings > Model > **Import BlendShapes** がオンか確かめる
   tags: [Blender, Unity, 書き出し]
@@ -237,7 +238,7 @@
 - id: unity-version
   title: Unity のバージョンが違うと言われる
   symptom: VCC / ALCOM でプロジェクトを開くと、Unity のバージョンが違う・見つからないと表示される。SDK が入らない。
-  cause: VRChat が対応している Unity のバージョン（2022.3 系の決まったバージョン）以外で開いている。
+  cause: VRChat が対応している Unity のバージョン（2026 年 10 月時点は 2022.3.22f1）以外で開いている。
   fix: |
     - VCC / ALCOM が案内する Unity のバージョンを、Unity Hub から入れる
     - 新しいプロジェクトは VCC / ALCOM から作る（Unity Hub から直接作らない）
@@ -254,16 +255,18 @@
     - Unity を上げたら VRChat SDK も最新に更新します。
     - 当時の事例: 2022.3.6f1 → 2022.3.22f1 への移行はそのまま開け（初回起動は時間がかかる）、FBX のフレームレートに関する警告が出た程度でアップロードできました。
     - 大きくバージョンが変わる場合（メジャー更新）は、新しいプロジェクトを作って移行する方が安全なこともあります。
+    - VRChat が指定するより新しい Unity（Unity 6 など）でアップロードしたものは、VRChat で読み込めません。VRChat の案内が出るまでは上げないでください。
   source: discord
 
 - id: cannot-upload
-  title: Build and Upload のボタンが押せない
+  title: Build & Publish のボタンが押せない
   symptom: SDK の Builder でアップロードのボタンが灰色、または赤いエラーが並んでいる。
-  cause: VRC Avatar Descriptor が無い、Humanoid でない、ログインしていない、などの検査エラー。
+  cause: VRC Avatar Descriptor が無い、Humanoid でない、ログインしていない、権利の確認にチェックしていない、などの検査エラー。
   fix: |
     - Builder の一覧の赤いエラーを上から読む。「Auto Fix」があるものは押す
     - アバターのルートに VRC Avatar Descriptor が付いているか、FBX の Rig が Humanoid か確かめる
     - Authentication タブでログインしているか確かめる
+    - アップロードできるのはトラストランクが New User 以上のアカウント（Visitor は Build & Test だけ使える）
   tags: [VRChat, Unity]
 
 - id: overwrote-avatar
@@ -273,6 +276,7 @@
   fix: |
     - アップロード前に、アバターの Pipeline Manager で **Detach** して Blueprint ID を外す
     - 上書きしてしまったら、前のアバターのプロジェクトから同じ Blueprint ID でアップロードし直して戻す
+    - Blueprint ID は SDK の Content Manager タブでも確かめられる
   tags: [VRChat]
 
 - id: very-poor
@@ -296,7 +300,7 @@
     - マテリアル数は「実際に使っているマテリアルの種類」ではなく **スロット数** で数えられます。
     - 衣装を複数入れて切り替えると、非表示のメッシュもカウントされてすぐ上限を超えます。
     - 目安として、集会など人の多い場所に行くときは衣装 1 着だけの軽量版アバターを別に用意する方法があります。
-    - 各ランクの具体的な上限値は VRChat 公式の「Avatar Performance Ranking System」ページで確認してください（PC/Android で異なります）。
+    - 各ランクの具体的な上限値は VRChat 公式の「Avatar Performance Ranking System」ページで確認してください（PC/Android で異なります）。PC では Very Poor でもアップロード・表示はできますが、Android（Quest など）では Very Poor のアバターは表示されません。
     - Cloth コンポーネントは評価が厳しく、すぐ Very Poor になります。
     - 詳しい手順は [アバターの軽量化](/qa#avatar-lightweight) を参照してください。
   source: discord
@@ -513,7 +517,7 @@
       - シュリンクラップしたソックス・タイツの縁を整える（Circle、Space）
       - 胸のサイズ変更などでガタついたメッシュを均す（Relax）
     - 導入: Blender 4.2 以降は `Edit > Preferences > Get Extensions` から LoopTools を検索してインストールします（以前は標準同梱アドオンで、有効化するだけでした）。
-    - 使い方: 編集モードで辺ループを選択 → 右クリックメニューまたは `Edit` メニューの LoopTools から実行します。
+    - 使い方: 編集モードで辺ループを選択 → 右クリックメニューの LoopTools から実行します。
   tags: [Blender, 衣装]
   source: discord
 
@@ -796,12 +800,13 @@
 
 - id: unity-scene-view-navigation
   title: Unity の Scene ビューで視点を動かす・拡大する
-  summary: マウスホイールで拡大縮小、右ドラッグで視点の回転、中ボタン（ホイール）ドラッグで平行移動、Hierarchy でオブジェクトを選んで F キーでそのオブジェクトにフォーカスします。
+  summary: マウスホイールで拡大縮小、Alt + 左ドラッグで視点の回転、中ボタン（ホイール）ドラッグで平行移動、Hierarchy でオブジェクトを選んで F キーでそのオブジェクトにフォーカスします。
   body: |-
     | 操作 | 方法 |
     |---|---|
     | 拡大・縮小 | マウスホイール |
-    | 視点の回転 | 右ボタンドラッグ（Alt + 左ドラッグでも周回） |
+    | 視点の回転（周回） | Alt + 左ドラッグ |
+    | その場で見回す | 右ボタンドラッグ |
     | 平行移動 | 中ボタン（ホイール）ドラッグ |
     | 選択物にフォーカス | Hierarchy で選択して `F`（Scene ビュー上で） |
     | 飛行移動 | 右ボタンを押しながら `W` `A` `S` `D` |

@@ -40,7 +40,7 @@ shortcuts: [Shift+D, P, Alt+S, Tab, Alt+クリック, Ctrl+R, O, X, Ctrl+A]
 複製したままだと体と完全に重なっていて、Unity で表示したときにチラつきます（Z ファイティング）。
 
 1. `Shirt` を選んで <kbd>Tab</kbd> で編集モードに入り、<kbd>A</kbd> で全選択
-2. <kbd>Alt</kbd>+<kbd>S</kbd>（法線方向に収縮 / 膨張）を押し、`0.005` と入力して <kbd>Enter</kbd>
+2. <kbd>Alt</kbd>+<kbd>S</kbd>（収縮/膨張）を押し、`0.005` と入力して <kbd>Enter</kbd>
 
 面の向きに沿って均等に 5 mm ふくらみます。体がどこからも透けなければ OK です。
 

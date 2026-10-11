@@ -144,9 +144,9 @@
 
 - id: fix-normals
   question: 面の向き（表裏）をそろえたい
-  answer: 法線を外側に再計算
+  answer: 面の向きを外側に揃える
   answer_en: Recalculate Outside
-  menu: 編集モード > メッシュ > ノーマル > 外側を再計算
+  menu: 編集モード > メッシュ > ノーマル > 面の向きを外側に揃える
   menu_en: Mesh > Normals > Recalculate Outside
   shortcuts: [Shift+N]
   note: 全選択してから実行する。確認は「オーバーレイ > 面の向き」（表が青、裏が赤）。
@@ -243,7 +243,7 @@
   answer_en: Shrinkwrap Modifier
   menu: プロパティ > モディファイアー > 追加 > 変形 > シュリンクラップ
   menu_en: Add Modifier > Deform > Shrinkwrap
-  note: 「オフセット」で体から少し浮かせる。頂点を均等に膨らませるだけなら編集モードの <kbd>Alt</kbd>+<kbd>S</kbd>（法線方向に収縮 / 膨張）。
+  note: 「オフセット」で体から少し浮かせる。頂点を均等に膨らませるだけなら編集モードの <kbd>Alt</kbd>+<kbd>S</kbd>（**収縮/膨張**。面の向きに沿って動かす）。
   aliases: [体に吸い付ける, 沿わせる]
   tags: [Blender, モデリング]
   articles: [avatar-clothing/base-shape]
@@ -263,7 +263,7 @@
     7. 残る貫通は、素体と衣装のポリゴン位置の差が原因です。貫通箇所を細分化する、衣装を少し膨らませるなどで対処します。
     - 関節付近（お腹、肩など）は IK で動いたときに貫通しやすいので、何往復か確認・微調整します。
     - シュリンクラップは楽ですが UV が歪みがちです。きれいに仕上げたい場合は事前にポリゴンが素体に沿って並ぶよう位置調整してからかけるか、プロポーショナル編集で地道に合わせます。
-    - 3.x 以降はシュリンクラップのモードが増えているので、仕上がりを比べて選びます。
+    - シュリンクラップには「ラップ方法」（最近接表面の点、ターゲットの法線で投影 など）と「スナップモード」（サーフェスの外側 など）があるので、仕上がりを比べて選びます。
   source: discord
 
 - id: add-thickness
@@ -305,13 +305,14 @@
 
     1. 衣装メッシュに `データ転送（Data Transfer）` モディファイアーを追加します。
     2. ソースに素体のメッシュを指定し、`頂点データ` にチェック → `頂点グループ`、マッピングは `最近接面の補間（Nearest Face Interpolated）` を選びます。
-    3. 必要なら `データレイヤーを生成` を押し、モディファイアーを適用します。シェイプキーがあると適用できません。
-    4. Armature モディファイアーはデータ転送より上（先）に残しておきます。
+    3. `データレイヤーを生成` を押し、モディファイアーを適用します。シェイプキーがあると適用できません。
+    4. 適用する前に確かめるときは、データ転送モディファイアーを Armature モディファイアーより上に置きます（下にあると、転送したウェイトが変形に使われません）。Armature モディファイアーは適用せずに残します。
 
     **方法 B: ウェイトペイントモードの転送（シェイプキーがあっても可）**
 
     1. 素体 → 衣装の順に選択（衣装がアクティブ）し、ウェイトペイントモードにします。
-    2. `ウェイト > ウェイトを転送` を実行し、左下のパネルでソースのレイヤー・マッピング方法を設定します。
+    2. `ウェイト > ウェイトを転送` を実行し、左下のパネルで `転送元レイヤーの選択` をすべてのレイヤー（All Layers）にし、`頂点マッピング` を `最近接面の補間` にします。既定ではアクティブな頂点グループ 1 つだけが転送されます。
+    3. パネルで設定を変えたあとに頂点グループを選び直すと、やり直しになることがあります。おかしくなったら、もう一度 `ウェイトを転送` を実行します。
 
     **仕上げ**
 
@@ -358,10 +359,10 @@
 - id: dress-outfit
   question: 衣装をアバターに着せたい
   answer: Setup Outfit（Modular Avatar）
-  answer_en: "[ModularAvatar] Setup Outfit"
+  answer_en: Modular Avatar > Setup Outfit
   menu: 衣装をアバターの子にする → 衣装を右クリック > Modular Avatar > Setup Outfit
   menu_en: Right-click outfit > Modular Avatar > Setup Outfit
-  note: 衣装のアーマチュアに MA Merge Armature が付き、アップロード時にアバターのボーンへ統合される。衣装がそのアバターに対応しているか先に確かめる。
+  note: 衣装のアーマチュアに MA Merge Armature、衣装のルートに MA Outfit Root と MA Mesh Settings が付き、アップロード時に衣装のボーンがアバターのボーンへ統合される。衣装がそのアバターに対応しているか先に確かめる。
   aliases: [着せ替え, 衣装を入れる, 服を着せる]
   tags: [Unity, Modular Avatar]
   articles: [avatar-clothing/unity-setup]
@@ -374,8 +375,8 @@
     1. Modular Avatar（MA）を VCC / ALCOM でプロジェクトに追加します。
     2. アバターと衣装の unitypackage をインポートし、アバターの Prefab を Hierarchy に置きます。
     3. 衣装の **Prefab**（FBX ではなく）をアバターのルートの子にドラッグします。
-    4. 衣装のルートを右クリック → `ModularAvatar > Setup Outfit` を実行します。衣装のボーンがアップロード時にアバターのボーンへ統合されます。
-    5. 元の服を消す場合は、元の服メッシュを非アクティブ化（または EditorOnly）にします。素体が衣装を突き抜ける場合は、作者が用意したシェイプキー（体を細くする等）を設定します。
+    4. 衣装のルートを右クリック → `Modular Avatar > Setup Outfit` を実行します。衣装のボーンがアップロード時にアバターのボーンへ統合されます。
+    5. 元の服を消す場合は、元の服メッシュを非アクティブにし、Tag を EditorOnly にします（非アクティブにしただけのものもアップロードに含まれます）。素体が衣装を突き抜ける場合は、作者が用意したシェイプキー（体を細くする等）を設定します。
     - 衣装の切り替えをメニューから行いたい場合は [衣装・小物の ON/OFF](/howto#toggle-objects) を参照してください。
     - **当時の方法**: Blender でアバターと衣装のアーマチュアを結合してボーンを統合する方法（[Blender で対応衣装を着せる](/qa#dress-compatible-outfit-blender-old)）や、Unity 上で衣装ボーンを素体ボーンの子に入れる方法、Auto Dresser などのツールが使われていました。
   source: discord
@@ -386,7 +387,7 @@
   answer_en: Deactivate GameObject
   menu: Hierarchy で服のメッシュを選び、Inspector 左上のチェックを外す
   menu_en: Inspector > uncheck the active checkbox
-  note: 無効にしたものもアップロードに含まれることがある。完全に外すなら Tag を EditorOnly にする（または削除）。
+  note: 無効にしただけのものもアップロードに含まれ、パフォーマンスランクの計算にも入る。外すなら Tag を EditorOnly にする（または削除）。
   aliases: [服を脱がせる, 非表示, 元の服を隠す]
   tags: [Unity]
   articles: [avatar-clothing/unity-setup]
@@ -429,19 +430,19 @@
   answer: Build & Test
   answer_en: Build & Test
   menu: VRChat SDK > Show Control Panel > Builder > Build & Test
-  menu_en: VRChat SDK > Show Control Panel > Builder > Build & Test (Your Avatar)
-  note: 自分の PC の VRChat でだけ使えるアバターとして読み込まれる（メニューの「アバター > その他」）。
-  aliases: [ローカルテスト, テストアップロード]
+  menu_en: VRChat SDK > Show Control Panel > Builder > Build & Test
+  note: 自分の PC の VRChat でだけ使えるアバターとして読み込まれる（アバターのメニューの **SDK Test Avatars** の欄）。アップロードはされない。
+  aliases: [ローカルテスト, テストアップロード, Build and Test]
   tags: [VRChat]
 
 - id: upload-avatar
   question: アバターを VRChat にアップロードしたい
-  answer: Build and Upload
-  answer_en: Build and Upload
-  menu: VRChat SDK > Show Control Panel > Builder > Build and Upload
-  menu_en: VRChat SDK > Show Control Panel > Builder > Build and Upload
-  note: 先に Authentication でログインしておく。Builder に赤いエラーが出ているとアップロードできない。
-  aliases: [アップロード, 公開]
+  answer: Build & Publish
+  answer_en: Build & Publish
+  menu: VRChat SDK > Show Control Panel > Builder > Build & Publish
+  menu_en: VRChat SDK > Show Control Panel > Builder > Build & Publish
+  note: 先に Authentication でログインしておく。Builder に赤いエラーが出ているとアップロードできない。アップロードできるのはトラストランクが New User 以上のアカウント。
+  aliases: [アップロード, 公開, Build and Upload]
   tags: [VRChat]
 
 - id: check-performance
@@ -521,9 +522,9 @@
   answer_en: Decimate
   menu: プロパティ > モディファイアー > 追加 > 生成 > デシメート
   menu_en: Properties > Modifiers > Add Modifier > Generate > Decimate
-  note: Blender の Decimate（ポリゴン数削減）モディファイアーで比率を下げて適用します。頂点を手で削除・溶解するとシェイプキーや UV が壊れやすいので避けます。
+  note: Blender の デシメート（Decimate）モディファイアーで比率を下げて適用します。頂点を手で削除・溶解するとシェイプキーや UV が壊れやすいので避けます。
   body: |-
-    1. 対象メッシュに `Decimate（ポリゴン数削減）` モディファイアーを追加し、`Ratio` を下げて見た目を確認します。
+    1. 対象メッシュに `デシメート（Decimate）` モディファイアーを追加し、`比率`（Ratio）を下げて見た目を確認します。
     2. 問題なければ適用します。メッシュ構造は汚くなりますが、揺れたときの見た目の差は意外と小さいです。
     - **シェイプキーがあるメッシュ** はモディファイアーを通常の方法では適用できません（[シェイプキーとモディファイアー](/tips#shape-key-modifier)）。当時は CATS の Decimation（シェイプキー保持）を使う方法がありました。
     - **シェイプキー設定後に頂点数を変える（頂点削除・溶解）とメッシュが爆発する** ことがあります。溶解は残った頂点で面を張り直すので形も崩れます。
@@ -535,16 +536,19 @@
 
 - id: toggle-objects
   question: 衣装や小物をメニューで ON / OFF したい
-  answer: MA Object Toggle（Modular Avatar）
-  answer_en: MA Object Toggle / MA Menu Item
-  menu: Inspector > Add Component > Modular Avatar > MA Object Toggle
-  note: 現行は Modular Avatar の Object Toggle（または Menu Item）を使うと、アニメーションやパラメーターを手書きせずに Expressions メニューから表示を切り替えられます。
+  answer: Create Toggle（Modular Avatar の MA Object Toggle）
+  answer_en: Modular Avatar > Create Toggle
+  menu: Hierarchy でアバターを右クリック > Modular Avatar > Create Toggle
+  menu_en: Right-click avatar > Modular Avatar > Create Toggle
+  note: アバターを右クリックして **Modular Avatar > Create Toggle** を選ぶと、MA Menu Installer・MA Menu Item・MA Object Toggle の付いたオブジェクトが作られます。Object Toggle の **+** で切り替えたいオブジェクトを入れるだけで、アニメーションやパラメーターを手書きせずに Expression メニューから表示を切り替えられます。
   body: |-
     **現行（Modular Avatar）**
 
-    1. アバター内に空のオブジェクトを作り、`MA Menu Installer` と `MA Menu Item` を付けます（メニューの置き場所を指定）。
-    2. 同じオブジェクトに `MA Object Toggle` を付け、切り替えたいオブジェクト（上着、帽子など）を登録します。
-    3. 初期状態（ON/OFF）や保存（Saved）・同期（Synced）を設定します。
+    1. Hierarchy でアバター（ルート）を右クリックし、`Modular Avatar > Create Toggle` を選びます。アバターの中に、`MA Menu Installer`・`MA Menu Item`・`MA Object Toggle` の付いたオブジェクトが作られます。オブジェクトの名前がメニューの項目名になります。
+    2. `MA Object Toggle` の `+` で、切り替えたいオブジェクト（上着、帽子など）を入れます。チェックが付いていると「メニューを ON にしたら表示」、外すと「メニューを ON にしたら隠す」になります。
+    3. `MA Menu Item` で、初期状態（`初期設定にする` / Is Default）、保存（`保存する` / Saved）、同期（`同期する` / Synced）を設定します。
+    - 複数のオブジェクトを選んで `Modular Avatar > Create Toggle for Selection` を使うと、選んだものごとのトグルをまとめて作れます。
+    - 手で組む場合は、空のオブジェクトに `MA Menu Installer` と `MA Menu Item` を付け、同じオブジェクトに `MA Object Toggle`（`Add Component > Modular Avatar > MA Object Toggle`）を付けます。
     - 衣装のズボンとスカートのように両方入っている衣装は、使わない方を非アクティブにするか削除し、両方使うならトグルで切り替えます。
 
     **当時の方法**
@@ -556,6 +560,7 @@
   tags: [Unity, VRChat, Modular Avatar, アニメーション]
   articles: [unity/modular-avatar-outfit]
   related: [expressions]
+  keywords: [Create Toggle, MA Menu Item, MA Menu Installer]
   source: discord
 
 - id: apply-pose-as-rest
@@ -592,7 +597,7 @@
   body: |-
     - **ウェイトを 0 にする**: 編集モードで、消したい範囲の頂点を選択（別グループの `選択` ボタンで選ぶと便利）→ ウェイトを消したい頂点グループをアクティブにし、ウェイト値 `0` で **割り当て**。グラデーションを残したい場合は手で塗るしかありません。
     - **正規化**: ウェイトペイントモードで `ウェイト > すべてを正規化`。1 頂点に 3 つ以上の頂点グループが関わる場合は、それらすべてに影響する点に注意します。元の服のウェイトが正規化されていないまま転送すると、意図しない影響が出ることがあります。
-    - **グループ A から B の分を差し引く**: `頂点ウェイト合成（Vertex Weight Mix）` モディファイアーで、A を対象、B を合成元にして減算モードで適用します。
+    - **グループ A から B の分を差し引く**: `頂点ウェイト合成（Vertex Weight Mix）` モディファイアーで、頂点グループ A に A、頂点グループ B に B を指定し、`ミックスモード` を `減算` にして、対象にする頂点（`頂点セット`）を選んでから適用します。
   aliases: [正規化, ウェイトを消す, 頂点ウェイト合成]
   tags: [Blender, ウェイト]
   articles: [rigging/weight-paint]
@@ -605,15 +610,15 @@
   body: |-
     **1. MatCap でツヤを出す**
 
-    - マテリアルの MatCap に、天使の輪のような白黒の模様の画像を設定します。見る角度で変化するため、リアルなツヤ感が出ます。
+    - マテリアルの MatCap（lilToon では「マットキャップ設定」）に、天使の輪のような白黒の模様の画像を設定します。見る角度で変化するため、リアルなツヤ感が出ます。
 
     **2. ヘアラインのノーマルマップで毛並み感を出す**
 
     1. ライセンス上問題のないヘアライン（髪の筋）画像を用意するか、自分で描きます。髪テクスチャの向きが一方向でない場合は、テクスチャの毛の流れに合わせて筋の向きを描き分けます。
     2. 白黒の画像からノーマルマップを作ります。
-       - **Unity だけで作る**: 画像の Import 設定で `Texture Type` を `Normal map` にし、`Create from Grayscale` にチェック、凹凸の強さ（Bumpiness）を小さめ（例: 0.02 前後）にして Apply。
+       - **Unity だけで作る**: 画像の Import 設定で `Texture Type` を `Normal map` にし、`Create From Grayscale` にチェック、凹凸の強さ（Bumpiness）を小さめ（例: 0.02 前後）にして Apply。
        - **GIMP で作る**: ノーマルマップ生成プラグインを入れて変換します。
-    3. 髪マテリアルのノーマルマップ欄に設定し、強さを 0.05〜0.5 程度で調整します。
+    3. 髪マテリアルのノーマルマップ欄（lilToon では「ノーマルマップ設定」）に設定し、強さ（ノーマルマップ強度）を 0.05〜0.5 程度で調整します。
     - 手軽な方法として、髪のメインテクスチャを複製して上記の方法でノーマルマップにするやり方もあります（平坦なテクスチャではうまくいきません）。
     - ノーマルマップはテクスチャが 1 枚増えるので、その分データ容量が増えます。
     - 本来はスカルプトで凹凸を作って転写するものですが、描いた画像からでも十分効果があります。

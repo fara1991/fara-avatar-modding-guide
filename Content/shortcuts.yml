@@ -80,8 +80,8 @@
 - { key: Ctrl+V,        function: 頂点メニュー,             category: モデリング, description: 頂点のスムーズ、頂点グループへの割り当てなどの操作 }
 - { key: Alt+M,         function: 分割,                     category: モデリング, description: 選択した部分を切り離して別のメッシュ要素にする（くっついたまま） }
 - { key: P,             function: 分離,                     category: モデリング, description: 選択した部分を別オブジェクトに分離 }
-- { key: Alt+S,         function: 法線方向に収縮 / 膨張,    category: モデリング, description: 面の向きに沿って均等に太らせる / 細らせる（服を体から浮かせるときに） }
-- { key: Shift+N,       function: 法線を外側に再計算,       category: モデリング, description: 面の表裏をそろえる。裏返った面が黒く見えるときに }
+- { key: Alt+S,         function: 収縮/膨張,               category: モデリング, description: 面の向きに沿って均等に太らせる / 細らせる（服を体から浮かせるときに） }
+- { key: Shift+N,       function: 面の向きを外側に揃える,   category: モデリング, description: 面の表裏をそろえる。裏返った面が黒く見えるときに }
 - { key: U,             function: UV マッピングメニュー,    category: UV,         description: 展開、スマート UV 投影などの UV 展開の方法を選ぶ }
 
 # ペイント・リギング
