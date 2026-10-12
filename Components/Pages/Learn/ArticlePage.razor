@@ -64,7 +64,7 @@ else
             <ol class="toc-list">
                 @foreach (var h in headings)
                 {
-                    <li><a href="#@h.Id">@h.Text</a></li>
+                    <li><a href="@article.Url#@h.Id">@h.Text</a></li>
                 }
             </ol>
         </details>
@@ -88,7 +88,7 @@ else
                             <ol class="toc-list">
                                 @foreach (var h in headings)
                                 {
-                                    <li><a href="#@h.Id">@h.Text</a></li>
+                                    <li><a href="@article.Url#@h.Id">@h.Text</a></li>
                                 }
                             </ol>
                         </nav>

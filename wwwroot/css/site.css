@@ -1203,13 +1203,15 @@ body {
 
 .tut-head {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap; /* 手順の数字の幅で折り返しが変わり、下の内容がずれないように */
     align-items: center;
     gap: 0.6rem;
     margin-bottom: 0.5rem;
 }
 
 .tut-label {
+    flex: none;
+    white-space: nowrap;
     padding: 2px 10px;
     border-radius: 999px;
     background: linear-gradient(135deg, var(--violet), var(--indigo));
@@ -1219,11 +1221,14 @@ body {
 }
 
 .tut-title {
+    min-width: 0;
     font-weight: 700;
 }
 
 .tut-count {
+    flex: none;
     margin-left: auto;
+    font-variant-numeric: tabular-nums;
     color: var(--bs-secondary-color);
     font-family: "Outfit", system-ui, sans-serif;
     font-size: 0.85rem;
@@ -2487,11 +2492,26 @@ kbd {
     position: sticky;
     top: 4.75rem;
     max-height: calc(100vh - 5.5rem);
-    overflow-y: auto;
-    overscroll-behavior: contain;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+/* 低い画面では目次とキー一覧が縮み、それぞれの中でスクロールする（どちらも見えたままにする） */
+.article-toc,
+.article-aside .article-keys {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.article-toc {
+    min-height: 8rem;
+}
+
+.article-aside .article-keys {
+    min-height: 9rem;
 }
 
 .article-toc-title {
@@ -2564,6 +2584,10 @@ kbd {
     .article-aside {
         position: static;
         max-height: none;
+    }
+
+    .article-toc,
+    .article-aside .article-keys {
         overflow: visible;
     }
 }

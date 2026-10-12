@@ -1,7 +1,9 @@
 @inherits LayoutComponentBase
 @inject IOptions<SiteOptions> Site
+@inject NavigationManager Nav
 
-<a class="skip-link" href="#main-content">本文へスキップ</a>
+@* <base href="/"> があるので、# だけの href はトップへ飛んでしまう。いまのパスを付ける *@
+<a class="skip-link" href="@(new Uri(Nav.Uri).AbsolutePath)#main-content">本文へスキップ</a>
 
 <div class="page">
     <div class="sidebar">
