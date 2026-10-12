@@ -11,10 +11,11 @@
 </nav>
 
 <h1>みんなで練習</h1>
-<p class="lead">URL を共有すると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
+<TouchPracticeGuide PcScript="/js/room.js" Embed="false" Items="TouchItems" Message="部屋の 3D ビューはキーボードとマウスで操作します。スマートフォンでは操作できないので、パソコンで開いてください。操作の流れは、次の記事で画像を見られます。" />
+<p class="lead practice-pc-only">URL を共有すると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
 
 @* 本体は wwwroot/js/room.js（3D ビューは viewport.js）。部屋の同期は worker/index.js の Durable Object *@
-<div id="room-lobby" class="card mb-4" hidden>
+<div id="room-lobby" class="card mb-4 practice-pc-only" hidden>
     <div class="card-body">
         <h2 class="h5">部屋を作る</h2>
         <p class="mb-3">ログインは不要です。部屋を作ったら、表示される URL を一緒に練習する人に送ってください。</p>
@@ -22,7 +23,7 @@
     </div>
 </div>
 
-<div id="room-main" class="row g-4" hidden>
+<div id="room-main" class="row g-4 practice-pc-only" hidden>
     <div class="col-lg-8">
         <div class="practice-viewport" id="room-viewport" tabindex="0" aria-label="3D ビューポート"></div>
         <div class="d-flex flex-wrap gap-2 align-items-center mt-2 small text-body-secondary">
@@ -75,4 +76,12 @@
     }
 }
 </script>
-<script type="module" src="/js/room.js"></script>
+<script type="module" src="/js/touch-practice.js"></script>
+
+@code {
+    private static readonly TouchPracticeGuide.Item[] TouchItems =
+    [
+        new("select", "選択・追加・削除・複製", "/learn/basics/select"),
+        new("transform", "移動・回転・スケール", "/learn/basics/transform"),
+    ];
+}

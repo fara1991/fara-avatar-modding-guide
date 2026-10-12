@@ -4,11 +4,14 @@
 <PageTitle>操作の練習 - @Site.Value.Title</PageTitle>
 
 <h1>操作の練習</h1>
+<TouchPracticeGuide PcScript="/js/practice.js" Items="TouchItems" />
+<div class="practice-pc-only">
 <p class="lead">ブラウザ上の 3D ビューで、Blender と同じキー操作を試せます。下のお題を順にこなしてください。<kbd>Tab</kbd> で編集モードにも入れます。</p>
 <p class="text-body-secondary small">各記事の「やってみよう」では、同じビューで 1 キーずつ案内付きで操作できます（<a href="/learn/basics/transform">移動・回転・スケール</a> など）。ここは案内なしで自由に試す場所です。何人かで同じビューを操作したいときは <a href="/practice/room">みんなで練習</a> へ。</p>
+</div>
 
 @* 本体は wwwroot/js/practice.js と viewport.js（Three.js）。静的 SSR なので、ここは枠と文言だけ *@
-<div id="practice" class="row g-4">
+<div id="practice" class="row g-4 practice-pc-only">
     <div class="col-lg-8">
         @* HUD・サイドバーなどの中身は viewport.js が作る *@
         <div class="practice-viewport" id="practice-viewport" tabindex="0" aria-label="3D ビューポート"></div>
@@ -82,4 +85,17 @@
     }
 }
 </script>
-<script type="module" src="/js/practice.js"></script>
+<script type="module" src="/js/touch-practice.js"></script>
+
+@code {
+    // スマートフォン用: 練習のお題に対応する記事内チュートリアル（画像で見る）
+    private static readonly TouchPracticeGuide.Item[] TouchItems =
+    [
+        new("navigation-mouse", "マウスで視点を動かす", "/learn/getting-started/navigation"),
+        new("select", "選択・追加・削除・複製", "/learn/basics/select"),
+        new("transform", "移動・回転・スケール", "/learn/basics/transform"),
+        new("edit-mode", "編集モードの選択", "/learn/modeling/edit-mode"),
+        new("extrude-inset-loopcut", "押し出し・差し込み・ループカット", "/learn/modeling/extrude-inset-loopcut"),
+        new("bevel-merge", "ベベル・マージ・面を張る", "/learn/modeling/bevel-knife-merge"),
+    ];
+}

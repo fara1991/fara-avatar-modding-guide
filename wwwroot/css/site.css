@@ -2666,3 +2666,59 @@ main:focus {
     0%, 85% { opacity: 1; }
     100% { opacity: 0; }
 }
+
+/* 練習ページのスマートフォン向け案内（Components/Shared/TouchPracticeGuide.razor）。
+   タッチだけの端末（記事内チュートリアルの「画像で見る」と同じ判定）では、キーボード操作の練習を隠して案内を出す */
+@media (hover: none) and (pointer: coarse) {
+    .practice-pc-only {
+        display: none !important;
+    }
+}
+
+.touch-practice-note {
+    margin: 0 0 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border-strong);
+    border-left: 4px solid var(--bs-primary);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.touch-practice-note h2 {
+    margin-bottom: 0.4rem;
+}
+
+.touch-practice-links {
+    margin: 0 0 1rem;
+    padding-left: 0;
+}
+
+.touch-practice-links li {
+    padding: 0.35rem 0;
+}
+
+.touch-practice-item {
+    margin: 0 0 0.75rem;
+}
+
+.touch-practice-item > summary {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.touch-practice-sum {
+    font-weight: 400;
+    color: var(--bs-secondary-color);
+}
+
+.touch-practice-item[open] > summary {
+    margin-bottom: 0.5rem;
+}
+
+.touch-practice-item .practice-embed {
+    margin-top: 0.5rem;
+}
