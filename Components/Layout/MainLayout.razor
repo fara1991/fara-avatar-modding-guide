@@ -3,7 +3,7 @@
 @inject NavigationManager Nav
 
 @* <base href="/"> があるので、# だけの href はトップへ飛んでしまう。いまのパスを付ける *@
-<a class="skip-link" href="@(new Uri(Nav.Uri).AbsolutePath)#main-content">本文へスキップ</a>
+<a class="skip-link" href="@(new Uri(Nav.Uri).AbsolutePath)#main-content">本文へスキップ <kbd>Enter</kbd></a>
 
 <div class="page">
     <div class="sidebar">
