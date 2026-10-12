@@ -1,0 +1,42 @@
+@* スマートフォン・タブレット（タッチだけの端末）で練習ページを開いたときの案内。
+   キーボードとマウスが必要な練習は出さず、代わりに記事内チュートリアルの「画像で見る」を並べる（wwwroot/js/touch-practice.js が差し込む）。
+   PC では何も出ない（CSS で隠し、JS も動かない）。 *@
+<section class="touch-practice" id="touch-practice" aria-labelledby="touch-practice-title" data-pc-script="@PcScript" hidden>
+    <div class="touch-practice-note">
+        <h2 class="h5" id="touch-practice-title"><i class="bi bi-keyboard" aria-hidden="true"></i> この練習はパソコンで開いてください</h2>
+        <p class="mb-0">@Message</p>
+    </div>
+    @if (!Embed)
+    {
+        <ul class="touch-practice-links list-unstyled">
+            @foreach (var i in Items)
+            {
+                <li><a href="@i.Url">@i.Title</a></li>
+            }
+        </ul>
+    }
+    else
+    {
+        @* 実際の埋め込みは JS が差し込む（PC で 3D ビューを作らないため） *@
+        <template id="touch-practice-tpl">
+            @foreach (var i in Items)
+            {
+                <details class="touch-practice-item">
+                    <summary>@i.Title<span class="touch-practice-sum"> を画像で見る</span></summary>
+                    <div class="practice-embed" data-scenario="@i.Scenario"></div>
+                    <p class="small mb-0"><a href="@i.Url">記事を開く</a></p>
+                </details>
+            }
+        </template>
+    }
+</section>
+
+@code {
+    public record Item(string Scenario, string Title, string Url);
+
+    [Parameter, EditorRequired] public IReadOnlyList<Item> Items { get; set; } = [];
+    /// <summary>PC で読み込む本来の練習のスクリプト</summary>
+    [Parameter, EditorRequired] public string PcScript { get; set; } = "";
+    [Parameter] public bool Embed { get; set; } = true;
+    [Parameter] public string Message { get; set; } = "キーボードとマウスが必要なので、スマートフォンでは操作できません。代わりに、手順を画像で見られます。";
+}
