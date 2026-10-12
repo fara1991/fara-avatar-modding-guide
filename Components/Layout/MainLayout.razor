@@ -1,12 +1,16 @@
 @inherits LayoutComponentBase
 @inject IOptions<SiteOptions> Site
+@inject NavigationManager Nav
+
+@* <base href="/"> があるので、# だけの href はトップへ飛んでしまう。いまのパスを付ける *@
+<a class="skip-link" href="@(new Uri(Nav.Uri).AbsolutePath)#main-content">本文へスキップ</a>
 
 <div class="page">
     <div class="sidebar">
         <NavMenu />
     </div>
 
-    <main>
+    <main id="main-content" tabindex="-1">
         @* サイト内検索（すべてのページ）。候補の表示は wwwroot/js/quicksearch.js。JS がなくても /search へ送信できる *@
         <header class="site-header px-4">
             <form action="/search" method="get" role="search" class="quick-search" id="quick-search">

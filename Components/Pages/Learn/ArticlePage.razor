@@ -1,5 +1,7 @@
 @page "/learn/{CategoryId}/{Slug}"
 @inject ContentService Content
+@using System.Net
+@using System.Text.RegularExpressions
 @inject IOptions<SiteOptions> Site
 
 @if (article is null || category is null)
@@ -54,31 +56,62 @@ else
         }
     </header>
 
+    @* スマートフォンでは記事タイトルの下に畳んで置く。PC は右の列（toc.js が今読んでいる見出しを強調する） *@
+    @if (headings.Count > 0)
+    {
+        <details class="article-toc-mobile d-lg-none mb-4">
+            <summary>この記事の目次（@headings.Count）</summary>
+            <ol class="toc-list">
+                @foreach (var h in headings)
+                {
+                    <li><a href="@article.Url#@h.Id">@h.Text</a></li>
+                }
+            </ol>
+        </details>
+    }
+
     <div class="row g-4">
-        <div class="@(article.Shortcuts.Count > 0 ? "col-lg-9" : "col-12")">
+        <div class="@(hasAside ? "col-lg-9" : "col-12")">
             <div class="article-body">
                 @((MarkupString)article.Html)
             </div>
         </div>
 
-        @if (article.Shortcuts.Count > 0)
+        @if (hasAside)
         {
-            <aside class="col-lg-3">
-                <div class="card article-keys">
-                    <div class="card-header"><i class="bi bi-keyboard me-1" aria-hidden="true"></i>この記事で使うキー</div>
-                    <ul class="list-group list-group-flush">
-                        @foreach (var key in article.Shortcuts)
-                        {
-                            var shortcut = Content.Shortcuts.FirstOrDefault(s => s.Key == key);
-                            <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
-                                <kbd>@key</kbd>
-                                @if (shortcut is not null)
+            <aside class="col-lg-3" aria-label="この記事の補足">
+                <div class="article-aside">
+                    @if (headings.Count > 0)
+                    {
+                        <nav class="article-toc d-none d-lg-block" aria-labelledby="article-toc-title">
+                            <div class="article-toc-title" id="article-toc-title">この記事の目次</div>
+                            <ol class="toc-list">
+                                @foreach (var h in headings)
                                 {
-                                    <a href="/shortcuts?category=@Uri.EscapeDataString(shortcut.Category)" class="small text-decoration-none">@shortcut.Function</a>
+                                    <li><a href="@article.Url#@h.Id">@h.Text</a></li>
                                 }
-                            </li>
-                        }
-                    </ul>
+                            </ol>
+                        </nav>
+                    }
+                    @if (article.Shortcuts.Count > 0)
+                    {
+                        <div class="card article-keys">
+                            <div class="card-header"><i class="bi bi-keyboard me-1" aria-hidden="true"></i>この記事で使うキー</div>
+                            <ul class="list-group list-group-flush">
+                                @foreach (var key in article.Shortcuts)
+                                {
+                                    var shortcut = Content.Shortcuts.FirstOrDefault(s => s.Key == key);
+                                    <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                                        <kbd>@key</kbd>
+                                        @if (shortcut is not null)
+                                        {
+                                            <a href="/shortcuts?category=@Uri.EscapeDataString(shortcut.Category)" class="small text-decoration-none">@shortcut.Function</a>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
                 </div>
             </aside>
         }
@@ -110,6 +143,11 @@ else
         }
     </nav>
 
+    @if (headings.Count > 0)
+    {
+        <script src="/js/toc.js" defer></script>
+    }
+
     @if (article.PracticeScenarios.Count > 0)
     {
         @* 記事内チュートリアル（::: practice）。three.js は埋め込みが画面に入ったときに tutorial.js が読み込む *@
@@ -137,12 +175,30 @@ else
     private Article? article;
     private Article? prev;
     private Article? next;
+    private IReadOnlyList<TocItem> headings = [];
+    // 目次は h2 が 3 個以上の記事だけ。PC は右の列に目次とキー一覧を並べる
+    private bool hasAside => article is not null && (headings.Count > 0 || article.Shortcuts.Count > 0);
+
+    private sealed record TocItem(string Id, string Text);
+
+    private static readonly Regex H2Pattern = new(@"<h2 id=""([^""]+)""[^>]*>(.*?)</h2>", RegexOptions.Singleline | RegexOptions.Compiled);
+
+    /// <summary>本文 HTML の h2（Markdig が id を付けたもの）を拾う。2 個以下なら目次は出さない。</summary>
+    private static IReadOnlyList<TocItem> ExtractHeadings(string html)
+    {
+        var list = H2Pattern.Matches(html)
+            .Select(m => new TocItem(WebUtility.HtmlDecode(m.Groups[1].Value), WebUtility.HtmlDecode(Regex.Replace(m.Groups[2].Value, "<[^>]+>", "")).Trim()))
+            .Where(h => h.Text.Length > 0)
+            .ToList();
+        return list.Count > 2 ? list : [];
+    }
 
     protected override void OnParametersSet()
     {
         category = Content.GetCategory(CategoryId);
         article = category is null ? null : Content.GetArticle(category.Id, Slug);
         (prev, next) = article is null ? (null, null) : Content.GetNeighbors(article);
+        headings = article is null ? [] : ExtractHeadings(article.Html);
         if (article is null && HttpContext is not null)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;

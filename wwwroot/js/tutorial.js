@@ -10,6 +10,7 @@ import { SCENARIOS } from "./scenarios.js";
 
 const DONE_KEY = "avatar-modding-guide.tutorials"; // { シナリオ名: 完了日時 }
 const touchOnly = matchMedia("(hover: none) and (pointer: coarse)").matches;
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const tutorials = new Map();
 let active = null; // WebGL を使っている Tutorial
 
@@ -112,9 +113,9 @@ class Tutorial {
       ${this.stepsHtml()}
       <div class="tut-bubble" aria-live="polite">
         <div class="tut-text"></div>
-        <div class="tut-msg" hidden></div>
       </div>
       <div class="tut-stage">
+        <div class="tut-msg" hidden role="status"></div>
         <div class="tut-vp ${this.unity ? "" : "practice-viewport"}"></div>
         <div class="tut-keys" aria-hidden="true"></div>
         <div class="tut-ok" aria-hidden="true"><i class="bi bi-check-lg"></i></div>
@@ -141,7 +142,7 @@ class Tutorial {
       </div>`;
     const q = sel => this.el.querySelector(sel);
     this.ui = {
-      count: q(".tut-count"), bar: q(".tut-progress span"), text: q(".tut-bubble .tut-text"), msg: q(".tut-bubble .tut-msg"), bubble: q(".tut-bubble"),
+      count: q(".tut-count"), bar: q(".tut-progress span"), text: q(".tut-bubble .tut-text"), msg: q(".tut-msg"), bubble: q(".tut-bubble"),
       stage: q(".tut-stage"), vp: q(".tut-vp"), keys: q(".tut-keys"), ok: q(".tut-ok"),
       overlay: q(".tut-overlay"), overlayText: q(".tut-overlay-text"), complete: q(".tut-complete"), completeText: q(".tut-complete-text"),
       numpad: q('[data-act="numpad"]'), modeBtn: q('[data-act="images"]'),
@@ -164,6 +165,11 @@ class Tutorial {
     this.ui.overlay.addEventListener("click", () => this.onOverlay());
     this.ui.stage.addEventListener("focusin", () => this.updateOverlay());
     this.ui.stage.addEventListener("focusout", () => setTimeout(() => this.updateOverlay(), 0));
+    // 手順で吹き出しの行数が変わっても、下のビューが動かないように高さをそろえる（幅が変わったら測り直す）
+    this.fitBubble();
+    let lastW = this.el.clientWidth;
+    new ResizeObserver(() => { if (this.el.clientWidth !== lastW) { lastW = this.el.clientWidth; this.fitBubble(); } }).observe(this.el);
+    document.fonts?.ready.then(() => this.fitBubble());
     this.card = 0;
     this.ui.track.addEventListener("scroll", () => {
       const w = this.ui.track.clientWidth || 1;
@@ -199,6 +205,22 @@ class Tutorial {
       </div>`;
   }
 
+  /** 吹き出しの高さを、このチュートリアルで一番長い手順（と完了の文）に合わせて固定する */
+  fitBubble() {
+    const b = this.ui.bubble;
+    if (!b.offsetParent) return; // 画像で見ているあいだは非表示（測れない）
+    const text = this.ui.text;
+    const saved = text.innerHTML;
+    const stepHtml = (n, html) => `<span class="tut-step-no">${n}</span><span>${html}</span>`;
+    const variants = this.scenario.steps.map((st, i) => stepHtml(i + 1, st.text));
+    variants.push(stepHtml("✓", `「${escapeHtml(this.scenario.title)}」の手順はすべて終わりです。`));
+    b.style.minHeight = "";
+    let max = 0;
+    for (const v of variants) { text.innerHTML = v; max = Math.max(max, b.getBoundingClientRect().height); }
+    text.innerHTML = saved;
+    b.style.minHeight = `${Math.ceil(max)}px`;
+  }
+
   /** 画像で見る（on）/ 3D ビューで操作する（off） */
   setImageMode(on, initial = false) {
     this.imageMode = on;
@@ -210,7 +232,7 @@ class Tutorial {
       : '<i class="bi bi-images" aria-hidden="true"></i> 画像で見る';
     btn.setAttribute("aria-pressed", on ? "true" : "false");
     if (on) { this.suspend(); this.updateCards(); }
-    else if (!initial) this.activate();
+    else { if (!initial) this.activate(); this.fitBubble(); }
     this.renderStep();
   }
 
@@ -218,7 +240,7 @@ class Tutorial {
     const n = this.scenario.steps.length;
     this.card = Math.max(0, Math.min(n - 1, i));
     const t = this.ui.track;
-    t.scrollTo({ left: this.card * t.clientWidth, behavior: "smooth" });
+    t.scrollTo({ left: this.card * t.clientWidth, behavior: reduceMotion.matches ? "auto" : "smooth" });
     this.updateCards();
   }
 

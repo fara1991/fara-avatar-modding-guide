@@ -74,6 +74,7 @@ fara-avatar-modding-guide/
 │   │   ├── editmesh.js       # 編集モードのメッシュ（頂点・辺・面）と、押し出し・ループカットなどの操作
 │   │   ├── practice.js       # /practice のお題
 │   │   ├── tutorial.js       # 記事内チュートリアル（::: practice）の案内
+│   │   ├── toc.js            # 記事内の目次（h2 が 3 個以上の記事）で、今読んでいる見出しを強調
 │   │   ├── scenarios.js      # 記事内チュートリアルの手順
 │   │   ├── room.js           # みんなで練習（部屋）の通信
 │   │   ├── unity.js          # Unity エディターに似た練習用の画面（Hierarchy・Scene・Inspector・Project・VRChat SDK の再現）
