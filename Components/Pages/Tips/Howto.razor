@@ -16,7 +16,7 @@
         <div class="col-lg-6" data-tip-item>
             <article class="tip-card card h-100" id="@h.Id" data-tags="@string.Join('|', h.Tags)" data-source="@h.Source" data-aliases="@string.Join(' ', h.Aliases)">
                 <div class="card-body">
-                    <h2 class="h5 mb-2"><a href="#@h.Id" class="tip-anchor">@h.Question</a></h2>
+                    <h2 class="h5 mb-2"><a href="/howto#@h.Id" class="tip-anchor">@h.Question</a></h2>
                     <p class="howto-answer mb-2">
                         <i class="bi bi-arrow-return-right" aria-hidden="true"></i>
                         <strong>@h.Answer</strong>

@@ -12,7 +12,7 @@
 <nav class="links-toc mb-4" aria-label="区切り">
     @foreach (var c in Categories)
     {
-        <a href="#@c.Id" class="btn btn-sm btn-outline-primary"><i class="bi @c.Icon" aria-hidden="true"></i> @c.Title <span class="text-body-secondary">(@Content.Links.Count(l => l.Category == c.Id))</span></a>
+        <a href="/links#@c.Id" class="btn btn-sm btn-outline-primary"><i class="bi @c.Icon" aria-hidden="true"></i> @c.Title <span class="text-body-secondary">(@Content.Links.Count(l => l.Category == c.Id))</span></a>
     }
 </nav>
 

@@ -16,7 +16,7 @@
         <div class="col-lg-6" data-tip-item>
             <article class="tip-card card h-100" id="@t.Id" data-tags="@string.Join('|', t.Tags)" data-source="@t.Source">
                 <div class="card-body">
-                    <h2 class="h5 mb-2"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i><a href="#@t.Id" class="tip-anchor">@t.Title</a></h2>
+                    <h2 class="h5 mb-2"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i><a href="/tips#@t.Id" class="tip-anchor">@t.Title</a></h2>
                     <TipTags Tags="@t.Tags" Source="@t.Source" />
                     @if (!string.IsNullOrWhiteSpace(t.Summary))
                     {
