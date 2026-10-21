@@ -5,7 +5,7 @@
     <input id="@(IdPrefix)-input" name="q" type="search" class="form-control" placeholder="検索（例: 押し出し、Ctrl+R、ウェイト）"
            autocomplete="off" aria-label="サイト内を検索" role="combobox" aria-expanded="false" aria-controls="@(IdPrefix)-list" aria-autocomplete="list" />
     <span class="quick-search-hint" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
-    <div id="@(IdPrefix)-list" class="quick-search-list" role="listbox" aria-label="検索の候補" hidden></div>
+    <div id="@(IdPrefix)-list" tabindex="-1" class="quick-search-list" role="listbox" aria-label="検索の候補" hidden></div>
 </form>
 
 @code {
