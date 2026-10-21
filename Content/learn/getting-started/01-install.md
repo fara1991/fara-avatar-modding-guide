@@ -10,7 +10,7 @@ shortcuts: [F3]
 
 このサイトは **Blender 4.5 LTS** を前提にしています。LTS（長期サポート版）は 2 年間バグ修正が続き、アドオンの対応も安定しているので、普段の作業にはこれを選びます。
 
-- ダウンロード: <img src="/images/blender-logo.svg" alt="Blender" class="blender-link-logo" width="22" height="18" /> [blender.org/download/lts/](https://www.blender.org/download/lts/) から **4.5 LTS** を選ぶ
+- ダウンロード: <img src="/images/blender-logo.svg" alt="Blender" class="blender-link-logo" width="22" height="18" /> <a href="https://www.blender.org/download/lts/" target="_blank" rel="noopener noreferrer">blender.org/download/lts/</a> から **4.5 LTS** を選ぶ
 - Windows なら「Windows Installer」（.msi）を使うのが簡単です。インストール先はそのままで構いません
 - Steam 版や Microsoft Store 版もありますが、アドオンの導入手順が公式サイト版と少し変わるので、最初は公式サイト版をおすすめします
 
