@@ -24,6 +24,7 @@
                 h.setAttribute("data-bs-theme", t);
                 try { localStorage.setItem("avatar-modding-guide.theme", t); } catch (e) { }
                 window.faraUpdateThemeButton();
+                if (window.faraSyncThemeSwitch) window.faraSyncThemeSwitch();
             };
             document.addEventListener("DOMContentLoaded", window.faraUpdateThemeButton);
         })();

@@ -1988,23 +1988,50 @@ main {
         display: none;
     }
 
-    /* ヘッダーの下から始める（検索の欄・記事の右の目次・見出しへのジャンプも、ヘッダーの分だけ下げる） */
+    /* ページの中身は、ヘッダーの下から始める。検索欄はヘッダーに移ったので、本文の上の検索欄（スマホ用）は出さない。
+       見出しへのジャンプ・記事の右の目次は、元の指定（以前の、上に貼り付いた検索欄と同じ高さ）がそのまま合う */
     main {
         padding-top: 3.5rem;
     }
 
-    html {
-        scroll-padding-top: 8rem;
-    }
-
-    /* 下のほうに書いてある元の指定（top: 0 など）に負けないよう、main を付けて強くする */
     main .site-header {
-        top: 3.5rem;
+        display: none;
     }
 
-    main .article-aside {
-        top: 8.25rem;
-        max-height: calc(100vh - 9rem);
+    .app-header .quick-search {
+        flex: 1 1 320px;
+        max-width: 40rem;
+        margin-left: auto;
+    }
+
+    .app-header .quick-search .form-control {
+        height: 40px;
+        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+    }
+
+    .app-header .quick-search .form-control::placeholder {
+        color: #b9acd6;
+    }
+
+    .app-header .quick-search .form-control:focus {
+        border-color: #c084fc;
+        background: rgba(255, 255, 255, 0.14);
+    }
+
+    .app-header .quick-search-icon {
+        color: #b9acd6;
+    }
+
+    .app-header .quick-search-hint kbd {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #d8c7f5;
+    }
+
+    .sidebar-theme {
+        display: none;
     }
 
     /* 隠しているとき: サイドバーは画面の外に置き、左端にマウスを近づけている間（または、キーボードで入ったとき）だけ、上にかぶせて出す。
@@ -2199,6 +2226,7 @@ main {
 }
 
 .quick-search-list {
+    color: var(--bs-body-color);
     position: absolute;
     left: 0;
     right: 0;
@@ -2881,4 +2909,126 @@ main:focus {
 
 .touch-practice-item .practice-embed {
     margin-top: 0.5rem;
+}
+
+/* ---------- ヘッダーの検索欄・ライト／ダークのスイッチ ---------- */
+/* 検索の候補: 種類のバッジ、題名・小見出し、一致した前後の文章（どこにヒットしたかが分かる） */
+.quick-search-item {
+    align-items: flex-start;
+}
+
+.quick-search-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.quick-search-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.quick-search-snippet {
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+/* ライト・ダークのスイッチ（ON = ダークモード = 月、OFF = ライトモード = 太陽） */
+.theme-switch {
+    position: relative;
+    flex: 0 0 auto;
+    width: 56px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    background: #cbd5e1;
+    cursor: pointer;
+}
+
+.theme-switch[aria-checked="true"] {
+    background: #7c3aed;
+}
+
+.theme-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fff;
+    color: #f59e0b;
+    display: grid;
+    place-items: center;
+}
+
+/* 動きは、最初の状態を合わせたあと（sidebar.js が theme-ready を付ける）から */
+.theme-ready .theme-switch {
+    transition: background-color 0.15s ease;
+}
+
+.theme-ready .theme-knob {
+    transition: transform 0.15s ease;
+}
+
+.theme-switch[aria-checked="true"] .theme-knob {
+    transform: translateX(26px);
+    color: #6d28d9;
+}
+
+.theme-knob svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.theme-moon {
+    display: none;
+}
+
+.theme-switch[aria-checked="true"] .theme-sun {
+    display: none;
+}
+
+.theme-switch[aria-checked="true"] .theme-moon {
+    display: block;
+    fill: currentColor;
+}
+
+.theme-switch:focus-visible {
+    outline: 2px solid #e9d5ff;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .theme-ready .theme-switch,
+    .theme-ready .theme-knob {
+        transition: none;
+    }
+}
+
+/* スイッチは、ヘッダーが出る幅（PC）だけ。スマホは、サイドバー下の「ライトモード」のボタンを使う */
+.app-header .theme-switch,
+.app-header .quick-search {
+    display: none;
+}
+
+@media (min-width: 641px) {
+    .app-header .theme-switch {
+        display: block;
+    }
+
+    .app-header .quick-search {
+        display: block;
+    }
 }
