@@ -3090,3 +3090,15 @@ main:focus {
         display: block;
     }
 }
+
+/* Blender の公式ロゴは、blender.org へのリンクの横だけに使う（ロゴの利用ガイドラインの範囲）。ほかの場所には置かない */
+.article-body img.blender-link-logo {
+    display: inline;
+    height: 1.1em;
+    width: auto;
+    max-width: none;
+    margin: 0 0.2em 0 0;
+    border: 0;
+    border-radius: 0;
+    vertical-align: -0.2em;
+}
