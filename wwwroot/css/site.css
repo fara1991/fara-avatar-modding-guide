@@ -1891,6 +1891,7 @@ main {
 }
 
 .sidebar .nav-link .bi {
+    flex: none;
     width: 1.25rem;
     font-size: 1.1rem;
     text-align: center;
@@ -2070,6 +2071,8 @@ main {
 
     html.sidebar-hidden .sidebar:not(:hover):not(:has(:focus-visible)) .sidebar-panel .nav-link {
         width: 2.25rem;
+        white-space: nowrap;
+        overflow: hidden;
     }
 
     /* 隠しているとき: サイドバーは、アイコンだけの細い列（52px。項目の名前の頭が、列の端に見えないよう、ハンバーガーと同じ幅）にする。項目の名前は、枠の外にはみ出して切れる。
