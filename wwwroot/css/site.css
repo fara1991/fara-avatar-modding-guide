@@ -1962,6 +1962,7 @@ main {
     }
 
     .sidebar .top-row .navbar-brand {
+        margin-right: 0;
         font-size: 0.95rem;
         line-height: 1.15;
         white-space: normal;
