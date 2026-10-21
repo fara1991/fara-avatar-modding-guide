@@ -27,6 +27,13 @@ public class ChangelogTests
     }
 
     [Fact]
+    public void ParseChangelog_treats_empty_items_as_none()
+    {
+        var list = ContentService.ParseChangelog("- date: 2026-10-20\n  title: x\n  items:\n");
+        Assert.Empty(list[0].Items);
+    }
+
+    [Fact]
     public void ParseChangelog_accepts_an_empty_file() =>
         Assert.Empty(ContentService.ParseChangelog(""));
 
@@ -35,6 +42,7 @@ public class ChangelogTests
     [InlineData("- date: 2026-10-20\n  title: ' '")]
     [InlineData("- date: 2026-10-20\n  title: x\n  items:\n    - ' '")]
     [InlineData("- date: 2026-13-45\n  title: 日付が正しくない")]
+    [InlineData("- \n- date: 2026-10-20\n  title: x")]      // 空の要素
     [InlineData("{ not: [a list")]
     public void ParseChangelog_rejects_malformed_input(string yaml) =>
         Assert.Throws<FormatException>(() => ContentService.ParseChangelog(yaml));

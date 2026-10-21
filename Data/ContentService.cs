@@ -67,8 +67,10 @@ public sealed partial class ContentService
         {
             throw new FormatException("changelog.yml を読めません: " + ex.Message, ex);
         }
+        if (list.Any(e => e is null)) throw new FormatException("changelog.yml に空の項目があります");
         foreach (var e in list)
         {
+            e.Items ??= [];   // items: だけ書いて中身が空のとき
             if (e.Date == default) throw new FormatException($"changelog.yml: date がありません（{e.Title}）");
             if (string.IsNullOrWhiteSpace(e.Title)) throw new FormatException($"changelog.yml: {e.Date:yyyy-MM-dd} の title が空です");
             if (e.Items.Any(string.IsNullOrWhiteSpace)) throw new FormatException($"changelog.yml: {e.Date:yyyy-MM-dd} の items に空の項目があります");
