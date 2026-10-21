@@ -1982,7 +1982,6 @@ main {
        中身（.sidebar-panel）は枠（.sidebar）の中に重ねて置く。隠している間は、枠を細くして（アイコンの列）、中身も同じ幅にする。
        枠そのものは、ヘッダー（ハンバーガー）を覆わないよう、何も描かず、クリックも受けない（中身だけが受ける） */
     .sidebar {
-        z-index: 1045;
         pointer-events: none;
         background: none;
         border-right: 0;
@@ -1990,6 +1989,11 @@ main {
 
     .sidebar .top-row {
         display: none;
+    }
+
+    /* 広げた中身が、ほかの上に出るよう、隠しているときだけ前に置く（開いているときは、ヘッダーの検索結果の下にならないよう、前に置かない） */
+    html.sidebar-hidden .sidebar {
+        z-index: 1045;
     }
 
     .sidebar-panel {
@@ -2003,7 +2007,7 @@ main {
         background-color: #1a0d33;
         background-image: linear-gradient(180deg, #140a26 0%, #241243 60%, #2d1b4e 100%);
         border-right: 1px solid var(--border);
-        transition: width 0.15s ease;
+        transition: width 0.15s ease, box-shadow 0.15s ease;
     }
 
     /* 項目は、いつも本来の幅（250px）で並べておき、細い列のときは、枠で切る（広げたときに並べ直さない） */
@@ -2061,11 +2065,11 @@ main {
        この列にマウスを乗せている間（または、キーボードで入ったとき）は、本来の幅まで広げて、ページの上にかぶせて出す。
        ハンバーガーを押すと、クラスが外れて、ふつうに広がったまま並ぶ */
     html.sidebar-hidden .sidebar {
-        width: 52px;
+        width: 3.25rem;
     }
 
     html.sidebar-hidden .sidebar-panel {
-        width: 52px;
+        width: 3.25rem;
     }
 
     html.sidebar-hidden .sidebar-panel .nav-section {
@@ -2073,9 +2077,6 @@ main {
         transition: opacity 0.15s ease;
     }
 
-    html.sidebar-hidden .sidebar-panel .nav-scrollable {
-        scrollbar-width: none;
-    }
 
     html.sidebar-hidden .sidebar:has(:focus-visible) .sidebar-panel {
         width: 250px;
@@ -2089,7 +2090,7 @@ main {
     @media (prefers-reduced-motion: reduce) {
         .sidebar-panel,
         html.sidebar-hidden .sidebar-panel .nav-section {
-            transition: none;
+            transition-duration: 0s;
         }
     }
 
@@ -2111,9 +2112,6 @@ main {
         transition-delay: 0.12s;
     }
 
-    html.sidebar-hidden .sidebar:hover .sidebar-panel .nav-scrollable {
-        scrollbar-width: thin;
-    }
 }
 
 /* ---------- ホーム ---------- */
