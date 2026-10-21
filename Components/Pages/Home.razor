@@ -3,22 +3,16 @@
 
 <PageTitle>ホーム - @Site.Value.Title</PageTitle>
 
-<div class="hero-section">
-    <div class="row align-items-center">
-        <div class="col-md-8">
-            <h1 class="display-5 mb-3">@Site.Value.Title</h1>
-            <p class="lead mb-3">
+@* サイト名と説明（ポケモン・Bot のサイトと同じ作り。箱で囲まず、グラデーションの文字） *@
+<div class="home-header">
+    <h1 class="home-title">@Site.Value.Title</h1>
+    <p class="home-lead mb-3">
                 アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。<br />
                 初めての方は下の目次を上から順に読んでください。
             </p>
-            <a href="/learn" class="btn btn-light btn-lg">
-                <i class="bi bi-book" aria-hidden="true"></i> はじめから読む
-            </a>
-        </div>
-        <div class="col-md-4 text-center d-none d-md-block">
-            <img src="images/site-icon.svg" alt="" class="img-fluid hero-logo" />
-        </div>
-    </div>
+    <a href="/learn" class="btn btn-primary btn-lg">
+        <i class="bi bi-book" aria-hidden="true"></i> はじめから読む
+    </a>
 </div>
 
 <section class="mb-5">
