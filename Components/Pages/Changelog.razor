@@ -1,0 +1,26 @@
+@page "/changelog"
+@inject ContentService Content
+@inject IOptions<SiteOptions> Site
+
+<PageTitle>更新履歴 - @Site.Value.Title</PageTitle>
+<HeadContent><meta name="description" content="Avatar Modding Guide の更新履歴です。記事の追加・見た目や機能の変更を新しい順に載せています。" /></HeadContent>
+
+<h1>更新履歴</h1>
+<p class="lead">記事の追加・見た目や機能の変更の記録です（新しい順）。</p>
+
+@foreach (var e in Content.Changelog)
+{
+    <section class="changelog-entry mb-4">
+        <div class="changelog-date">@e.Date.ToString("yyyy/MM/dd")</div>
+        <h2 class="h5">@e.Title</h2>
+        @if (e.Items.Count > 0)
+        {
+            <ul class="small">
+                @foreach (var item in e.Items)
+                {
+                    <li>@item</li>
+                }
+            </ul>
+        }
+    </section>
+}

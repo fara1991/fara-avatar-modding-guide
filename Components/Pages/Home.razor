@@ -1,5 +1,6 @@
 @page "/"
 @inject IOptions<SiteOptions> Site
+@inject ContentService Content
 
 <PageTitle>ホーム - @Site.Value.Title</PageTitle>
 
@@ -7,13 +8,24 @@
 <div class="home-header">
     <h1 class="home-title">@Site.Value.Title</h1>
     <p class="home-lead mb-3">
-                アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。<br />
-                初めての方は下の目次を上から順に読んでください。
-            </p>
+        アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。<br />
+        初めての方は下の目次を上から順に読んでください。
+    </p>
     <a href="/learn" class="btn btn-primary btn-lg">
         <i class="bi bi-book" aria-hidden="true"></i> はじめから読む
     </a>
 </div>
+
+<section class="mb-5">
+    <h2 class="h3 mb-3">更新履歴</h2>
+    <ul class="changelog-recent list-unstyled mb-2">
+        @foreach (var e in Content.Changelog.Take(RecentCount))
+        {
+            <li><span class="changelog-date">@e.Date.ToString("MM/dd")</span> @e.Title</li>
+        }
+    </ul>
+    <a href="/changelog" class="btn btn-sm btn-outline-primary">すべて見る</a>
+</section>
 
 <section class="mb-5">
     <h2 class="h3 mb-3">目次</h2>
@@ -90,3 +102,8 @@
         </div>
     </div>
 </section>
+
+@code {
+    /// <summary>ホームに出す更新履歴の件数（細かい内容は /changelog）。</summary>
+    private const int RecentCount = 3;
+}

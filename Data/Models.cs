@@ -213,5 +213,15 @@ public sealed class LinkEntry
     public string Source { get; set; } = "manual";
 }
 
+/// <summary>更新履歴の 1 件（Content/changelog.yml）。ホームは見出しだけ、/changelog は細かい内容（Items）まで出す</summary>
+public sealed class ChangelogEntry
+{
+    public DateOnly Date { get; set; }
+    /// <summary>短い見出し（ホームにも出す）</summary>
+    public string Title { get; set; } = string.Empty;
+    /// <summary>細かい内容（/changelog だけに出す）</summary>
+    public List<string> Items { get; set; } = [];
+}
+
 /// <summary>リンク集の区切り</summary>
 public sealed record LinkCategory(string Id, string Title, string Icon, string Description);
