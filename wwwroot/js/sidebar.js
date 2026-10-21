@@ -13,6 +13,19 @@
         return buttons.length > 0;
     }
 
+    // ヘッダーのライト・ダークのスイッチ（ON = ダークモード）。テーマの切り替え自体は、App.razor の head の faraToggleTheme
+    function syncTheme() {
+        var dark = root.getAttribute("data-bs-theme") === "dark";
+        var switches = document.querySelectorAll("[data-theme-toggle]");
+        for (var i = 0; i < switches.length; i++) switches[i].setAttribute("aria-checked", dark ? "true" : "false");
+    }
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest || !e.target.closest("[data-theme-toggle]")) return;
+        if (window.faraToggleTheme) window.faraToggleTheme();
+        syncTheme();
+    });
+    syncTheme();
+
     document.addEventListener("click", function (e) {
         if (!e.target.closest || !e.target.closest("[data-sidebar-toggle]")) return;
         var hidden = !root.classList.contains("sidebar-hidden");
