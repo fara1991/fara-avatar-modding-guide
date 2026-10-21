@@ -6,14 +6,19 @@
 <a class="skip-link" href="@(new Uri(Nav.Uri).AbsolutePath)#main-content">本文へスキップ <kbd>Enter</kbd></a>
 
 <div class="page">
-    @* ボタンは、画面では左上に固定するが、キーボードで最初に届くよう、サイドバーの前に置く *@
-    @* PC の左上に固定する、サイドバーの表示・非表示のハンバーガー（スマホは、サイドバー上部のメニューのボタンを使う）。押す処理は wwwroot/js/sidebar.js *@
-    <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-controls="site-sidebar" aria-expanded="true" aria-label="サイドバーの表示・非表示" title="サイドバーの表示・非表示"></button>
+    @* PC の上に固定するヘッダー（ハンバーガーとサイト名）。ハンバーガーを押すたびに、サイドバーの表示・非表示を切り替える（処理は wwwroot/js/sidebar.js）。
+       スマホは、サイドバー上部のサイト名とメニューのボタンを使う。キーボードで最初に届くよう、サイドバーの前に置く *@
+    <header class="app-header">
+        <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-controls="site-sidebar" aria-expanded="true" aria-label="サイドバーの表示・非表示" title="サイドバーの表示・非表示"></button>
+        <a class="app-brand" href="/">@Site.Value.Title</a>
+    </header>
+
+    @* サイドバーを隠しているとき、画面の左端にマウスを近づけると、サイドバーが一時的に出る（CSS の :hover）。ハンバーガーを押すと、出したままにする *@
+    <div class="sidebar-edge" aria-hidden="true"></div>
 
     <div class="sidebar" id="site-sidebar">
         <NavMenu />
     </div>
-
 
     <main id="main-content" tabindex="-1">
         @* サイト内検索（すべてのページ）。候補の表示は wwwroot/js/quicksearch.js。JS がなくても /search へ送信できる *@
