@@ -13,6 +13,12 @@
     var items = [], active = -1, timer = 0, lastQuery = "";
 
     function open() { list.hidden = false; input.setAttribute("aria-expanded", "true"); }
+    // 結果を開く。同じページの見出し（#）へ移るだけのときは、ページが読み直されないので、一覧を閉じて、欄から離れる
+    function go(href) {
+      close();
+      input.blur();
+      location.href = href;
+    }
     function close() {
       list.hidden = true;
       active = -1;
@@ -36,7 +42,7 @@
       var html = hits.slice(0, MAX).map(function (h, i) {
         var e = h.entry, t = S.TYPES[e.type] || { label: e.type, cls: "bg-secondary" };
         return '<a class="quick-search-item" role="option" id="' + list.id + "-" + i + '" href="' + S.escapeHtml(e.url) + '" aria-selected="false">' +
-          '<span class="badge ' + t.cls + '">' + t.label + "</span>" +
+          '<span class="badge ' + t.cls + '">' + S.escapeHtml(t.label) + "</span>" +
           '<span class="quick-search-body">' +
           '<span class="quick-search-line">' +
           '<span class="quick-search-title">' + S.highlight(e.title, q) + "</span>" +
@@ -73,15 +79,17 @@
       timer = setTimeout(update, 60);
     });
     input.addEventListener("keydown", function (e) {
-      if (e.isComposing) return; // 日本語入力の変換中は、Enter などを奪わない
+      if (e.isComposing || e.keyCode === 229) return; // 日本語入力の変換中は、Enter などを奪わない（Safari は、確定の Enter で isComposing が false になるので keyCode でも見る）
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         if (list.hidden) { update(); return; }
         e.preventDefault();
         move(e.key === "ArrowDown" ? 1 : -1);
       } else if (e.key === "Enter") {
+        // 入力してすぐ（検索の待ち時間の間）に Enter を押したら、古い入力の結果を開かず、先に今の入力で探す
+        if (input.value.trim() !== lastQuery) { e.preventDefault(); clearTimeout(timer); update(); return; }
         if (!list.hidden && active >= 0 && items[active]) {
           e.preventDefault();
-          location.href = items[active].getAttribute("href");
+          go(items[active].getAttribute("href"));
         }
         // 選んでいなければフォームの送信（検索ページ）
       } else if (e.key === "Escape") {
@@ -90,6 +98,12 @@
       }
     });
     list.addEventListener("mousedown", function (e) { e.preventDefault(); }); // クリックで入力欄のフォーカスを外さない
+    list.addEventListener("click", function (e) {
+      var item = e.target.closest && e.target.closest(".quick-search-item");
+      if (!item) return;
+      e.preventDefault();
+      go(item.getAttribute("href"));
+    });
     document.addEventListener("click", function (e) { if (!form.contains(e.target)) close(); });
     boxes.push({ form: form, input: input });
   }

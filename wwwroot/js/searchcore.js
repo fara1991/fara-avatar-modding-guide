@@ -25,8 +25,19 @@
     return indexPromise;
   }
 
+  // 全角・半角、大文字・小文字をそろえる。全角の ～（Windows の日本語入力）は NFKC で ~ になるので、データの 〜 にそろえる
   function norm(s) {
-    return String(s).normalize("NFKC").toLowerCase();
+    return String(s).normalize("NFKC").toLowerCase().replace(/~/g, "〜");
+  }
+
+  /** 1 文字ずつ正規化した文字列と、正規化後の位置から元の位置への対応（… が ... のように文字数が変わっても、位置がずれないように） */
+  function foldMap(text) {
+    var normed = "", map = [];
+    for (var i = 0; i < text.length; i++) {
+      var n = norm(text[i]);
+      for (var k = 0; k < n.length; k++) { normed += n[k]; map.push(i); }
+    }
+    return { normed: normed, map: map };
   }
 
   function terms(query) {
@@ -71,11 +82,7 @@
     text = String(text);
     var ts = terms(query);
     if (!ts.length) return escapeHtml(text);
-    var normed = "", map = [];
-    for (var i = 0; i < text.length; i++) {
-      var n = norm(text[i]);
-      for (var k = 0; k < n.length; k++) { normed += n[k]; map.push(i); }
-    }
+    var folded = foldMap(text), normed = folded.normed, map = folded.map;
     var pattern = new RegExp(ts.slice().sort(function (a, b) { return b.length - a.length; }).map(escapeRegExp).join("|"), "g");
     var html = "", last = 0, m;
     while ((m = pattern.exec(normed)) !== null) {
@@ -92,9 +99,10 @@
   function snippet(text, query, width) {
     text = String(text || "");
     width = width || 120;
-    var lower = norm(text), ts = terms(query), pos = -1;
-    for (var i = 0; i < ts.length && pos < 0; i++) pos = lower.indexOf(ts[i]);
+    var folded = foldMap(text), ts = terms(query), pos = -1;
+    for (var i = 0; i < ts.length && pos < 0; i++) pos = folded.normed.indexOf(ts[i]);
     if (pos < 0) return text.slice(0, width) + (text.length > width ? "…" : "");
+    pos = folded.map[pos];   // 元の文字列の位置に戻す
     var start = Math.max(0, pos - Math.floor(width / 3));
     var end = Math.min(text.length, start + width);
     return (start > 0 ? "…" : "") + text.slice(start, end) + (end < text.length ? "…" : "");

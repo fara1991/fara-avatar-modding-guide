@@ -23,6 +23,9 @@
         if (!e.target.closest || !e.target.closest("[data-theme-toggle]")) return;
         if (window.faraToggleTheme) window.faraToggleTheme();
         syncTheme();
+    window.faraSyncThemeSwitch = syncTheme;   // スマホ用のサイドバーのボタン（App.razor の faraToggleTheme）で切り替えたあとにも、ヘッダーのスイッチを合わせる
+    // スイッチの動き（0.15 秒のスライド）は、最初の状態を合わせたあとから。ライトの人に、ページを開くたびにスイッチが動いて見えないように
+    requestAnimationFrame(function () { root.classList.add("theme-ready"); });
     });
     syncTheme();
 

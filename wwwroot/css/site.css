@@ -2226,6 +2226,7 @@ main {
 }
 
 .quick-search-list {
+    color: var(--bs-body-color);
     position: absolute;
     left: 0;
     right: 0;
@@ -2948,7 +2949,6 @@ main:focus {
     border-radius: 999px;
     background: #cbd5e1;
     cursor: pointer;
-    transition: background-color 0.15s ease;
 }
 
 .theme-switch[aria-checked="true"] {
@@ -2966,6 +2966,14 @@ main:focus {
     color: #f59e0b;
     display: grid;
     place-items: center;
+}
+
+/* 動きは、最初の状態を合わせたあと（sidebar.js が theme-ready を付ける）から */
+.theme-ready .theme-switch {
+    transition: background-color 0.15s ease;
+}
+
+.theme-ready .theme-knob {
     transition: transform 0.15s ease;
 }
 
@@ -3003,8 +3011,8 @@ main:focus {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .theme-switch,
-    .theme-knob {
+    .theme-ready .theme-switch,
+    .theme-ready .theme-knob {
         transition: none;
     }
 }
