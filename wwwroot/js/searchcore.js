@@ -1,7 +1,8 @@
 // サイト内検索の共通部分（/search-index.json の読み込み・一致の判定・強調表示）。
 // ヘッダーの検索（quicksearch.js）と検索ページ（search.js）の両方で使う。
 // 日本語は単語区切りがないため形態素解析はせず、スペース区切りの各語が「すべて含まれる」ものを一致とする。
-// 全角・半角の違い（Ｇ と G、ｶﾅ とカナ）は NFKC で吸収する。
+// 全角・半角の違い（Ｇ と G、ｶﾅ とカナ）は NFKC で吸収し、カタカナはひらがなにそろえる（あどおん・アドオンのどちらでも探せる）。
+// ローマ字（adoon）も、ひらがな（あどおん）にした形で探す。
 (function () {
   "use strict";
   var indexPromise = null;
@@ -27,7 +28,71 @@
 
   // 全角・半角、大文字・小文字をそろえる。全角の ～（Windows の日本語入力）は NFKC で ~ になるので、データの 〜 にそろえる
   function norm(s) {
-    return String(s).normalize("NFKC").toLowerCase().replace(/~/g, "〜");
+    return String(s).normalize("NFKC").toLowerCase().replace(/~/g, "〜").replace(/[ァ-ヶ]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0x60); });
+  }
+
+  // ---- ローマ字 → ひらがな（検索語用。変換できない文字が残るときは null） ----
+  var ROMAJI = (function () {
+    var t = {};
+    function add(keys, kana) { keys.split(" ").forEach(function (k, i) { t[k] = kana.split(" ")[i]; }); }
+    add("a i u e o", "あ い う え お");
+    add("ka ki ku ke ko", "か き く け こ");
+    add("sa si shi su se so", "さ し し す せ そ");
+    add("ta ti chi tu tsu te to", "た ち ち つ つ て と");
+    add("na ni nu ne no", "な に ぬ ね の");
+    add("ha hi hu fu he ho", "は ひ ふ ふ へ ほ");
+    add("ma mi mu me mo", "ま み む め も");
+    add("ya yu yo", "や ゆ よ");
+    add("ra ri ru re ro", "ら り る れ ろ");
+    add("wa wo", "わ を");
+    add("ga gi gu ge go", "が ぎ ぐ げ ご");
+    add("za zi ji zu ze zo", "ざ じ じ ず ぜ ぞ");
+    add("da di du de do", "だ ぢ づ で ど");
+    add("ba bi bu be bo", "ば び ぶ べ ぼ");
+    add("pa pi pu pe po", "ぱ ぴ ぷ ぺ ぽ");
+    add("kya kyu kyo", "きゃ きゅ きょ");
+    add("sha shu sho sya syu syo", "しゃ しゅ しょ しゃ しゅ しょ");
+    add("cha chu cho tya tyu tyo cya cyu cyo", "ちゃ ちゅ ちょ ちゃ ちゅ ちょ ちゃ ちゅ ちょ");
+    add("nya nyu nyo hya hyu hyo mya myu myo rya ryu ryo", "にゃ にゅ にょ ひゃ ひゅ ひょ みゃ みゅ みょ りゃ りゅ りょ");
+    add("gya gyu gyo bya byu byo pya pyu pyo dya dyu dyo", "ぎゃ ぎゅ ぎょ びゃ びゅ びょ ぴゃ ぴゅ ぴょ ぢゃ ぢゅ ぢょ");
+    add("ja ju jo jya jyu jyo zya zyu zyo", "じゃ じゅ じょ じゃ じゅ じょ じゃ じゅ じょ");
+    add("fa fi fe fo va vi vu ve vo", "ふぁ ふぃ ふぇ ふぉ ゔぁ ゔぃ ゔ ゔぇ ゔぉ");
+    add("wi we thi dhi", "うぃ うぇ てぃ でぃ");
+    add("xa xi xu xe xo la li lu le lo", "ぁ ぃ ぅ ぇ ぉ ぁ ぃ ぅ ぇ ぉ");
+    add("xya xyu xyo lya lyu lyo xtu xtsu ltu ltsu", "ゃ ゅ ょ ゃ ゅ ょ っ っ っ っ");
+    return t;
+  })();
+
+  function romajiToHiragana(src) {
+    var s = String(src).toLowerCase();
+    if (!/^[a-z'-]+$/.test(s)) return null;
+    var out = "", i = 0, n = s.length;
+    while (i < n) {
+      var c = s[i];
+      if (c === "-") { out += "ー"; i++; continue; }
+      if (c === "'") { i++; continue; }
+      // 促音: 同じ子音が続く（n と母音は除く）
+      if (i + 1 < n && s[i + 1] === c && "aiueon".indexOf(c) < 0) { out += "っ"; i++; continue; }
+      var hit = false;
+      for (var len = 4; len >= 1; len--) {
+        var k = s.substr(i, len);
+        if (k.length === len && Object.prototype.hasOwnProperty.call(ROMAJI, k)) { out += ROMAJI[k]; i += len; hit = true; break; }
+      }
+      if (hit) continue;
+      if (c === "n") { out += "ん"; i++; if (s[i] === "'") i++; continue; }   // 母音・y の前以外の n
+      return null;
+    }
+    return out;
+  }
+
+  /** 検索語の別の形。ローマ字に見える語（3 文字以上）は、ひらがなにした形も探す */
+  function alternatives(term) {
+    var alts = [term];
+    if (term.length >= 3) {
+      var k = romajiToHiragana(term);
+      if (k && k !== term && k.length >= 2) alts.push(k);
+    }
+    return alts;
   }
 
   /** 1 文字ずつ正規化した文字列と、正規化後の位置から元の位置への対応（… が ... のように文字数が変わっても、位置がずれないように） */
@@ -40,25 +105,40 @@
     return { normed: normed, map: map };
   }
 
+  /** 検索語ごとの、探す形の一覧（[[入力どおり, ひらがな], ...]）。語ごとに、どれか 1 つが含まれればよい */
+  function termGroups(query) {
+    return norm(query).split(/\s+/).filter(Boolean).map(alternatives);
+  }
+
+  /** 強調・抜き出し用に、すべての形を 1 列にしたもの */
   function terms(query) {
-    return norm(query).split(/\s+/).filter(Boolean);
+    var all = [];
+    termGroups(query).forEach(function (g) { g.forEach(function (t) { if (all.indexOf(t) < 0) all.push(t); }); });
+    return all;
+  }
+
+  /** 1 つの語の点数（含まれなければ 0） */
+  function scoreOf(e, t) {
+    if (e._t === t) return 30;
+    if (e._t.indexOf(t) === 0) return 15;
+    if (e._t.indexOf(t) >= 0) return 10;
+    if (e._s.indexOf(t) >= 0) return 5;
+    if (e._x.indexOf(t) >= 0) return 1;
+    return 0;
   }
 
   /** すべての語を含むものを、タイトル > 小見出し > 本文の順に点数を付けて並べる */
   function search(index, query) {
-    var ts = terms(query);
-    if (!ts.length) return [];
+    var gs = termGroups(query);
+    if (!gs.length) return [];
     var hits = [];
     index.forEach(function (e) {
       var score = 0;
-      for (var i = 0; i < ts.length; i++) {
-        var t = ts[i];
-        if (e._t === t) score += 30;
-        else if (e._t.indexOf(t) === 0) score += 15;
-        else if (e._t.indexOf(t) >= 0) score += 10;
-        else if (e._s.indexOf(t) >= 0) score += 5;
-        else if (e._x.indexOf(t) >= 0) score += 1;
-        else { score = 0; break; }
+      for (var i = 0; i < gs.length; i++) {
+        var best = 0;
+        for (var j = 0; j < gs[i].length; j++) best = Math.max(best, scoreOf(e, gs[i][j]));
+        if (!best) { score = 0; break; }
+        score += best;
       }
       if (score > 0) hits.push({ entry: e, score: score + (TYPE_BONUS[e.type] || 0) });
     });
