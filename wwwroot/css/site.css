@@ -1997,19 +1997,14 @@ main {
         scroll-padding-top: 8rem;
     }
 
-    .site-header {
+    /* 下のほうに書いてある元の指定（top: 0 など）に負けないよう、main を付けて強くする */
+    main .site-header {
         top: 3.5rem;
     }
 
-    .article-aside {
+    main .article-aside {
         top: 8.25rem;
         max-height: calc(100vh - 9rem);
-    }
-
-    .tip-card,
-    .links-section,
-    .link-item {
-        scroll-margin-top: 8.5rem;
     }
 
     /* 隠しているとき: サイドバーは画面の外に置き、左端にマウスを近づけている間（または、キーボードで入ったとき）だけ、上にかぶせて出す。
@@ -2024,8 +2019,19 @@ main {
         transition: transform 0.15s ease;
     }
 
+    @media (prefers-reduced-motion: reduce) {
+        html.sidebar-hidden .sidebar {
+            transition: none;
+        }
+    }
+
+    .app-header :focus-visible {
+        outline-color: #e9d5ff;
+    }
+
+    /* 左端へのマウスオーバーで出す仕組みは、マウスのある環境だけ（タッチでは、タップで出たまま戻らなくなるのを避ける）。
+       キーボードで中に入ったときも出す（マウスのクリックでは、フォーカスが残っても出たままにしない） */
     html.sidebar-hidden .sidebar-edge {
-        display: block;
         position: fixed;
         top: 3.5rem;
         bottom: 0;
@@ -2034,10 +2040,23 @@ main {
         z-index: 1031;
     }
 
-    html.sidebar-hidden .sidebar-edge:hover + .sidebar,
-    html.sidebar-hidden .sidebar:hover,
-    html.sidebar-hidden .sidebar:focus-within {
+    html.sidebar-hidden .sidebar:has(:focus-visible) {
         transform: none;
+        transition-delay: 0s;
+        box-shadow: 8px 0 24px rgba(0, 0, 0, 0.45);
+    }
+}
+
+@media (min-width: 641px) and (hover: hover) {
+    html.sidebar-hidden .sidebar-edge {
+        display: block;
+    }
+
+    /* 出すときだけ、少し待つ（ほかのモニターへ向かってマウスを大きく動かしたときに、ちらつかないように） */
+    html.sidebar-hidden .sidebar-edge:hover + .sidebar,
+    html.sidebar-hidden .sidebar:hover {
+        transform: none;
+        transition-delay: 0.12s;
         /* 影は、出ている間だけ（隠れている間に、画面の左端へ染み出さないように） */
         box-shadow: 8px 0 24px rgba(0, 0, 0, 0.45);
     }
