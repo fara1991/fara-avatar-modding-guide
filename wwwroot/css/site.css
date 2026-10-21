@@ -39,17 +39,17 @@
     --bs-font-sans-serif: "Zen Kaku Gothic New", "Outfit", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
 }
 
-/* 背景の飾り: Blender の 3D ビューのような方眼（40px ごとの細い線。5 本ごとに少し濃く）。固定して、スクロールしても動かさない */
+/* 背景の飾り: Blender の 3D ビューのような、奥へ延びる床の方眼と、回る針金のアバター（js/bgscene.js が canvas に描く）。ここは、地の色だけ */
 body {
-    --grid-line: rgba(138, 129, 248, 0.07);
-    --grid-line-strong: rgba(138, 129, 248, 0.13);
-    background:
-        linear-gradient(var(--grid-line-strong) 1px, transparent 1px) 0 0 / 200px 200px,
-        linear-gradient(90deg, var(--grid-line-strong) 1px, transparent 1px) 0 0 / 200px 200px,
-        linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px,
-        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px,
-        linear-gradient(180deg, #0a0616 0%, #100a26 100%);
+    background: linear-gradient(180deg, #0a0716 0%, #100a26 100%);
     background-attachment: fixed;
+}
+
+#site-scene {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
 }
 
 /* ライトテーマ（サイドバーの紫は共通） */
@@ -82,14 +82,7 @@ body {
 }
 
 [data-bs-theme="light"] body {
-    --grid-line: rgba(106, 70, 229, 0.06);
-    --grid-line-strong: rgba(106, 70, 229, 0.11);
-    background:
-        linear-gradient(var(--grid-line-strong) 1px, transparent 1px) 0 0 / 200px 200px,
-        linear-gradient(90deg, var(--grid-line-strong) 1px, transparent 1px) 0 0 / 200px 200px,
-        linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px,
-        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px,
-        #f6f4fd;
+    background: #f6f4fd;
     background-attachment: fixed;
 }
 
