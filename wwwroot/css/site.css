@@ -3130,3 +3130,10 @@ main:focus {
     max-width: 44em;
     font-size: 1.05rem;
 }
+
+/* 更新履歴（ホームは新しい数件の見出しだけ、/changelog は細かい内容まで） */
+.changelog-date { font-size: 0.78rem; color: var(--bs-secondary-color); font-variant-numeric: tabular-nums; margin-right: 0.35rem; }
+.changelog-entry .changelog-date { display: block; margin: 0 0 0.15rem; }
+.changelog-recent li { padding: 0.15rem 0; }
+.changelog-entry { padding-bottom: 0.75rem; border-bottom: 1px solid var(--bs-border-color); }
+.changelog-entry li { margin-bottom: 0.25rem; }

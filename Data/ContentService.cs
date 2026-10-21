@@ -52,6 +52,30 @@ public sealed partial class ContentService
     public IReadOnlyList<TipEntry> Tips => _snapshot.Tips;
     public IReadOnlyList<QaEntry> Qas => _snapshot.Qas;
     public IReadOnlyList<LinkEntry> Links => _snapshot.Links;
+    /// <summary>更新履歴（新しい順）。Content/changelog.yml</summary>
+    public IReadOnlyList<ChangelogEntry> Changelog => _snapshot.Changelog;
+
+    /// <summary>changelog.yml の中身を、新しい順の一覧にする。日付が無い・見出しが空・細かい内容に空の項目があれば FormatException。</summary>
+    public static IReadOnlyList<ChangelogEntry> ParseChangelog(string yaml)
+    {
+        List<ChangelogEntry> list;
+        try
+        {
+            list = Yaml.Deserialize<List<ChangelogEntry>>(yaml) ?? [];
+        }
+        catch (YamlDotNet.Core.YamlException ex)
+        {
+            throw new FormatException("changelog.yml を読めません: " + ex.Message, ex);
+        }
+        foreach (var e in list)
+        {
+            if (e.Date == default) throw new FormatException($"changelog.yml: date がありません（{e.Title}）");
+            if (string.IsNullOrWhiteSpace(e.Title)) throw new FormatException($"changelog.yml: {e.Date:yyyy-MM-dd} の title が空です");
+            if (e.Items.Any(string.IsNullOrWhiteSpace)) throw new FormatException($"changelog.yml: {e.Date:yyyy-MM-dd} の items に空の項目があります");
+        }
+        // 同じ日付は書いた順のまま（OrderByDescending は安定ソート）
+        return list.OrderByDescending(e => e.Date).ToList();
+    }
 
     /// <summary>リンク集の区切り（この順に表示する）。Content/links.yml の category はここの id を使う</summary>
     public static IReadOnlyList<LinkCategory> LinkCategories { get; } =
@@ -207,12 +231,14 @@ public sealed partial class ContentService
         var tips = ReadYaml<List<TipEntry>>(Path.Combine(_root, "tips", "tips.yml")) ?? [];
         var qas = ReadYaml<List<QaEntry>>(Path.Combine(_root, "tips", "qa.yml")) ?? [];
         var links = ReadYaml<List<LinkEntry>>(Path.Combine(_root, "links.yml")) ?? [];
+        var changelogPath = Path.Combine(_root, "changelog.yml");
+        var changelog = File.Exists(changelogPath) ? ParseChangelog(File.ReadAllText(changelogPath)) : [];
         CheckTips(glossary, howtos, tips, qas, links, articles, shortcuts);
 
         _logger.LogInformation("Content loaded: {Categories} categories, {Articles} articles, {Shortcuts} shortcuts, {Addons} addons",
             categories.Count, articles.Count, shortcuts.Count, addons.Count);
 
-        return new Snapshot(sections, categories, articles, shortcuts, addons, glossary, howtos, tips, qas, links);
+        return new Snapshot(sections, categories, articles, shortcuts, addons, glossary, howtos, tips, qas, links, changelog);
     }
 
     private IEnumerable<Article> LoadArticles(string categoryId)
@@ -411,5 +437,6 @@ public sealed partial class ContentService
         IReadOnlyList<HowtoEntry> Howtos,
         IReadOnlyList<TipEntry> Tips,
         IReadOnlyList<QaEntry> Qas,
-        IReadOnlyList<LinkEntry> Links);
+        IReadOnlyList<LinkEntry> Links,
+        IReadOnlyList<ChangelogEntry> Changelog);
 }
