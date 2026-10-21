@@ -39,8 +39,17 @@
     --bs-font-sans-serif: "Zen Kaku Gothic New", "Outfit", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
 }
 
+/* 背景の飾り: Blender の 3D ビューのような方眼（40px ごとの細い線。5 本ごとに少し濃く）。固定して、スクロールしても動かさない */
 body {
-    background: linear-gradient(180deg, #070616 0%, #0b0a26 100%) fixed;
+    --grid-line: rgba(129, 140, 248, 0.07);
+    --grid-line-strong: rgba(129, 140, 248, 0.13);
+    background:
+        linear-gradient(var(--grid-line-strong) 1px, transparent 1px) 0 0 / 200px 200px,
+        linear-gradient(90deg, var(--grid-line-strong) 1px, transparent 1px) 0 0 / 200px 200px,
+        linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px,
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px,
+        linear-gradient(180deg, #070616 0%, #0b0a26 100%);
+    background-attachment: fixed;
 }
 
 /* ライトテーマ（サイドバーの紫は共通） */
@@ -73,7 +82,15 @@ body {
 }
 
 [data-bs-theme="light"] body {
-    background: #f4f4fd;
+    --grid-line: rgba(79, 70, 229, 0.06);
+    --grid-line-strong: rgba(79, 70, 229, 0.11);
+    background:
+        linear-gradient(var(--grid-line-strong) 1px, transparent 1px) 0 0 / 200px 200px,
+        linear-gradient(90deg, var(--grid-line-strong) 1px, transparent 1px) 0 0 / 200px 200px,
+        linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px,
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px,
+        #f4f4fd;
+    background-attachment: fixed;
 }
 
 [data-bs-theme="light"] .btn-outline-primary {
