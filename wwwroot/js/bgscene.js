@@ -34,7 +34,8 @@
     var y2 = y * cp + z * sp, z2 = -y * sp + z * cp;
     var d = -z2;
     if (d < 0.2) return null;
-    var f = Math.max(W, H) * 0.95;
+    // 縦長の画面（スマホ）では、高さではなく幅に合わせる（高さに合わせると、右のオブジェクトが画面の外に出て、端しか見えない）
+    var f = Math.max(W, H * 0.6) * 0.95;
     return [W * 0.5 + (x * f) / d, H * 0.38 - (y2 * f) / d, d];
   }
 
