@@ -2061,6 +2061,17 @@ main {
         display: none;
     }
 
+    /* アイコンを、細い列の真ん中に置く。項目の左右の余白を 0.5rem にし、アイコン（20px）が、列（3.25rem）から左右 0.5rem を除いた幅（2.25rem）の中で中央になるようにする。
+       この位置は、開いているときも、広げたときも同じ（アイコンが動かない） */
+    .sidebar-panel .nav-item.px-3 {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    html.sidebar-hidden .sidebar:not(:hover):not(:has(:focus-visible)) .sidebar-panel .nav-link {
+        width: 2.25rem;
+    }
+
     /* 隠しているとき: サイドバーは、アイコンだけの細い列（52px。項目の名前の頭が、列の端に見えないよう、ハンバーガーと同じ幅）にする。項目の名前は、枠の外にはみ出して切れる。
        この列にマウスを乗せている間（または、キーボードで入ったとき）は、本来の幅まで広げて、ページの上にかぶせて出す。
        ハンバーガーを押すと、クラスが外れて、ふつうに広がったまま並ぶ */
