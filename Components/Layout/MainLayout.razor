@@ -6,9 +6,14 @@
 <a class="skip-link" href="@(new Uri(Nav.Uri).AbsolutePath)#main-content">本文へスキップ <kbd>Enter</kbd></a>
 
 <div class="page">
-    <div class="sidebar">
+    <div class="sidebar" id="site-sidebar">
         <NavMenu />
     </div>
+
+    @* サイドバーを隠しているときだけ（PC）、左上に出る「開く」ボタン。押す処理は wwwroot/js/sidebar.js *@
+    <button type="button" class="sidebar-reveal" data-sidebar-toggle aria-controls="site-sidebar" aria-expanded="false" title="サイドバーを表示">
+        <span aria-hidden="true">☰</span><span class="visually-hidden">サイドバーを表示</span>
+    </button>
 
     <main id="main-content" tabindex="-1">
         @* サイト内検索（すべてのページ）。候補の表示は wwwroot/js/quicksearch.js。JS がなくても /search へ送信できる *@
