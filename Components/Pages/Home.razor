@@ -11,6 +11,13 @@
         アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。<br />
         初めての方は下の目次を上から順に読んでください。
     </p>
+    <p class="small text-body-secondary mb-3">
+        対象バージョン: Blender @Site.Value.BlenderVersion / Unity @Site.Value.UnityVersion（VRChat SDK3）
+        @if (!string.IsNullOrEmpty(Site.Value.RepositoryUrl))
+        {
+            <span> · </span><a href="@Site.Value.RepositoryUrl" target="_blank" rel="noopener">GitHub で修正を提案する</a>
+        }
+    </p>
     <a href="/learn" class="btn btn-primary btn-lg">
         <i class="bi bi-book" aria-hidden="true"></i> はじめから読む
     </a>

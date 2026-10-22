@@ -10,6 +10,7 @@
 // - 最後の変更から 24 時間たつと、アラームで部屋の内容を消す
 // - ping は Durable Object を起こさずに自動で返す（WebSocket Hibernation）。応答の時刻で、切れた接続を見つけて外す
 import { DurableObject } from "cloudflare:workers";
+import { handleReport } from "./report.js";
 
 // ---------------------------------------------------------------- 上限
 export const LIMITS = {
@@ -47,6 +48,14 @@ export default {
       if (origin && originHost(origin) !== url.host) return new Response("forbidden", { status: 403 });
       const stub = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
       return stub.fetch(request);
+    }
+    // 作者への報告の受け口（worker/report.js）
+    if (url.pathname === "/api/report" || url.pathname === "/api/report/config") {
+      try {
+        return await handleReport(request, env, "Avatar Modding Guide");
+      } catch {
+        return new Response("internal error", { status: 500 });
+      }
     }
     if (url.pathname.startsWith("/api/")) return new Response("not found", { status: 404 });
     const res = await env.ASSETS.fetch(request);

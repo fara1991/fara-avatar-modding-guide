@@ -33,13 +33,6 @@
             @Body
         </article>
 
-        <footer class="site-footer px-4">
-            <span>対象バージョン: Blender @Site.Value.BlenderVersion / Unity @Site.Value.UnityVersion（VRChat SDK3）</span>
-            @if (!string.IsNullOrEmpty(Site.Value.RepositoryUrl))
-            {
-                <span> · </span>
-                <a href="@Site.Value.RepositoryUrl" target="_blank" rel="noopener">GitHub で修正を提案する</a>
-            }
-        </footer>
+        <SiteFooter />
     </main>
 </div>
