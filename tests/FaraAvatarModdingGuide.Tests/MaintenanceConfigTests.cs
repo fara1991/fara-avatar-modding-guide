@@ -20,11 +20,14 @@ public class MaintenanceConfigTests
     }
 
     [Fact]
-    public void Wrangler_keeps_dashboard_variables_for_the_top_level_and_both_environments()
+    public void Wrangler_keeps_dashboard_variables_at_the_top_level()
     {
-        // 公開（wrangler deploy）のたびに、ダッシュボードの MAINTENANCE が消えないように
+        // 公開（wrangler deploy）のたびに、ダッシュボードの MAINTENANCE が消えないように。keep_vars はトップレベルだけが有効
+        // （[env.*] の中に書くと、wrangler が「知らない項目」と警告する。本番・確認用の両方に、トップレベルの値が効く）
         var toml = File.ReadAllText(RepoFile("wrangler.toml"));
-        Assert.Equal(3, Regex.Matches(toml, @"^keep_vars = true$", RegexOptions.Multiline).Count);
+        var lines = Regex.Matches(toml, @"^keep_vars = true$", RegexOptions.Multiline);
+        Assert.Single(lines);
+        Assert.True(lines[0].Index < toml.IndexOf("[env.", StringComparison.Ordinal), "最初の [env.*] より前（トップレベル）にある");
     }
 
     [Fact]
