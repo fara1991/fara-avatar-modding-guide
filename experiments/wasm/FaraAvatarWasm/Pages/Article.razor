@@ -1,0 +1,68 @@
+@page "/learn/{Category}/{Slug}"
+@inject ContentStore Store
+
+@if (_article is null)
+{
+    if (_loaded)
+    {
+        <MudAlert Severity="Severity.Warning">この記事は見つかりません。</MudAlert>
+    }
+    else
+    {
+        <MudProgressLinear Indeterminate Color="Color.Primary" />
+    }
+}
+else
+{
+    <PageTitle>@_article.Title - アバター改変ガイド</PageTitle>
+
+    <MudText Typo="Typo.caption">@_categoryTitle@(string.IsNullOrEmpty(_article.Difficulty) ? "" : " · " + _article.Difficulty)</MudText>
+    <MudText Typo="Typo.h4" Class="mb-2">@_article.Title</MudText>
+    @if (!string.IsNullOrEmpty(_article.Description))
+    {
+        <MudText Typo="Typo.body1" Class="mb-4">@_article.Description</MudText>
+    }
+
+    <MudPaper Class="pa-4 pa-md-6 article-body" Elevation="0">
+        @((MarkupString)_article.Html)
+    </MudPaper>
+
+    <MudStack Row Justify="Justify.SpaceBetween" Class="mt-6">
+        @if (_prev is not null)
+        {
+            <MudButton Href="@_prev.Url.TrimStart('/')" Variant="Variant.Text" Color="Color.Primary">← @_prev.Title</MudButton>
+        }
+        else
+        {
+            <span></span>
+        }
+        @if (_next is not null)
+        {
+            <MudButton Href="@_next.Url.TrimStart('/')" Variant="Variant.Text" Color="Color.Primary">@_next.Title →</MudButton>
+        }
+    </MudStack>
+}
+
+@code {
+    [Parameter] public string Category { get; set; } = "";
+    [Parameter] public string Slug { get; set; } = "";
+
+    private ArticleEntry? _article;
+    private ArticleEntry? _prev;
+    private ArticleEntry? _next;
+    private string _categoryTitle = "";
+    private bool _loaded;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var content = await Store.GetContentAsync();
+        var index = content.Articles.FindIndex(a =>
+            a.Category.Equals(Category, StringComparison.OrdinalIgnoreCase) &&
+            a.Slug.Equals(Slug, StringComparison.OrdinalIgnoreCase));
+        _loaded = true;
+        _article = index < 0 ? null : content.Articles[index];
+        _prev = index > 0 ? content.Articles[index - 1] : null;
+        _next = index >= 0 && index < content.Articles.Count - 1 ? content.Articles[index + 1] : null;
+        _categoryTitle = content.Categories.FirstOrDefault(c => c.Id == Category)?.Title ?? Category;
+    }
+}

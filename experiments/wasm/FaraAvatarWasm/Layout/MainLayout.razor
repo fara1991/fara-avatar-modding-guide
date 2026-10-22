@@ -1,0 +1,88 @@
+@inherits LayoutComponentBase
+@inject ThemeState Theme
+@implements IDisposable
+
+@* MudBlazor の土台（テーマ・ポップアップ・ダイアログ・スナックバー）。ポケモン版の Shared/MudProviders.razor と同じ構成。 *@
+<MudThemeProvider @key="Theme.IsDark" Theme="_theme" IsDarkMode="Theme.IsDark" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" aria-label="メニューを開く" />
+        <MudText Typo="Typo.h6" Class="ml-2"><a href="" class="site-title">アバター改変ガイド</a></MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@(Theme.IsDark ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Color="Color.Inherit"
+                       OnClick="Theme.ToggleAsync" aria-label="ライトとダークを切り替える" />
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Variant="DrawerVariant.Responsive" Elevation="1" ClipMode="DrawerClipMode.Docked">
+        <MudNavMenu>
+            <MudNavLink Href="" Icon="@Icons.Material.Filled.Home">ホーム</MudNavLink>
+            <MudNavLink Href="search" Icon="@Icons.Material.Filled.Search">検索</MudNavLink>
+            <MudNavLink Href="practice" Icon="@Icons.Material.Filled.ViewInAr">練習（3D）の入口</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#7c3aed",
+            PrimaryContrastText = "#ffffff",
+            Background = "#f7f4fd",
+            Surface = "#ffffff",
+            TextPrimary = "#1e1433",
+            TextSecondary = "#6b5f8a",
+            DrawerBackground = "#1e0e2c",
+            DrawerText = "#f3edff",
+            DrawerIcon = "#c4b5fd",
+            AppbarBackground = "#2a1240",
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#a855f7",
+            PrimaryContrastText = "#ffffff",
+            Background = "#0c0616",
+            Surface = "#1a1030",
+            TextPrimary = "#f3edff",
+            TextSecondary = "#b4a7d1",
+            DrawerBackground = "#1e0e2c",
+            DrawerText = "#f3edff",
+            DrawerIcon = "#c4b5fd",
+            AppbarBackground = "#2a1240",
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography { FontFamily = ["Zen Kaku Gothic New", "system-ui", "-apple-system", "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Meiryo", "sans-serif"], LetterSpacing = "normal" },
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "6px",
+            AppbarHeight = "56px",
+            DrawerWidthLeft = "230px",
+        },
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 保存したテーマを読み終えてから描く（ライトで描いてからダークに変わるちらつきを防ぐ）
+        await Theme.InitializeAsync();
+        Theme.Changed += StateHasChanged;
+    }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    public void Dispose() => Theme.Changed -= StateHasChanged;
+}

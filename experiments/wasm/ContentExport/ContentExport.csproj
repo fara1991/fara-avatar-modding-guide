@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 試作: Content/ を読んで、WebAssembly 版が読む JSON（data/content.json・data/search.json）を書き出す。
+       本体の ContentService・Models・SearchIndex をそのまま取り込む（同じ解析結果を使うため）。 -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ContentExport</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 本体の ContentService は ASP.NET の型（IWebHostEnvironment・ILogger）を使うので、同じ名前空間を足す -->
+    <Using Include="Microsoft.Extensions.Logging" />
+    <Using Include="Microsoft.AspNetCore.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\Data\ContentService.cs" Link="Shared\ContentService.cs" />
+    <Compile Include="..\..\..\Data\Models.cs" Link="Shared\Models.cs" />
+    <Compile Include="..\..\..\Data\SearchIndex.cs" Link="Shared\SearchIndex.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Markdig" Version="1.4.0" />
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,83 @@
+@page "/search"
+@inject ContentStore Store
+
+<PageTitle>検索 - アバター改変ガイド</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">検索</MudText>
+<MudTextField T="string" Value="_query" ValueChanged="OnQueryChanged" Immediate="true" Variant="Variant.Outlined"
+              Label="キーワード（スペースで区切ると、すべて含む項目を探します）" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mb-4" />
+
+@if (_index is null)
+{
+    <MudProgressLinear Indeterminate Color="Color.Primary" />
+}
+else if (string.IsNullOrWhiteSpace(_query))
+{
+    <MudText Typo="Typo.body2">キーワードを入力してください。</MudText>
+}
+else
+{
+    <MudText Typo="Typo.caption" Class="mb-2">@_results.Count 件（最大 50 件）</MudText>
+    @foreach (var r in _results)
+    {
+        <MudPaper Class="pa-3 mb-2" Elevation="1">
+            <MudText Typo="Typo.caption">@TypeLabel(r.Type)@(string.IsNullOrEmpty(r.Subtitle) ? "" : " · " + r.Subtitle)</MudText>
+            <MudText Typo="Typo.h6"><a href="@Href(r.Url)">@r.Title</a></MudText>
+            <MudText Typo="Typo.body2">@Snippet(r.Text)</MudText>
+        </MudPaper>
+    }
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
+
+    private List<SearchEntry>? _index;
+    private string _query = "";
+    private IReadOnlyList<SearchEntry> _results = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _query = Q ?? "";
+        _index = await Store.GetSearchIndexAsync();
+        Recalculate();
+    }
+
+    private void OnQueryChanged(string value)
+    {
+        _query = value;
+        Recalculate();
+    }
+
+    private void Recalculate()
+    {
+        _results = _index is null ? [] : SearchMatcher.Search(_index, _query);
+    }
+
+    // 記事（/learn/...）はこの試作の中で開く。それ以外（用語集・ショートカットなど）は本体の静的ページへ
+    private static string Href(string url) => url.StartsWith("/learn/", StringComparison.Ordinal) ? url.TrimStart('/') : url;
+
+    private static string TypeLabel(string type) => type switch
+    {
+        "article" => "記事",
+        "glossary" => "用語",
+        "howto" => "何て名前？",
+        "tip" => "TIPS",
+        "qa" => "Q&A",
+        "link" => "リンク",
+        "shortcut" => "ショートカット",
+        "addon" => "アドオン",
+        _ => type,
+    };
+
+    private string Snippet(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        var norm = SearchMatcher.Normalize(text);
+        var terms = SearchMatcher.Normalize(_query).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var at = terms.Select(t => norm.IndexOf(t, StringComparison.Ordinal)).Where(i => i >= 0).DefaultIfEmpty(-1).Min();
+        var start = at < 0 ? 0 : Math.Max(0, at - 30);
+        start = Math.Min(start, text.Length);
+        var length = Math.Min(90, text.Length - start);
+        return (start > 0 ? "…" : "") + text.Substring(start, length) + (start + length < text.Length ? "…" : "");
+    }
+}

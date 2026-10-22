@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>アバター改変ガイド（WebAssembly 試作）</title>
+    <!-- 試作は /wasm/ の下で動かすため。本番に移すなら / に変える -->
+    <base href="/wasm/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="/images/site-icon.svg" />
+    <link href="css/app.css" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="loading-screen">
+            <p>読み込み中...</p>
+        </div>
+    </div>
+    <div id="blazor-error-ui">
+        エラーが発生しました。ページを再読み込みしてください。
+        <a href="" class="reload">再読み込み</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+@page "/"
+@inject ContentStore Store
+
+<PageTitle>アバター改変ガイド（WebAssembly 試作）</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-2">アバター改変ガイド</MudText>
+<MudText Typo="Typo.body1" Class="mb-6">Blender・Unity・VRChat でアバターを改変するための手順書です。この画面は Blazor WebAssembly ＋ MudBlazor の試作です。</MudText>
+
+@if (_content is null)
+{
+    <MudProgressCircular Indeterminate Color="Color.Primary" />
+}
+else
+{
+    @foreach (var sec in _content.Sections)
+    {
+        <MudText Typo="Typo.h5" Class="mt-6">@sec.Title</MudText>
+        <MudText Typo="Typo.body2" Class="mb-3">@sec.Description</MudText>
+        <MudGrid>
+            @foreach (var cat in _content.Categories.Where(c => c.Section == sec.Id))
+            {
+                var articles = _content.Articles.Where(a => a.Category == cat.Id).ToList();
+                if (articles.Count == 0) continue;
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Class="h-100" Elevation="1">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@cat.Title</MudText>
+                            <MudText Typo="Typo.body2" Class="mb-2">@cat.Description</MudText>
+                            <MudText Typo="Typo.caption">@articles.Count 記事</MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Href="@articles[0].Url.TrimStart('/')" Color="Color.Primary" Size="Size.Small">最初から読む</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+}
+
+@code {
+    private SiteContent? _content;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _content = await Store.GetContentAsync();
+    }
+}

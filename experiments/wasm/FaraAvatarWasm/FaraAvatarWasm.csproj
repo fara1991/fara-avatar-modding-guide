@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!-- 試作（experiments/wasm）。本体（FaraAvatarModdingGuide.csproj）からは除外してある。
+       ポケモンのサイト（net8.0・MudBlazor 9.11.0）に合わせ、MudBlazor は同じ版を使う。TFM だけ net9.0。 -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FaraAvatarWasm</RootNamespace>
+    <BlazorEnableCompression>true</BlazorEnableCompression>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.21" />
+    <PackageReference Include="MudBlazor" Version="9.11.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,322 @@
+{
+  "size": {
+    "wasm": {
+      "other": {
+        "files": 3,
+        "raw": 3862,
+        "gzip": 2157,
+        "brotli": 1582
+      },
+      "data-json": {
+        "files": 2,
+        "raw": 1721531,
+        "gzip": 367130,
+        "brotli": 265671
+      },
+      "mudblazor": {
+        "files": 3,
+        "raw": 950282,
+        "gzip": 138359,
+        "brotli": 103462
+      },
+      "framework": {
+        "files": 52,
+        "raw": 10639665,
+        "gzip": 4123304,
+        "brotli": 3232818
+      }
+    },
+    "ssrSameOriginAssets": {
+      "css/site.css": {
+        "raw": 72558,
+        "brotli": 14291
+      },
+      "js/nav.js": {
+        "raw": 13544,
+        "brotli": 4327
+      },
+      "js/sidebar.js": {
+        "raw": 2603,
+        "brotli": 963
+      },
+      "js/scrollprogress.js": {
+        "raw": 1132,
+        "brotli": 522
+      },
+      "js/bgscene.js": {
+        "raw": 10913,
+        "brotli": 3728
+      },
+      "js/progress.js": {
+        "raw": 5141,
+        "brotli": 1717
+      },
+      "js/searchcore.js": {
+        "raw": 9938,
+        "brotli": 3584
+      },
+      "js/quicksearch.js": {
+        "raw": 7699,
+        "brotli": 2493
+      }
+    }
+  },
+  "timing": {
+    "normal/ssr": {
+      "medianMs": 37,
+      "runsMs": [
+        75,
+        23,
+        77,
+        37,
+        31
+      ],
+      "medianLoadEventMs": 337,
+      "runsLoadEventMs": [
+        557,
+        320,
+        352,
+        337,
+        336
+      ],
+      "medianTotalBytes": 1914267,
+      "medianSameOriginBytes": 805871,
+      "medianExternalBytes": 1108396,
+      "medianWasmFrameworkBytes": 0,
+      "medianWasmDataBytes": 0,
+      "medianMudBlazorBytes": 0,
+      "requests": 84,
+      "externalHosts": [
+        "fonts.googleapis.com",
+        "cdn.jsdelivr.net",
+        "fonts.gstatic.com"
+      ]
+    },
+    "normal/wasm": {
+      "medianMs": 778,
+      "runsMs": [
+        783,
+        778,
+        775,
+        821,
+        775
+      ],
+      "medianLoadEventMs": 161,
+      "runsLoadEventMs": [
+        172,
+        161,
+        146,
+        176,
+        153
+      ],
+      "medianTotalBytes": 4301421,
+      "medianSameOriginBytes": 3748077,
+      "medianExternalBytes": 553344,
+      "medianWasmFrameworkBytes": 2935962,
+      "medianWasmDataBytes": 94883,
+      "medianMudBlazorBytes": 57916,
+      "requests": 111,
+      "externalHosts": [
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ]
+    },
+    "slow/ssr": {
+      "medianMs": 235,
+      "runsMs": [
+        235,
+        233,
+        235,
+        229,
+        238
+      ],
+      "medianLoadEventMs": 10381,
+      "runsLoadEventMs": [
+        10554,
+        10423,
+        10380,
+        10314,
+        10381
+      ],
+      "medianTotalBytes": 1914335,
+      "medianSameOriginBytes": 805871,
+      "medianExternalBytes": 1108464,
+      "medianWasmFrameworkBytes": 0,
+      "medianWasmDataBytes": 0,
+      "medianMudBlazorBytes": 0,
+      "requests": 84,
+      "externalHosts": [
+        "cdn.jsdelivr.net",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ]
+    },
+    "slow/wasm": {
+      "medianMs": 18687,
+      "runsMs": [
+        18481,
+        18691,
+        18571,
+        18687,
+        19090
+      ],
+      "medianLoadEventMs": 1273,
+      "runsLoadEventMs": [
+        1275,
+        1268,
+        1280,
+        1269,
+        1273
+      ],
+      "medianTotalBytes": 3245343,
+      "medianSameOriginBytes": 3033743,
+      "medianExternalBytes": 211600,
+      "medianWasmFrameworkBytes": 2935962,
+      "medianWasmDataBytes": 94883,
+      "medianMudBlazorBytes": 57916,
+      "requests": 69,
+      "externalHosts": [
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ]
+    }
+  },
+  "nav": {
+    "run1": {
+      "wasmNextMs": 80,
+      "wasmKept": "kept",
+      "wasmSearchKept": "kept",
+      "wasmPracticeInAppKept": "kept",
+      "wasmPracticeStaticKept": "lost",
+      "ssrNextMs": 86,
+      "ssrKept": "kept",
+      "ssrHasModuleScript": false
+    },
+    "run2": {
+      "wasmNextMs": 79,
+      "wasmKept": "kept",
+      "wasmSearchKept": "kept",
+      "wasmPracticeInAppKept": "kept",
+      "wasmPracticeStaticKept": "lost",
+      "ssrNextMs": 73,
+      "ssrKept": "kept",
+      "ssrHasModuleScript": false
+    },
+    "run3": {
+      "wasmNextMs": 80,
+      "wasmKept": "kept",
+      "wasmSearchKept": "kept",
+      "wasmPracticeInAppKept": "kept",
+      "wasmPracticeStaticKept": "lost",
+      "ssrNextMs": 62,
+      "ssrKept": "kept",
+      "ssrHasModuleScript": false
+    }
+  },
+  "seo": {
+    "ssrArticle": {
+      "htmlBytes": 31218,
+      "title": "&#x79FB;&#x52D5;&#x30FB;&#x56DE;&#x8EE2;&#x30FB;&#x30B9;&#x30B1;&#x30FC;&#x30EB; - Avatar Modding Guide",
+      "hasH1": true,
+      "visibleTextChars": 4462,
+      "visibleTextSample": "&#x79FB;&#x52D5;&#x30FB;&#x56DE;&#x8EE2;&#x30FB;&#x30B9;&#x30B1;&#x30FC;&#x30EB; - Avatar Modding Guide 本文へスキップ Enter Av",
+      "hasArticleBody": true
+    },
+    "wasmArticle": {
+      "htmlBytes": 1421,
+      "title": "アバター改変ガイド（WebAssembly 試作）",
+      "hasH1": false,
+      "visibleTextChars": 71,
+      "visibleTextSample": "アバター改変ガイド（WebAssembly 試作） 読み込み中... エラーが発生しました。ページを再読み込みしてください。 再読み込み 🗙",
+      "hasArticleBody": false
+    },
+    "wasmHome": {
+      "htmlBytes": 1421,
+      "title": "アバター改変ガイド（WebAssembly 試作）",
+      "hasH1": false,
+      "visibleTextChars": 71,
+      "visibleTextSample": "アバター改変ガイド（WebAssembly 試作） 読み込み中... エラーが発生しました。ページを再読み込みしてください。 再読み込み 🗙",
+      "hasArticleBody": false
+    },
+    "ssrHome": {
+      "htmlBytes": 56191,
+      "title": "ホーム - Avatar Modding Guide",
+      "hasH1": true,
+      "visibleTextChars": 11141,
+      "visibleTextSample": "ホーム - Avatar Modding Guide 本文へスキップ Enter Avatar Modding Guide Ctrl K Avatar Modding Guide ホーム 目次 Blender &#x306F;&#x3058",
+      "hasArticleBody": false
+    }
+  },
+  "csp": {
+    "A-no-wasm-eval/ssr": {
+      "rendered": true,
+      "violationCount": 4,
+      "directives": [
+        "script-src",
+        "style-src"
+      ],
+      "sample": [
+        "Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-h1DYdJmoBRJCUlRA/BJS0xgIrOIUwjxt2rNPScHRezw='), or a nonce ('nonce-...') is required t",
+        "Loading the stylesheet 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' https://fonts.googleapis.com\". Note that 'style-src-elem' was not e",
+        "Loading the stylesheet 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css' violates the following Content Security Policy directive: \"style-src 'self' https://fonts.googleapis.com\". Note that 'style-src-elem' "
+      ]
+    },
+    "A-no-wasm-eval/wasm": {
+      "rendered": false,
+      "violationCount": 4,
+      "directives": [
+        "?"
+      ],
+      "sample": [
+        "MONO_WASM: instantiate_wasm_module() failed CompileError: WebAssembly.compileStreaming(): Compiling or instantiating WebAssembly module violates the following Content Security policy directive because 'unsafe-eval' is not an allowed source ",
+        "MONO_WASM: WebAssembly.compileStreaming(): Compiling or instantiating WebAssembly module violates the following Content Security policy directive because 'unsafe-eval' is not an allowed source of script in the following Content Security Pol",
+        "Error in mono_download_assets: CompileError: WebAssembly.compileStreaming(): Compiling or instantiating WebAssembly module violates the following Content Security policy directive because 'unsafe-eval' is not an allowed source of script in "
+      ]
+    },
+    "B-wasm-eval/ssr": {
+      "rendered": true,
+      "violationCount": 4,
+      "directives": [
+        "script-src",
+        "style-src"
+      ],
+      "sample": [
+        "Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'wasm-unsafe-eval''. Either the 'unsafe-inline' keyword, a hash ('sha256-h1DYdJmoBRJCUlRA/BJS0xgIrOIUwjxt2rNPScHRezw='), or a nonce ('nonce-",
+        "Loading the stylesheet 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' https://fonts.googleapis.com\". Note that 'style-src-elem' was not e",
+        "Loading the stylesheet 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css' violates the following Content Security Policy directive: \"style-src 'self' https://fonts.googleapis.com\". Note that 'style-src-elem' "
+      ]
+    },
+    "B-wasm-eval/wasm": {
+      "rendered": true,
+      "violationCount": 6,
+      "directives": [
+        "style-src"
+      ],
+      "sample": [
+        "Applying inline style violates the following Content Security Policy directive 'style-src 'self' https://fonts.googleapis.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-ktKK7Zv7htgNiUfk5gyriqVJUMU7emNct5K2m6GIbXs='), or a nonce (",
+        "Applying inline style violates the following Content Security Policy directive 'style-src 'self' https://fonts.googleapis.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-XzQsP9HYv5dA8MQauHPLC9ALegSBxGglPvgN6fxiZvk='), or a nonce (",
+        "Applying inline style violates the following Content Security Policy directive 'style-src 'self' https://fonts.googleapis.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-3NyR/Xpz8SDI07h8Yn4J4s81MSBxqxlyZZr6ShFQ118='), or a nonce ("
+      ]
+    },
+    "C-wasm-eval-inline-style/ssr": {
+      "rendered": true,
+      "violationCount": 4,
+      "directives": [
+        "script-src",
+        "style-src"
+      ],
+      "sample": [
+        "Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'wasm-unsafe-eval''. Either the 'unsafe-inline' keyword, a hash ('sha256-h1DYdJmoBRJCUlRA/BJS0xgIrOIUwjxt2rNPScHRezw='), or a nonce ('nonce-",
+        "Loading the stylesheet 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com\". Note that 'style-src",
+        "Loading the stylesheet 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com\". Note that '"
+      ]
+    },
+    "C-wasm-eval-inline-style/wasm": {
+      "rendered": true,
+      "violationCount": 0,
+      "directives": [],
+      "sample": []
+    }
+  },
+  "note": "timing: Edge, cache off, median of 5. normal=no throttling (local, not a real network). slow=150ms latency, 1.6Mbps (200000 B/s), CPU x4. visible=article text appears; load=load event. CSP variants are from the first CSP run (before the nav fix). "
+}
