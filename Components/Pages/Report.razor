@@ -7,6 +7,7 @@
     <meta name="robots" content="noindex" />
 </HeadContent>
 
+<div class="page-column">
 <h1>問い合わせ</h1>
 <p class="lead">記事の間違い・不具合・要望・ご意見を、作者に直接送れます。いただいた内容は、作者に通知されます（公開はされません）。</p>
 @if (!string.IsNullOrEmpty(Site.Value.RepositoryUrl))
@@ -47,6 +48,7 @@
 <div id="report-done" class="report-done" role="status" hidden>
     <p class="report-status report-status-ok">送信しました。ありがとうございます。返信が必要な場合は、書いていただいた連絡先にお返事することがあります。</p>
     <button id="report-again" type="button" class="btn btn-outline-primary mt-3">もう 1 件送る</button>
+</div>
 </div>
 
 <script src="/js/report.js" defer></script>
