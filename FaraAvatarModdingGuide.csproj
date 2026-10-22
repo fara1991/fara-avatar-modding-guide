@@ -24,4 +24,12 @@
     <PackageReference Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- 試作（experiments/）は本体に含めない。C# の Blazor WASM 試作は別プロジェクトとして各フォルダで作る -->
+    <Compile Remove="experiments\**" />
+    <EmbeddedResource Remove="experiments\**" />
+    <None Remove="experiments\**" />
+    <Content Remove="experiments\**" />
+  </ItemGroup>
+
 </Project>

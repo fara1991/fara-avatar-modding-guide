@@ -1,0 +1,68 @@
+@page "/"
+@page "/practice-cs"
+@implements IDisposable
+@inject IJSRuntime JS
+@using Csharp3d.Shared
+
+<PageTitle>練習（C# / KNI）</PageTitle>
+
+<div class="cs-page">
+    <div class="cs-view" id="canvasHolder">
+        <canvas id="theCanvas" tabindex="0"></canvas>
+        <div class="cs-hud">@core.Scene.Objects.Count オブジェクト ・ 視点 ユーザー ・ 透視投影 ・ @core.Status</div>
+    </div>
+    <aside class="cs-side">
+        <h2>お題（C# / KNI）</h2>
+        <ol class="cs-tasks">
+            @for (int i = 0; i < Practice3D.Tasks.Length; i++)
+            {
+                var index = i;
+                <li class="@(core.TaskDone[index] ? "done" : index == core.TaskIndex ? "current" : "")">@Practice3D.Tasks[index].Text</li>
+            }
+        </ol>
+        @if (core.TaskIndex >= Practice3D.Tasks.Length)
+        {
+            <p class="cs-done">すべてできました。</p>
+        }
+        <p class="cs-note">操作: 左クリックで選択 ・ 中ボタンドラッグで回転（Shift で移動、Ctrl でズーム）・ ホイールでズーム ・ G → X/Y/Z → 数字 → Enter（Esc で取り消し）</p>
+    </aside>
+</div>
+
+@code {
+    readonly Practice3D core = new();
+    PracticeGame game;
+    int tickCount;
+    DotNetObjectReference<PracticeCs> self;
+
+    protected override void OnInitialized()
+    {
+        core.Changed += () => InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            self = DotNetObjectReference.Create(this);
+            await JS.InvokeAsync<object>("initRenderJS", self);
+        }
+    }
+
+    [JSInvokable]
+    public void TickDotNet()
+    {
+        if (game is null)
+        {
+            game = new PracticeGame(core);
+            game.Run();
+        }
+        game.Tick();
+        // 計測用: C# 側の Draw の時間を JS へ（30 フレームごと）
+        if (++tickCount % 30 == 0) _ = JS.InvokeVoidAsync("setCsStats", game.DrawCount, game.DrawMsTotal);
+    }
+
+    public void Dispose()
+    {
+        self?.Dispose();
+    }
+}

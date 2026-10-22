@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Csharp3d.Kni</RootNamespace>
+    <BlazorEnableTimeZoneSupport>false</BlazorEnableTimeZoneSupport>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 描画に依存しない部分（幾何・カメラ・操作・お題）は WebGl と共有 -->
+    <Compile Include="..\Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- KNI 4.x の公式 BlazorGL テンプレートと同じ系統（コンテンツパイプライン・音声などは使わない） -->
+    <PackageReference Include="nkast.Xna.Framework" Version="4.3.9001" />
+    <PackageReference Include="nkast.Xna.Framework.Graphics" Version="4.3.9001" />
+    <PackageReference Include="nkast.Xna.Framework.Input" Version="4.3.9001" />
+    <PackageReference Include="nkast.Xna.Framework.Game" Version="4.3.9001" />
+    <PackageReference Include="nkast.Kni.Platform.Blazor.GL" Version="4.3.9001" />
+    <!-- 推移的な参照では静的アセット（index.html が読む nkast.Wasm.* の JS）が出力に入らないので、直接参照にする -->
+    <PackageReference Include="nkast.Wasm.JSInterop" Version="10.0.3" />
+    <PackageReference Include="nkast.Wasm.Dom" Version="10.0.3" />
+    <PackageReference Include="nkast.Wasm.XHR" Version="10.0.3" />
+    <PackageReference Include="nkast.Wasm.Canvas" Version="10.0.3" />
+    <PackageReference Include="nkast.Wasm.Audio" Version="10.0.3" />
+    <PackageReference Include="nkast.Wasm.XR" Version="10.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

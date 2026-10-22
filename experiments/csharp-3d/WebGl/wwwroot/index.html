@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>練習（C# / WebGL）</title>
+    <base href="/" />
+    <link href="css/app.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="app">読み込み中…</div>
+
+    <div id="blazor-error-ui">
+        エラーが発生しました。
+        <a href="" class="reload">再読み込み</a>
+        <a class="dismiss">x</a>
+    </div>
+
+    <script src="js/gl.js"></script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script>
+        Blazor.start();
+    </script>
+    <script>
+        // 計測用: C# 側の描画時間（フレーム数と累計 ms）
+        window.setCsStats = (n, ms) => { window.__csStats = { n, ms }; };
+
+        // 毎フレーム: 描画の準備ができたら .NET 側の Tick を呼ぶ（KNI 版と同じ形）
+        function tickJS() {
+            window.theInstance.invokeMethod('Tick');
+            window.requestAnimationFrame(tickJS);
+        }
+        window.initRenderJS = (instance) => {
+            window.theInstance = instance;
+            window.requestAnimationFrame(tickJS);
+        };
+        window.addEventListener('keydown', e => { if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1 && e.target.id === 'theCanvas') e.preventDefault(); });
+        window.addEventListener('wheel', e => { if (e.target.id === 'theCanvas') e.preventDefault(); }, { passive: false });
+    </script>
+</body>
+
+</html>

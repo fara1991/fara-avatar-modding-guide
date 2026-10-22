@@ -1,0 +1,83 @@
+@page "/"
+@page "/practice-cs"
+@implements IDisposable
+@inject IJSRuntime JS
+@using Csharp3d.Shared
+
+<PageTitle>練習（C# / WebGL）</PageTitle>
+
+<div class="cs-page">
+    <div class="cs-view">
+        <canvas id="theCanvas" tabindex="0"
+                @onpointerdown="OnPointerDown"
+                @onpointermove="OnPointerMove"
+                @onpointerup="OnPointerUp"
+                @onwheel="OnWheel"
+                @onkeydown="OnKeyDown"></canvas>
+        <div class="cs-hud">@core.Scene.Objects.Count オブジェクト ・ 視点 ユーザー ・ 透視投影 ・ @core.Status</div>
+        @if (!ready)
+        {
+            <div class="cs-hud">WebGL 2 を初期化できませんでした。</div>
+        }
+    </div>
+    <aside class="cs-side">
+        <h2>お題（C# / WebGL 2）</h2>
+        <ol class="cs-tasks">
+            @for (int i = 0; i < Practice3D.Tasks.Length; i++)
+            {
+                var index = i;
+                <li class="@(core.TaskDone[index] ? "done" : index == core.TaskIndex ? "current" : "")">@Practice3D.Tasks[index].Text</li>
+            }
+        </ol>
+        @if (core.TaskIndex >= Practice3D.Tasks.Length)
+        {
+            <p class="cs-done">すべてできました。</p>
+        }
+        <p class="cs-note">操作: 左クリックで選択 ・ 中ボタンドラッグで回転（Shift で移動、Ctrl でズーム）・ ホイールでズーム ・ G → X/Y/Z → 数字 → Enter（Esc で取り消し）</p>
+    </aside>
+</div>
+
+@code {
+    readonly Practice3D core = new();
+    GlRenderer renderer;
+    int tickCount;
+    DotNetObjectReference<PracticeCs> self;
+    bool ready = true;
+
+    protected override void OnInitialized()
+    {
+        core.Changed += () => InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            renderer = new GlRenderer(core);
+            ready = renderer.Init();
+            self = DotNetObjectReference.Create(this);
+            await JS.InvokeAsync<object>("initRenderJS", self);
+            if (!ready) StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void Tick()
+    {
+        renderer?.Frame();
+        // 計測用: C# 側の Frame の時間を JS へ（30 フレームごと）
+        if (renderer is not null && ++tickCount % 30 == 0) _ = JS.InvokeVoidAsync("setCsStats", renderer.FrameCount, renderer.FrameMsTotal);
+    }
+
+    // Blazor のイベントは canvas の中の座標（OffsetX/Y）を使う
+    void OnPointerDown(PointerEventArgs e) => core.PointerDown((int)e.Button, (float)e.OffsetX, (float)e.OffsetY, e.ShiftKey, e.AltKey, e.CtrlKey);
+    void OnPointerMove(PointerEventArgs e) => core.PointerMove((float)e.OffsetX, (float)e.OffsetY);
+    void OnPointerUp(PointerEventArgs e) => core.PointerUp((int)e.Button, (float)e.OffsetX, (float)e.OffsetY);
+    void OnWheel(WheelEventArgs e) => core.Wheel((float)e.DeltaY);
+    void OnKeyDown(KeyboardEventArgs e) => core.KeyDown(e.Code);
+
+    public void Dispose()
+    {
+        self?.Dispose();
+    }
+}

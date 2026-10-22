@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>練習（C# / KNI）</title>
+    <base href="/" />
+    <link href="css/app.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="app">読み込み中…</div>
+
+    <div id="blazor-error-ui">
+        エラーが発生しました。
+        <a href="" class="reload">再読み込み</a>
+        <a class="dismiss">x</a>
+    </div>
+
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script>
+        Blazor.start();
+    </script>
+
+    <!-- KNI が使う Web API の橋渡し（テンプレートと同じ版） -->
+    <script src="_content/nkast.Wasm.JSInterop/js/JSObject.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Window.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Document.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Navigator.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Gamepad.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Media.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.XHR/js/XHR.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Canvas/js/Canvas.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Canvas/js/CanvasGLContext.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Audio/js/Audio.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.XR/js/XR.10.0.3.js"></script>
+
+    <script>
+        // 計測用: C# 側の描画時間（フレーム数と累計 ms）
+        window.setCsStats = (n, ms) => { window.__csStats = { n, ms }; };
+
+        // 毎フレーム: 描画の準備ができたら .NET 側の TickDotNet を呼ぶ（テンプレートの方式）
+        function tickJS() {
+            window.theInstance.invokeMethod('TickDotNet');
+            window.requestAnimationFrame(tickJS);
+        }
+
+        window.initRenderJS = (instance) => {
+            window.theInstance = instance;
+            const canvas = document.getElementById('theCanvas');
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+            window.requestAnimationFrame(tickJS);
+        };
+
+        // 矢印キー・スペース・ホイールでページがスクロールしないように
+        window.addEventListener('keydown', e => { if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) e.preventDefault(); });
+        window.addEventListener('wheel', e => { if (e.target.id === 'theCanvas') e.preventDefault(); }, { passive: false });
+    </script>
+</body>
+
+</html>
