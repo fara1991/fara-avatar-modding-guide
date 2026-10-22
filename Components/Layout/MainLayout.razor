@@ -6,6 +6,9 @@
 <a class="skip-link" href="@(new Uri(Nav.Uri).AbsolutePath)#main-content">本文へスキップ <kbd>Enter</kbd></a>
 
 <div class="page">
+    @* 画面の最上部の細い線（スクロールの進み具合）。位置と伸び方は CSS（.scroll-progress）、値は wwwroot/js/scrollprogress.js。読むだけの飾りなので、読み上げには出さない *@
+    <div class="scroll-progress" aria-hidden="true"></div>
+
     @* PC の上に固定するヘッダー（ハンバーガーとサイト名）。ハンバーガーを押すたびに、サイドバーの表示・非表示を切り替える（処理は wwwroot/js/sidebar.js）。
        スマホは、サイドバー上部のサイト名とメニューのボタンを使う。キーボードで最初に届くよう、サイドバーの前に置く *@
     <header class="app-header">

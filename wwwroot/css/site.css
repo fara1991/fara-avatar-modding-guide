@@ -1960,6 +1960,21 @@ main {
     }
 }
 
+/* ---------- スクロールの進み具合（画面の最上部の細い線。0 = 先頭、1 = 最後まで）。値は js/scrollprogress.js が --scroll-progress に入れる。PC は固定ヘッダーの上端、スマホは画面の最上部 ---------- */
+/* 動きの指定（transition）は付けない。動きを減らす設定でも、線は見えたまま */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    height: 2px;
+    background: var(--grad);
+    transform-origin: left;
+    transform: scaleX(var(--scroll-progress, 0));
+    pointer-events: none;
+}
+
 /* ---------- ヘッダー（ハンバーガーとサイト名）とサイドバーの表示・非表示（PC。スマホはサイドバー上部のメニューのボタン）。切り替えは js/sidebar.js ---------- */
 .app-header {
     display: none;
