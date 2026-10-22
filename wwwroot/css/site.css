@@ -3155,3 +3155,6 @@ main:focus {
 .changelog-recent li { padding: 0.15rem 0; }
 .changelog-entry { padding-bottom: 0.75rem; border-bottom: 1px solid var(--bs-border-color); }
 .changelog-entry li { margin-bottom: 0.25rem; }
+
+.report-done[hidden], .report-form[hidden] { display: none; }
+.report-done { max-width: 42rem; margin-top: 20px; }
