@@ -3159,5 +3159,50 @@ main:focus {
 .report-done[hidden], .report-form[hidden] { display: none; }
 .report-done { max-width: 42rem; margin-top: 20px; }
 
-/* メンテナンスのお知らせ（MAINTENANCE=notice。worker/maintenance.js が <main> の先頭に足す） */
-.maintenance-notice { padding: 0.5rem 1rem; background: #f59e0b; color: #1a0b33; font-size: 0.9rem; font-weight: 700; text-align: center; }
+/* メンテナンスのお知らせ（MAINTENANCE=notice。worker/maintenance.js が <main> の先頭に足す）。
+   スクロールしても消えないよう、画面の上に貼り付ける。スマホは画面の最上部、PC は固定ヘッダーの真下（641px 以上で下の指定）。
+   文が 2 行になると帯は高くなる。PC の目次・見出しへのジャンプは、1 行のときの高さ（--notice-band）に合わせてある */
+.maintenance-notice {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    padding: 0.5rem 1rem;
+    background: #f59e0b;
+    color: #1a0b33;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* スマホの検索欄（main の先頭の .site-header）も上に貼り付くので、帯と重なる。帯が出ているあいだは、検索欄は貼り付けず、帯の下に流す */
+main > .maintenance-notice + .site-header {
+    position: static;
+}
+
+/* 帯が出ているときの、見出しへのジャンプ（スマホは帯の下、PC は固定ヘッダーと帯の下）と、記事右の目次の位置。
+   --notice-band は、帯 1 行のときの高さ（文が 2 行以上だと、少しかぶる） */
+html:has(.maintenance-notice) {
+    --notice-band: 2.35rem;
+    scroll-padding-top: calc(var(--notice-band) + 1rem);
+}
+
+main:has(> .maintenance-notice) .article-aside {
+    top: calc(var(--notice-band) + 0.75rem);
+    max-height: calc(100vh - var(--notice-band) - 1.5rem);
+}
+
+/* PC: 固定ヘッダーの下線（2px）の下に貼り付く */
+@media (min-width: 641px) {
+    .maintenance-notice {
+        top: calc(3.5rem + 2px);
+    }
+
+    html:has(.maintenance-notice) {
+        scroll-padding-top: calc(3.5rem + 2px + var(--notice-band) + 1rem);
+    }
+
+    main:has(> .maintenance-notice) .article-aside {
+        top: calc(3.5rem + 2px + var(--notice-band) + 1.25rem);
+        max-height: calc(100vh - 5.5rem - 2px - var(--notice-band));
+    }
+}
