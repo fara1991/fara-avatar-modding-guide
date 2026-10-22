@@ -2,7 +2,7 @@
 
 アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。
 サイト名は `appsettings.json` の `Site:Title` にだけ書いてあり、画面の表示はすべてそこから取ります（名前を変えるときはそこだけ直す）。
-.NET 9 の Blazor Web App（静的サーバーサイドレンダリング）で実装し、記事は Markdown で管理しています。
+.NET 10 の Blazor Web App（静的サーバーサイドレンダリング）で実装し、記事は Markdown で管理しています。
 
 ## 特徴
 
@@ -23,7 +23,7 @@ Cloudflare の Worker 名は本番 `fara-avatar`、develop `fara-avatar-dev` で
 
 ## 技術スタック
 
-- .NET 9 / ASP.NET Core Blazor Web App（静的 SSR、SignalR 接続なし）
+- .NET 10 / ASP.NET Core Blazor Web App（静的 SSR、SignalR 接続なし）
 - 公開時は静的サイトとして書き出し、Cloudflare Workers（Static Assets + Durable Objects）でホスティング
 - [Markdig](https://github.com/xoofx/markdig)（Markdown → HTML）
 - [YamlDotNet](https://github.com/aaubry/YamlDotNet)（フロントマター・データファイル）
@@ -33,7 +33,7 @@ Cloudflare の Worker 名は本番 `fara-avatar`、develop `fara-avatar-dev` で
 
 ### 前提条件
 
-- .NET 9.0 SDK
+- .NET 10.0 SDK
 
 ### 実行
 

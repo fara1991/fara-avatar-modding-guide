@@ -1867,7 +1867,8 @@ main {
 .service-twitch { --brand: #9146ff; }
 .service-discord { --brand: #5865f2; }
 
-/* 問い合わせ */
+/* 問い合わせ・プライバシーポリシー: 内容の列の幅の上限を決め、横は中央に置く（文字は左揃えのまま） */
+.page-column { max-width: 42rem; margin-inline: auto; }
 .report-form { max-width: 42rem; }
 .report-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .report-status { padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); }

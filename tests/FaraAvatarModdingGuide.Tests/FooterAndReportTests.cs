@@ -108,6 +108,22 @@ public class FooterAndReportTests
     }
 
     [Fact]
+    public async Task Contact_and_privacy_pages_put_their_content_in_a_centered_column()
+    {
+        var report = await RenderAsync<Report>();
+        Assert.Matches("<div class=\"page-column\">\\s*<h1>問い合わせ</h1>", report);
+        Assert.True(report.IndexOf("class=\"page-column\"", StringComparison.Ordinal) < report.IndexOf("id=\"report-form\"", StringComparison.Ordinal));
+        Assert.True(report.IndexOf("id=\"report-done\"", StringComparison.Ordinal) < report.IndexOf("<script src=\"/js/report.js\"", StringComparison.Ordinal));
+
+        var privacy = await RenderAsync<Privacy>();
+        Assert.Matches("<div class=\"page-column\">\\s*<h1>プライバシーポリシー</h1>", privacy);
+
+        // 列は、幅の上限（フォームと同じ 42rem）を付けて、左右の余白を auto で中央に置く
+        var css = File.ReadAllText(FindUp(Path.Combine("wwwroot", "css", "site.css")));
+        Assert.Contains(".page-column { max-width: 42rem; margin-inline: auto; }", css);
+    }
+
+    [Fact]
     public void Site_options_default_to_the_agreed_year_and_homepage()
     {
         var options = new SiteOptions();
