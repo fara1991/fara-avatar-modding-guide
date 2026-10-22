@@ -41,6 +41,9 @@ jobs:
       - name: Deploy gate test
         run: node --test .github/scripts/require-maintenance.test.mjs
 
+      - name: Page navigation script test
+        run: node --test tests/js/nav.test.mjs
+
       - name: Export static site
         run: dotnet run -c Release --no-build --no-launch-profile -- --export dist
 

@@ -118,6 +118,6 @@
     save(v);
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", decorate);
-  else decorate();
+  // 読み込みのときと、ページ移動のあとに、印を付け直す（nav.js）
+  window.faraNav ? window.faraNav.register(decorate) : decorate();
 })();
