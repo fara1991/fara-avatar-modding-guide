@@ -1,5 +1,6 @@
 ---
 title: アバターを軽くする（Avatar Optimizer）
+reading: あばたーをかるくするあばたーおぷてぃまいざー
 description: パフォーマンスランクとファイルサイズを改善する手順です。使わないものを外す、テクスチャを小さくする、PhysBone をまとめる、Avatar Optimizer（AAO）でアップロード時に自動で軽くする、軽い版を用意する。
 difficulty: 中級
 updated: 2026-10-11

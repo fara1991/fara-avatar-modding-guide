@@ -1,5 +1,6 @@
 ---
 title: UV 展開
+reading: ゆーぶいてんかい
 description: 立体のメッシュを平面に開いて、画像テクスチャを貼れるようにする「UV 展開」の手順です。
 difficulty: 中級
 updated: 2026-10-10

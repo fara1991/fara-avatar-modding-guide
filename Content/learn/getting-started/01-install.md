@@ -1,5 +1,6 @@
 ---
 title: インストールと日本語化
+reading: いんすとーるとにほんごか
 description: Blender 4.5 LTS を入れて、表示を日本語にし、最初に見直しておきたい設定をまとめます。
 difficulty: 初級
 updated: 2026-10-10

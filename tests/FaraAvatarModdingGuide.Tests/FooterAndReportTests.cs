@@ -116,11 +116,12 @@ public class FooterAndReportTests
         Assert.True(report.IndexOf("id=\"report-done\"", StringComparison.Ordinal) < report.IndexOf("<script src=\"/js/report.js\"", StringComparison.Ordinal));
 
         var privacy = await RenderAsync<Privacy>();
-        Assert.Matches("<div class=\"page-column\">\\s*<h1>プライバシーポリシー</h1>", privacy);
+        Assert.Matches("<div class=\"page-column page-column-wide\">\\s*<h1>プライバシーポリシー</h1>", privacy);
 
         // 列は、幅の上限（フォームと同じ 42rem）を付けて、左右の余白を auto で中央に置く
         var css = File.ReadAllText(FindUp(Path.Combine("wwwroot", "css", "site.css")));
         Assert.Contains(".page-column { max-width: 42rem; margin-inline: auto; }", css);
+        Assert.Contains(".page-column.page-column-wide { max-width: 72rem;", css);
     }
 
     [Fact]

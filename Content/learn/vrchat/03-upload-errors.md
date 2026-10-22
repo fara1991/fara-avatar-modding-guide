@@ -1,5 +1,6 @@
 ---
 title: アップロードでつまずいたとき
+reading: あっぷろーどでつまずいたとき
 description: VRChat SDK のメニューが出ない、Builder に赤いエラーが出る、Blueprint ID のエラー、ファイルサイズの超過、アップロードしたのに反映されないなど、よくあるつまずきと直し方です。
 difficulty: 初級
 updated: 2026-10-11

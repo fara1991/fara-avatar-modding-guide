@@ -1,5 +1,6 @@
 ---
 title: VCC でプロジェクトを作る
+reading: ぶいしーしーでぷろじぇくとをつくる
 description: VRChat Creator Companion（VCC）で、アバター用の Unity プロジェクトを作り、VRChat SDK や Modular Avatar などのパッケージを追加・更新する方法です。
 difficulty: 初級
 updated: 2026-10-11

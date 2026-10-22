@@ -1,5 +1,6 @@
 ---
 title: Modular Avatar で衣装を着せる
+reading: もじゅらーあばたーできしょうをきせる
 description: 衣装をアバターの中に入れて Setup Outfit を実行し、元の服を外し、マテリアルとブレンドシェイプを整えて Build & Test で確かめるまでの流れです。
 difficulty: 初級
 updated: 2026-10-11

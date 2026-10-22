@@ -1,5 +1,6 @@
 ---
 title: Unity で着せる（Modular Avatar）
+reading: ゆにてぃーできせるもじゅらーあばたー
 description: 書き出した服を Unity に取り込み、Modular Avatar でアバターに統合して VRChat にアップロードするまでです。
 difficulty: 中級
 updated: 2026-10-10

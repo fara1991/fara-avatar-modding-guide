@@ -1,5 +1,6 @@
 ---
 title: アップロード前の確認
+reading: あっぷろーどまえのかくにん
 description: VRChat にアップロードする前に確かめること（Avatar Descriptor、パフォーマンスランク、使わないものの整理、Build & Test、Blueprint ID）です。
 difficulty: 初級
 updated: 2026-10-11

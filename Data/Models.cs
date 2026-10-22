@@ -17,6 +17,10 @@ public sealed class LearnCategory
     /// <summary>入る区切り（sections.yml の id）</summary>
     public string Section { get; set; } = "blender";
     public string Title { get; set; } = string.Empty;
+    /// <summary>題名の読み（ひらがな）。サイト内検索で、ローマ字・かなで探すときに使う（例: もでりんぐ）</summary>
+    public string Reading { get; set; } = string.Empty;
+    /// <summary>英語の名前（検索の小見出しに出し、英語でも探せるようにする。例: Modeling）</summary>
+    public string? En { get; set; }
     public string Description { get; set; } = string.Empty;
     /// <summary>Bootstrap Icons のクラス名（例: bi-arrows-move）</summary>
     public string Icon { get; set; } = "bi-book";
@@ -29,6 +33,8 @@ public sealed class Article
     public required string Slug { get; init; }
     public required int Order { get; init; }
     public required string Title { get; init; }
+    /// <summary>題名の読み（ひらがな）。検索で使う</summary>
+    public string Reading { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public string Difficulty { get; init; } = string.Empty;
     public string? BlenderVersion { get; init; }
@@ -51,6 +57,8 @@ public sealed class Article
 public sealed class ArticleFrontMatter
 {
     public string? Title { get; set; }
+    /// <summary>題名の読み（ひらがな）。検索で、ローマ字・かなでも探せるようにする</summary>
+    public string? Reading { get; set; }
     public string? Description { get; set; }
     public string? Difficulty { get; set; }
     public string? BlenderVersion { get; set; }
@@ -142,6 +150,8 @@ public sealed class HowtoEntry
     public string Id { get; set; } = string.Empty;
     /// <summary>やりたいこと（例: 頂点をくっつけたい）</summary>
     public string Question { get; set; } = string.Empty;
+    /// <summary>やりたいことの読み（ひらがな）。検索で使う</summary>
+    public string Reading { get; set; } = string.Empty;
     /// <summary>操作の名前（例: マージ）</summary>
     public string Answer { get; set; } = string.Empty;
     public string? AnswerEn { get; set; }
@@ -170,6 +180,8 @@ public sealed class TipEntry
 {
     public string Id { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
+    /// <summary>題名の読み（ひらがな）。検索で使う</summary>
+    public string Reading { get; set; } = string.Empty;
     /// <summary>要点（Markdown。症状・原因・直し方の形にならないコツなどはこちらに書く）</summary>
     public string? Summary { get; set; }
     /// <summary>症状（Markdown）</summary>
@@ -196,6 +208,8 @@ public sealed class QaEntry
     public string Id { get; set; } = string.Empty;
     /// <summary>質問・やりたいこと</summary>
     public string Question { get; set; } = string.Empty;
+    /// <summary>質問の読み（ひらがな）。検索で使う</summary>
+    public string Reading { get; set; } = string.Empty;
     /// <summary>短い答え（Markdown。1〜3 文）</summary>
     public string Answer { get; set; } = string.Empty;
     /// <summary>詳しい説明・手順（Markdown。「詳しく」を開くと表示）</summary>

@@ -1,5 +1,6 @@
 ---
 title: Unity / VRChat 向けのマテリアルの注意点
+reading: ゆにてぃーぶいあるちゃっとむけのまてりあるのちゅういてん
 description: Blender のマテリアルのうち Unity に渡るもの・渡らないもの、テクスチャのベイク、マテリアル数の整理の仕方です。
 difficulty: 中級
 updated: 2026-10-10

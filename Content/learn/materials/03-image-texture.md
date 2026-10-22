@@ -1,5 +1,6 @@
 ---
 title: 画像テクスチャ
+reading: がぞうてくすちゃ
 description: 画像をマテリアルに貼る手順と、Blender の中で直接描くテクスチャペイントの始め方です。
 difficulty: 中級
 updated: 2026-10-10

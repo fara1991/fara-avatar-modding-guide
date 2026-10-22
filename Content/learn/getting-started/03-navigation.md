@@ -1,5 +1,6 @@
 ---
 title: 視点の操作
+reading: してんのそうさ
 description: マウスとテンキーで 3D ビューポートの視点を回す・寄る・正面から見る方法を覚えます。
 difficulty: 初級
 updated: 2026-10-10

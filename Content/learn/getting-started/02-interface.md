@@ -1,5 +1,6 @@
 ---
 title: 画面の見方
+reading: がめんのみかた
 description: 起動直後の画面にある各エリアの役割と、よく使うパネルの開き方を覚えます。
 difficulty: 初級
 updated: 2026-10-10

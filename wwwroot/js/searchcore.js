@@ -15,15 +15,20 @@
         return r.json();
       }).then(function (list) {
         // 正規化した文字列を先に作っておく
-        list.forEach(function (e) {
-          e._t = norm(e.title);
-          e._s = norm(e.subtitle || "");
-          e._x = norm(e.text || "");
-        });
+        list.forEach(prepare);
         return list;
       }).catch(function (err) { indexPromise = null; throw err; });
     }
     return indexPromise;
+  }
+
+  /** 検索用の正規化した文字列を、項目に付ける（_t 題名・_s 小見出し・_x 本文・_r 題名の読み） */
+  function prepare(e) {
+    e._t = norm(e.title);
+    e._s = norm(e.subtitle || "");
+    e._x = norm(e.text || "");
+    e._r = norm(e.reading || "");
+    return e;
   }
 
   // 全角・半角、大文字・小文字をそろえる。全角の ～（Windows の日本語入力）は NFKC で ~ になるので、データの 〜 にそろえる
@@ -79,6 +84,7 @@
         if (k.length === len && Object.prototype.hasOwnProperty.call(ROMAJI, k)) { out += ROMAJI[k]; i += len; hit = true; break; }
       }
       if (hit) continue;
+      if (c === "n" && s[i + 1] === "n" && "aiueoy".indexOf(s[i + 2] || "x") < 0) { out += "ん"; i += 2; continue; }   // nn は「ん」1 つ（kennri → けんり）
       if (c === "n") { out += "ん"; i++; if (s[i] === "'") i++; continue; }   // 母音・y の前以外の n
       return null;
     }
@@ -117,11 +123,35 @@
     return all;
   }
 
-  /** 1 つの語の点数（含まれなければ 0） */
+  // 長音の書き方の揺れ（ひょうき・ひょき、ー）を同じに扱う。お段＋う・お（ほうき→ほき）だけ。えい（せいじん）は別の語になるので、そろえない
+  var LONG_O = "おこそとのほもよろごぞどぼぽょぉ";
+  function looseKana(s) {
+    var t = String(s).replace(/ー/g, ""), out = "";
+    for (var i = 0; i < t.length; i++) {
+      var c = t[i], prev = i > 0 ? t[i - 1] : "";
+      if ((c === "う" || c === "お") && prev && LONG_O.indexOf(prev) >= 0) continue;
+      out += c;
+    }
+    return out;
+  }
+
+  /** 読み（ひらがな）との一致の点数。1 文字は見ない。2 文字のかなは完全一致と前方一致だけ（「ぎゅ」で「ほんぎゅう」に当てない） */
+  function readingScore(e, t) {
+    if (!e._r || t.length < 2) return 0;
+    var key = looseKana(t), rk = looseKana(e._r);
+    if (rk === key) return 30;
+    if (rk.indexOf(key) === 0) return 15;
+    if (key.length <= 2) return 0;
+    return rk.indexOf(key) >= 0 ? 10 : 0;
+  }
+
+  /** 1 つの語の点数（含まれなければ 0）。読みは題名の一致の後、小見出し・本文より前 */
   function scoreOf(e, t) {
     if (e._t === t) return 30;
     if (e._t.indexOf(t) === 0) return 15;
     if (e._t.indexOf(t) >= 0) return 10;
+    var r = readingScore(e, t);
+    if (r) return r;
     if (e._s.indexOf(t) >= 0) return 5;
     if (e._x.indexOf(t) >= 0) return 1;
     return 0;
@@ -195,6 +225,8 @@
     howto: { label: "何て名前？", cls: "bg-danger" },
     tip: { label: "TIPS", cls: "bg-info text-dark" },
     qa: { label: "Q&A", cls: "bg-light text-dark" },
+    category: { label: "カテゴリ", cls: "bg-secondary" },
+    page: { label: "ページ", cls: "bg-secondary" },
     shortcut: { label: "ショートカット", cls: "bg-success" },
     addon: { label: "アドオン", cls: "bg-secondary" },
     link: { label: "リンク", cls: "bg-primary-subtle text-primary-emphasis" },
@@ -202,5 +234,5 @@
   // 同じくらい一致したときは、記事や用語を先に出す
   var TYPE_BONUS = { article: 0.6, glossary: 0.5, howto: 0.5, tip: 0.4, qa: 0.4, shortcut: 0.2, addon: 0, link: 0 };
 
-  window.faraSearch = { load: load, search: search, highlight: highlight, snippet: snippet, escapeHtml: escapeHtml, TYPES: TYPES };
+  window.faraSearch = { load: load, search: search, highlight: highlight, snippet: snippet, escapeHtml: escapeHtml, prepare: prepare, TYPES: TYPES, romajiToHiragana: romajiToHiragana, looseKana: looseKana };
 })();

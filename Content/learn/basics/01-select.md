@@ -1,5 +1,6 @@
 ---
 title: 選択・追加・削除
+reading: せんたくついかさくじょ
 description: オブジェクトを選ぶ、新しく置く、消す。すべての作業の出発点になる操作です。
 difficulty: 初級
 updated: 2026-10-10
