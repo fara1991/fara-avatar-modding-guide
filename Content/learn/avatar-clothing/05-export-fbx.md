@@ -1,5 +1,6 @@
 ---
 title: FBX に書き出す
+reading: えふびーえっくすにかきだす
 description: 服とアーマチュアを Unity で使える FBX に書き出す設定と、書き出す前のチェックリストです。
 difficulty: 中級
 updated: 2026-10-10

@@ -1,5 +1,6 @@
 ---
 title: ミラーとスムーズ
+reading: みらーとすむーず
 description: 左右対称に作る手順と、角ばったメッシュをなめらかに見せる方法です。
 difficulty: 初級
 updated: 2026-10-10

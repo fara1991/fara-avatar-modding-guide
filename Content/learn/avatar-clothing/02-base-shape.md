@@ -1,5 +1,6 @@
 ---
 title: 服の形を作る
+reading: ふくのかたちをつくる
 description: アバターの体を複製して服の土台にし、ソリッド化で厚みを付け、貫通しないように整えます。
 difficulty: 初級
 updated: 2026-10-10

@@ -1,5 +1,6 @@
 ---
 title: パフォーマンスランク
+reading: ぱふぉーまんすらんく
 description: VRChat のアバターの重さを表すパフォーマンスランクの決まり方、PC と Android（Quest）の上限値、ランクが低いとどうなるか、どの項目から減らすかです。
 difficulty: 初級
 updated: 2026-10-11

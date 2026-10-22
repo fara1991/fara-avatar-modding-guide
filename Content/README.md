@@ -28,6 +28,7 @@ description: 1行の説明（カード・meta description に使われる）
 difficulty: 初級          # 初級 / 中級 / 上級
 blender_version: "4.2"    # 省略時は appsettings.json の Site:BlenderVersion
 updated: 2026-10-09
+reading: うごかいてんすけーる   # 題名の読み（ひらがな）。サイト内検索で、ローマ字（ugoku）・かなで探すため。題名に漢字があるときは必須（テストで確かめる）
 shortcuts: [G, R, S]      # shortcuts.yml の key と一致させる
 ---
 
@@ -184,6 +185,8 @@ node tools/tutorial-images/capture.mjs http://localhost:8787 transform   # 指�
 ## 用語集・何て名前？・TIPS・改変 Q&A
 
 `Content/tips/` の YAML に 1 項目ずつ書きます。どれもサイト内検索の対象になり、ページではタグで絞り込めます。項目の形は各ファイルの先頭のコメントを見てください。
+
+題名（記事の `title`、TIPS の `title`、How-to・Q&A の `question`、カテゴリの `title`）に漢字があるときは、`reading:` に**ひらがな**の読みを書きます（英語はカタカナ）。読みは、ローマ字（`yougo` → 用語集）・かなで探すときだけに使い、題名そのものの一致は今まで通りです。`dotnet test` が、読みの無い題名と、読みに漢字・英字が混じるものを見つけます。カテゴリには、英語の名前を `en:` に書くと、英語で探せます（`modeling` → モデリング）。
 
 ```yaml
 # glossary.yml

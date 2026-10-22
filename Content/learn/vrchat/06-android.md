@@ -1,5 +1,6 @@
 ---
 title: Android（Quest）対応
+reading: あんどろいどくえすとたいおう
 description: Meta Quest やスマートフォンの VRChat でもアバターを見てもらうための、Android 版のアップロードです。プラットフォームの切り替え、使えるシェーダーとコンポーネント、PC 版と同じアバターにする方法、軽くする目安。
 difficulty: 中級
 updated: 2026-10-11
