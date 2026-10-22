@@ -460,26 +460,31 @@ P0 → P1 → P2 ─┬→ P4 → P5
 
 ---
 
-## 9. ユーザーに決めてほしい点（D1〜D13）
+## 9. 決定事項（D1〜D13。2026-10-22 決定）
 
 | # | 決めること | 選択肢 | 推奨と理由 |
 | --- | --- | --- | --- |
-| D1 | プロジェクト配置 | A: `src/` に新規を並走させ、Phase 5 で置き換え／B: 既存の csproj を置き換え | **A**（master を壊さない） |
-| D2 | 記事本文のデータ | (a) 全記事の HTML を 1 つの JSON に入れる（試作の実測。`content.json` と `search.json` の合計で約 1.7 MB、Brotli 約 0.27 MB）／(b) 記事ごとに HTML 断片を別ファイルにして開いたときだけ取る | **(a)**（速さは問題でないので、構造が単純な (a)） |
-| D3 | 静的 HTML の生成 | (a) C#（`FaraAvatarModdingGuide.Build`、Markdig をそのまま使う）／(b) Node（ポケモン流 `build-entry-pages.mjs`、本文は C# の JSON を入力） | **(a)**（本文の HTML は Markdig で作るため、同じ C# で作るのが単純） |
-| D4 | （決定済み） | §0 を参照（WASM が `/api/maintenance` を読む。Worker の注入は削除） | — |
-| D5 | OGP 画像 | (a) 新しく 1200×630 の PNG を作る／(b) `site-icon.svg` を流用（SVG は多くの SNS で表示されない） | **(a)**（PNG を 1 枚作る。デザインは要確認） |
-| D6 | アイコンと Bootstrap | (a) Bootstrap Icons を捨てて Material（MudBlazor）に写す／(b) bootstrap-icons の必要な分だけ SVG で同梱 | **(a)**（Bootstrap を完全に外す方針と合う） |
-| D7 | 旧版との並行 | (a) 移行完了まで master は SSR のまま（dev だけ WASM）／(b) 段階ごとに master へも入れる | **(a)**（§6） |
-| D8 | 試作 PR #69 | (a) 閉じる（参照用ブランチは残す）／(b) 残す | **(a)**（本文書に評価を残す） |
-| D9 | 検索語の正規化（索引は両案ともビルド時に正規化） | (a) JS interop で `String.prototype.normalize("NFKC")` を呼ぶ（現行 `searchcore.js` と同じ結果になる）／(b) 試作の `SearchMatcher` のように、全角→半角・カタカナ→ひらがなを C# で手書きする（NFKC の一部だけ。半角カナなどは揃わない） | **(a)**（現行と結果が揃いやすい。interop は検索のたびに 1 回だけ） |
-| D10 | 進め方の人数・順序 | (a) 1 人で P1→P5 を順に／(b) P3 と P4 を並行（人数が増えたとき） | **(a)** を基本に、P3 と P4 は後半で並行可 |
-| D11 | kit のリポジトリ名 | (a) `fara-site-kit`／(b) 別名 | **(a)**（作成は承認後） |
-| D12 | kit の公開・非公開 | (a) 公開（両サイトは公開リポジトリ。kit の中に秘密情報は置かない）／(b) 非公開（認証の設定が要る） | **(a)**（秘密は Worker の変数・CI のシークレットに置き、kit には入れない） |
-| D13 | 利用方法 | A: submodule ＋ ProjectReference／B: NuGet（GitHub Packages）／C: monorepo | **A**（§10.2） |
+| D1 | プロジェクト配置 | A: `src/` に新規を並走させ、Phase 5 で置き換え／B: 既存の csproj を置き換え | **決定（2026-10-22）**: A（`src/` に新規を並走させ、Phase 5 で置き換え） |
+| D2 | 記事本文のデータ | (a) 全記事の HTML を 1 つの JSON に入れる（試作の実測。`content.json` と `search.json` の合計で約 1.7 MB、Brotli 約 0.27 MB）／(b) 記事ごとに HTML 断片を別ファイルにして開いたときだけ取る | **決定（2026-10-22）**: (a) 全記事の HTML を 1 つの JSON に入れる |
+| D3 | 静的 HTML の生成 | (a) C#（`FaraAvatarModdingGuide.Build`、Markdig をそのまま使う）／(b) Node（ポケモン流 `build-entry-pages.mjs`、本文は C# の JSON を入力） | **決定（2026-10-22）**: (a) C#（Markdig）で本文の HTML を作る |
+| D4 | （決定済み） | §0 を参照（WASM が `/api/maintenance` を読む。Worker の注入は削除） | **決定（2026-10-22）**: 推奨どおり（§0） |
+| D5 | OGP 画像 | (a) 新しく 1200×630 の PNG を作る／(b) `site-icon.svg` を流用（SVG は多くの SNS で表示されない） | **決定（2026-10-22）**: (a) 新しく 1200×630 の PNG を作る（デザインは要確認） |
+| D6 | アイコンと Bootstrap | (a) Bootstrap Icons を捨てて Material（MudBlazor）に写す／(b) bootstrap-icons の必要な分だけ SVG で同梱 | **決定（2026-10-22）**: (a) Bootstrap Icons を Material（MudBlazor）に写す |
+| D7 | 旧版との並行 | (a) 移行完了まで master は SSR のまま（dev だけ WASM）／(b) 段階ごとに master へも入れる | **決定（2026-10-22）**: (a) 移行完了まで master は SSR のまま（dev だけ WASM） |
+| D8 | 試作 PR #69 | (a) 閉じる（参照用ブランチは残す）／(b) 残す | **決定（2026-10-22）**: (a) 閉じる（ブランチ `experiment/wasm-mudblazor` は残す） |
+| D9 | 検索語の正規化（索引は両案ともビルド時に正規化） | (a) JS interop で `String.prototype.normalize("NFKC")` を呼ぶ（現行 `searchcore.js` と同じ結果になる）／(b) 試作の `SearchMatcher` のように、全角→半角・カタカナ→ひらがなを C# で手書きする（NFKC の一部だけ。半角カナなどは揃わない） | **決定（2026-10-22）**: (a) 検索語は JS interop の `String.prototype.normalize("NFKC")`（索引はビルド時に正規化） |
+| D10 | 進め方の人数・順序 | (a) 1 人で P1→P5 を順に／(b) P3 と P4 を並行（人数が増えたとき） | **決定（2026-10-22）**: (a) 1 人で P1→P5 を順に（P3 と P4 の並行は後半で可） |
+| D11 | kit のリポジトリ名 | (a) `fara-site-kit`／(b) 別名 | **決定（2026-10-22）**: `fara-site-kit` |
+| D12 | kit の公開・非公開 | (a) 公開（両サイトは公開リポジトリ。kit の中に秘密情報は置かない）／(b) 非公開（認証の設定が要る） | **決定（2026-10-22）**: GitHub のリポジトリを公開（秘密情報は入れない。NuGet は使わない） |
+| D13 | 利用方法 | A: submodule ＋ ProjectReference／B: NuGet（GitHub Packages）／C: monorepo | **決定（2026-10-22）**: A（git submodule ＋ ProjectReference） |
+
+**決定の補足（2026-10-22）**:
+- リポジトリ `fara1991/fara-site-kit` は作成済み（public。ブランチは `master` と `develop`。README のみ）。
+- フェーズ K0 の最初の作業（kit の骨組み、Worker 共有 JS の取り込み、pokemon を submodule 参照に切り替え）は、別担当が開始する。
+- CSP は、`'wasm-unsafe-eval'` と `style-src 'unsafe-inline'` を許可することを**決定**。`script-src` の `'unsafe-inline'`・`'unsafe-eval'` は不許可（方針）。
 
 **追加で確認したいこと（D に入れない）**
-- CSP の `style-src 'unsafe-inline'` を許すか（§2.3）。**推奨: 許す**（MudBlazor の要件。script は self と wasm-unsafe-eval のみ）。
+- （決定済み 2026-10-22）CSP の `style-src 'unsafe-inline'` は許可する（§2.3・§10.8）。
 - Phase 5 の後の CLAUDE.md の扱い（avatar には無い。作るかどうか）。
 
 ---
