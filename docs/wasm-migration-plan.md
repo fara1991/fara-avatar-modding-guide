@@ -20,7 +20,7 @@
 | 静的 HTML の中身 | 要約ではなく**本文入り**。記事ごとに自動生成する | 採用（現行 SSR 版と同等の本文を出す）。生成は **Phase 1 で前倒し**（§5） |
 | お知らせ帯（D4） | **決定**: 注入をやめ、WASM が起動時に Worker の `/api/maintenance` を読んで表示する（Worker の HTML 注入 `withNotice` は削除。Phase 1 で行う） | 採用（§4.8） |
 | 共通部品 | 新リポジトリ `fara-site-kit`（submodule で利用） | 採用（§10） |
-| ブランチ戦略（D14） | **未決（ユーザーの選択待ち）** | 選択肢と推奨は §6・§9 |
+| ブランチ戦略（D14） | **決定（2026-10-22）**: 長期ブランチ `migration/wasm`（develop は SSR のまま） | §6・§9 |
 
 **[事実] 現状は既に「ページごとの静的 HTML」**。`Publishing/StaticSiteExporter.cs` が `dotnet run -- --export dist` で、全ページ（記事 50 件を含む）を HTML として書き出している。つまり SEO の面では、移行後の静的 HTML は「今と同じ本文を、同じ URL で出す」ことが合格ラインになる。
 
@@ -435,6 +435,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 
 ### Phase 1: 土台（ほぼ全ページの静的生成を含む） — 約 12〜17 人日（推測）
 - 内容:
+  - **最初の作業（ユーザーへの依頼）**: 確認用 Worker（仮: `fara-avatar-wasm-dev`・`avatar-wasm-dev.fara-labs.com`）の Cloudflare 側の作成・カスタムドメイン・Access の設定。これが済むまで migration/wasm の公開はしない（D14）。
   - `src/FaraAvatarModdingGuide.Content`（ContentService 移設）。ルートの csproj の `src\**` 除外（§3.1.1）。
   - `src/FaraAvatarModdingGuide.Build`: **76 本の静的 HTML（本文入り）**・`404.html`・`search.json`・`content.json`・`site.json`・`_redirects`・`_headers`（CSP 初版）・画像コピー。ページ一覧 JSON を kit の Node ツールに渡す（§3.3）。P1 の時点で記事 50 件は本文入りの静的 HTML として出る（WASM は読み込まない。§3.2）。
   - `src/FaraAvatarModdingGuide.Web`（WASM＋MudBlazor）: MudLayout、テーマ（`js/theme-init.js`）、サイドバー、ヘッダー、フッター、404、報告フォーム、プライバシー、更新履歴、リンク集、ホーム、お知らせ（§4.8）。
@@ -511,38 +512,25 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 
 ---
 
-## 6. リリース戦略（D7・D14）
+## 6. リリース戦略（D7・D14 決定）
 
-1. **develop に段階的に入れる**: Phase ごとに PR を develop へ（D14 の (2) を選んだ場合）。dev サイト（avatar-dev）で確認する。確認は Cloudflare Access の内側（自分だけ）。
-2. **master は触らない（移行の完了まで）**（D7）: 本番（avatar.fara-labs.com）は現行の SSR のまま。
-3. **master への合流**: develop → master の PR はユーザーがマージする（Claude は PR の作成まで）。deploy.yml の本番の確認（MAINTENANCE=notice）は、そのまま動く。
-4. **旧版との並行期間**: 本番は SSR のまま。dev で WASM 版を確認する期間を置く。切り替えの日は、お知らせ（notice）を出してから行う（現行の運用どおり）。
-5. **移行後の URL**: 変更しない（同じ URL、同じ本文）。旧 URL の転送（`_redirects`）も残す。
-6. **ロールバック**: 切り替えの PR（§5 の P5 の一覧）を revert すれば SSR に戻る。master は、切り替えの後に develop→master の PR をマージするまで旧版のまま。
+**D14 の決定（2026-10-22）: (1) 長期ブランチ `migration/wasm`**。不採用: (2)「develop に直接入れ、移行中は develop→master の PR を止める」、(3)「feature flag で両方を並走」。
 
-### D14 ブランチ戦略（決定待ち）
+1. **移行の作業は `migration/wasm` に積む**: 移行の PR（K0 の kit 側を除く）はすべて `migration/wasm` 向け。`develop` には移行の変更を入れない。
+2. **`develop` は現行 SSR のまま**: SSR の修正は `develop` に入れる。`develop` の修正は**定期的に（週 1 回目安）`migration/wasm` へマージ**する（取り込みの PR は `migration/wasm` 向け）。
+3. **確認用 Worker**: `deploy.yml` に `migration/wasm` を足し、別の確認用 Worker に出す。仮の名前・ドメインは Worker `fara-avatar-wasm-dev`、`avatar-wasm-dev.fara-labs.com`。`wrangler.toml` に `env.wasm-dev` を追加し、Cloudflare Access で自分だけが見られるようにする。**Cloudflare 側の Worker 作成・カスタムドメイン・Access の設定が要るので、Phase 1 の最初の公開の前にユーザーに依頼する。**
+4. **master は触らない（移行の完了まで）**（D7）: 本番（avatar.fara-labs.com）は現行の SSR のまま。
+5. **切り替え**: 移行が完成したら `migration/wasm` を `develop` にマージする（P5 の切り替え PR）。以後は従来どおり develop → master（ユーザーがマージ）。切り替えの日は、お知らせ（notice）を出してから行う（現行の運用どおり）。
+6. **移行後の URL**: 変更しない（同じ URL、同じ本文）。旧 URL の転送（`_redirects`）も残す。
+7. **ロールバック**: 切り替えの PR（§5 の P5 の一覧）を revert すれば SSR に戻る。master は、切り替えの後に develop→master の PR をマージするまで旧版のまま。
 
-「master を壊さない仕組み」は運用の約束だけでは不十分（develop→master の PR を出した瞬間に、未完成の WASM が本番に出る）。案は次の 3 つ。
-
-**(1) 長期ブランチ `migration/wasm`（推奨）**
-- 移行の変更はすべて `migration/wasm` に積む。`develop` は現行 SSR のまま、SSR の修正は `develop` に入れる。
-- `deploy.yml` に `migration/wasm` を足し、**別の確認用 Worker** に出す（名前・ドメインは要確認。例: Worker `fara-avatar-wasm-dev`、ドメイン `avatar-wasm-dev.fara-labs.com`。wrangler.toml に `env.wasm-dev` を追加。Cloudflare Access の設定が要る）。
-- `develop` の修正は定期的に `migration/wasm` へマージする（目安: 週 1 回。推測）。
-- 完成したら `migration/wasm` を `develop` にマージ（切り替え。P5 の PR）→ 以後は従来どおり develop→master。
+**利点と欠点（決定の根拠）**
 - 利点: master も develop も移行中ずっと安全。dev の確認が WASM 専用の URL で行える。切り替えは 1 回のマージ。
 - 欠点: 長期ブランチのマージ衝突（SSR 側の修正が多いと増える）。確認用 Worker が 1 つ増える（推測。Cloudflare の費用は小さいと見込む）。
 
-**(2) develop に直接入れ、develop→master の PR を移行中は止める（運用またはブランチ保護）**
-- 利点: 単純で、ブランチが増えない。
-- 欠点: develop が途中の WASM になるので、SSR の修正の確認用 dev が壊れる。「master への PR を出さない」は忘れやすい（GitHub のブランチ保護で防ぐと設定の手間が増える）。
-
-**(3) feature flag で両方を並走（同じビルドで両方を出す）**
-- 利点: ブランチは 1 つ。
-- 欠点: 2 つのフレームワーク（SSR と WASM）を同じリポジトリ・同じビルドで維持する。同じ URL を二重に出せない（path を分けると URL が変わる）。移行後の掃除が大きい。
-
-**推奨: (1)**。理由: master の安全（D7）を、ブランチで物理的に守れる。develop は現行 SSR を安全に保てる。dev で WASM を別 URL で確認できる。切り替えは最後の 1 回のマージで済む。コストは長期ブランチの定期マージと、確認用 Worker の追加。
-
----
+**不採用の案（参考）**
+- (2) develop に直接入れ、移行中は develop→master の PR を止める（不採用）: develop が途中の WASM になり、SSR の修正の確認用 dev が壊れる。止める運用は忘れやすい。
+- (3) feature flag で両方を並走（不採用）: 同じビルドで 2 つのフレームワークを維持し、同じ URL を二重に出せない。移行後の掃除も大きい。
 
 ## 7. リスクと対策
 
@@ -611,16 +599,18 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 | D11 | kit のリポジトリ名 | (a) `fara-site-kit`／(b) 別名 | **決定（2026-10-22）**: `fara-site-kit` |
 | D12 | kit の公開・非公開 | (a) 公開（秘密情報は置かない）／(b) 非公開 | **決定（2026-10-22）**: GitHub のリポジトリを公開（秘密情報は入れない。NuGet は使わない） |
 | D13 | 利用方法 | A: submodule ＋ ProjectReference／B: NuGet（GitHub Packages）／C: monorepo | **決定（2026-10-22）**: A（git submodule ＋ ProjectReference） |
-| D14 | ブランチ戦略（master を守る仕組み） | (1) 長期ブランチ `migration/wasm`（develop は SSR のまま。別の確認用 Worker に出す。完成後に migration/wasm を develop にマージ）／(2) develop に直接入れ、移行中は develop→master の PR を止める（運用またはブランチ保護）／(3) feature flag で両方を並走 | **未決（ユーザーの選択待ち）**。推奨: **(1)**（§6） |
+| D14 | ブランチ戦略（master を守る仕組み） | (1) 長期ブランチ `migration/wasm`／(2) develop に直接入れ、移行中は develop→master の PR を止める（不採用）／(3) feature flag で両方を並走（不採用） | **決定（2026-10-22）: (1) 長期ブランチ `migration/wasm`。develop は SSR のまま。移行は migration/wasm に積む。deploy.yml に migration/wasm を足して別の確認用 Worker に出す（名前・ドメインは仮: fara-avatar-wasm-dev・avatar-wasm-dev.fara-labs.com。Cloudflare 側の設定は Phase 1 の最初の公開の前にユーザーに依頼）。SSR 側の修正は develop に入れ、migration/wasm へ週 1 回目安で develop をマージ。完成したら migration/wasm を develop にマージ（切り替え）** |
 
 **決定の補足（2026-10-22）**:
 - リポジトリ `fara1991/fara-site-kit` は作成済み（public。ブランチは `master` と `develop`。README のみ）。
 - フェーズ K0 の最初の作業（kit の骨組み、Worker 共有 JS の取り込み、pokemon を submodule 参照に切り替え）は、別担当が開始する。
 - CSP は、`'wasm-unsafe-eval'` と `style-src 'unsafe-inline'` を許可することを**決定**。`script-src` の `'unsafe-inline'`・`'unsafe-eval'` は不許可（方針）。
 
+**決定の補足（D14）**: 移行は `migration/wasm` で行う。develop は SSR のまま。
+
 **追加で確認したいこと（D に入れない）**
 - Phase 5 の後の CLAUDE.md の扱い（avatar には無い。作るかどうか）。
-- 確認用 Worker の名前・ドメイン（D14 (1) を選んだ場合。例 `fara-avatar-wasm-dev`・`avatar-wasm-dev.fara-labs.com` は仮）。
+- 確認用 Worker の名前・ドメイン（D14 で決定。仮の名前 `fara-avatar-wasm-dev`・`avatar-wasm-dev.fara-labs.com`。Cloudflare 側の作成と Access の設定はユーザーに依頼する（Phase 1 の最初の公開の前））。
 
 ---
 
