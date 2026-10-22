@@ -130,6 +130,7 @@ public class FooterAndReportTests
         new() { Service = "github", Label = "GitHub", Url = "https://github.com/fara1991" },
         new() { Service = "twitter", Label = "Twitter", Url = "https://twitter.com/game_fara" },
         new() { Service = "twitch", Label = "Twitch", Url = "https://twitch.tv/game_fara" },
+        new() { Service = "discord", Label = "Discord", Url = "https://discord.com/invite/B38eCSYyk5" },
     };
 
     private static SiteOptions OptionsWith(params SocialLink[] socials) =>
@@ -142,17 +143,27 @@ public class FooterAndReportTests
         Assert.Contains("<a class=\"service-github\" href=\"https://github.com/fara1991\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"GitHub\" title=\"GitHub\">", html);
         Assert.Contains("<a class=\"service-twitter\" href=\"https://twitter.com/game_fara\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"Twitter\" title=\"Twitter\">", html);
         Assert.Contains("<a class=\"service-twitch\" href=\"https://twitch.tv/game_fara\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"Twitch\" title=\"Twitch\">", html);
+        Assert.Contains("<a class=\"service-discord\" href=\"https://discord.com/invite/B38eCSYyk5\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"Discord\" title=\"Discord\">", html);
         Assert.True(html.IndexOf("© 2026", StringComparison.Ordinal) < html.IndexOf("footer-socials", StringComparison.Ordinal));
     }
 
     [Fact]
     public async Task Footer_icons_use_the_same_svg_paths_as_the_portfolio_site()
     {
-        // Components/Icon.razor（ポートフォリオ）の github / twitter / twitch と同じ path の先頭
+        // Components/Icon.razor（ポートフォリオ）の github / twitter / twitch / discord と同じ path の先頭
         var html = await RenderAsync<SiteFooter>(options: OptionsWith(PortfolioSocials));
         Assert.Contains("M12 .3a12 12 0 0 0-3.8 23.38", html);
         Assert.Contains("M23.95 4.57a10 10 0 0 1-2.82.77", html);
         Assert.Contains("M11.57 4.71h1.72v5.15h-1.72z", html);
+        Assert.Contains("M20.317 4.3698", html);
+    }
+
+    [Fact]
+    public async Task Discord_is_hidden_when_its_url_is_empty()
+    {
+        var html = await RenderAsync<SiteFooter>(options: OptionsWith(PortfolioSocials.Select(s => s.Service == "discord" ? new SocialLink { Service = "discord", Label = "Discord", Url = "" } : s).ToArray()));
+        Assert.DoesNotContain("service-discord", html);
+        Assert.Contains("service-github", html);
     }
 
     [Fact]
@@ -172,6 +183,7 @@ public class FooterAndReportTests
         Assert.Equal("https://github.com/fara1991", socials["github"]);
         Assert.Equal("https://twitter.com/game_fara", socials["twitter"]);
         Assert.Equal("https://twitch.tv/game_fara", socials["twitch"]);
+        Assert.Equal("https://discord.com/invite/B38eCSYyk5", socials["discord"]);
     }
 
     [Fact]

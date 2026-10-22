@@ -1857,6 +1857,7 @@ main {
 .service-github { --brand: #6e40c9; }
 .service-twitter { --brand: #1d9bf0; }
 .service-twitch { --brand: #9146ff; }
+.service-discord { --brand: #5865f2; }
 
 /* 問い合わせ */
 .report-form { max-width: 42rem; }
