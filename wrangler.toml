@@ -6,7 +6,7 @@
 #   Worker 名は本番 fara-avatar、develop は fara-avatar-dev。
 #   ここの name はダッシュボードの Worker 名と一致させる（違うと別の Worker が新しく作られる）。
 #
-# すべてのリクエストが worker/index.js を通る（run_worker_first = true。確認用ホストに noindex を付けるため）。
+# すべてのリクエストが worker/index.js を通る（run_worker_first = true。メンテナンス表示・報告の受け口のため）。
 # /api/rooms/<ID>/ws は共同練習の部屋（部屋ごとに Durable Object）、それ以外は env.ASSETS で dist/ の静的ファイルを返す。
 # Durable Object は SQLite 版（new_sqlite_classes）なので Workers の無料プランでも使える。
 
@@ -26,7 +26,7 @@ binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 # 存在しないパスは 404.html を 404 ステータスで返す
 not_found_handling = "404-page"
-# すべて worker/index.js を先に通す（/api と、確認用ホストの noindex のため）
+# すべて worker/index.js を先に通す（/api・報告・メンテナンス表示のため）
 run_worker_first = true
 
 [[durable_objects.bindings]]

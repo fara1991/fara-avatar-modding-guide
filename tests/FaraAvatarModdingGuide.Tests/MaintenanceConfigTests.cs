@@ -85,8 +85,10 @@ public class MaintenanceConfigTests
         var yml = File.ReadAllText(RepoFile(".github/workflows/deploy.yml"));
         var step = yml.IndexOf("Add noindex header (develop)", StringComparison.Ordinal);
         Assert.True(step > 0);
-        Assert.Contains("if: github.ref_name != 'master'", yml[step..(step + 150)]);
-        Assert.Contains("X-Robots-Tag: noindex, nofollow", yml);
+        var next = yml.IndexOf("- name:", step + 1, StringComparison.Ordinal);
+        var body = yml[step..(next > 0 ? next : yml.Length)];
+        Assert.Contains("if: github.ref_name != 'master'", body);
+        Assert.Contains("X-Robots-Tag: noindex, nofollow", body);
         Assert.DoesNotContain("NOINDEX", File.ReadAllText(RepoFile("wrangler.toml")));
         Assert.DoesNotContain("NOINDEX", File.ReadAllText(RepoFile("worker/index.js")));
     }
