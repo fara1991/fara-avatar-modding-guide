@@ -4,20 +4,24 @@
 (function () {
   "use strict";
   var MAX = 8;
-  var boxes = [];
+  var boxes = [];        // { form, input, close }。ページ移動で消えた欄は、init のたびに外す
+  var globalBound = false;
 
   function setup(form) {
     var input = form.querySelector("input[type=search]");
     var list = form.querySelector(".quick-search-list");
     if (!input || !list) return;
+    if (form.hasAttribute("data-qs-ready")) return; // ヘッダーの欄は、ページが替わっても残るので、二重に付けない
+    form.setAttribute("data-qs-ready", "");
     var items = [], active = -1, timer = 0, lastQuery = "";
 
     function open() { list.hidden = false; input.setAttribute("aria-expanded", "true"); }
-    // 結果を開く。同じページの見出し（#）へ移るだけのときは、ページが読み直されないので、一覧を閉じて、欄から離れる
+    // 結果を開く。ページ移動（nav.js）で開く。同じページの見出し（#）も、ページを読み直さずに移る
     function go(href) {
       close();
       input.blur();
-      location.href = href;
+      if (window.faraNav) window.faraNav.navigate(href);
+      else location.href = href;
     }
     function close() {
       list.hidden = true;
@@ -104,14 +108,19 @@
       e.preventDefault();
       go(item.getAttribute("href"));
     });
-    document.addEventListener("click", function (e) { if (!form.contains(e.target)) close(); });
-    boxes.push({ form: form, input: input });
+    boxes.push({ form: form, input: input, close: close });
   }
 
   function init() {
     if (!window.faraSearch) return;
+    boxes = boxes.filter(function (b) { return b.form.isConnected; });
     Array.prototype.forEach.call(document.querySelectorAll("[data-quick-search]"), setup);
+    if (globalBound) return;
+    globalBound = true;
 
+    document.addEventListener("click", function (e) {
+      boxes.forEach(function (b) { if (!b.form.contains(e.target)) b.close(); });
+    });
     document.addEventListener("keydown", function (e) {
       var k = e.key && e.key.toLowerCase();
       if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && k === "k") {
@@ -143,6 +152,5 @@
     box.input.select();
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-  else init();
+  window.faraNav.register(init);
 })();
