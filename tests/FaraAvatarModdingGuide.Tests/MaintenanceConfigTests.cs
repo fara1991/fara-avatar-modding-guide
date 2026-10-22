@@ -82,10 +82,10 @@ public class MaintenanceConfigTests
         var z = int.Parse(Regex.Match(rule, @"z-index:\s*(\d+);").Groups[1].Value);
         Assert.InRange(z, 31, 1039);
 
-        // PC（641px 以上）: 固定ヘッダーの真下に貼り付く。ヘッダーは高さ 3.5rem に下線 2px が付く（box-sizing の既定）
+        // PC（641px 以上）: 固定ヘッダーの真下に貼り付く。ヘッダーの高さ 3.5rem は、Bootstrap の box-sizing: border-box で下線を含む（App.razor で読み込み）
         Assert.Matches(@"\.app-header\s*\{[^}]*?height:\s*3\.5rem;", css);
-        Assert.Matches(@"border-bottom:\s*2px solid", css);
-        Assert.Matches(@"@media \(min-width: 641px\) \{\s*\.maintenance-notice \{\s*top:\s*calc\(3\.5rem \+ 2px\);", css);
+        Assert.Contains("bootstrap@5", File.ReadAllText(RepoFile("Components/App.razor")));
+        Assert.Matches(@"@media \(min-width: 641px\) \{\s*\.maintenance-notice \{\s*top:\s*3\.5rem;", css);
     }
 
     [Fact]
@@ -95,9 +95,12 @@ public class MaintenanceConfigTests
 
         // 見出しへのジャンプ（scroll-padding-top）と、記事右の目次（top）は、帯の下に合わせる（帯が出ているときだけ）
         Assert.Matches(@"html:has\(\.maintenance-notice\)\s*\{[^}]*scroll-padding-top:\s*calc\(var\(--notice-band\) \+ 1rem\);", css);
-        Assert.Matches(@"@media \(min-width: 641px\) \{[^@]*html:has\(\.maintenance-notice\)\s*\{[^}]*scroll-padding-top:\s*calc\(3\.5rem \+ 2px \+ var\(--notice-band\) \+ 1rem\);", css);
-        Assert.Matches(@"main:has\(> \.maintenance-notice\) \.article-aside\s*\{[^}]*top:\s*calc\(var\(--notice-band\) \+ 0\.75rem\);", css);
-        Assert.Matches(@"@media \(min-width: 641px\) \{[^@]*main:has\(> \.maintenance-notice\) \.article-aside\s*\{[^}]*top:\s*calc\(3\.5rem \+ 2px \+ var\(--notice-band\) \+ 1\.25rem\);", css);
+        Assert.Matches(@"@media \(min-width: 641px\) \{[^@]*html:has\(\.maintenance-notice\)\s*\{\s*scroll-padding-top:\s*calc\(3\.5rem \+ var\(--notice-band\) \+ 1rem\);", css);
+
+        // 記事右の目次は、.article-aside が貼り付く幅（992px 以上）の中だけ。狭い幅では流れたまま（元の static の指定）
+        Assert.Matches(@"@media \(max-width: 991\.98px\) \{\s*\.article-aside \{\s*position:\s*static;", css);
+        Assert.Matches(@"@media \(min-width: 992px\) \{\s*main:has\(> \.maintenance-notice\) \.article-aside\s*\{\s*top:\s*calc\(3\.5rem \+ var\(--notice-band\) \+ 1\.25rem\);\s*max-height:\s*calc\(100vh - 5\.5rem - var\(--notice-band\)\);", css);
+        Assert.DoesNotMatch(@"^main:has\(> \.maintenance-notice\) \.article-aside", css);
 
         // スマホの検索欄は、帯と重ならないよう貼り付けない（帯の下に流す）
         Assert.Matches(@"main > \.maintenance-notice \+ \.site-header\s*\{\s*position:\s*static;", css);

@@ -3182,27 +3182,25 @@ main > .maintenance-notice + .site-header {
 /* 帯が出ているときの、見出しへのジャンプ（スマホは帯の下、PC は固定ヘッダーと帯の下）と、記事右の目次の位置。
    --notice-band は、帯 1 行のときの高さ（文が 2 行以上だと、少しかぶる） */
 html:has(.maintenance-notice) {
-    --notice-band: 2.35rem;
+    --notice-band: 2.5rem;
     scroll-padding-top: calc(var(--notice-band) + 1rem);
 }
 
-main:has(> .maintenance-notice) .article-aside {
-    top: calc(var(--notice-band) + 0.75rem);
-    max-height: calc(100vh - var(--notice-band) - 1.5rem);
-}
-
-/* PC: 固定ヘッダーの下線（2px）の下に貼り付く */
+/* PC（641px 以上）: 固定ヘッダー（3.5rem。Bootstrap の box-sizing: border-box で、下線も含む）の真下 */
 @media (min-width: 641px) {
     .maintenance-notice {
-        top: calc(3.5rem + 2px);
+        top: 3.5rem;
     }
 
     html:has(.maintenance-notice) {
-        scroll-padding-top: calc(3.5rem + 2px + var(--notice-band) + 1rem);
+        scroll-padding-top: calc(3.5rem + var(--notice-band) + 1rem);
     }
+}
 
+/* 記事右の目次が貼り付く幅（992px 以上。.article-aside の sticky と同じ条件。これより狭いと、目次は流れる） */
+@media (min-width: 992px) {
     main:has(> .maintenance-notice) .article-aside {
-        top: calc(3.5rem + 2px + var(--notice-band) + 1.25rem);
-        max-height: calc(100vh - 5.5rem - 2px - var(--notice-band));
+        top: calc(3.5rem + var(--notice-band) + 1.25rem);
+        max-height: calc(100vh - 5.5rem - var(--notice-band));
     }
 }
