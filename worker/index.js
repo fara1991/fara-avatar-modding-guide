@@ -1,6 +1,6 @@
 // Cloudflare Worker。すべてのリクエストがまずここを通る（wrangler.toml の run_worker_first = true）。
 // - /api/rooms/<部屋ID>/ws は共同練習の部屋（Durable Object）へ
-// - それ以外は静的ファイル（dist/）。確認用（env.dev の NOINDEX、または *-dev のホスト）には検索エンジン向けの noindex を付ける
+// - それ以外は静的ファイル（dist/）。確認用の noindex は、公開のワークフローが dist/_headers に付ける
 //
 // 共同練習の部屋（/practice/room）: 部屋ごとに 1 つの Durable Object（Room）が WebSocket をまとめ、
 // オブジェクトモードのシーン（立方体などの種類・名前・位置・回転・スケール）を全員で共有する。
@@ -63,13 +63,7 @@ export default {
     }
     if (url.pathname.startsWith("/api/")) return new Response("not found", { status: 404 });
     // お知らせ（MAINTENANCE=notice）のときは、HTML の先頭に「更新予定」のバナーを足す
-    const res = withNotice(await env.ASSETS.fetch(request), maintenance);
-    if (env.NOINDEX === "true" || url.hostname.endsWith("-dev.fara-labs.com")) {
-      const out = new Response(res.body, res);
-      out.headers.set("X-Robots-Tag", "noindex, nofollow");
-      return out;
-    }
-    return res;
+    return withNotice(await env.ASSETS.fetch(request), maintenance);
   },
 };
 
