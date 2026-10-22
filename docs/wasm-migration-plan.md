@@ -17,6 +17,7 @@
 | 速さ | 問題にしない（回線の遅さは考慮しない） | 計測は参考値として記録。性能は受け入れ条件にしない |
 | SEO | ポケモンと同じ方式。ビルド時にページごとの静的 HTML を作り、読み込み後に WebAssembly が引き継ぐ | 採用 |
 | 静的 HTML の中身 | 要約ではなく**本文入り**。記事ごとに自動生成する | 採用（現行 SSR 版と同等の本文を出す） |
+| お知らせ帯（D4） | **決定**: 注入をやめ、WASM が起動時に Worker の `/api/maintenance` を読んで表示する（Worker の HTML 注入 `withNotice` は削除） | 採用（§4.8）。ポケモン版の `GET /api/maintenance` と同じ形 |
 
 **[事実] 現状は既に「ページごとの静的 HTML」**。`Publishing/StaticSiteExporter.cs` が `dotnet run -- --export dist` で、全ページ（記事 50 件を含む）を HTML として書き出している。つまり SEO の面では、移行後の静的 HTML は「今と同じ本文を、同じ URL で出す」ことが合格ラインになる。
 
@@ -59,9 +60,9 @@
 
 | # | 機能 | 現行の実現（ファイル） | WebAssembly 版での実現 | ポケモン版から流用 |
 | --- | --- | --- | --- | --- |
-| 1 | ページ全体のレイアウト | `Components/App.razor`・`Layout/MainLayout.razor`（PC ヘッダー＋サイドバー＋本文＋フッター） | MudLayout（MudAppBar・MudDrawer・MudMainContent）。サイドバーは「PC で隠せる・ホバーで広がる」挙動を MudDrawer の Variant と CSS で再現 | ○ `Shared/MainLayout.razor`・`Shared/MudProviders.razor` |
+| 1 | ページ全体のレイアウト | `Components/App.razor`・`Layout/MainLayout.razor`（PC ヘッダー＋サイドバー＋本文＋フッター） | MudLayout（MudAppBar・MudDrawer・MudMainContent）。サイドバーは「PC で隠せる・ホバーで広がる」挙動を MudDrawer の Variant と CSS で再現 | ○ pokemon `Shared/MainLayout.razor`（Mini ドロワー）・`Shared/MudProviders.razor`（確認済み） |
 | 2 | テーマ（ダーク／ライト） | App.razor のインライン script（描画前に `data-bs-theme` を設定。キー `avatar-modding-guide.theme`）・`ThemeSwitch.razor`・`sidebar.js` | MudThemeProvider の `IsDarkMode`。描画前の反映は head の小さな script で続ける（キーは同じ `avatar-modding-guide.theme` を使い、既存の保存値を引き継ぐ） | ○ AppState のテーマ連携（`AppState.cs` の注記）、MudProviders |
-| 3 | サイドバー（目次メニュー）の開閉 | `NavMenu.razor`・`sidebar.js`（キー `avatar-modding-guide.sidebar-hidden`） | MudDrawer＋ローカル保存（同じキー）。スマホは上部メニューから | ○ |
+| 3 | サイドバー（目次メニュー）の開閉 | `NavMenu.razor`・`sidebar.js`（キー `avatar-modding-guide.sidebar-hidden`） | MudDrawer＋ローカル保存（同じキー）。スマホは上部メニューから | ○ pokemon `Shared/NavMenu.razor`（MudNavMenu。PC は Mini ドロワーに入れ、隠すとアイコンだけになる。確認済み） |
 | 4 | ヘッダーの検索欄・本文上の検索欄 | `QuickSearch.razor`・`quicksearch.js`・`searchcore.js` | Razor の検索欄＋候補。候補の計算は C#（索引は JSON） | △ |
 | 5 | サイト内検索（/search） | `Search.razor`・`search.js`・`searchcore.js`（NFKC・小文字・〜・カタカナ→ひらがな・ローマ字の読み替え・強調・抜粋） | 索引の正規化はビルド時（ContentExport が NFKC 済みの文字列を出す）。検索語の正規化はブラウザで `String.prototype.normalize` を JS interop で呼ぶ（D9 参照）。ローマ字・強調・抜粋は C# へ移植して Node 版と同じ入力で比べる | △ `Services/SearchService`（考え方のみ） |
 | 6 | ショートカット一覧 | `Shortcuts.razor`・`shortcuts.js`・`shortcuts.yml` | Razor（絞り込みは MudSelect/MudChip の状態） | ✕ |
@@ -75,9 +76,9 @@
 | 14 | 記事内チュートリアル（`::: practice <scenario>`） | `Data/ContentService.cs`（`practice-embed` div）・`tutorial.js`（three.js・importmap） | 記事の静的 HTML にはプレースホルダを残し、記事を開いたあとに JS（three.js）を interop で起動。JS 無しでも本文は読める | ✕ |
 | 15 | 背景の 3D | `wwwroot/js/bgscene.js`（three.js、全ページ） | JS モジュールを Layout から interop で起動・停止。ページ移動では止めない（破棄しない） | ✕ |
 | 16 | スクロール進捗線（画面上部） | `scrollprogress.js`・CSS `.scroll-progress` | 小さな JS interop、または CSS（scroll-driven）。読み上げには出さない（aria-hidden） | ✕ |
-| 17 | お知らせ帯（更新予定） | Worker `withNotice`（HTML に注入。`worker/maintenance.js`） | D4 参照（Worker で注入を残すか、WASM が `/api/maintenance` を読むか） | ○ `MaintenanceBanner.razor`・`MaintenanceInfo.cs`（クライアント読み込みの型） |
+| 17 | お知らせ帯（更新予定） | Worker `withNotice`（HTML に注入。`worker/maintenance.js`） | **決定（§0・§4.8）**: WASM が起動時に `GET /api/maintenance` を読み、MudBlazor の表示で出す | ◎ pokemon `Services/MaintenanceInfo.cs`（起動時に `GET api/maintenance`、2 秒で打ち切り、読めなければ通常）・`Shared/MaintenanceBanner.razor`（Notice のときだけ出す）・Worker の `/api/maintenance`（pokemon `worker/index.js` に同じ形。確認済み） |
 | 18 | メンテナンス画面（503） | Worker（`getMaintenance` → `maintenanceResponse`。`MAINTENANCE=on`） | Worker のまま（全リクエストを 503 にする）。WASM 側の画面は不要 | △（`MaintenanceScreen.razor` は WASM 内の表示。avatar は Worker で止めるので原則不要） |
-| 19 | 問い合わせ・報告（`/report`） | `Report.razor`・`report.js`（Turnstile）・`worker/report.js`（Discord 転送、`/api/report`、`/api/report/config`） | Blazor のフォームで `/api/report` に POST。Turnstile は JS（`challenges.cloudflare.com`）を interop で描画しトークンを受け取る。Worker は変えない | ◎ `Services/ReportForm.cs`・`Report.razor`・`wwwroot/js/report.js`・`worker/report.js`（同じ API 形） |
+| 19 | 問い合わせ・報告（`/report`） | `Report.razor`・`report.js`（Turnstile）・`worker/report.js`（Discord 転送、`/api/report`、`/api/report/config`） | Blazor のフォームで `/api/report` に POST。Turnstile は JS（`challenges.cloudflare.com`）を interop で描画しトークンを受け取る。Worker は変えない | ◎ pokemon `Services/ReportForm.cs`（入力の検査。サーバーと同じ上限）・`Components/Pages/Report.razor`（HttpClient と JS で Turnstile）・`wwwroot/js/report.js`・`worker/report.js`（同じ API 形）。いずれも確認済み |
 | 20 | プライバシーポリシー | `Privacy.razor` | Razor（本文は移す） | ○ |
 | 21 | 更新履歴 | `Changelog.razor`・`changelog.yml`・`ChangelogTests` | Razor（ContentService の ParseChangelog を流用） | ○ `Services/Changelog.cs`（考え方） |
 | 22 | リンク集 | `Links.razor`・`links.yml` | Razor | ✕ |
@@ -105,7 +106,7 @@
 | ファイル | 役割 | 移行での扱い |
 | --- | --- | --- |
 | `worker/index.js`（419 行） | 全リクエストの入口。メンテナンス中は 503、`/api/rooms/<ID>/ws` を Durable Object へ、`/api/report*` を報告へ、それ以外は `env.ASSETS.fetch` の結果に `withNotice` を付ける。`/api/` 以外の未知の API は 404 | **維持**。お知らせの扱いだけ D4 で変える |
-| `worker/maintenance.js`（104 行） | 503 の HTML と JSON、お知らせ帯の HTML 注入（`withNotice`） | 維持。`/api/maintenance`（JSON）を D4 の場合に足す |
+| `worker/maintenance.js`（104 行） | 503 の HTML と JSON、お知らせ帯の HTML 注入（`withNotice`） | 維持。`/api/maintenance`（JSON）を足す（§4.8） |
 | `worker/report.js`（150 行） | `/api/report`（Turnstile 検証 → Discord Webhook）と `/api/report/config`（サイトキー） | **維持**（Blazor 版の報告フォームも同じ API を呼ぶ） |
 | `wrangler.toml` | 本番・確認用の routes、Durable Object、`keep_vars = true`、`workers_dev = false` | 維持。`assets.directory` は `dist` のまま |
 | `wwwroot/_headers` | **無し**（tracked ファイルにない）。確認用の `X-Robots-Tag` だけ deploy.yml が `dist/_headers` に追記 | CSP を新設（Phase 4、§4.9） |
@@ -190,7 +191,7 @@
 
 ### 2.4 試作のコードで確かめるべき点（Phase 1 の最初に確認）
 
-- **`string.Normalize(FormKC)`**: 試作の `ContentExport` の注釈は「ブラウザの WebAssembly では `string.Normalize` が使えない（`PlatformNotSupportedException`）」と書いている。**これは試作の作者の記述で、計画の作成時点では再現していない**。Phase 1 の最初に、WebAssembly で `Normalize` を呼ぶ最小のページで確かめる（D9）。
+- **`string.Normalize(FormKC)` が WebAssembly で動かない問題**: ユーザーの指示（試作で確認済み）と、試作 `ContentExport/Program.cs` の注釈（ブラウザの WebAssembly では `string.Normalize` が使えないため、ビルド時に正規化する）に基づく事実として扱う。試作の `SearchMatcher` も C# の `Normalize` を使わず、全角→半角・カタカナ→ひらがなを手で行っている。よって**索引はビルド時に正規化**し、検索語の扱いだけを D9 で決める。
 - 本体の `searchcore.js`・`tipsfilter.js` は `String.prototype.normalize("NFKC")` を使う（`searchcore.js:31`、`tipsfilter.js:17`）。ブラウザでは JS の normalize が常に使える。
 
 ### 2.5 PR #69 の扱い（D8）
@@ -230,7 +231,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 ### 3.2 ルーティングと配信
 
 - **全ページを静的 HTML として書き出す**（現行の `StaticSiteExporter` と同じ URL 一覧）。WASM は各 HTML の `#app` を引き継ぐ。
-- **SPA フォールバック（index.html を全部に返す）は使わない**。理由: 存在しない URL が本文入りの 200 になり、soft 404 になる（ポケモンは `index.html` を汎用の title と読み込み表示だけにしている。`tools/build-entry-pages.mjs` の冒頭コメント）。avatar も同じ方式にする。
+- **SPA フォールバック（存在しない URL に `index.html` を返す方式）は使わない**。理由: 存在しない URL が本文入りの 200 になり、soft 404 になる。ポケモンは `index.html` を SPA フォールバックにするため、汎用の title と読み込み表示だけにしている（`tools/build-entry-pages.mjs` の冒頭コメント）。avatar は `404-page` を使うので、`index.html` はホームのまま（§3.3 の 4）。
 - **404**: 静的 `404.html`（ステータス 404、noindex）。Worker の `not_found_handling = "404-page"` は維持。
 - **旧 URL**: `_redirects`（現行の `/operations`・`/avatar-clothing`・`/plugins`）をそのまま使う。
 - **末尾スラッシュ**: `html_handling = "auto-trailing-slash"` を維持（`/learn/basics/` → `/learn/basics` へ）。
@@ -244,7 +245,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
    - **head**: `<title>`、`<meta name="description">`、`<link rel="canonical">`、OGP（`og:title`・`og:description`・`og:url`・`og:type`・`og:image`・`og:site_name`）。
    - **body**: 本文（記事の `Html`、目次、パンくず、前後の送り、区切りや一覧の要素）。WebAssembly の画面と**同じ DOM 構造と同じ CSS クラス**で作る（起動時のちらつき対策。§4.10）。
 3. `robots.txt`（本番は `Sitemap:` の行。確認用は Disallow を付けず、`X-Robots-Tag: noindex` で止める。ポケモンと同じ）と `sitemap.xml`（本番のみ、全ページ）を書く。
-4. `index.html`（SPA の汎用フォールバック）は title と読み込み表示だけ（ホームの本文は入れない）。
+4. `index.html` は**ホームそのもの**（本文入りの `/` の HTML）。SPA フォールバックは作らない。存在しない URL は `404.html`（ステータス 404）を返す。ポケモンの `worker/home.js` は、`index.html` が SPA フォールバックを兼ねるために必要なもので、avatar では**不要**（`not_found_handling = "404-page"` を使うため）。
 
 **記事 50 件・ページ数**: 現行と同じ数（約 80 ページ）。`dist` の内容の差は、差分比較で確かめる（§5 の受け入れ条件）。
 
@@ -253,7 +254,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 ### 3.4 WebAssembly の起動と「ちらつき」対策（§4.10 で詳述）
 
 - 静的 HTML の本文と、WASM 起動後の画面の DOM 構造を揃える。
-- head の script で、テーマ（`data-theme` 相当）とサイドバーの状態を描画前に反映する（現行の App.razor と同じ）。
+- テーマとサイドバーの状態を描画前に反映する。インラインの script は CSP で止まるため（§4.9）、外部ファイル（`js/theme-init.js`、head で同期的に読む）にする。
 - MudBlazor の CSS は head で読み込み、フォントは Google Fonts（現行と同じ）。
 
 ### 3.5 Worker の変更（§4.8）
@@ -262,7 +263,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 | --- | --- | --- |
 | `/` と記事 URL | 静的アセット（SSR の HTML） | 静的アセット（本文入りの静的 HTML）。Worker は変えない |
 | メンテナンス 503 | Worker（全リクエスト） | 同じ（維持） |
-| お知らせ帯 | Worker が HTML に注入（`withNotice`） | D4 で決める。推奨は「WASM が `/api/maintenance` を読む」 |
+| お知らせ帯 | Worker が HTML に注入（`withNotice`） | 決定（§4.8）: WASM が `/api/maintenance` を読む |
 | `/api/report`・`/api/report/config` | Worker | 維持（Blazor の報告フォームが呼ぶ） |
 | `/api/rooms/<ID>/ws` | Durable Object | 維持 |
 | `/search-index.json` | Minimal API（Program.cs） | 静的ファイル（同じ URL） |
@@ -294,7 +295,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 
 ### 4.4 検索（D9）
 - 索引（`search.json`）: 生成時に `Norm` を作る（NFKC・小文字・〜・カタカナ→ひらがな）。現行の `searchcore.js` の規則と同じにする。
-- 検索語: ブラウザで `String.prototype.normalize("NFKC")` を JS interop で呼ぶ（推奨）。C# の `Normalize` が WebAssembly で動くなら、C# でもよい（Phase 1 で確かめる）。
+- 検索語: ブラウザで `String.prototype.normalize("NFKC")` を JS interop で呼ぶ（推奨）。試作の注釈どおり C# の `Normalize` は使えないため、検索語は手書きの正規化（D9 の (b)）か、この JS 呼び出しのどちらかになる。
 - ローマ字の読み替え・半角カナ・強調・抜き出し: 現行の `searchcore.js` の仕様を Node の既存の振る舞いと比べられる形（同じ入力・同じ件数）で C# に移す。**テストは現行の searchcore の結果を正解データにする**。
 
 ### 4.5 練習ページ（Three.js の組み込み・JS interop・解放・PC 専用）
@@ -317,10 +318,10 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 
 ### 4.8 Worker（お知らせ帯・メンテナンス・API）（D4）
 - **維持するもの**: 503（`getMaintenance` → `maintenanceResponse`）、`/api/report*`、`/api/rooms/*`、`run_worker_first = true`。
-- **お知らせ帯（D4）**:
-  - A. 現状どおり Worker が HTML に注入（本文入りの静的 HTML にも注入される。ちらつきなし。JS 無しでも出る）
-  - B. WASM が `/api/maintenance`（新設・JSON: `state`、`message`、`notice`）を読んで MudBlazor の Alert で出す（起動後に出るので、数秒は出ない）
-  - **推奨: B**（ユーザーの指示どおり）。ただし、静的 HTML の注入は消さない（B の前に A を残すと二重になるので、どちらか一方にする）。B にすると `worker/maintenance.js` の HTML 注入（`withNotice`）と、そのテスト（`maintenance.test.mjs` の一部）を削除する。
+- **お知らせ帯（決定・§0）**: WASM が起動時に `GET /api/maintenance` を読み、`state` が `notice` のときだけ帯を出す（ポケモンの `Services/MaintenanceInfo.cs` と同じ作り。2 秒で打ち切り、読めなければ通常）。Worker の `/api/maintenance` は、ポケモンの `worker/index.js`（origin/develop）と同じ形（`{state, message}`）を返す。avatar の `worker/maintenance.js` の `getMaintenance` は既に `state` と `message` を返すので、ルートを一つ足すだけで済む。
+  - 代償: 起動の前（数秒）は帯が出ない。JS が無い環境では出ない。
+  - 削除するもの: `worker/index.js` の `withNotice` による HTML 注入、`worker/maintenance.js` の `noticeHtml`・`rewriteWithHtmlRewriter`、それらのテスト（`worker/maintenance.test.mjs` の該当部分）。
+  - 残すもの: 503（`MAINTENANCE=on`）の処理と画面（`getMaintenance`・`maintenanceResponse`）。
 - `_headers` を新設（CSP は §4.9）。
 
 ### 4.9 CSP（ポケモンの `_headers` を基準）
@@ -333,11 +334,17 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 - `img-src`: `'self' data:`（記事の画像は同じオリジン）。
 - `_headers` は全ページに同じ CSP が付く（pokemon の注記どおり）。`/api/*` には付かない（Worker 側の応答）。
 
+**インラインのスクリプトの扱い**（試作の CSP 計測で、インラインの script は `script-src 'self'` で止まることを確認している）:
+- テーマの描画前 script（現行 `App.razor` の head のインライン script）→ 外部ファイル `js/theme-init.js` にし、head で同期的に読む。
+- importmap（`<script type="importmap">`。練習 3 ページと記事ページ。`three` の CDN を指す）→ 外部ファイルにできないため、**sha256 のハッシュを `script-src` に入れる**。ハッシュは Build が importmap の文字列から計算し、`_headers` を書くときに入れる（three.js の版を上げるとハッシュも変わるので、手で直さない）。代案は、練習の JS の `import "three"` を CDN の絶対 URL に書き換えて importmap を要らなくすること（既存の JS を書き換えることになるので、既定にはしない）。
+- `script-src` には three.js の CDN（`https://cdn.jsdelivr.net`）を明示する（importmap の module の読み込み先）。
+- Blazor の `blazor.webassembly.js` と MudBlazor の JS は同じオリジンなので `'self'` で足りる。
+
 ### 4.10 起動時のちらつき対策
 - 静的 HTML の本文と WASM の描画は、**同じ DOM 構造・同じクラス**にする（MudBlazor のクラスを静的 HTML にも付ける）。
 - WASM 起動前は静的 HTML の本文が見えている（SEO と JS 無しの読みやすさ）。起動後に Blazor が `#app` の中身を置き換えるので、見た目が変わらないことを検証する。
 - 検証: 起動の前後で、スクリーンショットの差（ピクセル差）を記事 5 ページ・ホーム・検索で取る。差が閾値を超えるページは静的 HTML の CSS を直す。
-- 起動時に `#app` を空にしない（静的 HTML を残す）。ポケモンの `MaintenanceScreen` 方式（WASM だけで画面を作る）は avatar では採らない。
+- 静的 HTML の本文は、WASM の起動まで見えたまま残す。起動後に Blazor が `#app` の中身（静的 HTML）を置き換える。ここで見た目が変わらないことを検証する。ポケモンの `MaintenanceScreen` 方式（WASM だけで画面を作る）は avatar では採らない。
 
 ### 4.11 その他の決まり（Bootstrap 廃止、nav.js 廃止、Icons）
 - **Bootstrap 廃止**（MudBlazor に統一）: 現行 `site.css`（約 3,260 行）のうち、MudBlazor の既定と重なる部分を捨て、記事本文（`.article-body` 相当）・目次・パンくず・テーブル・コードのスタイルだけ残す（必要な共通 CSS のみ）。
@@ -354,7 +361,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 - PR: `docs/wasm-migration-plan` → `develop`（マージしない）。成果: 本文書。
 
 ### Phase 1: 土台 — 約 10〜14 人日（推測）
-- 内容: `src/FaraAvatarModdingGuide.Content`（ContentService 移設、ASP.NET 非依存）、`src/FaraAvatarModdingGuide.Web`（WASM＋MudBlazor、MudLayout、テーマ、サイドバー、ヘッダー、フッター、404、お知らせ（D4 の方式）、報告フォーム、プライバシー、更新履歴、リンク集、ホーム）、Normalize の検証（§2.4）。
+- 内容: `src/FaraAvatarModdingGuide.Content`（ContentService 移設、ASP.NET 非依存）、`src/FaraAvatarModdingGuide.Web`（WASM＋MudBlazor、MudLayout、テーマ、サイドバー、ヘッダー、フッター、404、お知らせ（§4.8）、報告フォーム、プライバシー、更新履歴、リンク集、ホーム）。
 - 含まないもの: 記事（Phase 2）、練習（Phase 3）、静的 HTML（Phase 4）。
 - 完了条件: 上の各ページが `dotnet run` で表示され、`dotnet test`（新）が通る。報告フォームが確認用の API で送信できる（Turnstile は確認用キー）。
 - 並行: Content ライブラリの移設と、MudLayout の作業は並行できる。
@@ -373,7 +380,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 - 並行: Phase 2 の途中から JS 部分（interop の作成）を始められる。
 
 ### Phase 4: SEO — 約 5〜8 人日（推測）
-- 内容: `Build` プロジェクトの静的 HTML 生成（本文・head・OGP・canonical）、`sitemap.xml`・`robots.txt`、`_headers`（CSP）、Worker の `/api/maintenance`（D4 B）、起動時のちらつき検証（§4.10）、確認用の noindex。
+- 内容: `Build` プロジェクトの静的 HTML 生成（本文・head・OGP・canonical）、`sitemap.xml`・`robots.txt`、`_headers`（CSP）、Worker の `/api/maintenance`（§4.8）、起動時のちらつき検証（§4.10）、確認用の noindex。
 - 完了条件:
   - 約 80 ページすべてに、本文が入った HTML が出る（JS 無しで読める）。
   - ページごとの title・description・canonical・OGP がある。`sitemap.xml` は本番だけ。確認用は `X-Robots-Tag: noindex`。
@@ -394,7 +401,6 @@ P0 → P1 → P2 ─┬→ P4 → P5
         └→ P3 ┘
 ```
 
-- P1 の Normalize 検証（§2.4）が通らないと、P2 の検索の方式（D9）が決まらない。**P1 の最初に確かめる**。
 - P3 は P2 の記事ページの骨格が要る（記事内チュートリアルの埋め込み）。
 
 ---
@@ -423,7 +429,8 @@ P0 → P1 → P2 ─┬→ P4 → P5
 | Bootstrap 廃止による見た目の差 | 既存の読者の印象 | スクリーンショットの比較（PC・スマホ、ライト・ダーク）を Phase 2・4 で行う |
 | ILLink の失敗（断続的） | CI の失敗 | 再実行で済むか記録、設定の明示（§4.3）。avatar では未観測（推測） |
 | localStorage のキー変更 | 既存の進捗が消える | キー名を変えない（§1.2 の 13・2・3） |
-| お知らせの二重表示（注入とクライアント表示） | 見た目 | D4 で一方に決める |
+| お知らせの二重表示（注入とクライアント表示） | 見た目 | 決定済み（§4.8）。Worker の注入は削除する |
+| インラインのスクリプトが CSP で止まる（テーマの script・importmap） | 画面が出ない | 外部ファイル化。importmap はハッシュを `_headers` に入れる（§4.9） |
 | 移行中の master の不整合 | 本番障害 | master は移行完了まで触らない（§6） |
 | ポケモン側の build-entry-pages の版違い | 方式の食い違い | 取り込み時に、ポケモンの develop の最新を確認 |
 
@@ -453,14 +460,14 @@ P0 → P1 → P2 ─┬→ P4 → P5
 | # | 決めること | 選択肢 | 推奨と理由 |
 | --- | --- | --- | --- |
 | D1 | プロジェクト配置 | A: `src/` に新規を並走させ、Phase 5 で置き換え／B: 既存の csproj を置き換え | **A**（master を壊さない） |
-| D2 | 記事本文のデータ | (a) 全記事の HTML を 1 つの JSON に入れる（約 1.7 MB・Brotli 約 0.27 MB 〈試作の実測〉）／(b) 記事ごとに HTML 断片を別ファイルにして開いたときだけ取る | **(a)**（速さは問題でないので、構造が単純な (a)） |
+| D2 | 記事本文のデータ | (a) 全記事の HTML を 1 つの JSON に入れる（試作の実測。`content.json` と `search.json` の合計で約 1.7 MB、Brotli 約 0.27 MB）／(b) 記事ごとに HTML 断片を別ファイルにして開いたときだけ取る | **(a)**（速さは問題でないので、構造が単純な (a)） |
 | D3 | 静的 HTML の生成 | (a) C#（`FaraAvatarModdingGuide.Build`、Markdig をそのまま使う）／(b) Node（ポケモン流 `build-entry-pages.mjs`、本文は C# の JSON を入力） | **(a)**（本文の HTML は Markdig で作るため、同じ C# で作るのが単純） |
-| D4 | お知らせ帯 | (a) Worker が注入（現状）／(b) WASM が `/api/maintenance` を読む | **(b)**（指示どおり。注入は削除。起動後まで出ない点は許容） |
+| D4 | （決定済み） | §0 を参照（WASM が `/api/maintenance` を読む。Worker の注入は削除） | — |
 | D5 | OGP 画像 | (a) 新しく 1200×630 の PNG を作る／(b) `site-icon.svg` を流用（SVG は多くの SNS で表示されない） | **(a)**（PNG を 1 枚作る。デザインは要確認） |
 | D6 | アイコンと Bootstrap | (a) Bootstrap Icons を捨てて Material（MudBlazor）に写す／(b) bootstrap-icons の必要な分だけ SVG で同梱 | **(a)**（Bootstrap を完全に外す方針と合う） |
 | D7 | 旧版との並行 | (a) 移行完了まで master は SSR のまま（dev だけ WASM）／(b) 段階ごとに master へも入れる | **(a)**（§6） |
 | D8 | 試作 PR #69 | (a) 閉じる（参照用ブランチは残す）／(b) 残す | **(a)**（本文書に評価を残す） |
-| D9 | 検索の正規化 | (a) JS interop の `normalize("NFKC")`／(b) C# の `Normalize`（Phase 1 で WebAssembly 上の動作を確認してから） | **(a)**（確実に動く。C# 側は索引だけ生成時に正規化） |
+| D9 | 検索語の正規化（索引は両案ともビルド時に正規化） | (a) JS interop で `String.prototype.normalize("NFKC")` を呼ぶ（現行 `searchcore.js` と同じ結果になる）／(b) 試作の `SearchMatcher` のように、全角→半角・カタカナ→ひらがなを C# で手書きする（NFKC の一部だけ。半角カナなどは揃わない） | **(a)**（現行と結果が揃いやすい。interop は検索のたびに 1 回だけ） |
 | D10 | 進め方の人数・順序 | (a) 1 人で P1→P5 を順に／(b) P3 と P4 を並行（人数が増えたとき） | **(a)** を基本に、P3 と P4 は後半で並行可 |
 
 **追加で確認したいこと（D に入れない）**
