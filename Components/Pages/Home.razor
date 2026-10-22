@@ -17,17 +17,6 @@
 </div>
 
 <section class="mb-5">
-    <h2 class="h3 mb-3">更新履歴</h2>
-    <ul class="changelog-recent list-unstyled mb-2">
-        @foreach (var e in Content.Changelog.Take(RecentCount))
-        {
-            <li><span class="changelog-date">@e.Date.ToString("MM/dd")</span> @e.Title</li>
-        }
-    </ul>
-    <a href="/changelog" class="btn btn-sm btn-outline-primary">すべて見る</a>
-</section>
-
-<section class="mb-5">
     <h2 class="h3 mb-3">目次</h2>
     <ProgressSummary HideWhenEmpty="true" />
     <Roadmap />
@@ -101,6 +90,17 @@
             </a>
         </div>
     </div>
+</section>
+
+<section class="mb-4">
+    <h2 class="h3 mb-3">更新履歴</h2>
+    <ul class="changelog-recent list-unstyled mb-2">
+        @foreach (var e in Content.Changelog.Take(RecentCount))
+        {
+            <li><span class="changelog-date">@e.Date.ToString("MM/dd")</span> @e.Title</li>
+        }
+    </ul>
+    <a href="/changelog" class="btn btn-sm btn-outline-primary">すべて見る</a>
 </section>
 
 @code {
