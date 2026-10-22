@@ -92,6 +92,10 @@ public sealed class SiteOptions
     /// <summary>Unity の記事で前提にするバージョン</summary>
     public string UnityVersion { get; set; } = "2022.3";
     public string RepositoryUrl { get; set; } = string.Empty;
+    /// <summary>フッターの © に出す、サイトを公開した年。</summary>
+    public int PublishedYear { get; set; } = 2026;
+    /// <summary>作者のホームページ（フッターの「Fara」のリンク先）。</summary>
+    public string PortfolioUrl { get; set; } = "https://fara-labs.com/";
 }
 
 // ---------------------------------------------------------------- TIPS・用語集（Content/tips/*.yml）

@@ -1844,7 +1844,20 @@ main {
     border-top: 1px solid var(--border);
     color: var(--bs-secondary-color);
     font-size: 0.875rem;
+    text-align: center;
 }
+.site-footer a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.site-footer a:hover { color: var(--bs-primary); }
+.site-footer-line { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.15rem 0.6rem; }
+.site-footer-sep { opacity: 0.5; }
+
+/* 作者へ報告 */
+.report-form { max-width: 42rem; }
+.report-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.report-status { padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); }
+.report-status-ok { border-color: #22c55e; }
+.report-status-error { border-color: #ef4444; }
+.report-status-warn { border-color: #f59e0b; }
 
 /* ナビの開閉はチェックボックス + CSS（静的 SSR のため JS なし） */
 .navbar-toggler {

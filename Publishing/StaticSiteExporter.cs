@@ -56,6 +56,8 @@ public static class StaticSiteExporter
             ["/qa"] = "qa.html",
             ["/links"] = "links.html",
             ["/changelog"] = "changelog.html",
+            ["/report"] = "report.html",
+            ["/privacy"] = "privacy.html",
             ["/search"] = "search.html",
             ["/search-index.json"] = "search-index.json",
         };
