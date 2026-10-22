@@ -64,6 +64,15 @@ public class ScrollProgressTests
     }
 
     [Fact]
+    public void On_pc_the_line_sits_on_the_header_bottom_edge_in_place_of_the_old_border()
+    {
+        var css = File.ReadAllText(RepoFile("wwwroot/css/site.css"));
+        // ヘッダーの下の線は、進み具合の線が兼ねる（ヘッダーの下端の 2px の枠線は無くす）
+        Assert.DoesNotContain("border-bottom: 2px solid #8b5cf6", css);
+        Assert.Contains("top: calc(3.5rem - 2px);", css);
+    }
+
+    [Fact]
     public void Progress_script_sets_a_clamped_value_and_does_nothing_when_the_page_cannot_scroll()
     {
         var js = File.ReadAllText(RepoFile("wwwroot/js/scrollprogress.js"));
