@@ -17,3 +17,8 @@ dist/
 
 ## Claude Code
 .claude/
+
+## 試作（islands/search）: 島の publish 出力と、そこからコピーした _framework
+islands/search/publish/
+wwwroot/_framework/
+wwwroot/_content/

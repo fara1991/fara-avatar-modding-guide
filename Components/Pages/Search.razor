@@ -15,9 +15,12 @@
 
 <div id="search-results" aria-live="polite">
     <noscript><p class="text-danger">検索には JavaScript が必要です。</p></noscript>
+    @* 試作: 検索の結果は Blazor WebAssembly の島（islands/search）が描く。島は、この本文の中の script で読み込む（ページ移動のときも同じ） *@
+    <fara-search></fara-search>
 </div>
 
-<script src="/js/search.js" defer></script>
+<script src="/js/island-search.js"></script>
+<script src="/_framework/blazor.webassembly.js"></script>
 
 @code {
     [SupplyParameterFromQuery] public string? Q { get; set; }

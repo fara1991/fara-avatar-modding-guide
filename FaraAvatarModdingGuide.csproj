@@ -14,6 +14,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- 試作の島（islands/search）は別プロジェクト（Blazor WebAssembly）。本体に取り込まない。ビルドは islands/search/copy-to-site.sh -->
+    <Compile Remove="islands\**" />
+    <EmbeddedResource Remove="islands\**" />
+    <None Remove="islands\**" />
+    <Content Remove="islands\**" />
+    <RazorComponent Remove="islands\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- 記事・ショートカット・アドオンの定義は Content/ 以下の Markdown / YAML。実行時に読み込むので出力先へコピーする -->
     <None Remove="Content\**" />
     <Content Include="Content\**" CopyToOutputDirectory="PreserveNewest" />
