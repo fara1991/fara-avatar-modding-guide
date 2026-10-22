@@ -204,6 +204,30 @@ public class FooterAndReportTests
         Assert.DoesNotContain("作者へ報告", html);
     }
 
+    [Fact]
+    public void On_phones_the_footer_stays_centered_and_link_text_is_not_broken()
+    {
+        var css = File.ReadAllText(FindUp(Path.Combine("wwwroot", "css", "site.css")));
+        var footerRules = css.IndexOf(".site-footer-sep { opacity: 0.5; }", StringComparison.Ordinal);
+        Assert.True(footerRules >= 0, "フッターの書き方が見つからない");
+        // 狭い画面（640px 以下）の中で、中央揃えと、文言を途中で改行しない指定があること
+        var mediaStart = css.IndexOf("@media (max-width: 640px) {", footerRules, StringComparison.Ordinal);
+        Assert.True(mediaStart >= 0, "フッターの 640px 以下の指定が無い");
+        var mediaEnd = css.IndexOf("\n}\n", mediaStart, StringComparison.Ordinal);
+        var phone = css.Substring(mediaStart, mediaEnd - mediaStart);
+        Assert.Contains(".site-footer { text-align: center; }", phone);
+        Assert.Contains(".site-footer-line { justify-content: center; gap: 0.35rem 1rem; }", phone);
+        Assert.Contains(".site-footer-line > * { white-space: nowrap; }", phone);
+        // 狭い画面では区切りの「|」を出さない（項目の間は gap で空ける）
+        Assert.Contains(".site-footer-sep { display: none; }", phone);
+
+        // PC の見た目は変えない: 基本の指定に nowrap や非表示を入れていないこと。区切りも残す
+        var regex = new System.Text.RegularExpressions.Regex(@"^\.site-footer-line \{[^\n]*", System.Text.RegularExpressions.RegexOptions.Multiline);
+        Assert.DoesNotContain("white-space", regex.Match(css).Value);
+        var baseSep = System.Text.RegularExpressions.Regex.Match(css, @"^\.site-footer-sep \{[^\n]*", System.Text.RegularExpressions.RegexOptions.Multiline).Value;
+        Assert.DoesNotContain("display", baseSep);
+    }
+
     private static string FindUp(string relative)
     {
         for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
