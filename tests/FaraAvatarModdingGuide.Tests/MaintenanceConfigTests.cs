@@ -62,6 +62,30 @@ public class MaintenanceConfigTests
     }
 
     [Fact]
+    public void Production_deploy_requires_MAINTENANCE_notice_and_turns_maintenance_on()
+    {
+        var yml = File.ReadAllText(RepoFile(".github/workflows/deploy.yml"));
+        // 本番（master）の公開の前に、Cloudflare の MAINTENANCE が notice かを確かめる（確認用の develop は確かめない）
+        Assert.Contains("node .github/scripts/require-maintenance.mjs fara-avatar", yml);
+        var gate = yml.IndexOf("Require MAINTENANCE=notice (production)", StringComparison.Ordinal);
+        Assert.True(gate > 0);
+        Assert.Contains("if: github.ref_name == 'master'", yml[gate..(gate + 200)]);
+        // 確認は公開より前。公開と同時に MAINTENANCE=true にする（確認を飛ばしたときは、メンテナンス画面にしない）
+        Assert.True(gate < yml.IndexOf("cloudflare/wrangler-action@v3", StringComparison.Ordinal));
+        Assert.Contains("--var MAINTENANCE:true", yml);
+        Assert.Contains("!inputs.skip_maintenance_check", yml);
+        Assert.Contains("skip_maintenance_check:", yml);
+        Assert.Contains("SKIP_MAINTENANCE_CHECK: ${{ inputs.skip_maintenance_check }}", yml);
+    }
+
+    [Fact]
+    public void Gate_script_exists_and_is_tested_in_ci()
+    {
+        Assert.True(File.Exists(RepoFile(".github/scripts/require-maintenance.mjs")));
+        Assert.Contains("require-maintenance.test.mjs", File.ReadAllText(RepoFile(".github/workflows/deploy.yml")));
+    }
+
+    [Fact]
     public void Ci_runs_the_maintenance_tests()
     {
         var yml = File.ReadAllText(RepoFile(".github/workflows/deploy.yml"));
