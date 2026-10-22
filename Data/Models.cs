@@ -96,6 +96,16 @@ public sealed class SiteOptions
     public int PublishedYear { get; set; } = 2026;
     /// <summary>作者のホームページ（フッターの「Fara」のリンク先）。</summary>
     public string PortfolioUrl { get; set; } = "https://fara-labs.com/";
+    /// <summary>フッターの SNS アイコン（© の横）。Url が空のものは出さない。</summary>
+    public List<SocialLink> Socials { get; set; } = new();
+}
+
+/// <summary>フッターの SNS アイコン 1 つ。Service は github / twitter / twitch / discord（Components/Shared/Icon.razor のアイコン名と同じ）。</summary>
+public sealed class SocialLink
+{
+    public string Service { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
 }
 
 // ---------------------------------------------------------------- TIPS・用語集（Content/tips/*.yml）

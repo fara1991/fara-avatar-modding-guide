@@ -1850,8 +1850,15 @@ main {
 .site-footer a:hover { color: var(--bs-primary); }
 .site-footer-line { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.15rem 0.6rem; }
 .site-footer-sep { opacity: 0.5; }
+/* SNS のアイコン（© の横）。色はポートフォリオと同じ（.service-* の --brand） */
+.footer-socials { display: inline-flex; gap: 6px; vertical-align: middle; }
+.footer-socials a { width: 26px; height: 26px; display: inline-grid; place-items: center; border-radius: 8px; color: #fff; background: var(--brand, var(--violet)); text-decoration: none; transition: box-shadow .25s ease; }
+.footer-socials a:hover { color: #fff; box-shadow: 0 6px 16px -6px var(--brand, var(--violet)); }
+.service-github { --brand: #6e40c9; }
+.service-twitter { --brand: #1d9bf0; }
+.service-twitch { --brand: #9146ff; }
 
-/* 作者へ報告 */
+/* 問い合わせ */
 .report-form { max-width: 42rem; }
 .report-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .report-status { padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); }
@@ -1960,7 +1967,7 @@ main {
     }
 }
 
-/* ---------- スクロールの進み具合（画面の最上部の細い線。0 = 先頭、1 = 最後まで）。値は js/scrollprogress.js が --scroll-progress に入れる。PC は固定ヘッダーの上端、スマホは画面の最上部 ---------- */
+/* ---------- スクロールの進み具合（細い線。0 = 先頭、1 = 最後まで）。値は js/scrollprogress.js が --scroll-progress に入れる。PC は固定ヘッダーの下端（ヘッダーの下の線を兼ねる）、スマホは画面の最上部 ---------- */
 /* 動きの指定（transition）は付けない。動きを減らす設定でも、線は見えたまま */
 .scroll-progress {
     position: fixed;
@@ -2021,7 +2028,23 @@ main {
         padding: 0 12px;
         color: #fff;
         background: linear-gradient(90deg, #140a26 0%, #241243 100%);
-        border-bottom: 2px solid #8b5cf6;
+    }
+
+    /* ヘッダーの下端の線は、スクロールの進み具合の線（.scroll-progress）が兼ねる。ヘッダーの高さの、いちばん下の 2px に置く */
+    .scroll-progress {
+        top: calc(3.5rem - 2px);
+    }
+
+    /* 進んでいない部分の薄い線（ヘッダーの下端）。進み具合の線（.scroll-progress）が、この上に伸びる。スクロール 0 でも線が消えない */
+    .app-header::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        background: rgba(139, 92, 246, 0.22);
+        pointer-events: none;
     }
 
     /* サイドバーは、ヘッダーの下。サイドバー上部のサイト名は、ヘッダーがあるので出さない。
