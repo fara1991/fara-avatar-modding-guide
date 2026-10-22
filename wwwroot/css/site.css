@@ -1850,6 +1850,12 @@ main {
 .site-footer a:hover { color: var(--bs-primary); }
 .site-footer-line { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.15rem 0.6rem; }
 .site-footer-sep { opacity: 0.5; }
+/* スマホ（狭い画面）: 表記を中央に並べる。折り返すときは項目の間で折り返し、リンクの文言（「プライバシーポリシー」など）は途中で改行しない */
+@media (max-width: 640px) {
+    .site-footer { text-align: center; }
+    .site-footer-line { justify-content: center; }
+    .site-footer-line > * { white-space: nowrap; }
+}
 /* SNS のアイコン（© の横）。色はポートフォリオと同じ（.service-* の --brand） */
 .footer-socials { display: inline-flex; gap: 6px; vertical-align: middle; }
 .footer-socials a { width: 26px; height: 26px; display: inline-grid; place-items: center; border-radius: 8px; color: #fff; background: var(--brand, var(--violet)); text-decoration: none; transition: box-shadow .25s ease; }
