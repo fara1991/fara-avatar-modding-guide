@@ -20,6 +20,7 @@
 | 静的 HTML の中身 | 要約ではなく**本文入り**。記事ごとに自動生成する | 採用（現行 SSR 版と同等の本文を出す）。生成は **Phase 1 で前倒し**（§5） |
 | お知らせ帯（D4） | **決定**: 注入をやめ、WASM が起動時に Worker の `/api/maintenance` を読んで表示する（Worker の HTML 注入 `withNotice` は削除。Phase 1 で行う） | 採用（§4.8） |
 | 共通部品 | 新リポジトリ `fara-site-kit`（submodule で利用） | 採用（§10） |
+| 練習ページの 3D（D15） | **決定（2026-10-22）: 段階的採用（Phase 3 は既存の Three.js、後続で C# 化）**。最終的には C# 化する（ユーザーの意向）。試作は draft PR #70 として残す | 採用（§4.5・Phase 3b） |
 | ブランチ戦略（D14） | **決定（2026-10-22）**: 長期ブランチ `migration/wasm`（develop は SSR のまま） | §6・§9 |
 
 **[事実] 現状は既に「ページごとの静的 HTML」**。`Publishing/StaticSiteExporter.cs` が `dotnet run -- --export dist` で、全ページ（記事 50 件を含む）を HTML として書き出している。つまり SEO の面では、移行後の静的 HTML は「今と同じ本文を、同じ URL で出す」ことが合格ラインになる。
@@ -348,6 +349,19 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 - 既存の JS（`viewport.js`・`unity.js`・`scenarios.js`・`editmesh.js`・`room.js`・`tutorial.js`・`practice.js`・`unity-practice.js`・`touch-practice.js`）は**書き換えない**。
 - Blazor 側は、ページの枠（Razor）と、JS の起動・破棄だけ（`IJSRuntime` で `init(element)` / `dispose()`）。`IAsyncDisposable` で破棄を呼ぶ。
 
+**3D の実装方針（D15 決定）: 段階的採用（Phase 3 は既存の Three.js、後続で C# 化）**
+- 最終的には練習ページの 3D を C# にする（ユーザーの意向。WebAssembly と MudBlazor を使うので、C# 化の採用を前提にする）。
+- 順序: **Phase 3 は既存の Three.js（JS）を Blazor のページに組み込んで先に完成させる**（移行を止めない・リスク最小）。その後、移行が安定してから **Phase 3b（任意・後続）** として、練習の 3D と操作ロジックを C# に段階的に置き換える（§5 の Phase 3b）。
+- **Phase 3 の設計（後で C# に置き換えやすい形）**: JS interop の境界を「描画」と「操作ロジック」に分ける。
+  - 操作ロジック（お題の判定・G/R/S などの操作・カメラの状態・レイ判定の結果）は、描画 API（Three.js）を直接呼ばない**純粋な状態と判定**として書く（JS 側のモジュールに閉じ込め、入出力は JSON 相当の値だけにする）。
+  - 描画（シーン・メッシュ・ライト・レンダラー）は、`init(element, options)` / `dispose()` と、状態を受け取る `render(state)` だけを外に出す。Blazor 側は状態を渡すだけで、描画の詳細を知らない。
+  - こうすると、Phase 3b で描画層を入れ替えても、Blazor 側と操作ロジックの境界は変わらない。
+- **試作の記録（draft PR #70、experiment/csharp-3d。ユーザーの指示による。この計画の作成者は未検証）**:
+  - 配信量: WebAssembly の実行環境はサイト全体で既に読み込むため、3D を C# にしたときの追加は自分たちのコード分（試作で約 18 KB）。描画ライブラリ KNI を使うと約 +400 KB が加わる。したがって配信量の面では、WASM 版で 3D を C# にする不利は小さい。
+  - 作業量（試作の見積もり）: 全体 約 2〜3 か月（推測）。内訳は、残りのお題 数日〜1 週、Unity 風 数週間、共有ルーム 1〜2 週、FBX 1〜3 週。
+  - 既知の差・リスク: 描画の細部の差（KNI は半球光がなく、左面が暗い等）、KNI の Tick のばらつき（原因は未切り分け）、新しいブラウザのコンテキストで描画が始まらなくなる問題（原因は未特定）。
+  - 描画層の選定（Phase 3b の最初に決める）: WebGL を自作の薄い層で持つか、KNI を使うか。先に上の未解決の問題を調べてから選ぶ。
+
 **importmap の扱い（既定を決める）**:
 - **既定: importmap は Build が出す静的 HTML のテンプレート（`index.html` の head）に 1 つだけ置く**（全ページ共通。`three` の CDN のみ。`three@0.170.0` のバージョン固定）。CSP は importmap の sha256 を `script-src` に入れる（§4.9）。
 - 理由: importmap は、その文書で最初の module script が読まれる前に存在している必要がある。Blazor が描画後に挿入した importmap は、後から読む module の解決に効かない可能性が高い【推測。仕様上の性質。試作は練習ページを含まず未検証】。
@@ -466,6 +480,14 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 - 完了条件: 3 つの練習ページで、現行版と同じ操作（キー・マウス）ができる。ページ移動のあとも three.js の renderer が増えない（メモリ・リスナーの確認）。共有ルームで二人が接続できる（`tools/room-check` を使う）。
 - 並行: Phase 2 の途中から JS 部分（interop の作成）を始められる。
 
+### Phase 3b: 練習の 3D の C# 化（任意・後続。D15）— 約 40〜60 人日（推測）
+- 位置づけ: **任意・後続**。Phase 3（Three.js）が完成し、移行（P5）が安定してから着手する。P5 の切り替えの後の作業で、切り替えの完了条件には含めない。
+- 内容: 操作ロジック（お題判定・G/R/S 操作・カメラ・レイ判定）を C# に移し、Shared 部分（判定の純粋なロジック）は C# で共有する。描画層は §4.5 の方針に従って、WebGL の薄い自作層か KNI を選定してから置き換える。練習 1（`/practice`）→ 残りのお題 → Unity 風（`/practice/unity`）→ 共有ルーム（`/practice/room`）→ FBX の順。
+- 見積もりの内訳（試作の記録。推測を含む）: 残りのお題 数日〜1 週、Unity 風 数週間、共有ルーム 1〜2 週、FBX 1〜3 週。合計は約 40〜60 人日（推測。試作の「2〜3 か月」から換算）。
+- 完了条件: 置き換えたページで、Phase 3 と同じ操作ができる。描画の差（半球光・左面の明るさ等）を画像で比べ、差が出る場合はユーザーが受け入れる。KNI の Tick のばらつきと、新しいブラウザコンテキストの問題を再現して原因を切り分けてから完了とする。
+- 並行: P4 と並行できる。P5 の後に独立のプロジェクトとして進めてもよい。
+- 独立プロジェクト化: 試作と同じく、本体の csproj とは分ける（§3.1.1 の除外の考え方に従う）。
+
 ### Phase 4: SEO の仕上げ — 約 3〜5 人日（推測）
 - 内容（P1 で作った生成の上に、仕上げだけを行う）:
   - `sitemap.xml`（本番のみ）と `robots.txt` の最終形。**sitemap の対象（推奨）**: 固定ページ（16）・カテゴリ（10）・記事（50）。除外: `/report`（noindex）・`/search`（検索結果のための画面で中身が薄い）・旧 URL・404・`/search-index.json`。`/privacy` は含める。
@@ -496,7 +518,8 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 | P3 練習 | 8〜12 |
 | P4 SEO の仕上げ | 3〜5 |
 | P5 切り替え | 4〜6 |
-| **合計（P0・K0 を含む）** | **44〜65** |
+| **合計（P0・K0 を含む。P3b を除く）** | **44〜65** |
+| P3b 練習の 3D の C# 化（任意・後続。合計に含めない） | 40〜60（推測） |
 
 ### 依存関係
 
@@ -509,6 +532,7 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 - P1 の前提: K0-1（Worker 共有 JS）・K0-2（C# Core）・K0-3（build ツール）・K0-4（Razor 部品）。K0-4 は P1 の後半から使うので、P1 の前半（ContentService 移設・Build の骨格）は K0-4 と並行できる。
 - P3 は P2 の記事ページの骨格が要る（記事内チュートリアルの埋め込み）。
 - P4 は P1 の生成の上に乗る（P2・P3 と並行できる）。
+- P3b（任意・後続）は P3 の後。P5 の後に始めてもよい（合計の見積もりには含めない）。
 
 ---
 
@@ -550,6 +574,9 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 | localStorage のキー変更 | 既存の進捗が消える | キー名を変えない（§1.2 の 2・3・13） |
 | お知らせの二重表示（注入とクライアント表示） | 見た目 | 決定済み（§4.8）。Worker の注入は Phase 1 で削除 |
 | `_headers` の末尾改行の欠落（deploy.yml の `cat >>` で行が壊れる） | CSP・noindex が効かない | Build の出力は末尾改行を必ず付ける（§1.4） |
+| 練習の 3D を C# 化する際の作業量（D15） | 後続の計画が延びる | Phase 3b は任意・後続。P3 で JS の境界を分ける（§4.5） |
+| KNI の描画の差（半球光がない・左面が暗い等）と Tick のばらつき（試作の記録） | 見た目・動作の差 | 描画層の選定の前に切り分け（Phase 3b）。差はユーザーが受け入れる |
+| 新しいブラウザのコンテキストで描画が始まらない（試作の記録。原因未特定） | 練習ページが動かない | Phase 3b の完了条件で再現と原因の切り分けを行う |
 | 長期ブランチのマージ衝突（D14 (1) の場合） | 作業の手戻り | 定期的に develop を取り込む。SSR 側の修正は小さく保つ |
 | ポケモン側の build-entry-pages の版違い | 方式の食い違い | 取り込み時に、ポケモンの develop の最新を確認 |
 
@@ -582,7 +609,7 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 
 ---
 
-## 9. 決定事項（D1〜D14）
+## 9. 決定事項（D1〜D15）
 
 | # | 決めること | 選択肢 | 決定 |
 | --- | --- | --- | --- |
@@ -600,11 +627,14 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 | D12 | kit の公開・非公開 | (a) 公開（秘密情報は置かない）／(b) 非公開 | **決定（2026-10-22）**: GitHub のリポジトリを公開（秘密情報は入れない。NuGet は使わない） |
 | D13 | 利用方法 | A: submodule ＋ ProjectReference／B: NuGet（GitHub Packages）／C: monorepo | **決定（2026-10-22）**: A（git submodule ＋ ProjectReference） |
 | D14 | ブランチ戦略（master を守る仕組み） | (1) 長期ブランチ `migration/wasm`／(2) develop に直接入れ、移行中は develop→master の PR を止める（不採用）／(3) feature flag で両方を並走（不採用） | **決定（2026-10-22）: (1) 長期ブランチ `migration/wasm`。develop は SSR のまま。移行は migration/wasm に積む。deploy.yml に migration/wasm を足して別の確認用 Worker に出す（名前・ドメインは仮: fara-avatar-wasm-dev・avatar-wasm-dev.fara-labs.com。Cloudflare 側の設定は Phase 1 の最初の公開の前にユーザーに依頼）。SSR 側の修正は develop に入れ、migration/wasm へ週 1 回目安で develop をマージ。完成したら migration/wasm を develop にマージ（切り替え）** |
+| D15 | 練習ページの 3D の実装 | (a) 既存の Three.js を Blazor に組み込む（Phase 3）のみ／(b) 最初から C# 化／(c) 段階的採用（Phase 3 は Three.js、後続で C# 化） | **決定（2026-10-22）: 段階的採用（Phase 3 は既存の Three.js、後続で C# 化）**。最終的には C# 化する（ユーザーの意向）。試作は draft PR #70 として残す。詳細は §4.5・Phase 3b |
 
 **決定の補足（2026-10-22）**:
 - リポジトリ `fara1991/fara-site-kit` は作成済み（public。ブランチは `master` と `develop`。README のみ）。
 - フェーズ K0 の最初の作業（kit の骨組み、Worker 共有 JS の取り込み、pokemon を submodule 参照に切り替え）は、別担当が開始する。
 - CSP は、`'wasm-unsafe-eval'` と `style-src 'unsafe-inline'` を許可することを**決定**。`script-src` の `'unsafe-inline'`・`'unsafe-eval'` は不許可（方針）。
+
+**決定の補足（D15）**: 練習の 3D は段階的に採用する。Phase 3 は既存の Three.js で完成させ、後続（Phase 3b・任意）で C# 化する。draft PR #70 は閉じずに残す。
 
 **決定の補足（D14）**: 移行は `migration/wasm` で行う。develop は SSR のまま。
 
