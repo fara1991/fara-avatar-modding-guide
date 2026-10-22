@@ -1,4 +1,4 @@
-// 「作者へ問い合わせ」ページ（/report）のフォーム。Cloudflare Turnstile（ボット判定）を出し、POST /api/report（worker/report.js）に送る。
+// 「問い合わせ」ページ（/report）のフォーム。Cloudflare Turnstile（ボット判定）を出し、POST /api/report（worker/report.js）に送る。
 // 外部のスクリプトは https://challenges.cloudflare.com だけ。Avatar Modding Guide と FaraBotModerator のサイトで同じファイルを使う。
 (function () {
     "use strict";

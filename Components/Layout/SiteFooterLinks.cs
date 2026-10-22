@@ -4,7 +4,7 @@ namespace FaraAvatarModdingGuide.Components.Layout;
 public static class SiteFooterLinks
 {
     /// <summary>
-    /// 「作者へ問い合わせ」のリンク。見ているページのパスを ?from= に付ける（どのページの報告かが分かるように）。
+    /// 「問い合わせ」のリンク。見ているページのパスを ?from= に付ける（どのページの報告かが分かるように）。
     /// 報告ページ・プライバシーポリシーのとき、英数字・- _ / . 以外を含むパスのときは付けない（worker/report.js と report.js が同じ条件で受け付ける）。
     /// </summary>
     public static string ReportHref(string path)

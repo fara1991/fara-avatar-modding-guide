@@ -10,7 +10,7 @@ using Xunit;
 
 namespace FaraAvatarModdingGuide.Tests;
 
-/// <summary>3 サイト共通の形のフッター（サイト名 | 作者へ問い合わせ | プライバシーポリシー | © 公開年 Fara）と、問い合わせ・プライバシーポリシーのページ。</summary>
+/// <summary>3 サイト共通の形のフッター（サイト名 | 問い合わせ | プライバシーポリシー | © 公開年 Fara）と、問い合わせ・プライバシーポリシーのページ。</summary>
 public class FooterAndReportTests
 {
     private sealed class TestNav : NavigationManager
@@ -40,7 +40,7 @@ public class FooterAndReportTests
     public async Task Footer_has_the_agreed_parts_in_order()
     {
         var html = await RenderAsync<SiteFooter>();
-        Assert.Equal("Avatar Modding Guide | 作者へ問い合わせ | プライバシーポリシー | © 2026 Fara", Text(html));
+        Assert.Equal("Avatar Modding Guide | 問い合わせ | プライバシーポリシー | © 2026 Fara", Text(html));
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class FooterAndReportTests
     public async Task Footer_follows_the_site_options()
     {
         var html = await RenderAsync<SiteFooter>(options: new SiteOptions { Title = "別の名前", PublishedYear = 2030, PortfolioUrl = "https://example.org/" });
-        Assert.Equal("別の名前 | 作者へ問い合わせ | プライバシーポリシー | © 2030 Fara", Text(html));
+        Assert.Equal("別の名前 | 問い合わせ | プライバシーポリシー | © 2030 Fara", Text(html));
         Assert.Contains("href=\"https://example.org/\"", html);
     }
 
@@ -103,7 +103,7 @@ public class FooterAndReportTests
     public async Task Privacy_page_covers_the_topics()
     {
         var text = Text(await RenderAsync<Privacy>());
-        foreach (var topic in new[] { "運営者", "ブラウザに保存する情報", "アクセス解析・広告", "作者へ問い合わせで送る情報", "Turnstile", "Discord", "外部のサービス", "第三者への提供", "Google Fonts", "jsDelivr" })
+        foreach (var topic in new[] { "運営者", "ブラウザに保存する情報", "アクセス解析・広告", "問い合わせで送る情報", "Turnstile", "Discord", "外部のサービス", "第三者への提供", "Google Fonts", "jsDelivr" })
             Assert.Contains(topic, text);
     }
 
@@ -130,7 +130,6 @@ public class FooterAndReportTests
         new() { Service = "github", Label = "GitHub", Url = "https://github.com/fara1991" },
         new() { Service = "twitter", Label = "Twitter", Url = "https://twitter.com/game_fara" },
         new() { Service = "twitch", Label = "Twitch", Url = "https://twitch.tv/game_fara" },
-        new() { Service = "discord", Label = "Discord", Url = "" },
     };
 
     private static SiteOptions OptionsWith(params SocialLink[] socials) =>
@@ -149,22 +148,11 @@ public class FooterAndReportTests
     [Fact]
     public async Task Footer_icons_use_the_same_svg_paths_as_the_portfolio_site()
     {
-        // Components/Icon.razor（ポートフォリオ）の github / twitter / twitch と同じ path の先頭。Discord は simple-icons
+        // Components/Icon.razor（ポートフォリオ）の github / twitter / twitch と同じ path の先頭
         var html = await RenderAsync<SiteFooter>(options: OptionsWith(PortfolioSocials));
         Assert.Contains("M12 .3a12 12 0 0 0-3.8 23.38", html);
         Assert.Contains("M23.95 4.57a10 10 0 0 1-2.82.77", html);
         Assert.Contains("M11.57 4.71h1.72v5.15h-1.72z", html);
-    }
-
-    [Fact]
-    public async Task Discord_is_hidden_until_its_url_is_set()
-    {
-        var hidden = await RenderAsync<SiteFooter>(options: OptionsWith(PortfolioSocials));
-        Assert.DoesNotContain("service-discord", hidden);
-
-        var shown = await RenderAsync<SiteFooter>(options: OptionsWith(PortfolioSocials.Select(s => s.Service == "discord" ? new SocialLink { Service = "discord", Label = "Discord", Url = "https://discord.gg/example" } : s).ToArray()));
-        Assert.Contains("<a class=\"service-discord\" href=\"https://discord.gg/example\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"Discord\" title=\"Discord\">", shown);
-        Assert.Contains("M20.317 4.3698", shown);
     }
 
     [Fact]
@@ -177,14 +165,13 @@ public class FooterAndReportTests
     [Fact]
     public void Shipped_socials_match_the_portfolio_site()
     {
-        // ポートフォリオの wwwroot/data/profile.json の url と同じ（Discord は招待 URL が決まるまで空。決まったら、ここも更新する）
+        // ポートフォリオの wwwroot/data/profile.json の url と同じ
         using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(FindUp("appsettings.json")));
         var socials = doc.RootElement.GetProperty("Site").GetProperty("Socials").EnumerateArray()
             .ToDictionary(s => s.GetProperty("Service").GetString()!, s => s.GetProperty("Url").GetString()!);
         Assert.Equal("https://github.com/fara1991", socials["github"]);
         Assert.Equal("https://twitter.com/game_fara", socials["twitter"]);
         Assert.Equal("https://twitch.tv/game_fara", socials["twitch"]);
-        Assert.Equal("", socials["discord"]);
     }
 
     [Fact]
@@ -192,7 +179,7 @@ public class FooterAndReportTests
     {
         var nav = File.ReadAllText(FindUp(Path.Combine("Components", "Layout", "NavMenu.razor")));
         Assert.Contains("<NavLink class=\"nav-link\" href=\"/report\">", nav);
-        Assert.Matches("作者へ問い合わせ\\s*</NavLink>", nav);
+        Assert.Matches("問い合わせ\\s*</NavLink>", nav);
         Assert.Contains("<NavLink class=\"nav-link\" href=\"/privacy\">", nav);
         Assert.Contains("プライバシーポリシー", nav);
     }
@@ -201,7 +188,7 @@ public class FooterAndReportTests
     public async Task Contact_page_uses_the_new_name_and_not_the_old_one()
     {
         var html = await RenderAsync<Report>();
-        Assert.Contains("<h1>作者へ問い合わせ</h1>", html);
+        Assert.Contains("<h1>問い合わせ</h1>", html);
         Assert.DoesNotContain("作者へ報告", html);
     }
 
