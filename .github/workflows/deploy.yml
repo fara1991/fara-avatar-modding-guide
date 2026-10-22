@@ -60,7 +60,14 @@ jobs:
           name: site
           path: dist
 
-      # 開発環境の noindex（X-Robots-Tag）は worker/index.js が付ける（wrangler.toml の env.dev.vars.NOINDEX）
+      # 確認用（develop）が検索結果に載らないようにする（ポケモンのサイトと同じ。worker/index.js も確認用のホストに付ける）
+      - name: Add noindex header (develop)
+        if: github.ref_name != 'master'
+        run: |
+          cat >> dist/_headers <<'HEADERS'
+          /*
+            X-Robots-Tag: noindex, nofollow
+          HEADERS
 
       - uses: cloudflare/wrangler-action@v3
         with:

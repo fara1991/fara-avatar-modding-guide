@@ -43,4 +43,10 @@
     <noscript><p class="text-warning mt-3">この送信フォームは、JavaScript を有効にすると使えます。</p></noscript>
 </form>
 
+@* 送信に成功したら、入力欄の代わりにこれを出す（report.js）。「もう 1 件送る」で入力欄に戻る *@
+<div id="report-done" class="report-done" role="status" hidden>
+    <p class="report-status report-status-ok">送信しました。ありがとうございます。返信が必要な場合は、書いていただいた連絡先にお返事することがあります。</p>
+    <button id="report-again" type="button" class="btn btn-outline-primary mt-3">もう 1 件送る</button>
+</div>
+
 <script src="/js/report.js" defer></script>
