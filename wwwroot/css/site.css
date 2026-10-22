@@ -2035,6 +2035,18 @@ main {
         top: calc(3.5rem - 2px);
     }
 
+    /* 進んでいない部分の薄い線（ヘッダーの下端）。進み具合の線（.scroll-progress）が、この上に伸びる。スクロール 0 でも線が消えない */
+    .app-header::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        background: rgba(139, 92, 246, 0.22);
+        pointer-events: none;
+    }
+
     /* サイドバーは、ヘッダーの下。サイドバー上部のサイト名は、ヘッダーがあるので出さない。
        中身（.sidebar-panel）は枠（.sidebar）の中に重ねて置く。隠している間は、枠を細くして（アイコンの列）、中身も同じ幅にする。
        枠そのものは、ヘッダー（ハンバーガー）を覆わないよう、何も描かず、クリックも受けない（中身だけが受ける） */
