@@ -128,12 +128,24 @@ body {
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
+    /* 画面の下のフッター（固定）と、案内行の分を引いて、ビューとお題パネルの下端が見えるように（dvh が使えないときは vh） */
+    max-height: calc(100vh - 3.5rem - var(--footer-h) - 4.5rem);
+    max-height: calc(100dvh - 3.5rem - var(--footer-h) - 4.5rem);
     background: #3d3d3d;
     border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
     user-select: none;
     outline: none;
+}
+
+/* お題のパネルは、3D ビューと案内行の高さに収め、長いときは中で読む（下のフッターに隠れないように）。広い画面だけ */
+@media (min-width: 992px) {
+    .practice-tasks-card .card-body {
+        max-height: calc(100vh - 3.5rem - var(--footer-h) - 15rem);
+        max-height: calc(100dvh - 3.5rem - var(--footer-h) - 15rem);
+        overflow-y: auto;
+    }
 }
 
 .practice-viewport canvas {
@@ -1872,11 +1884,20 @@ html { scroll-padding-bottom: var(--footer-h); }
     html.sidebar-hidden .site-footer { left: 3.25rem; }
 }
 @media (max-width: 640px) {
-    :root { --footer-h: 6rem; }
-    .site-footer { text-align: center; }
-    .site-footer-line { justify-content: center; gap: 0.35rem 1rem; }
+    :root { --footer-h: 64px; }
+    .site-footer { text-align: center; padding: 0.4rem 0.75rem; padding-bottom: calc(0.4rem + env(safe-area-inset-bottom)); line-height: 1.35; }
+    .site-footer-line { justify-content: center; gap: 0.2rem 0.9rem; }
     .site-footer-line > * { white-space: nowrap; }
     .site-footer-sep { display: none; }
+    /* 名前はヘッダーに出ているので、フッターでは省く（2 行に収める） */
+    .site-footer-name { display: none; }
+    .footer-socials a { width: 22px; height: 22px; }
+}
+
+/* 印刷: 固定フッターは、全ページに重ならないよう出さない */
+@media print {
+    .site-footer { display: none; }
+    main { padding-bottom: 0; }
 }
 /* SNS のアイコン（© の横）。色はポートフォリオと同じ（.service-* の --brand） */
 .footer-socials { display: inline-flex; gap: 6px; vertical-align: middle; }
@@ -1891,8 +1912,10 @@ html { scroll-padding-bottom: var(--footer-h); }
 .page-column { max-width: 42rem; margin-inline: auto; }
 /* 長文のページ（プライバシーポリシー）: PC では横の余白を生かして広げる。スマホは全幅のまま */
 .page-column.page-column-wide { max-width: 72rem; line-height: 1.8; }
-/* PC（広い画面）は、項目（section）を 2 列のカードにして、1 行の長さを抑える（見出しと説明は全幅） */
-@media (min-width: 1200px) {
+/* PC（広い画面）は、項目（section）を 2 列のカードにして、1 行の長さを抑える（見出しと説明は全幅）。
+   切り替えは、ビューポートの幅ではなく、本文の実際の幅で決める（サイドバーの幅に左右されないように。記事の列 .content が容器） */
+.content { container-type: inline-size; }
+@container (min-width: 960px) {
     .page-column.page-column-wide {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));

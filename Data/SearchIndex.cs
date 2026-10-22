@@ -1,6 +1,6 @@
 namespace FaraAvatarModdingGuide.Data;
 
-/// <summary>/search-index.json の1件。検索はクライアント側 (wwwroot/js/search.js) で部分一致により行う。</summary>
+/// <summary>/search-index.json の1件。検索はクライアント側（wwwroot/js/searchcore.js）で部分一致により行う。</summary>
 public sealed record SearchEntry(
     /// <summary>article / shortcut / addon</summary>
     string Type,

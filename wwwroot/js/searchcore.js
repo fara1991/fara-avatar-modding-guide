@@ -93,10 +93,11 @@
 
   /** 検索語の別の形。ローマ字に見える語（3 文字以上）は、ひらがなにした形も探す */
   function alternatives(term) {
-    var alts = [term];
+    var alts = [{ t: term, roman: false }];
     if (term.length >= 3) {
       var k = romajiToHiragana(term);
-      if (k && k !== term && k.length >= 2) alts.push(k);
+      // ローマ字から変換した形（ひらがな）。2 文字のかなは、本文・題名の部分一致には使わず、読みの一致だけに使う（you → 溶解 のような誤ヒットを防ぐ）
+      if (k && k !== term && k.length >= 2) alts.push({ t: k, roman: true });
     }
     return alts;
   }
@@ -119,7 +120,12 @@
   /** 強調・抜き出し用に、すべての形を 1 列にしたもの */
   function terms(query) {
     var all = [];
-    termGroups(query).forEach(function (g) { g.forEach(function (t) { if (all.indexOf(t) < 0) all.push(t); }); });
+    termGroups(query).forEach(function (g) {
+      g.forEach(function (a) {
+        if (a.roman && a.t.length <= 2) return; // 2 文字の変換形は、文字として一致しないので強調しない
+        if (all.indexOf(a.t) < 0) all.push(a.t);
+      });
+    });
     return all;
   }
 
@@ -140,9 +146,16 @@
     if (!e._r || t.length < 2) return 0;
     var key = looseKana(t), rk = looseKana(e._r);
     if (rk === key) return 30;
+    // 2 文字のかなは前方一致だけ（5 点。部分一致はしない）
+    if (key.length <= 2) return rk.indexOf(key) === 0 ? 5 : 0;
     if (rk.indexOf(key) === 0) return 15;
-    if (key.length <= 2) return 0;
     return rk.indexOf(key) >= 0 ? 10 : 0;
+  }
+
+  /** 検索語の 1 つの形の点数。ローマ字から変換した 2 文字のかなは、読みの完全・前方一致だけ */
+  function groupScore(e, a) {
+    if (a.roman && a.t.length <= 2) return readingScore(e, a.t);
+    return scoreOf(e, a.t);
   }
 
   /** 1 つの語の点数（含まれなければ 0）。読みは題名の一致の後、小見出し・本文より前 */
@@ -166,7 +179,7 @@
       var score = 0;
       for (var i = 0; i < gs.length; i++) {
         var best = 0;
-        for (var j = 0; j < gs[i].length; j++) best = Math.max(best, scoreOf(e, gs[i][j]));
+        for (var j = 0; j < gs[i].length; j++) best = Math.max(best, groupScore(e, gs[i][j]));
         if (!best) { score = 0; break; }
         score += best;
       }
@@ -232,7 +245,7 @@
     link: { label: "リンク", cls: "bg-primary-subtle text-primary-emphasis" },
   };
   // 同じくらい一致したときは、記事や用語を先に出す
-  var TYPE_BONUS = { article: 0.6, glossary: 0.5, howto: 0.5, tip: 0.4, qa: 0.4, shortcut: 0.2, addon: 0, link: 0 };
+  var TYPE_BONUS = { article: 0.6, category: 0.5, glossary: 0.5, howto: 0.5, tip: 0.4, qa: 0.4, shortcut: 0.2, addon: 0, link: 0 };
 
   window.faraSearch = { load: load, search: search, highlight: highlight, snippet: snippet, escapeHtml: escapeHtml, prepare: prepare, TYPES: TYPES, romajiToHiragana: romajiToHiragana, looseKana: looseKana };
 })();

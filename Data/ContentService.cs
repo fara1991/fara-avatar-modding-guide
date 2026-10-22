@@ -143,7 +143,6 @@ public sealed partial class ContentService
     public IReadOnlyList<string> ShortcutCategories =>
         Shortcuts.Select(s => s.Category).Distinct().ToList();
 
-    /// <summary>記事・用語集・何て名前？・TIPS・ショートカット・アドオンをまとめた検索インデックス。</summary>
     /// <summary>検索の索引に入れる固定ページ（題名・読み・説明）。読みはひらがなだけにする（ローマ字・かなで探すため）</summary>
     private static readonly (string Title, string Reading, string Url, string Description)[] SearchPages =
     [
@@ -164,6 +163,7 @@ public sealed partial class ContentService
         ("検索", "けんさく", "/search", "サイト内検索"),
     ];
 
+    /// <summary>記事・カテゴリ・固定ページ・用語集・何て名前？・TIPS・Q&amp;A・リンク集・ショートカット・アドオンをまとめた検索インデックス。</summary>
     public IReadOnlyList<SearchEntry> BuildSearchIndex()
     {
         var entries = new List<SearchEntry>();
@@ -218,7 +218,7 @@ public sealed partial class ContentService
         {
             var category = LinkCategories.FirstOrDefault(c => c.Id == l.Category)?.Title ?? l.Category;
             entries.Add(new SearchEntry("link", l.Name, category, $"/links#{l.Id}",
-                string.Join(' ', [l.Description, l.Note ?? ""])));
+                string.Join(' ', [l.Description, l.Note ?? ""]), l.Reading));
         }
 
         foreach (var shortcut in Shortcuts)

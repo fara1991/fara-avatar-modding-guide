@@ -232,8 +232,8 @@ public class FooterAndReportTests
         Assert.True(mediaStart >= 0, "フッターの 640px 以下の指定が無い");
         var mediaEnd = css.IndexOf("\n}\n", mediaStart, StringComparison.Ordinal);
         var phone = css.Substring(mediaStart, mediaEnd - mediaStart);
-        Assert.Contains(".site-footer { text-align: center; }", phone);
-        Assert.Contains(".site-footer-line { justify-content: center; gap: 0.35rem 1rem; }", phone);
+        Assert.Contains(".site-footer { text-align: center;", phone);
+        Assert.Contains(".site-footer-line { justify-content: center; gap: 0.2rem 0.9rem; }", phone);
         Assert.Contains(".site-footer-line > * { white-space: nowrap; }", phone);
         // 狭い画面では区切りの「|」を出さない（項目の間は gap で空ける）
         Assert.Contains(".site-footer-sep { display: none; }", phone);

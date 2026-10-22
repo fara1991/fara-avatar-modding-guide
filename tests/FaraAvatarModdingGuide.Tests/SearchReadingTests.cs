@@ -78,4 +78,46 @@ public class SearchReadingTests
         // 読みのある項目は、読みにまで漢字が残っていない（用語集の読みは元からひらがな）
         Assert.All(index.Where(e => !string.IsNullOrEmpty(e.Reading)), e => Assert.DoesNotMatch(HasKanji, e.Reading!));
     }
+
+    /// <summary>
+    /// 索引の全項目の検査。題名に漢字がある項目は、読みが必須（記事・用語・TIPS・Q&amp;A・How-to・リンク・カテゴリ・固定ページ）。
+    /// 対象外: ショートカット（題名はキーの表記）・アドオン（題名は英語の名前。読みの欄を持たない）。対象外の題名に漢字が入ったら、読みを足すか対象に含めるかを決めるまで落とす。
+    /// </summary>
+    [Fact]
+    public void Every_search_entry_with_kanji_title_has_a_kana_reading()
+    {
+        var index = Load().BuildSearchIndex();
+        var readingTypes = new[] { "article", "glossary", "howto", "tip", "qa", "link", "category", "page" };
+        var excludedTypes = new[] { "shortcut", "addon" };
+
+        var missing = index.Where(e => readingTypes.Contains(e.Type) && HasKanji.IsMatch(e.Title) && string.IsNullOrWhiteSpace(e.Reading))
+            .Select(e => e.Type + ": " + e.Title).ToList();
+        Assert.True(missing.Count == 0, "読みが無い（索引の項目）: " + string.Join(", ", missing));
+
+        var kanjiExcluded = index.Where(e => excludedTypes.Contains(e.Type) && HasKanji.IsMatch(e.Title)).Select(e => e.Type + ": " + e.Title).ToList();
+        Assert.True(kanjiExcluded.Count == 0, "対象外の種類の題名に漢字がある（読みを持たせるか、対象に含めること）: " + string.Join(", ", kanjiExcluded));
+
+        var notKana = index.Where(e => !string.IsNullOrEmpty(e.Reading) && HasKanjiOrLatin.IsMatch(e.Reading!)).Select(e => e.Type + ": " + e.Reading).ToList();
+        Assert.True(notKana.Count == 0, "読みに漢字・英字がある: " + string.Join(", ", notKana));
+    }
+
+    [Fact]
+    public void Search_pages_have_hiragana_readings()
+    {
+        var pages = Load().BuildSearchIndex().Where(e => e.Type == "page").ToList();
+        Assert.True(pages.Count >= 10, "固定ページが索引に入っていない");
+        Assert.All(pages, p =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(p.Reading), p.Title);
+            Assert.Matches(@"^[\p{IsHiragana}ー]+$", p.Reading!);
+        });
+    }
+
+    [Fact]
+    public void Link_names_with_kanji_have_readings()
+    {
+        var links = Load().BuildSearchIndex().Where(e => e.Type == "link").ToList();
+        Assert.True(links.Count > 50);
+        Assert.All(links.Where(l => HasKanji.IsMatch(l.Title)), l => Assert.False(string.IsNullOrWhiteSpace(l.Reading), l.Title));
+    }
 }

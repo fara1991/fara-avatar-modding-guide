@@ -230,6 +230,8 @@ public sealed class LinkEntry
     /// <summary>URL のアンカー（/links#id）</summary>
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+    /// <summary>名前の読み（ひらがな）。サイト内検索で、ローマ字・かなでも探すため</summary>
+    public string Reading { get; set; } = string.Empty;
     public string Url { get; set; } = string.Empty;
     /// <summary>区切り（LinkCategories の id）</summary>
     public string Category { get; set; } = string.Empty;

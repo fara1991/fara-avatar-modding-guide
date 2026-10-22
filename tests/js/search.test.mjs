@@ -92,3 +92,38 @@ test("読みを消した索引と比べて、既存の一致（題名・小見�
     assert.deepEqual(kept, before, `順位の変化: ${q}`);
   }
 });
+
+// ---- 実際の索引（dist/search-index.json。書き出し: dotnet run -- --export dist）での回帰テスト ----
+// 変更前後で上位の並びが崩れていないことと、2 文字のかな（ローマ字から変換した形）の誤ヒットが出ないことを確かめる。
+const INDEX_FILE = new URL("../../dist/search-index.json", import.meta.url);
+function realIndex() {
+  let raw;
+  try { raw = readFileSync(INDEX_FILE, "utf8"); } catch {
+    throw new Error("dist/search-index.json がない。先に dotnet run -- --export dist を実行する");
+  }
+  return JSON.parse(raw).map(S.prepare);
+}
+const top = (q, n = 10) => Array.from(S.search(realIndex(), q).slice(0, n), (h) => h.entry);
+
+test("実際の索引: yougo は用語集、moderingu はモデリングが 1 位", () => {
+  assert.equal(top("yougo")[0].title, "用語集");
+  assert.equal(top("moderingu")[0].title, "モデリング");
+});
+
+test("実際の索引: you は溶解が 1 位にならない（2 文字の変換形は読みの一致だけ）", () => {
+  const hits = top("you", 3).map((e) => e.title);
+  assert.ok(!hits.includes("溶解"), `上位 3 件に溶解: ${hits}`);
+});
+
+test("実際の索引: name は なめらかに が 1 位にならない", () => {
+  const hits = top("name", 3).map((e) => e.title);
+  assert.ok(!hits.some((t) => t.startsWith("なめらか")), `上位 3 件: ${hits}`);
+});
+
+test("実際の索引: mode はモデリングが上位 3 件に入る", () => {
+  assert.ok(top("mode", 3).some((e) => e.title === "モデリング"));
+});
+
+test("実際の索引: kami は 髪 の項目が上位に出る（有用な一致は残す）", () => {
+  assert.ok(top("kami", 5).some((e) => e.title.startsWith("髪")));
+});
