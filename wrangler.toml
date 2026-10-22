@@ -64,10 +64,7 @@ routes = [
   { pattern = "avatar-dev.fara-labs.com", custom_domain = true },
 ]
 
-# 確認用は検索エンジンに載せない（worker/index.js がすべての静的ファイルの応答に X-Robots-Tag: noindex を付ける。
-# workers.dev の URL で開かれたときも付くように、ホスト名ではなくこの変数で判断する）
-[env.dev.vars]
-NOINDEX = "true"
+# 確認用の noindex（X-Robots-Tag）は、公開のワークフロー（.github/workflows/deploy.yml）が dist/_headers に付ける（ポケモンのサイトと同じ）
 
 [env.dev.assets]
 directory = "./dist"
