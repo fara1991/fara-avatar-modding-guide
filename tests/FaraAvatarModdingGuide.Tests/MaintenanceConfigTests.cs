@@ -61,6 +61,27 @@ public class MaintenanceConfigTests
         Assert.Contains(".maintenance-notice {", css);
     }
 
+    [Fact]
+    public void Notice_banner_puts_the_heading_and_the_text_on_their_own_lines_in_bold()
+    {
+        // 1 行目に見出し「【お知らせ】」、本文は次の行（worker/maintenance.js の noticeHtml の class と合わせる）
+        var js = File.ReadAllText(RepoFile("worker/maintenance.js"));
+        Assert.Contains("<strong class=\"maintenance-notice-title\">【お知らせ】</strong><span class=\"maintenance-notice-text\">", js);
+
+        var css = File.ReadAllText(RepoFile("wwwroot/css/site.css"));
+        Assert.Matches(@"\.maintenance-notice-title,\s*\.maintenance-notice-text\s*\{\s*display:\s*block;\s*\}", css);
+        // 太字は、帯（.maintenance-notice）の font-weight: 700 のまま
+        Assert.Matches(@"\.maintenance-notice \{[^}]*font-weight:\s*700;", css);
+    }
+
+    [Fact]
+    public void Notice_band_height_is_estimated_for_two_lines()
+    {
+        // 見出し 1 行 + 本文 1 行。PC の目次・見出しへのジャンプの位置に使う（帯の高さの見積もり）
+        var css = File.ReadAllText(RepoFile("wwwroot/css/site.css"));
+        Assert.Matches(@"html:has\(\.maintenance-notice\)\s*\{\s*--notice-band:\s*3\.75rem;", css);
+    }
+
     private static string RuleBody(string css, string selector)
     {
         var match = Regex.Match(css, @"^" + Regex.Escape(selector) + @"\s*\{([^}]*)\}", RegexOptions.Multiline);

@@ -3200,7 +3200,7 @@ main:focus {
 
 /* メンテナンスのお知らせ（MAINTENANCE=notice。worker/maintenance.js が <main> の先頭に足す）。
    スクロールしても消えないよう、画面の上に貼り付ける。スマホは画面の最上部、PC は固定ヘッダーの真下（641px 以上で下の指定）。
-   文が 2 行になると帯は高くなる。PC の目次・見出しへのジャンプは、1 行のときの高さ（--notice-band）に合わせてある */
+   1 行目に見出し（「【お知らせ】」）、2 行目以降に本文。PC の目次・見出しへのジャンプは、この 2 行ぶんの高さ（--notice-band）に合わせてある */
 .maintenance-notice {
     position: sticky;
     top: 0;
@@ -3213,15 +3213,21 @@ main:focus {
     text-align: center;
 }
 
+/* 見出しと本文は、それぞれ次の行に置く（太字のまま） */
+.maintenance-notice-title,
+.maintenance-notice-text {
+    display: block;
+}
+
 /* スマホの検索欄（main の先頭の .site-header）も上に貼り付くので、帯と重なる。帯が出ているあいだは、検索欄は貼り付けず、帯の下に流す */
 main > .maintenance-notice + .site-header {
     position: static;
 }
 
 /* 帯が出ているときの、見出しへのジャンプ（スマホは帯の下、PC は固定ヘッダーと帯の下）と、記事右の目次の位置。
-   --notice-band は、帯 1 行のときの高さ（文が 2 行以上だと、少しかぶる） */
+   --notice-band は、帯 2 行（見出し・本文）のときの高さ（本文が長くて 2 行を超えると、少しかぶる） */
 html:has(.maintenance-notice) {
-    --notice-band: 2.5rem;
+    --notice-band: 3.75rem;
     scroll-padding-top: calc(var(--notice-band) + 1rem);
 }
 
