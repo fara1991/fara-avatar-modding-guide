@@ -46,5 +46,9 @@
       }).join("");
   }
 
-  window.faraNav.register(init);
+  // 失敗（検索の読み込みなど）は、ここで受けて表示しない（未処理の拒否にしない）
+  function start() {
+    init().catch(function (err) { console.error(err); });
+  }
+  window.faraNav ? window.faraNav.register(start) : start();
 })();

@@ -163,5 +163,5 @@
     }
     }
 
-    window.faraNav.register(init);
+    window.faraNav ? window.faraNav.register(init) : init();
 })();

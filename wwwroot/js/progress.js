@@ -119,5 +119,5 @@
   }
 
   // 読み込みのときと、ページ移動のあとに、印を付け直す（nav.js）
-  window.faraNav.register(decorate);
+  window.faraNav ? window.faraNav.register(decorate) : decorate();
 })();

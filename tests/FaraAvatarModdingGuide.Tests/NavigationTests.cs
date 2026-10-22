@@ -22,8 +22,8 @@ public class NavigationTests
     public void App_loads_nav_first_so_page_scripts_can_register_with_it()
     {
         var app = File.ReadAllText(RepoFile("Components/App.razor"));
-        var nav = app.IndexOf("<script src=\"js/nav.js\" defer></script>", StringComparison.Ordinal);
-        Assert.True(nav >= 0, "App.razor に nav.js の読み込みがない");
+        var nav = app.IndexOf("<script src=\"js/nav.js?v=@NavVersion\" defer></script>", StringComparison.Ordinal);
+        Assert.True(nav >= 0, "App.razor に nav.js の読み込みがない（キャッシュ更新のバージョン付き）");
 
         // head の defer のスクリプトは、書いた順に動く。nav.js が、ほかのどのスクリプトより先に来ること
         var others = new[] { "sidebar.js", "scrollprogress.js", "bgscene.js", "progress.js", "searchcore.js", "quicksearch.js" };

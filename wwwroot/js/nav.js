@@ -1,25 +1,44 @@
 // ページ移動を、画面を読み直さずに行う（拡張ナビゲーション）。
-// 同じサイトのリンクを押すと、次のページの HTML を取ってきて、本文（#main-content）と左のメニュー（.sidebar-panel）だけを差し替える。
-// ヘッダー・背景の 3D・スクロールの線・サイドバーの開閉は、そのまま残る（差し替えない）。
-//  - 検索エンジンや直接アクセスには、今までどおりページごとの完全な HTML が返る（この仕組みは、JS がないときには何もしない）
+// 同じサイトのリンクを押すと、次のページの HTML を取ってきて、本文と一部の要素（config.swap）だけを差し替え、履歴を更新する。
+// ヘッダー・背景の 3D・スクロールの線・サイドバーの開閉などは、差し替えないので、そのまま残る。
+//  - 検索エンジンや直接アクセスには、今までどおりページごとの完全な HTML が返る（JS がないときは何もしない）
 //  - 3D（three.js）や WebSocket を使うページ（type="module" / importmap の script を持つページ）は、従来どおり読み込み直す
-//  - ページ専用の JS は faraNav.register(init) で登録する。読み込み時に 1 回、移動のあとにもう一度呼ばれる。init は何度呼ばれても二重に登録しないこと
-//  - 戻る・進むは history の state に保存したスクロール位置に戻す
+//  - ページ専用の JS は faraNav.register(init) で登録する。読み込み時に 1 回、移動のあとにも呼ばれる。
+//    init は何度呼ばれても二重に登録しないこと（ページの要素に対して付け、window・document への登録は 1 回だけ）
+//  - 戻る・進むと再読み込みでは、履歴の state に保存したスクロール位置に戻す
 //  - 失敗したら、通常のページ読み込みに戻す
+//
+// 設定（任意）: nav.js より前に window.faraNavConfig を置くと、下の既定値を上書きできる。
+//   main            本文の要素。無いページでは、ページ移動を使わない（register は使える）
+//   swap            移動のたびに、同じセレクタの要素を新しいページのものに差し替える（無ければ無視）
+//   skipLink        「本文へスキップ」のリンク（href を差し替える）
+//   excludePrefixes ページ移動の対象外にするパスの前置き
+//   head            差し替えるときに、<head> から入れ替える要素のセレクタ（description・canonical・OGP など）
 (function () {
   "use strict";
   if (window.faraNav) return;
 
-  var MAIN_ID = "main-content";
+  var DEFAULTS = {
+    main: "#main-content",
+    swap: [".sidebar-panel"],
+    skipLink: ".skip-link",
+    excludePrefixes: ["/api/", "/_"],
+    head: 'meta[name]:not([name="viewport"]), meta[property], link[rel="canonical"]',
+  };
+  var cfg = {};
+  Object.keys(DEFAULTS).forEach(function (k) { cfg[k] = DEFAULTS[k]; });
+  var user = window.faraNavConfig || {};
+  Object.keys(user).forEach(function (k) { if (user[k] !== undefined && k in DEFAULTS) cfg[k] = user[k]; });
+
   var MODULE_SEL = 'script[type="module"], script[type="importmap"]';
-  // 差し替えるときに、ページごとに変わる <head> の要素（説明文・正規の URL・OGP など）。viewport と charset は変えない
-  var HEAD_SEL = 'meta[name]:not([name="viewport"]), meta[property], link[rel="canonical"]';
 
   var handlers = [];
-  var loading = 0;   // ページ専用スクリプトを読み込んでいる間は、登録された init をすぐには呼ばない（移動のあとにまとめて呼ぶ）
-  var seq = 0;       // 移動の番号。追い越された古い移動は捨てる
-  var loaded = {};   // 読み込み済みのページ専用スクリプト（絶対 URL）
-  var rendered = ""; // いま画面に出ているページ（パス + 検索）
+  var loading = 0;     // ページ専用スクリプトを読み込んでいる間は、登録された init をすぐには呼ばない（移動のあとにまとめて呼ぶ）
+  var seq = 0;         // 移動の番号。追い越された古い移動は捨てる
+  var current = null;  // いま進んでいる移動の AbortController
+  var loaded = {};     // 読み込み済みのページ専用スクリプト（絶対 URL）
+  var pending = {};    // 読み込み中のページ専用スクリプト（絶対 URL → Promise。同じものを二度読まない）
+  var rendered = "";   // いま画面に出ているページ（パス + 検索）
   var saveTimer = 0;
 
   function safeCall(fn) {
@@ -36,11 +55,12 @@
     handlers.forEach(function (fn) { safeCall(fn); });
   }
 
-  /** 同じサイトのページとして、ページの差し替えで開いてよいか（画像・JSON・API は対象外）。 */
-  function isRoutable(url, origin) {
+  /** 同じサイトのページとして、ページ移動で開いてよいか（画像・JSON・API は対象外）。 */
+  function isRoutable(url, origin, excludes) {
     if (url.origin !== origin) return false;
     var p = url.pathname;
-    if (p.indexOf("/api/") === 0 || p.indexOf("/_") === 0) return false;
+    var list = excludes || cfg.excludePrefixes;
+    for (var i = 0; i < list.length; i++) if (p.indexOf(list[i]) === 0) return false;
     if (/\.[A-Za-z0-9]+$/.test(p) && !/\.html$/.test(p)) return false;
     return true;
   }
@@ -48,18 +68,20 @@
   var api = {
     register: register,
     isRoutable: isRoutable,
-    /** 同じサイトのリンクを、ページの差し替えで開く（検索の候補など、JS から開くとき）。 */
+    config: cfg,
+    /** 同じサイトのリンクを、ページ移動で開く（検索の候補など、JS から開くとき）。 */
     navigate: function (href) { return navigate(href, { push: true, y: 0 }); },
   };
   window.faraNav = api;
 
   if (typeof document === "undefined") return; // テスト（node）では、判定の関数だけを使う
+  if (!document.querySelector(cfg.main)) return; // 本文がないページでは、ページ移動を使わない
 
   function hasModuleScripts(root) {
     return !!root.querySelector(MODULE_SEL);
   }
 
-  function currentKey(loc) {
+  function pageKey(loc) {
     return loc.pathname + loc.search;
   }
 
@@ -69,22 +91,27 @@
     } catch (err) { /* 履歴の変更が制限されているとき */ }
   }
 
+  /** ページ専用スクリプトを読む。同じ URL の読み込みが進んでいれば、それを待つ（二重に読まない）。 */
   function loadScript(src) {
-    return new Promise(function (resolve, reject) {
+    if (loaded[src]) return Promise.resolve();
+    if (pending[src]) return pending[src];
+    var p = new Promise(function (resolve, reject) {
       var s = document.createElement("script");
       s.src = src;
       s.async = false;
-      s.onload = function () { loaded[src] = true; resolve(); };
-      s.onerror = function () { reject(new Error("読み込めません: " + src)); };
+      s.onload = function () { loaded[src] = true; delete pending[src]; resolve(); };
+      s.onerror = function () { delete pending[src]; reject(new Error("読み込めません: " + src)); };
       document.body.appendChild(s);
     });
+    pending[src] = p;
+    return p;
   }
 
   /** 新しいページの本文にある、まだ読んでいないページ専用スクリプトの URL。 */
   function pageScriptSources(doc) {
     var out = [];
     var base = location.origin + "/";
-    Array.prototype.forEach.call(doc.querySelectorAll("#" + MAIN_ID + " script[src]"), function (s) {
+    Array.prototype.forEach.call(doc.querySelectorAll(cfg.main + " script[src]"), function (s) {
       var abs = new URL(s.getAttribute("src"), base).href;
       if (!loaded[abs] && out.indexOf(abs) < 0) out.push(abs);
     });
@@ -92,26 +119,29 @@
   }
 
   function swap(doc) {
-    var newMain = doc.getElementById(MAIN_ID);
-    var oldMain = document.getElementById(MAIN_ID);
+    var newMain = doc.querySelector(cfg.main);
+    var oldMain = document.querySelector(cfg.main);
     // 本文のスクリプトは loadScript で読むので、ここで入れると二重に動く。取り除いてから入れる
     Array.prototype.forEach.call(newMain.querySelectorAll("script"), function (s) { s.parentNode.removeChild(s); });
     oldMain.parentNode.replaceChild(document.importNode(newMain, true), oldMain);
 
-    // 左のメニュー（いま開いているページの印）と、「本文へスキップ」のリンク
-    var newPanel = doc.querySelector(".sidebar-panel");
-    var oldPanel = document.querySelector(".sidebar-panel");
-    if (newPanel && oldPanel) oldPanel.innerHTML = newPanel.innerHTML;
-    var newSkip = doc.querySelector(".skip-link");
-    var oldSkip = document.querySelector(".skip-link");
+    // 左のメニュー（いま開いているページの印）など。新しいページにも同じ要素があるものだけ差し替える
+    cfg.swap.forEach(function (sel) {
+      var n = doc.querySelector(sel), o = document.querySelector(sel);
+      if (n && o) o.innerHTML = n.innerHTML;
+    });
+    var newSkip = cfg.skipLink && doc.querySelector(cfg.skipLink);
+    var oldSkip = cfg.skipLink && document.querySelector(cfg.skipLink);
     if (newSkip && oldSkip) oldSkip.setAttribute("href", newSkip.getAttribute("href"));
 
-    Array.prototype.forEach.call(document.head.querySelectorAll(HEAD_SEL), function (el) {
-      el.parentNode.removeChild(el);
-    });
-    Array.prototype.forEach.call(doc.head.querySelectorAll(HEAD_SEL), function (el) {
-      document.head.appendChild(document.importNode(el, true));
-    });
+    if (cfg.head) {
+      Array.prototype.forEach.call(document.head.querySelectorAll(cfg.head), function (el) {
+        el.parentNode.removeChild(el);
+      });
+      Array.prototype.forEach.call(doc.head.querySelectorAll(cfg.head), function (el) {
+        document.head.appendChild(document.importNode(el, true));
+      });
+    }
     document.title = doc.title;
   }
 
@@ -124,40 +154,48 @@
   }
 
   function finish(hash, y) {
-    var h = document.querySelector("#" + MAIN_ID + " h1");
-    if (h) {
-      h.setAttribute("tabindex", "-1");
-      h.focus({ preventScroll: true });
-    }
+    var main = document.querySelector(cfg.main);
+    // 見出し（h1）がなければ、本文そのものにフォーカスを移す（読み上げの位置を合わせるため）
+    var h = main.querySelector("h1") || main;
+    if (!h.hasAttribute("tabindex")) h.setAttribute("tabindex", "-1");
+    h.focus({ preventScroll: true });
     scrollToHash(hash, y);
   }
 
   /** 同じページの中だけの移動（検索の候補で、いま開いているページの見出しを選んだときなど）。 */
-  function sameDocument(url, push) {
+  function sameDocument(url, push, y) {
     if (push) {
       saveScroll();
       history.pushState({ faraNav: 1, y: 0 }, "", url.pathname + url.search + url.hash);
     }
-    scrollToHash(url.hash, 0);
+    scrollToHash(url.hash, y || 0);
   }
 
   async function navigate(href, opts) {
     var push = !!opts.push;
     var url = new URL(href, location.href);
     var token = ++seq;
+    if (current) current.abort(); // 進んでいる移動は中止する（追い越された）
+    var ctrl = typeof AbortController === "function" ? new AbortController() : null;
+    current = ctrl;
 
     if (!isRoutable(url, location.origin) || hasModuleScripts(document)) {
       location.assign(url.href);
       return;
     }
-    if (url.pathname + url.search === rendered) {
-      sameDocument(url, push);
+    // 今見えているページと同じ（検索や履歴の state で変わった分も含めて、いまの URL と比べる）
+    if (push && pageKey(url) === pageKey(location)) {
+      sameDocument(url, push, opts.y);
       return;
     }
 
     if (push) saveScroll();
     try {
-      var res = await fetch(url.href, { headers: { Accept: "text/html" }, credentials: "same-origin" });
+      var res = await fetch(url.href, {
+        headers: { Accept: "text/html" },
+        credentials: "same-origin",
+        signal: ctrl ? ctrl.signal : undefined,
+      });
       var type = res.headers.get("content-type") || "";
       if (!res.ok || type.indexOf("text/html") < 0) throw new Error("HTML ではありません: " + res.status);
       var text = await res.text();
@@ -165,7 +203,7 @@
 
       var final = new URL(res.url || url.href);
       var doc = new DOMParser().parseFromString(text, "text/html");
-      if (hasModuleScripts(doc) || !doc.getElementById(MAIN_ID)) {
+      if (hasModuleScripts(doc) || !doc.querySelector(cfg.main)) {
         location.assign(url.href);
         return;
       }
@@ -179,13 +217,14 @@
       }
       if (token !== seq) return;
 
-      rendered = final.pathname + final.search;
+      rendered = pageKey(final);
       if (push) history.pushState({ faraNav: 1, y: 0 }, "", rendered + url.hash);
       swap(doc);
       emit();
       finish(url.hash, opts.y);
     } catch (err) {
-      // うまく移れなかったら、通常のページ読み込みに任せる
+      // 追い越された移動（中止を含む）は、何もしない。それ以外は、通常のページ読み込みに任せる
+      if (token !== seq) return;
       location.assign(url.href);
     }
   }
@@ -195,12 +234,15 @@
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
     if (!a || a.hasAttribute("download") || a.hasAttribute("data-no-spa")) return;
-    if (a.target && a.target !== "_self") return;
+    var target = a.getAttribute("target");
+    if (target && target !== "_self") return;
     if (/\bexternal\b/.test(a.getAttribute("rel") || "")) return;
-    var url = new URL(a.href);
+    // SVG の <a> では a.href が文字列でないので、属性から読む
+    var url;
+    try { url = new URL(a.getAttribute("href"), document.baseURI); } catch (err) { return; }
     if (!isRoutable(url, location.origin) || hasModuleScripts(document)) return;
-    if (url.pathname + url.search === rendered) {
-      // 同じページ: # への移動はブラウザに任せる。# がなければ、ページの先頭へ（読み直さない）
+    if (pageKey(url) === pageKey(location)) {
+      // いまのページ: # への移動はブラウザに任せる。# がなければ、ページの先頭へ（読み直さない）
       if (url.hash) return;
       e.preventDefault();
       window.scrollTo(0, 0);
@@ -212,7 +254,7 @@
 
   // 戻る・進む。同じページの中の # だけなら、何もしない（ブラウザに任せる）
   window.addEventListener("popstate", function () {
-    if (currentKey(location) === rendered) return;
+    if (pageKey(location) === rendered) return;
     var y = history.state && typeof history.state.y === "number" ? history.state.y : 0;
     navigate(location.href, { push: false, y: y });
   });
@@ -222,9 +264,20 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveScroll, 200);
   }, { passive: true });
+  // 再読み込み・ページを閉じるときは、待たずに今の位置を保存する（スクロールが続いていても、戻ったときに同じ位置へ戻すため）
+  window.addEventListener("pagehide", saveScroll);
 
   // 読み込み済みのスクリプトを覚えておく（同じスクリプトを二度読まないため）
   Array.prototype.forEach.call(document.querySelectorAll("script[src]"), function (s) { loaded[s.src] = true; });
-  rendered = currentKey(location);
-  if ("scrollRestoration" in history) history.scrollRestoration = "manual"; // 戻ったときの位置は、ここで合わせる
+  rendered = pageKey(location);
+
+  // 戻る・進むや再読み込みのとき、履歴に残した位置へ戻す（ブラウザの自動の復元は使わない）
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  (function restoreOnLoad() {
+    var st = history.state;
+    if (!st || !st.faraNav || typeof st.y !== "number" || st.y <= 0 || location.hash) return;
+    var go = function () { window.scrollTo(0, st.y); };
+    if (document.readyState === "complete") go();
+    else window.addEventListener("load", go, { once: true });
+  })();
 })();
