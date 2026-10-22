@@ -31,7 +31,7 @@ jobs:
         run: dotnet test -c Release --no-build --nologo
 
       - name: Report endpoint test
-        run: node --test worker/report.test.mjs
+        run: node --test worker/report.test.mjs worker/maintenance.test.mjs
 
       - name: Export static site
         run: dotnet run -c Release --no-build --no-launch-profile -- --export dist

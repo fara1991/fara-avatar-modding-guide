@@ -11,6 +11,7 @@
 // - ping は Durable Object を起こさずに自動で返す（WebSocket Hibernation）。応答の時刻で、切れた接続を見つけて外す
 import { DurableObject } from "cloudflare:workers";
 import { handleReport } from "./report.js";
+import { getMaintenance, maintenanceResponse, withNotice } from "./maintenance.js";
 
 // ---------------------------------------------------------------- 上限
 export const LIMITS = {
@@ -39,6 +40,9 @@ const OBJ_ID = /^[a-z0-9]{1,24}$/;
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // メンテナンス（Worker の変数 MAINTENANCE。worker/maintenance.js）。true の間は、すべて 503 のメンテナンス画面
+    const maintenance = getMaintenance(env);
+    if (maintenance.state === "on") return maintenanceResponse(request, maintenance, "Avatar Modding Guide");
     const m = url.pathname.match(/^\/api\/rooms\/([^/]+)\/ws$/);
     if (m) {
       if (!ROOM_ID.test(m[1])) return new Response("bad room id", { status: 400 });
@@ -58,7 +62,8 @@ export default {
       }
     }
     if (url.pathname.startsWith("/api/")) return new Response("not found", { status: 404 });
-    const res = await env.ASSETS.fetch(request);
+    // お知らせ（MAINTENANCE=notice）のときは、HTML の先頭に「更新予定」のバナーを足す
+    const res = withNotice(await env.ASSETS.fetch(request), maintenance);
     if (env.NOINDEX === "true" || url.hostname.endsWith("-dev.fara-labs.com")) {
       const out = new Response(res.body, res);
       out.headers.set("X-Robots-Tag", "noindex, nofollow");
