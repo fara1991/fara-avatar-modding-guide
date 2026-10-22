@@ -360,6 +360,11 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 ### Phase 0: 計画（この PR）— 約 1 日（推測）
 - PR: `docs/wasm-migration-plan` → `develop`（マージしない）。成果: 本文書。
 
+### Phase K0: fara-site-kit の作成と pokemon からの切り出し — 約 4〜6 人日（推測）
+- 内容: kit リポジトリ（承認後）。Worker JS（maintenance・report）→ C# Core（MaintenanceInfo・ReportForm 検証・SiteLinks）→ Razor 部品（MudProviders・フッター・MaintenanceBanner）→ NavMenu・MainLayout の基底の順に、pokemon から切り出す（§10.5）。各段階は pokemon の PR 1 つ。
+- 完了条件: pokemon の `dotnet test`・Node テスト・`wrangler deploy --dry-run` が通り、dev サイトの表示が変わらない。重複したファイルは別 PR で削除する。
+- 並行: avatar の P0 の後で、kit の作業と並行できる（avatar は kit の完成を待たず、必要な部品から使う）。
+
 ### Phase 1: 土台 — 約 10〜14 人日（推測）
 - 内容: `src/FaraAvatarModdingGuide.Content`（ContentService 移設、ASP.NET 非依存）、`src/FaraAvatarModdingGuide.Web`（WASM＋MudBlazor、MudLayout、テーマ、サイドバー、ヘッダー、フッター、404、お知らせ（§4.8）、報告フォーム、プライバシー、更新履歴、リンク集、ホーム）。
 - 含まないもの: 記事（Phase 2）、練習（Phase 3）、静的 HTML（Phase 4）。
@@ -455,7 +460,7 @@ P0 → P1 → P2 ─┬→ P4 → P5
 
 ---
 
-## 9. ユーザーに決めてほしい点（D1〜D10）
+## 9. ユーザーに決めてほしい点（D1〜D13）
 
 | # | 決めること | 選択肢 | 推奨と理由 |
 | --- | --- | --- | --- |
@@ -469,10 +474,91 @@ P0 → P1 → P2 ─┬→ P4 → P5
 | D8 | 試作 PR #69 | (a) 閉じる（参照用ブランチは残す）／(b) 残す | **(a)**（本文書に評価を残す） |
 | D9 | 検索語の正規化（索引は両案ともビルド時に正規化） | (a) JS interop で `String.prototype.normalize("NFKC")` を呼ぶ（現行 `searchcore.js` と同じ結果になる）／(b) 試作の `SearchMatcher` のように、全角→半角・カタカナ→ひらがなを C# で手書きする（NFKC の一部だけ。半角カナなどは揃わない） | **(a)**（現行と結果が揃いやすい。interop は検索のたびに 1 回だけ） |
 | D10 | 進め方の人数・順序 | (a) 1 人で P1→P5 を順に／(b) P3 と P4 を並行（人数が増えたとき） | **(a)** を基本に、P3 と P4 は後半で並行可 |
+| D11 | kit のリポジトリ名 | (a) `fara-site-kit`／(b) 別名 | **(a)**（作成は承認後） |
+| D12 | kit の公開・非公開 | (a) 公開（両サイトは公開リポジトリ。kit の中に秘密情報は置かない）／(b) 非公開（認証の設定が要る） | **(a)**（秘密は Worker の変数・CI のシークレットに置き、kit には入れない） |
+| D13 | 利用方法 | A: submodule ＋ ProjectReference／B: NuGet（GitHub Packages）／C: monorepo | **A**（§10.2） |
 
 **追加で確認したいこと（D に入れない）**
 - CSP の `style-src 'unsafe-inline'` を許すか（§2.3）。**推奨: 許す**（MudBlazor の要件。script は self と wasm-unsafe-eval のみ）。
 - Phase 5 の後の CLAUDE.md の扱い（avatar には無い。作るかどうか）。
+
+---
+
+## 10. 共通部品リポジトリ `fara-site-kit`（案）
+
+ユーザーの決定（追加）: avatar の移行を先に完了する。bot・ポートフォリオの採用は avatar 完了後に再評価（今回の対象外）。ポケモンと avatar の共通部品は、再利用できる形（kit）にまとめる。リポジトリの作成はユーザーが承認してから。
+
+### 10.1 構成案
+
+| 置き場所 | 中身 | 出どころ（確認済み） |
+| --- | --- | --- |
+| `src/FaraSiteKit.Razor`（Razor クラスライブラリ） | MudProviders（テーマ・ポップアップ・ダイアログ・通知）、MainLayout の部品（Mini ドロワー・ヘッダー・スキップリンク）、SiteFooter と SNS アイコン、NavMenu の基底（項目の型と描画。サイト固有の項目はサイト側）、ThemeSwitch、MaintenanceBanner、MaintenanceScreen、報告フォームの Razor（Report.razor のフォーム部分）、スクロール進捗（ラッパー＋JS） | pokemon: `Shared/MudProviders.razor`・`MainLayout.razor`・`NavMenu.razor`・`MaintenanceBanner.razor`・`MaintenanceScreen.razor`・`Components/Pages/Report.razor`。avatar: `Components/Layout/SiteFooter.razor`・`SiteFooterLinks.cs`・scrollprogress.js |
+| `src/FaraSiteKit.Core`（C#、UI と通信なし） | `SiteLinks`（確認用ホストへの切り替え）、`MaintenanceInfo`（Parse・既定値・2 秒で打ち切る読み込み）、`ReportForm`（入力の検査・上限。サーバーと同じ値）、`SiteOptions`（サイト名など） | pokemon: `Services/MaintenanceInfo.cs`・`Services/ReportForm.cs`・SiteLinks（pokemon の Core 配下。ファイル名は実装時に確認）。avatar: `Data/Models.cs` の `SiteOptions` |
+| `worker/`（共有 JS） | `maintenance.js`、`report.js`、`home.js`（ホームの HTML を返す。pokemon のみ必要。avatar は不要） | **pokemon と avatar の `worker/maintenance.js`・`worker/report.js` は内容が同一**（行数と diff で確認）。`home.js` は pokemon のみ |
+| `build/`（Node ツール） | 静的 HTML 生成の一般化（`tools/build-entry-pages.mjs` を元に）。テンプレート（index.html）の区切りへ head（title・description・canonical・OGP）と body を差し込み、`robots.txt`・`sitemap.xml`（本番のみ）・確認用の noindex を書く。入力はページ一覧の JSON（path・title・description・bodyHtml） | pokemon: `tools/build-entry-pages.mjs`・`tools/entry-pages.json`（origin/develop） |
+| `csp/` | `_headers` のテンプレート（ホストは各サイトが足す） | pokemon: `wwwroot/_headers` |
+| `tests/` | 共通の検査（SiteLinks・MaintenanceInfo.Parse・ReportForm.Validate。xUnit）、Worker の Node テスト、`_headers` と build の検査 | 両サイトのテストから移す |
+| `docs/` | 利用方法・変更の流れ・バージョン・各サイトの組み込み手順 | 新規 |
+
+**avatar の本文入り HTML（D3）との整合**: 本文の HTML は avatar の C#（Markdig）が作り、kit の Node ツールにはページ一覧（JSON）を渡す。テンプレートの区切り・head・sitemap・robots・noindex の決まりは kit が持つ。これで D3（C# で本文を作る）と kit の再利用が両立する。
+
+### 10.2 利用方法の比較と推奨（D13）
+
+| 方法 | 利点 | 欠点 |
+| --- | --- | --- |
+| **A. git submodule ＋ ProjectReference**（推奨） | bot の `external/fara-pokemon-battle-assistant` と同じ流儀（コーディネーターの指示による。このリポジトリでは未確認）。Razor の変更をそのまま参照できる。CI は `submodules: true` | サブモジュールの更新を忘れる。Worker の JS を wrangler が submodule 内から読めるかは要確認（推測） |
+| B. NuGet（GitHub Packages） | バージョンが明確。依存関係が閉じる | 公開の手順（パッケージ作成・CI の認証）が要る。静的アセット（JS・CSS）の配り方を作る必要がある。Worker の JS は別に配る必要がある。消費者が 2 つでは手間が上回る（推測） |
+| C. monorepo（1 リポジトリに統合） | 変更が一度で済む | 既存 2 リポの統合が大工事。デプロイ単位と Worker 名の扱いが変わる。今は過剰（推測） |
+
+**推奨: A**。消費者が 2 つで、既に同じ流儀がある。利用者が増えたら B を再評価する。
+
+### 10.3 バージョン管理
+- kit は SemVer のタグ（`v0.1.0` など）で切る。各サイトはタグのコミットに固定し、追従は手動の PR で行う。
+- 破壊的変更（API・名前空間・ファイル名）はメジャーを上げる。サイトは古いタグのまま動かせる。
+- 変更履歴は `docs/` の一覧に残す。
+
+### 10.4 変更の流れ
+1. kit に PR（テストを必ず付ける）→ マージ → タグ。
+2. 各サイトで、サブモジュールをそのタグに上げる PR（develop 向け）→ 確認用サイトで確認 → master への反映はユーザーが判断（既存の運用どおり）。
+3. サイト固有の変更は、サイトのリポジトリに置く（kit に入れない）。
+
+### 10.5 pokemon から kit への切り出し（pokemon を壊さない順番）
+1. kit リポジトリを作る（承認後）。骨格と CI（テスト）だけ。
+2. **最初は Worker の JS**（`maintenance.js`・`report.js`。同一内容なので両サイトで同じ変更にできる）。pokemon は `external/fara-site-kit` を submodule で追加し、既存のファイルは残したまま、`worker/index.js` の import 先だけを切り替える PR。dev で確認。
+3. 次に C# の小さなクラス（`MaintenanceInfo`・`ReportForm` の検証・SiteLinks）。**名前空間は変えない**（using を書き換えない）。ProjectReference を足し、既存ファイルを消すのは別 PR。
+4. Razor 部品（MudProviders・フッター・MaintenanceBanner）。
+5. 最後に NavMenu・MainLayout（手間が一番多い。サイト固有の項目を含むので、基底だけ kit に出す）。
+6. 各段階の PR で、pokemon の `dotnet test`・Node テスト・`wrangler deploy --dry-run` が通ること、dev サイトで表示が変わらないことを確認してから、重複したファイルを消す。
+7. avatar の Phase 1 では、切り出し後の kit を使う（pokemon 側の切り出しが先）。
+
+### 10.6 4 リポジトリで同じ内容を保つファイルの扱い
+本調査で中身を確認したのは **pokemon と avatar の 2 リポジトリ**。他のリポジトリ（bot・ポートフォリオ）の同一性は**未確認**（今回の対象外）。
+
+| ファイル | 現状（2 リポの比較） | kit での扱い |
+| --- | --- | --- |
+| `worker/maintenance.js` | 内容が同一（104 行） | **kit へ（最優先）** |
+| `worker/report.js` | 内容が同一（150 行） | **kit へ（最優先）** |
+| `wwwroot/js/report.js` | 差あり（pokemon は JS の報告フォーム） | avatar は Blazor 化で不要になる。Turnstile の描画だけ kit の JS に置き、フォームは kit の Razor へ |
+| `nav.js`（avatar のみ） | pokemon には無い | **kit に入れない**（avatar では廃止。Blazor の Router で代替） |
+| `_headers` | 形が同じ（pokemon の内容を基準） | kit の `csp/` テンプレート（ホストは各サイト） |
+| `build-entry-pages.mjs` | pokemon のみ（avatar は C# 側で本文を作る） | kit の `build/` へ（一般化） |
+
+### 10.7 フェーズへの組み込み（kit に入れるもの）
+
+| フェーズ | kit に入れるもの | avatar 側の作業 |
+| --- | --- | --- |
+| **K0（新設）: kit の作成と pokemon からの切り出し** | リポジトリの骨格、Worker JS（maintenance・report）、C# Core（MaintenanceInfo・ReportForm 検証・SiteLinks） | pokemon の submodule 化（§10.5） |
+| P1 土台 | Razor（MudProviders・テーマ・MainLayout の部品・フッター・MaintenanceBanner・ReportForm の Razor）、SiteOptions | avatar が使う |
+| P2 記事 | NavMenu の基底・ThemeSwitch（記事・検索・練習は avatar 固有なので kit に入れない） | 記事ページ一式は avatar に残す |
+| P3 練習 | なし（練習の JS は avatar 固有） | — |
+| P4 SEO | build ツール（テンプレート・head/body・sitemap・robots・noindex）、csp テンプレート | avatar の C# が本文 JSON を渡す |
+| P5 切り替え | 使い方の確定（ドキュメント・テスト） | 旧 SSR の削除。pokemon 側の残りを kit へ寄せるかは完了後に再評価 |
+
+### 10.8 CSP の方針（ユーザー決定の反映）
+- **許す**: `script-src` に `'wasm-unsafe-eval'`、`style-src` に `'unsafe-inline'`（MudBlazor のため）。
+- **許さない**: `script-src` の `'unsafe-inline'` と `'unsafe-eval'`。インラインの script は外部ファイルにし、importmap はハッシュで許可する（§4.9）。
+- ホストは**限定する**（pokemon の `_headers` と同じ形。Cloudflare の配信元、Google Fonts、three.js の CDN など、使うものだけ）。
+- `csp/` テンプレートは kit に置き、各サイトはホストの欄だけを足す。
 
 ---
 
