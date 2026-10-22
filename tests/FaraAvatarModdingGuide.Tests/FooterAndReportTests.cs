@@ -216,12 +216,16 @@ public class FooterAndReportTests
         var mediaEnd = css.IndexOf("\n}\n", mediaStart, StringComparison.Ordinal);
         var phone = css.Substring(mediaStart, mediaEnd - mediaStart);
         Assert.Contains(".site-footer { text-align: center; }", phone);
-        Assert.Contains(".site-footer-line { justify-content: center; }", phone);
+        Assert.Contains(".site-footer-line { justify-content: center; gap: 0.35rem 1rem; }", phone);
         Assert.Contains(".site-footer-line > * { white-space: nowrap; }", phone);
+        // 狭い画面では区切りの「|」を出さない（項目の間は gap で空ける）
+        Assert.Contains(".site-footer-sep { display: none; }", phone);
 
-        // PC の見た目は変えない: 基本の指定に nowrap を入れていないこと
-        var baseLine = System.Text.RegularExpressions.Regex.Match(css, @"^\.site-footer-line \{[^\n]*", System.Text.RegularExpressions.RegexOptions.Multiline).Value;
-        Assert.DoesNotContain("white-space", baseLine);
+        // PC の見た目は変えない: 基本の指定に nowrap や非表示を入れていないこと。区切りも残す
+        var regex = new System.Text.RegularExpressions.Regex(@"^\.site-footer-line \{[^\n]*", System.Text.RegularExpressions.RegexOptions.Multiline);
+        Assert.DoesNotContain("white-space", regex.Match(css).Value);
+        var baseSep = System.Text.RegularExpressions.Regex.Match(css, @"^\.site-footer-sep \{[^\n]*", System.Text.RegularExpressions.RegexOptions.Multiline).Value;
+        Assert.DoesNotContain("display", baseSep);
     }
 
     private static string FindUp(string relative)
