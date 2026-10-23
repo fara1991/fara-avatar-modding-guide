@@ -67,8 +67,8 @@
 <noscript><div class="alert alert-warning">この機能には JavaScript が必要です。</div></noscript>
 
 @code {
-    /// <summary>部屋の ID の形(room.js・worker/index.js と同じ。小文字の英数字 6〜32 字)</summary>
-    private static readonly System.Text.RegularExpressions.Regex RoomRe = new("^[a-z0-9]{6,32}$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+    /// <summary>部屋の ID の形(room.js・worker/index.js と同じ。小文字の英数字 6〜32 字。末尾は \z: .NET の $ は末尾の改行の前にも一致するので、"abcdef12\n" を通してしまい、JS の /^…$/ と食い違う)</summary>
+    private static readonly System.Text.RegularExpressions.Regex RoomRe = new("^[a-z0-9]{6,32}\\z", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     private static readonly IReadOnlyList<(string? Href, string Text)> Crumbs = [("/practice", "操作の練習"), (null, "みんなで練習")];
 
