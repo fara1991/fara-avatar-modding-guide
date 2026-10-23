@@ -72,7 +72,8 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
         var headers = Read(fx.Production, "_headers");
         Assert.EndsWith("\n", headers);
         var csp = headers.Split('\n').Single(l => l.TrimStart().StartsWith("Content-Security-Policy:", StringComparison.Ordinal));
-        Assert.Matches("script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com 'sha256-[A-Za-z0-9+/]{43}=';", csp);   // Turnstile と、importmap のハッシュ(Build が計算)
+        Assert.Matches("script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com 'sha256-[A-Za-z0-9+/]{43}=';", csp);   // Web Analytics のビーコン・Turnstile と、importmap のハッシュ(Build が計算)
+        Assert.Contains("connect-src 'self' https://cloudflareinsights.com https://challenges.cloudflare.com", csp);   // ビーコンの送信先
         Assert.DoesNotContain("'unsafe-eval'", csp.Replace("'wasm-unsafe-eval'", ""));
         var script = Regex.Match(csp, "script-src [^;]*;").Value;
         Assert.DoesNotContain("unsafe-inline", script);                  // script に unsafe-inline は付けない
