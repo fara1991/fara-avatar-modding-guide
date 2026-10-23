@@ -21,7 +21,7 @@ public static class SiteContentFactory
             // ロードマップ順（区切り → カテゴリ → 記事）。ContentService.Articles と同じ並び
             content.Categories.SelectMany(c => content.GetArticles(c.Id)).Select(a => new ArticleDto(
                 a.Category, a.Slug, a.Order, a.Title, a.Reading, a.Description, a.Difficulty, a.BlenderVersion,
-                a.Updated?.ToString("yyyy-MM-dd"), a.Shortcuts, a.Html, a.PracticeScenarios, a.Url, a.Id)).ToList(),
+                a.Updated?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), a.Shortcuts, a.Html, a.PracticeScenarios, a.Url, a.Id)).ToList(),
             content.Shortcuts.Select(s => new ShortcutDto(s.Key, s.Function, s.Category, s.Description)).ToList(),
             content.Addons.Select(a => new AddonDto(a.Name, a.Description, a.Type, a.Price, a.Features, a.Url, a.Status, a.Note, a.Source)).ToList(),
             content.Glossary.Select(g => new GlossaryDto(g.Id, g.Term, g.Reading, g.En, ContentService.RenderInline(g.Description), Inline(g.Body),
@@ -34,6 +34,6 @@ public static class SiteContentFactory
                 q.Articles, q.Related, q.Keywords, q.Source)).ToList(),
             linkCategories,
             content.Links.Select(l => new LinkDto(l.Id, l.Name, l.Reading, l.Url, l.Category, l.Description, l.Note, l.Status, l.Source)).ToList(),
-            content.Changelog.Select(e => new ChangelogDto(e.Date.ToString("yyyy-MM-dd"), e.Title, e.Items)).ToList());
+            content.Changelog.Select(e => new ChangelogDto(e.Date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), e.Title, e.Items)).ToList());
     }
 }
