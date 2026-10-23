@@ -165,6 +165,9 @@ public class MaintenanceConfigTests
             Assert.Contains("MAINTENANCE_MESSAGE_INPUT: ${{ inputs.maintenance_message }}", yml);
             // 入力はシェルに直接埋め込まない（run の中に ${{ を書かない）
             foreach (var run in RunBlocks(yml)) Assert.DoesNotContain("${{", run);
+            // node -e '...' の中に、シングルクォートを書かない(bash の引用が途中で閉じて、構文エラーで落ちる。JS の中では \u0027 と書く)。閉じの引用符の直後が、グループの } であること
+            foreach (var run in RunBlocks(yml).Where(r => r.Contains("node -e '", StringComparison.Ordinal)))
+                Assert.Matches(@"node -e '[^']*'\s*\n\s*\} >> ""\$GITHUB_STEP_SUMMARY""", run.Replace("\r\n", "\n"));
             var summary = yml.IndexOf("- name: Summary (maintenance)", StringComparison.Ordinal);
             Assert.True(summary > 0);
             Assert.Contains("$GITHUB_STEP_SUMMARY", yml[summary..]);
