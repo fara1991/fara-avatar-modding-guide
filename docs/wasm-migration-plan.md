@@ -742,7 +742,7 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 - CI は develop の SSR を別に書き出して(`Content/` だけ移行版のものに差し替え)、`tools/compare/compare-text.mjs` で記事 50 件と、そのほかのページを比べる。比べるのは、文字・構造(見出し id・ol/ul・table・li・kbd)・属性(href・src・alt・title・target・rel)。
 - **`/` と `/learn` の既知の差は、「最初の記事の題名とリンク」に依存している**(`known-differences.json` の `new: ["インストールと日本語化"]`、`newAttributes: ["a href=/learn/getting-started/install"]`)。目次の先頭の記事(`Content/learn/categories.yml` の最初のカテゴリの `order` が最小の記事)を変えたり、題名を直したりしたら、CI がこの 2 ページで「差あり」「古くなった記述」を出す。そのときは、この 2 つの値を新しい最初の記事に合わせて直す(移行版の静的 HTML は、何も完了していないときの「次に読む」を最初の記事にしておくため。SSR 版は空のリンクを JavaScript が埋める)。
 - 既知の差を足すときは、理由(`reason`)を必ず書く。書いていない差と、見つからない断片(古くなった記述)は CI の失敗になる。練習 3 ページと `/report` の `skip: true` は、Phase 3 で外した(理由つきの既知の差に置き換えた。§12)。
-- 比べる SSR は `ref: develop`。develop が進んだら、`migration/wasm` に取り込むまで、新しい SSR の変更は差として出る(`migration/wasm` へのマージを定期的に)。
+- （Phase 5 で `tools/compare` と CI の比較を削除。§14.2）比べる SSR は `ref: develop`。develop が進んだら、`migration/wasm` に取り込むまで、新しい SSR の変更は差として出る(`migration/wasm` へのマージを定期的に)。
 
 ### 11.2 Phase 3 の宿題
 - **（Phase 3 で解決。§12.1）プライバシーポリシーの jsDelivr の文言と CSP の食い違い**: `/privacy` は「jsDelivr(練習の 3D 表示の部品。練習のページを開くと、配信元にアクセスの情報が送られます)」と書いているが、Phase 1 の CSP(`tools/site.json` の `csp`)は `script-src` に jsdelivr を許可していない(three.js を読むと違反になる)。Phase 3 の最初の検証(importmap の確認。§4.5)で、three.js の読み込み元(jsdelivr か自分のサイトに同梱か)を決めて、CSP(`script-src` のホストと importmap のハッシュ)と `/privacy` の文言を**同時に**揃える。同梱にするなら、文言から jsDelivr を外す(`known-differences.json` の `/privacy` も直す)。
@@ -854,3 +854,30 @@ SRI の値（§12.1 の sha384）は、SSR 版が jsDelivr で読んでいた r1
 - kit: 起動中の静的な本文の inert を解く設定（本文を読みながらリンクを押せるように）。
 - 実機（PC・スマホ・ライト/ダーク）の目視（§8）。
 - Phase 5（切り替え）。
+
+## 14. Phase 5（切り替え）の記録
+
+PR は 3 つに分け（すべて `migration/wasm` 向け。前の PR の変更を含む積み重ね）、`migration/wasm` → `develop` の統合 PR を最後に作った。どれも master には触れない。手順と戻し方は [release-switch-and-rollback.md](release-switch-and-rollback.md)。
+
+### 14.1 CI/デプロイ（(1/3)）
+- `deploy.yml` は 1 ファイルのまま（master = 本番、develop = 確認用。kit の一括変更がこのファイル名を使う）。build ジョブは `dotnet publish` の出力を 2 つにコピーし、Build を `--env production` と `--env develop` で別々に実行する（`site-production/`・`site-develop/`）。deploy ジョブは公開先の環境のほうだけを `dist` に取り出す。
+- `verify-site.mjs`（build と deploy の公開直前の 2 回）: 本番用は noindex なし・sitemap あり・canonical が avatar.fara-labs.com、確認用はその逆、別の環境のホスト名が混ざっていないこと。取り違えは公開前に止まる。公開のステップも、`production` は master 以外から、`dev` は develop 以外からは wrangler を呼ぶ前に止まる。
+- build で `wrangler deploy --dry-run` を `--env production`・`--env dev` の両方で実行（認証不要。assets は `./dist`）。
+- 確認用の noindex の追記（`cat >> dist/_headers`）は削除: Build が `--env develop` で `X-Robots-Tag: noindex` を出すので、残すと二重になる。`--dev-origin` は付けない（devOrigin は `tools/site.json` の avatar-dev）。
+- `deploy-wasm-dev.yml` と `env.wasm-dev` は削除: 統合のあとは avatar-dev が WebAssembly 版になり、`migration/wasm` の確認用 Worker は役目を終える。`migration/wasm` への push は、どこにも公開しない。
+- 本番の Worker はまだ無い（master の実行が 0 件、名前も引けない）ので、`env.production` に Durable Object のマイグレーション（`v1`, `Room`）を明示した（wrangler 4.149.0 では top-level の `[[migrations]]` が env に引き継がれることを `unstable_readConfig` で確認したうえで、初回の公開で確実に作られるように）。
+- 公開の設定の検査は `Web.Tests` の `DeployWorkflowTests` に集約（旧 `MaintenanceConfigTests`・`DeployConfigTests` から移し、取り違えのテストを足した。bash で公開のステップを実際に動かして wrangler に渡る引数を確かめるテストは維持）。
+
+### 14.2 旧 SSR の削除とテスト（(2/3)）
+- 削除: `Components/`・`Publishing/`・`Program.cs`・`FaraAvatarModdingGuide.csproj`・`Properties/`・`appsettings.Development.json`・ルートの `wwwroot/css`・`wwwroot/js`・`tests/FaraAvatarModdingGuide.Tests`（SSR の CSS/Razor を検査していたテスト）。残した: `wwwroot/images/`（Build がコピー）、`appsettings.json`（`Site` のみにした。Build・テストが読む。移すと、リポジトリのルートを探す 6 か所の仕組みを変える必要があり、利点が無い）。
+- 検索の正解: `searchcore.js` を `tests/js/fixtures/searchcore.reference.js` に固定（本体は無変更。先頭に説明の 4 行）。5 つの JS テストと `SearchParityTests` の突き合わせ（`search-reference.mjs`）はこれを読む。
+- `tools/compare`（develop の SSR との本文比較）は削除: 比べる相手の SSR が無くなる。固定の基準データにする案は、記事を 1 文字直すたびに基準が古くなる（SSR と比べられたのは、同じ `Content/` を両方に使ったから）ので採らない。削除の前に最後の比較を実行した: **develop の SSR と移行版（確認用ビルド）で、記事 50 件・そのほかのページ 26 件、差あり 0 件**。以後の回帰は、`tools/verify/dom-diff.mjs`（静的 HTML と起動後の DOM）・`seo.mjs`・`boot-diff.mjs`・`PageParityTests`・`PageDomParityTests`・`SeoTests` が担う。
+- `tools/verify/shots.mjs`（SSR との見た目の比較）は削除。`practice.mjs` の SSR との比較は、SSR と移行版で結果が一致したときの値を `practice-baseline.json` に固定して、基準との比較に置き換えた（固定する前に、両方で実行して一致を確認: `/practice` の位置・回転・スケール・お題、`/practice/unity` の階層）。
+
+### 14.3 検証の結果（Phase 5 の最終状態の確認用ビルド・本番用ビルド）
+- `dotnet test`（Content 26・Build 47・Web 196）、Node のテスト（kit の worker・`worker/index.test.mjs`・ゲート・`verify-site`・`tests/js`）が通る。
+- Playwright（wrangler dev で `--env dev` と `--env production` の 2 つを配信）: article・search-filters-progress・back-nav・hash-links・fixes・practice（20 往復）が ok、`seo.mjs` 失敗 0（確認用・本番用の両方）、`csp-check.mjs` は両方で 46 画面 CSP 違反 0・コンソールのエラー/警告 0、`boot-scroll.mjs` ok、`dom-diff.mjs ALL=1` の差は `/report`・`/search` の 2 ページのみ（設計どおり。§13.5）。
+
+### 14.4 残っている宿題
+- OGP 画像・実機の目視・kit の inert の設定（§13.9）。Phase 3b（練習の 3D の C# 化）は統合のあと。
+- 本番の初公開（`develop` → `master`）はユーザーが判断する。既存の PR #4 の扱いは release-switch-and-rollback.md の 2.2。
