@@ -44,6 +44,13 @@ function sample() {
     return out;
 }
 
-const queries = [...handmade, ...sample()];
+/** ローマ字変換表の全キー(searchcore.js の add("...") から取り出す)を、3 回ずつ並べた語と、全部つなげた語。変換表が 1 つでも違えば、突き合わせで見つかる */
+function romajiKeys() {
+    const source = readFileSync(new URL("../../wwwroot/js/searchcore.js", import.meta.url), "utf8");
+    const keys = [...new Set([...source.matchAll(/add\("([^"]+)"/g)].flatMap((m) => m[1].split(" ")))];
+    return [...keys.map((k) => k.repeat(3)), keys.join(""), "ka-ki-ku", "kka", "ttsu", "nna", "nnya", "n'a", "xtsu", "ltu"];
+}
+
+const queries = [...new Set([...handmade, ...sample(), ...romajiKeys()])];
 writeFileSync(new URL("./search-queries.json", import.meta.url), JSON.stringify(queries, null, 1) + "\n", "utf8");
 console.log(`検索語 ${queries.length} 件（手で選んだ ${handmade.length} 件 + 索引から ${queries.length - handmade.length} 件）`);

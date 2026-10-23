@@ -23,6 +23,8 @@ const results = queries.map((query) => {
     return {
         query,
         norm: S.prepare({ title: query })._t,   // 検索語の正規化（searchcore.js の norm）
+        romaji: S.romajiToHiragana(S.prepare({ title: query })._t),   // ローマ字→ひらがなの変換(変換できなければ null)
+        loose: S.looseKana(query),
         count: hits.length,
         hits: hits.map((h) => ({ type: h.entry.type, title: h.entry.title, url: h.entry.url, score: h.score })),
         top: hits.slice(0, TOP).map((h) => ({

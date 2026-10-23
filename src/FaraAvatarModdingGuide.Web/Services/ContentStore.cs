@@ -20,8 +20,11 @@ public sealed class ContentStore(HttpClient http)
         if (Content is not null) return;
         try
         {
-            Content = await http.GetFromJsonAsync("data/content.json", SiteJsonContext.Default.SiteContent);
-            if (Content is null) Error = "data/content.json が空です";
+            var loaded = await http.GetFromJsonAsync("data/content.json", SiteJsonContext.Default.SiteContent);
+            // JSON として読めても形が違う({} など)ときは、読み込み失敗として扱う(各ページが null 参照で落ちて、空白になるのを防ぐ)
+            Error = SiteContentValidation.Check(loaded);
+            if (Error is null) Content = loaded;
+            else Console.Error.WriteLine($"[avatar] {Error}");
         }
         catch (Exception e) when (e is HttpRequestException or System.Text.Json.JsonException or TaskCanceledException)
         {

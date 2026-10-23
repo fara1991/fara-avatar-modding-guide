@@ -730,3 +730,30 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 
 - **静的 HTML（事前生成）**: ビルド時に作る、ページごとの HTML。本文が入っている。
 - **#app の引き継ぎ**: 静的 HTML の `#app` の中身を、WebAssembly の起動で置き換えること。
+
+---
+
+## 11. Phase 2 の運用メモと、Phase 3 への宿題
+
+### 11.1 本文の突き合わせの運用(`tools/compare/known-differences.json`)
+- CI は develop の SSR を別に書き出して(`Content/` だけ移行版のものに差し替え)、`tools/compare/compare-text.mjs` で記事 50 件と、そのほかのページを比べる。比べるのは、文字・構造(見出し id・ol/ul・table・li・kbd)・属性(href・src・alt・title・target・rel)。
+- **`/` と `/learn` の既知の差は、「最初の記事の題名とリンク」に依存している**(`known-differences.json` の `new: ["インストールと日本語化"]`、`newAttributes: ["a href=/learn/getting-started/install"]`)。目次の先頭の記事(`Content/learn/categories.yml` の最初のカテゴリの `order` が最小の記事)を変えたり、題名を直したりしたら、CI がこの 2 ページで「差あり」「古くなった記述」を出す。そのときは、この 2 つの値を新しい最初の記事に合わせて直す(移行版の静的 HTML は、何も完了していないときの「次に読む」を最初の記事にしておくため。SSR 版は空のリンクを JavaScript が埋める)。
+- 既知の差を足すときは、理由(`reason`)を必ず書く。書いていない差と、見つからない断片(古くなった記述)は CI の失敗になる。練習 3 ページと `/report` は `skip: true`(Phase 3 まで)。Phase 3 で練習を WebAssembly にしたら、skip を外して、既知の差に置き換える。
+- 比べる SSR は `ref: develop`。develop が進んだら、`migration/wasm` に取り込むまで、新しい SSR の変更は差として出る(`migration/wasm` へのマージを定期的に)。
+
+### 11.2 Phase 3 の宿題
+- **プライバシーポリシーの jsDelivr の文言と CSP の食い違い**: `/privacy` は「jsDelivr(練習の 3D 表示の部品。練習のページを開くと、配信元にアクセスの情報が送られます)」と書いているが、Phase 1 の CSP(`tools/site.json` の `csp`)は `script-src` に jsdelivr を許可していない(three.js を読むと違反になる)。Phase 3 の最初の検証(importmap の確認。§4.5)で、three.js の読み込み元(jsdelivr か自分のサイトに同梱か)を決めて、CSP(`script-src` のホストと importmap のハッシュ)と `/privacy` の文言を**同時に**揃える。同梱にするなら、文言から jsDelivr を外す(`known-differences.json` の `/privacy` も直す)。
+- 練習の JavaScript(tutorial.js など)は `window.faraProgress.isDone / set` を使う。Phase 2 で `js/storage.js` が C# の `ProgressStore` につないである(目次の完了の印も、すぐ替わる)。
+- 記事内の `::: practice`(`<div class="practice-embed" data-scenario>`)は、Markdown から空の div として出ていて、Blazor は中身を触らない(MarkupString)。tutorial.js が埋めるときは、記事が替わったとき(`ArticlePage` の再利用)に、前の中身が残らないか確かめる。
+- 検索の突き合わせ(`SearchParityTests`)は `wwwroot/js/searchcore.js` を正解にしている。Phase 5 で消す前に、固定の写しを `tests/js/` に置く。
+
+### 11.3 起動中の読み込み表示(不透明なオーバーレイ)の検討(§3.4・§4.10)
+現在は、起動のあいだ、不透明なオーバーレイ(`#boot-indicator`)で静的な本文を全面に覆っている(静的本文は DOM に残り、`inert`・`aria-hidden` で操作・読み上げの対象外)。計画の「本文を見えたまま残す」方針との比較:
+
+| 案 | 見た目 | リスク |
+| --- | --- | --- |
+| A. 今のまま(不透明) | 起動まで本文は見えない。切り替えで本文が飛ぶことはない | 回線が遅いと、本文が読めるのに隠れている(速さは決定事項として問題にしない)。JS が使えない環境では、CSS の 60 秒で外れる |
+| B. 半透明・本文が見える(操作は `inert` で止める) | 本文がすぐ読める | **静的な枠(`av-static`: 名前とリンクだけのヘッダー)と、起動後の枠(MudLayout: ヘッダー + 左のサイドバー + 検索欄)が違う**ので、起動の瞬間に本文が右へ動く(PC で約 230px)・上下も動く(CLS)。リンクを押せるように見えて押せない(`inert`)。起動後の本文は同じ DOM に置き換わるので、二重描画はない(`#app` の中身が置き換わる) |
+| C. B + 静的な枠を起動後と同じ形にする(サイドバーの骨組みを静的 HTML に入れる) | 本文が動かない | 静的 HTML に、サイドバー(区切り・カテゴリ 10 件・リファレンス・練習)とヘッダーの検索欄の骨組みを足す必要がある。Build の `Wrap` と `app.css` の変更が大きい。MudBlazor の見た目の細部(Mini ドロワーの幅・アイコン)を CSS で写す必要がある |
+
+**推奨**: Phase 4(ちらつきのピクセル差の検証)で C を試し、差が閾値以下になったら B に切り替える。それまでは A のまま。今、B だけを入れると、PC で起動のたびに本文が約 230px 動く(CLS が出る)ので、見た目が悪くなる。
