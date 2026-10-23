@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Workers (wasm-dev)
+name: Deploy (wasm-dev)
 
 # 移行（Blazor WebAssembly + MudBlazor。docs/wasm-migration-plan.md の D14）の確認用。
 # 長期ブランチ migration/wasm に push（PR のマージ含む）されるたびに、https://avatar-wasm-dev.fara-labs.com/ へ公開する。
