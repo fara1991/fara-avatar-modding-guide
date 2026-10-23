@@ -98,6 +98,13 @@ public sealed class OrbitView
         return (world, inverse, projection, projection.Inverted());
     }
 
+    /// <summary>描画層が使う、いまのカメラの行列(ワールド → カメラ = matrixWorldInverse、カメラ → 画面 = projectionMatrix、カメラのワールド行列)。<see cref="Aspect"/> を先に決めておく。</summary>
+    public (Mat4 View, Mat4 Projection, Mat4 World) Matrices()
+    {
+        var (world, inverse, projection, _) = CameraMatrices();
+        return (inverse, projection, world);
+    }
+
     /// <summary>カメラの軸(ワールド座標。画面の右・上・後ろ)= matrixWorld の列 0・1・2(setFromMatrixColumn)。</summary>
     public (Vec3 Right, Vec3 Up, Vec3 Back) Basis
     {

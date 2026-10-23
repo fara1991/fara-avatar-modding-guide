@@ -30,6 +30,15 @@ public sealed class SceneObject
     public Vec3[] Triangles { get; private set; } = [];
     /// <summary>三角形(3 頂点ずつ)→ 面。</summary>
     public EmFace[] TriFace { get; private set; } = [];
+    /// <summary>三角形ごとの面の法線(ローカル座標。三角形 1 つに 1 つ。Float32 に丸めた値。描画の陰影用)。</summary>
+    public Vec3[] TriNormals { get; private set; } = [];
+    /// <summary>形を作り直した回数。描画層が、ジオメトリを作り直すか(バッファを送り直すか)を決める。</summary>
+    public int Version { get; private set; }
+    /// <summary>
+    /// 透過表示(X 線)を材質に反映したか(viewport.js の setXray が、そのときにある全オブジェクトの material.transparent を変える)。
+    /// setXray のあとに作ったオブジェクトは、次に setXray が呼ばれるまで不透明のまま(現行の挙動のとおり)。
+    /// </summary>
+    public bool XrayApplied { get; internal set; }
     /// <summary>ジオメトリのローカルの外接箱(three.js の geometry.boundingBox。三角形が無ければ空 = 最小が +∞)。</summary>
     public Vec3 BoundsMin { get; private set; }
     public Vec3 BoundsMax { get; private set; }
@@ -46,6 +55,8 @@ public sealed class SceneObject
         var (pos, triFace) = Em.Triangles();
         Triangles = [.. pos.Select(Round32)];
         TriFace = [.. triFace];
+        TriNormals = [.. triFace.Select(f => Round32(EditMesh.FaceNormal(f)))];
+        Version++;
         BoundsMin = new Vec3(double.PositiveInfinity, double.PositiveInfinity, double.PositiveInfinity);
         BoundsMax = -BoundsMin;
         foreach (var p in Triangles)

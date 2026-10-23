@@ -19,4 +19,9 @@
     <ProjectReference Include="..\..\src\FaraAvatarModdingGuide.Practice\FaraAvatarModdingGuide.Practice.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- 描画の中身のテスト(Render.Tests)が、突き合わせの入力の読み込み(JsReference)と C# 側の操作(ViewportDriver)を使う -->
+    <InternalsVisibleTo Include="FaraAvatarModdingGuide.Render.Tests" />
+  </ItemGroup>
+
 </Project>

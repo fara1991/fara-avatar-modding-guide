@@ -219,8 +219,19 @@ public sealed partial class ViewportCore
     private void Rebuild(SceneObject obj)
     {
         obj.Rebuild();
+        if (obj == EditObj) OverlayRebuilt?.Invoke(obj);
         UpdateStats();
     }
+
+    /// <summary>
+    /// 編集モードの点・線・選んだ面の描画データを作り直すタイミング(viewport.js が rebuildOverlay を呼ぶ所: 編集中のオブジェクトの rebuild・setXray・
+    /// 編集モードに入ったとき・setSelectMode)。現行は、それ以外のときに選択が変わっても描画データを作り直さない(古い状態が出うる)ので、
+    /// 描画層はこの通知を受けたときだけ作り直す。通知を受けた時点の <see cref="Xray"/> と <see cref="SelectMode"/> も、その時点のものを使う。
+    /// </summary>
+    public event Action<SceneObject>? OverlayRebuilt;
+
+    /// <summary>編集モードを出て、点・線・面の描画データを捨てるタイミング(removeOverlay)。</summary>
+    public event Action<SceneObject>? OverlayRemoved;
 
     /// <summary>編集中のメッシュを変えたあとに呼ぶ(表示の更新)。</summary>
     private void EditChanged()
@@ -271,6 +282,8 @@ public sealed partial class ViewportCore
     {
         var value = on ?? !Xray;
         Xray = value;
+        foreach (var o in Objects) o.XrayApplied = value;
+        if (EditObj is not null) OverlayRebuilt?.Invoke(EditObj);
         UpdateTools();
         if (!quiet)
         {
@@ -333,9 +346,11 @@ public sealed partial class ViewportCore
             EditObj = obj;
             if (!Selected.Contains(obj)) Selected.Add(obj);
             obj.Em.Flush(SelectMode);
+            OverlayRebuilt?.Invoke(obj);
         }
         else
         {
+            if (EditObj is not null) OverlayRemoved?.Invoke(EditObj);
             Mode = "object";
             EditObj = null;
         }
@@ -358,6 +373,7 @@ public sealed partial class ViewportCore
         if (Mode != "edit") return;
         SelectMode = mode;
         EditObj!.Em.Flush(mode);
+        OverlayRebuilt?.Invoke(EditObj);
         UpdateTools();
         UpdateStats();
         Status = $"{SelectModeLabels[mode]}選択モード";
