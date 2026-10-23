@@ -7,10 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- テストプロジェクト（tests/）のソースを、このプロジェクトに取り込まない -->
-    <Compile Remove="tests\**" />
-    <EmbeddedResource Remove="tests\**" />
-    <None Remove="tests\**" />
+    <!-- テストプロジェクト（tests/）と、移行先の新プロジェクト（src/）のソースを、このプロジェクトに取り込まない
+         （Sdk.Web は **/*.cs を拾うので、src/ の .cs や obj/ の自動生成ファイルが混ざってビルドが壊れる） -->
+    <Compile Remove="tests\**;src\**" />
+    <EmbeddedResource Remove="tests\**;src\**" />
+    <None Remove="tests\**;src\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Markdig" Version="1.4.0" />
-    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+    <!-- 記事・データの読み込み（Markdig・YamlDotNet は Content プロジェクト経由） -->
+    <ProjectReference Include="src\FaraAvatarModdingGuide.Content\FaraAvatarModdingGuide.Content.csproj" />
   </ItemGroup>
 
 </Project>

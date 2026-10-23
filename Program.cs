@@ -11,7 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 // 閲覧専用サイトなので静的 SSR のみ。対話的 UI が必要になったら AddInteractiveServerComponents() を足す。
 builder.Services.AddRazorComponents();
 builder.Services.Configure<SiteOptions>(builder.Configuration.GetSection("Site"));
-builder.Services.AddSingleton<ContentService>();
+builder.Services.AddSingleton(sp => new ContentService(
+    Path.Combine(sp.GetRequiredService<IWebHostEnvironment>().ContentRootPath, "Content"),
+    sp.GetRequiredService<ILogger<ContentService>>()));
 
 // dotnet run -- --export <dir> で静的サイトとして書き出す（Cloudflare へのデプロイ用）
 var exportDir = builder.Configuration["export"];

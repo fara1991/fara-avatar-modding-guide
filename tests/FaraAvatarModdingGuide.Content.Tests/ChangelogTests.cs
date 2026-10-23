@@ -1,7 +1,7 @@
 using FaraAvatarModdingGuide.Data;
 using Xunit;
 
-namespace FaraAvatarModdingGuide.Tests;
+namespace FaraAvatarModdingGuide.Content.Tests;
 
 /// <summary>更新履歴（Content/changelog.yml と ContentService.ParseChangelog）。</summary>
 public class ChangelogTests
