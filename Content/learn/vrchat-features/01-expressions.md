@@ -1,5 +1,6 @@
 ---
 title: Expression メニューとパラメーター
+reading: えくすぷれっしょんめにゅーとぱらめーたー
 description: VRChat の中で開くメニュー（Expression Menu）と、その状態を持つパラメーター（Expression Parameters）の基本と、Modular Avatar で衣装や小物の ON/OFF を作る方法です。
 difficulty: 初級
 updated: 2026-10-11

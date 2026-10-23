@@ -1,5 +1,6 @@
 ---
 title: PhysBone と Contact
+reading: ふぃじっくぼーんとこんたくと
 description: 髪やスカートを揺らす PhysBone の考え方（ボーンは点、Root Transform、Endpoint Position、Multi Child Type）、揺れ方の調整、コライダー、掴めないときの確認と、触れたことを検知する Contact の基本です。
 difficulty: 中級
 updated: 2026-10-11

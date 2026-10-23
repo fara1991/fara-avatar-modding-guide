@@ -1,5 +1,6 @@
 ---
 title: 表情と FX の基礎
+reading: ひょうじょうとえふえっくすのきそ
 description: アバターの表情やギミックを動かす Animator（Playable Layers・FX レイヤー）の仕組みと、Write Defaults、レイヤーの優先順位、デフォルトの表情の変え方、まばたきとの干渉、動かないときの調べ方です。
 difficulty: 中級
 updated: 2026-10-11

@@ -143,7 +143,27 @@ public sealed partial class ContentService
     public IReadOnlyList<string> ShortcutCategories =>
         Shortcuts.Select(s => s.Category).Distinct().ToList();
 
-    /// <summary>記事・用語集・何て名前？・TIPS・ショートカット・アドオンをまとめた検索インデックス。</summary>
+    /// <summary>検索の索引に入れる固定ページ（題名・読み・説明）。読みはひらがなだけにする（ローマ字・かなで探すため）</summary>
+    private static readonly (string Title, string Reading, string Url, string Description)[] SearchPages =
+    [
+        ("目次", "もくじ", "/learn", "操作・改変の記事を、区切りごとに上から順に読む"),
+        ("操作の練習", "そうさのれんしゅう", "/practice", "ブラウザ上の 3D ビューで Blender と同じキー操作を試す"),
+        ("Unity の練習", "ゆにてぃーのれんしゅう", "/practice/unity", "Unity エディターに似た画面で、Modular Avatar で衣装を着せる流れを試す"),
+        ("みんなで練習", "みんなでれんしゅう", "/practice/room", "同じ 3D ビューを複数人で操作する部屋"),
+        ("用語集", "ようごしゅう", "/glossary", "Blender・Unity・VRChat の用語の意味"),
+        ("あの操作、何て名前", "あのそうさなんてなまえ", "/howto", "やりたいことから、操作の名前・メニューの場所・キーを引く"),
+        ("TIPS", "てぃっぷす", "/tips", "よくあるつまずきと直し方"),
+        ("改変 Q&A", "かいへんきゅーあんどえー", "/qa", "よく出る質問と答え・手順"),
+        ("ショートカット一覧", "しょーとかっといちらん", "/shortcuts", "キー操作の一覧（カテゴリで絞り込める）"),
+        ("アドオン", "あどおん", "/addons", "おすすめのアドオン"),
+        ("リンク集", "りんくしゅう", "/links", "Unity のツール・参考記事・BOOTH の商品など"),
+        ("更新履歴", "こうしんりれき", "/changelog", "サイトの更新履歴"),
+        ("問い合わせ", "といあわせ", "/report", "不具合の報告・記事の修正提案などの問い合わせ"),
+        ("プライバシーポリシー", "ぷらいばしーぽりしー", "/privacy", "個人情報の扱い"),
+        ("検索", "けんさく", "/search", "サイト内検索"),
+    ];
+
+    /// <summary>記事・カテゴリ・固定ページ・用語集・何て名前？・TIPS・Q&amp;A・リンク集・ショートカット・アドオンをまとめた検索インデックス。</summary>
     public IReadOnlyList<SearchEntry> BuildSearchIndex()
     {
         var entries = new List<SearchEntry>();
@@ -153,40 +173,52 @@ public sealed partial class ContentService
             var category = GetCategory(article.Category)?.Title ?? article.Category;
             var subtitle = string.IsNullOrEmpty(article.Difficulty) ? category : $"{category} · {article.Difficulty}";
             var text = string.Join(' ', [article.Description, article.PlainText, .. article.Shortcuts]);
-            entries.Add(new SearchEntry("article", article.Title, subtitle, article.Url, text));
+            entries.Add(new SearchEntry("article", article.Title, subtitle, article.Url, text, article.Reading));
+        }
+
+        // 目次のカテゴリと、固定ページ（用語集・TIPS など）。題名の読みで探せるように、索引に入れる
+        foreach (var c in Categories)
+        {
+            entries.Add(new SearchEntry("category", c.Title, c.En ?? string.Empty, $"/learn/{c.Id}",
+                string.Join(' ', [c.Description, c.En ?? string.Empty]), c.Reading));
+        }
+
+        foreach (var p in SearchPages)
+        {
+            entries.Add(new SearchEntry("page", p.Title, string.Empty, p.Url, p.Description, p.Reading));
         }
 
         foreach (var g in Glossary)
         {
             var subtitle = string.Join(" · ", new[] { g.En, string.Join(" / ", g.Tags) }.Where(x => !string.IsNullOrEmpty(x)));
             entries.Add(new SearchEntry("glossary", g.Term, subtitle, $"/glossary#{g.Id}",
-                string.Join(' ', [g.Reading, g.En ?? "", PlainOf(g.Description), PlainOf(g.Body), .. g.Keywords, .. g.Shortcuts, .. g.Tags])));
+                string.Join(' ', [g.Reading, g.En ?? "", PlainOf(g.Description), PlainOf(g.Body), .. g.Keywords, .. g.Shortcuts, .. g.Tags]), g.Reading));
         }
 
         foreach (var h in Howtos)
         {
             var answer = h.Shortcuts.Count > 0 ? $"{h.Answer}（{string.Join(" / ", h.Shortcuts)}）" : h.Answer;
             entries.Add(new SearchEntry("howto", h.Question, answer, $"/howto#{h.Id}",
-                string.Join(' ', [h.Answer, h.AnswerEn ?? "", h.Menu ?? "", h.MenuEn ?? "", PlainOf(h.Note), PlainOf(h.Body), .. h.Aliases, .. h.Keywords, .. h.Shortcuts, .. h.Tags])));
+                string.Join(' ', [h.Answer, h.AnswerEn ?? "", h.Menu ?? "", h.MenuEn ?? "", PlainOf(h.Note), PlainOf(h.Body), .. h.Aliases, .. h.Keywords, .. h.Shortcuts, .. h.Tags]), h.Reading));
         }
 
         foreach (var t in Tips)
         {
             entries.Add(new SearchEntry("tip", t.Title, string.Join(" / ", t.Tags), $"/tips#{t.Id}",
-                string.Join(' ', [PlainOf(t.Summary), PlainOf(t.Symptom), PlainOf(t.Cause), PlainOf(t.Fix), PlainOf(t.Body), .. t.Keywords, .. t.Shortcuts, .. t.Tags])));
+                string.Join(' ', [PlainOf(t.Summary), PlainOf(t.Symptom), PlainOf(t.Cause), PlainOf(t.Fix), PlainOf(t.Body), .. t.Keywords, .. t.Shortcuts, .. t.Tags]), t.Reading));
         }
 
         foreach (var q in Qas)
         {
             entries.Add(new SearchEntry("qa", q.Question, string.Join(" / ", q.Tags), $"/qa#{q.Id}",
-                string.Join(' ', [PlainOf(q.Answer), PlainOf(q.Body), .. q.Keywords, .. q.Shortcuts, .. q.Tags])));
+                string.Join(' ', [PlainOf(q.Answer), PlainOf(q.Body), .. q.Keywords, .. q.Shortcuts, .. q.Tags]), q.Reading));
         }
 
         foreach (var l in Links)
         {
             var category = LinkCategories.FirstOrDefault(c => c.Id == l.Category)?.Title ?? l.Category;
             entries.Add(new SearchEntry("link", l.Name, category, $"/links#{l.Id}",
-                string.Join(' ', [l.Description, l.Note ?? ""])));
+                string.Join(' ', [l.Description, l.Note ?? ""]), l.Reading));
         }
 
         foreach (var shortcut in Shortcuts)
@@ -301,6 +333,7 @@ public sealed partial class ContentService
             Slug = match.Groups["slug"].Value,
             Order = int.Parse(match.Groups["order"].Value),
             Title = front.Title ?? name,
+            Reading = front.Reading ?? string.Empty,
             Description = front.Description ?? string.Empty,
             Difficulty = front.Difficulty ?? string.Empty,
             BlenderVersion = front.BlenderVersion,

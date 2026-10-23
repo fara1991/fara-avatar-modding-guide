@@ -1,5 +1,6 @@
 ---
 title: マテリアルとシェーダー（lilToon の基本）
+reading: まてりあるとしぇーだーりるとーんのきほん
 description: Unity のマテリアルとシェーダーの関係、lilToon の入れ方、色やテクスチャの変え方、ピンクになったときの直し方です。
 difficulty: 初級
 updated: 2026-10-11

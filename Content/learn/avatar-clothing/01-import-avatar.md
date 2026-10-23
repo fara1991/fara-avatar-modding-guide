@@ -1,5 +1,6 @@
 ---
 title: 準備：アバターを Blender に読み込む
+reading: じゅんびあばたーをぶれんだーによみこむ
 description: 衣装を作る土台として、アバターの FBX を Blender に読み込み、作業しやすい状態に整えます。
 difficulty: 初級
 updated: 2026-10-10

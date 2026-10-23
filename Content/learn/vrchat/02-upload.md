@@ -1,5 +1,6 @@
 ---
 title: アバターをアップロードする
+reading: あばたーをあっぷろーどする
 description: VRChat SDK のコントロールパネルでログインし、Builder タブで名前・公開範囲・サムネイルを決めて、Build & Test で確かめてから Build & Publish でアップロードするまでです。
 difficulty: 初級
 updated: 2026-10-11
