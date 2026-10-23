@@ -87,15 +87,27 @@ public class HelperTests
     }
 
     [Fact]
-    public void Unsupported_keys_return_false_without_changing_the_scene()
+    public void Keys_the_viewport_does_not_use_do_not_call_prevent_default_and_change_nothing()
     {
         var core = new ViewportCore(new ViewRect(0, 0, 800, 600));
-        core.Objects.Add(SceneObject.Create("cube"));
         core.SetSelection(core.Objects);
-        foreach (var (code, mods) in new[] { ("KeyA", new Modifiers(Shift: true)), ("KeyX", default(Modifiers)), ("Delete", default), ("Tab", default), ("KeyZ", new Modifiers(Ctrl: true)), ("KeyD", new Modifiers(Shift: true)) })
+        // 現行の onKey が preventDefault を呼ばないキー: 使わないキー・編集モードの操作キー(オブジェクトモードでは何も起きない)・Ctrl+未対応のキー・オブジェクトモードの数字キー
+        foreach (var (code, mods) in new[] { ("KeyQ", default(Modifiers)), ("KeyE", default), ("KeyF", default), ("KeyM", default), ("KeyG", new Modifiers(Ctrl: true)), ("KeyR", new Modifiers(Ctrl: true)), ("KeyB", new Modifiers(Ctrl: true)), ("KeyL", new Modifiers(Ctrl: true)), ("Digit1", default) })
             Assert.False(core.KeyDown(code, "", mods), code);
         Assert.Single(core.Objects);
         Assert.Null(core.Op);
+        Assert.Equal("object", core.Mode);
+        Assert.Equal(0, core.UndoDepth);
+    }
+
+    [Fact]
+    public void Entering_edit_mode_with_nothing_selected_fails_like_tab_in_viewport_js()
+    {
+        var core = new ViewportCore(new ViewRect(0, 0, 800, 600));
+        Assert.True(core.KeyDown("Tab", "Tab", default));   // Tab は preventDefault する
+        Assert.Equal("object", core.Mode);
+        Assert.Equal("先にオブジェクトを選択してください", core.Status);
+        Assert.Contains(core.TakeEvents(), e => e.Type == "opfail" && (string?)e.Detail["kind"] == "Tab");
     }
 
     [Fact]

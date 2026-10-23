@@ -97,3 +97,44 @@ public sealed class TaskProgress
         return changed;
     }
 }
+
+/// <summary>
+/// 練習 1(/practice)の進行(practice.js の Practice クラスから、DOM を除いたもの)。ビューのイベントから「起きたこと」の記録を立て、そのたびに状態を見てお題を進める。
+/// 現行は on("*") のハンドラーでイベントが出た瞬間に判定する(出た時点の状態を見る)ので、C# も同じにする。
+/// </summary>
+public sealed class PracticeSession
+{
+    public PracticeSession(ViewportCore core)
+    {
+        Core = core;
+        core.EventEmitted += OnEvent;
+        Reset();
+    }
+
+    public ViewportCore Core { get; }
+    public TaskFlags Flags { get; private set; } = new();
+    public TaskProgress Progress { get; } = new();
+
+    private void OnEvent(ViewEvent e)
+    {
+        var d = e.Detail;
+        if (e.Type == "add" && d.TryGetValue("kind", out var k) && (k as string) == "sphere") Flags = Flags with { SphereAdded = true };
+        if (e.Type == "undo") Flags = Flags with { UndoUsed = true };
+        if (e.Type == "confirm" && d.TryGetValue("extrude", out var x) && x is true) Flags = Flags with { Extruded = true };
+        if (e.Type == "confirm" && d.TryGetValue("kind", out var ck) && (ck as string) == "I") Flags = Flags with { Inset = true };
+        if (e.Type == "loopcut") Flags = Flags with { Loopcut = true };
+        if (e.Type == "confirm" && d.TryGetValue("kind", out var bk) && (bk as string) == "B") Flags = Flags with { Bevel = true };
+        CheckTasks();
+    }
+
+    /// <summary>状態を見て、達成したお題を順に進める。進んだら true(一覧を描き直す合図)。</summary>
+    public bool CheckTasks() => Progress.Check(Core.GetTaskContext(Flags));
+
+    /// <summary>最初に戻す(シーン・記録・お題)。</summary>
+    public void Reset()
+    {
+        Core.ResetScene();
+        Flags = new TaskFlags();
+        Progress.Reset();
+    }
+}
