@@ -11,3 +11,5 @@
 - `hash-links.mjs` … 見出し付き URL(直接・アプリ内・同じページの目次)で見出しに止まる(PC・スマホ)
 - `shots.mjs` … SSR(`SSR=` 現行の develop をローカルで動かしたもの)との見た目の比較(PC 1280・スマホ 390・ダーク/ライトの 3 枚組と差の割合)。コンソールエラー・CSP 違反も出す
 - `practice.mjs` … 練習(Phase 3): `/practice`・`/practice/unity` の操作が SSR(`SSR=`)と同じ結果になる・記事内チュートリアル(画像で見る・別の記事へ移ると前の 3D が解放される)・スマホ(390)は案内だけで WebGL を使わない・共有ルームに二人が入って追加が届く(画面から)・ページ往復(`ROUNDS=` 回。既定 20)で WebGL の context・ResizeObserver・IntersectionObserver・setInterval・WebSocket・window/document のイベント・DOM・背景の 3D(`#site-scene` が 1 つ・描画のループ)が増えない。CSP 違反 0・コンソールのエラーと警告 0
+- `dom-diff.mjs` … 静的 HTML(WebAssembly を止めた状態)と、起動後の本文(`#fsk-main` の中)の DOM を比べる(練習 3 ページが既定。`ALL=1` で全 76 ページ)。Blazor のコメント・空白・JavaScript が中身を入れる枠を除く。`/practice/unity` の静的 HTML と Blazor の差の確認(計画書 13.5)
+- `csp-check.mjs` … CSP の違反ゼロの確認(Phase 4。計画書 13.4): `_headers` の CSP が効く配信で、主要 23 ページ × PC・スマホを開き、スクロール・テーマ・検索・練習の 3D・共有ルームを操作して、`securitypolicyviolation`・コンソールのエラー/警告・失敗したリクエスト・ページのエラーを集める。1 件でもあれば終了コード 1

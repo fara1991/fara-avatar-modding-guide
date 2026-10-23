@@ -99,6 +99,8 @@ public class PracticeTests : WebTestContext
     [InlineData("abc def123")]
     [InlineData("abc/../12345")]
     [InlineData("<script>alert(1)</script>")]
+    [InlineData("abcdef12\n")]                                         // 末尾の改行(.NET の $ は通してしまう。worker・room.js の /^…$/ は通さない)
+    [InlineData("abcdef12\r\n")]
     public void Room_page_ignores_an_invalid_room_id_and_shows_the_lobby(string parameter)
     {
         var entry = Entry();
