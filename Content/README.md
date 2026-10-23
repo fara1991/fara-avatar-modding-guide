@@ -48,7 +48,7 @@ shortcuts: [G, R, S]      # shortcuts.yml の key と一致させる
 
 `::: practice <名前>` は、操作のチュートリアル（下の「操作のチュートリアルを埋め込む」）を埋め込みます。
 
-- 開発中（`dotnet run`）はファイルを保存するだけでブラウザをリロードすれば反映されます。
+- 記事・データは、ビルドのときに静的 HTML と JSON（data/*.json）になります。保存したあと、ルートの README の「ビルドと確認」の手順（dotnet publish → Build → wrangler dev）をやり直すと反映されます（ブラウザのリロードだけでは変わりません）。
 - ファイル名の番号は表示順にだけ使われ、URL には含まれません。
 
 ## 画像・GIF を載せる
@@ -107,7 +107,7 @@ Blender の操作は文章だけでは伝わりにくいので、手順ごとに
 
 ### 新しいチュートリアルを作る
 
-手順は `wwwroot/js/scenarios.js` の `SCENARIOS` に、名前をキーにして書きます（ここだけは JavaScript です）。
+手順は `src/FaraAvatarModdingGuide.Web/wwwroot/js/scenarios.js` の `SCENARIOS` に、名前をキーにして書きます（ここだけは JavaScript です）。
 
 ```js
 "my-scenario": {
@@ -126,7 +126,7 @@ Blender の操作は文章だけでは伝わりにくいので、手順ごとに
 },
 ```
 
-- `done(e)` に届くイベントの種類（`select` / `opstart` / `axis` / `numeric` / `confirm` / `cancel` / `view` / `add` / `delete` / `undo` など）と中身は `wwwroot/js/viewport.js` の先頭に書いてあります
+- `done(e)` に届くイベントの種類（`select` / `opstart` / `axis` / `numeric` / `confirm` / `cancel` / `view` / `add` / `delete` / `undo` など）と中身は `src/FaraAvatarModdingGuide.Web/wwwroot/js/viewport.js` の先頭に書いてあります
 - `hint(e)` で文字列を返すとヒントを表示し、`fail(e)` で文字列を返すと `group` の最初の手順からやり直しになります
 - `skip` は必ず書いてください。「やり直す」や一時停止からの再開は、最初の状態から前の手順の `skip` を順に実行して再現しています
 - `highlight: { object: "Cube", axis: "z", hud: "view" }` で、対象のオブジェクト・軸・左上の視点表示を目立たせます。編集モードでは `at: [x, y, z]`（ワールド座標の点に吹き出し）と `tool: "face"`（上の「頂点 / 辺 / 面・透過・統計・ミラー」ボタンを光らせる）が便利です
@@ -134,11 +134,11 @@ Blender の操作は文章だけでは伝わりにくいので、手順ごとに
 - 編集モードの選択を判定するときは、`select` イベントの `e.edit` と `e.counts`（選択した頂点・辺・面の数）を見ます。どの面を選んだかは `vp.editInfo().faces`（ワールド座標の中心と法線）で確かめられます
 - `skip` でマウス位置に頼る操作（ループカットの辺など）は、`vp.findEdge(条件)` のように条件で対象を決めてください（再現のときはマウスの位置が決まっていないため）
 - 編集モードの操作はおおむね Blender と同じ結果になりますが、ベベルは分割数 1 だけ、差し込みは複数の面でも面ごと（Blender で I を 2 回押したとき）、ナイフ（K）・隠す（H）・編集モードの複製（Shift+D）は未対応です。ミラーはモディファイアーの代わりに上の「ミラー」ボタン（X 方向）で表示します
-- 動作確認は `dotnet run` で記事を開いて最後まで操作し、「次へ（スキップ）」だけでも最後まで進めることを確かめてください。`?debug=1` を付けると、ブラウザのコンソールから `__tutorials` で状態を見られます
+- 動作確認は、ローカルで配信したサイト（README の「ビルドと確認」）で記事を開いて最後まで操作し、「次へ（スキップ）」だけでも最後まで進めることを確かめてください。`?debug=1` を付けると、ブラウザのコンソールから `__tutorials` で状態を見られます
 
 ### Unity のチュートリアル
 
-`engine: "unity"` を付けたシナリオは、Blender の 3D ビューの代わりに Unity エディターに似た練習用の画面（`wwwroot/js/unity.js`）を使います。今あるのは `unity-basics`（unity/editor-overview）と `ma-outfit`（unity/modular-avatar-outfit）です。
+`engine: "unity"` を付けたシナリオは、Blender の 3D ビューの代わりに Unity エディターに似た練習用の画面（`src/FaraAvatarModdingGuide.Web/wwwroot/js/unity.js`）を使います。今あるのは `unity-basics`（unity/editor-overview）と `ma-outfit`（unity/modular-avatar-outfit）です。
 
 ```js
 "my-unity": {
@@ -167,7 +167,7 @@ Blender の操作は文章だけでは伝わりにくいので、手順ごとに
 画像は `wwwroot/images/tutorials/<シナリオ名>/01.webp` 〜 で、サイトの 3D ビューをヘッドレス Chrome で動かして撮ります。**シナリオを追加・変更したら撮り直してください。**
 
 ```bash
-# サイトを起動しておく（dotnet run、または書き出して npx wrangler dev）
+# サイトを起動しておく（README の「ビルドと確認」: publish + Build の出力を dist に置いて npx wrangler dev --env dev）
 node tools/tutorial-images/capture.mjs http://localhost:8787             # すべて
 node tools/tutorial-images/capture.mjs http://localhost:8787 transform   # 指定したシナリオだけ
 ```

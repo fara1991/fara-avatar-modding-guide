@@ -1,0 +1,1620 @@
+/* 練習・記事内チュートリアルの見た目。SSR 版の wwwroot/css/site.css の「操作の練習」〜「記事内チュートリアル」と、練習ページのスマートフォン向け案内を、そのまま移した。
+   色・余白は app.css / base.css の :root の変数(--border・--surface など)を使う。 */
+/* 画面の下のフッター(kit の .fsk-footer。1 行)の高さの目安。ビューとお題のパネルの高さを、フッターに隠れない範囲に収めるのに使う(SSR 版は 3.25rem の固定の帯だった) */
+:root {
+    --footer-h: 2.6rem;
+}
+
+/* ---------- 操作の練習（/practice） ---------- */
+.practice-viewport {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    /* 画面の下のフッター（固定）と、案内行の分を引いて、ビューとお題パネルの下端が見えるように（dvh が使えないときは vh） */
+    max-height: calc(100vh - 3.5rem - var(--footer-h) - 4.5rem);
+    max-height: calc(100dvh - 3.5rem - var(--footer-h) - 4.5rem);
+    background: #3d3d3d;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    user-select: none;
+    outline: none;
+}
+
+/* お題のパネルは、3D ビューと案内行の高さに収め、長いときは中で読む（下のフッターに隠れないように）。広い画面だけ */
+@media (min-width: 992px) {
+    .practice-tasks-card .card-body {
+        max-height: calc(100vh - 3.5rem - var(--footer-h) - 15rem);
+        max-height: calc(100dvh - 3.5rem - var(--footer-h) - 15rem);
+        overflow-y: auto;
+    }
+}
+
+.practice-viewport canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.practice-hud {
+    position: absolute;
+    left: 12px;
+    top: 10px;
+    color: #e6e6e6;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+}
+
+.practice-status {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 4px 12px;
+    background: rgba(24, 24, 24, 0.85);
+    color: #e6e6e6;
+    font-size: 0.8rem;
+    font-family: "Outfit", system-ui, sans-serif;
+    display: flex;
+    gap: 1.5rem;
+    pointer-events: none;
+}
+
+.practice-npanel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 26px;
+    width: 220px;
+    background: rgba(42, 42, 42, 0.95);
+    color: #e6e6e6;
+    font-size: 0.8rem;
+    padding: 10px 12px;
+    overflow-y: auto;
+    border-left: 1px solid #1a1a1a;
+}
+
+.practice-npanel h6 {
+    font-size: 0.8rem;
+    margin: 0.5rem 0 0.25rem;
+    color: #bbb;
+}
+
+.practice-npanel .row-3 {
+    display: grid;
+    grid-template-columns: 1.2rem 1fr;
+    gap: 0.25rem 0.4rem;
+    align-items: center;
+}
+
+.practice-npanel input {
+    width: 100%;
+    background: #545454;
+    border: 1px solid #3a3a3a;
+    border-radius: 3px;
+    color: #fff;
+    font-size: 0.8rem;
+    padding: 1px 6px;
+    text-align: right;
+}
+
+.practice-menu {
+    position: absolute;
+    min-width: 180px;
+    background: #181818;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    padding: 4px 0;
+    color: #e6e6e6;
+    font-size: 0.85rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    z-index: 5;
+}
+
+.practice-menu .title {
+    padding: 4px 12px 6px;
+    color: #999;
+    font-size: 0.75rem;
+}
+
+.practice-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: inherit;
+    padding: 4px 12px;
+}
+
+.practice-menu button:hover {
+    background: #4772b3;
+}
+
+.practice-box {
+    position: absolute;
+    border: 1px dashed #fff;
+    background: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+}
+
+.practice-tasks li {
+    margin-bottom: 0.4rem;
+}
+
+.practice-tasks li.done {
+    color: var(--bs-secondary-color);
+    text-decoration: line-through;
+}
+
+.practice-tasks li.current {
+    font-weight: 600;
+}
+
+.practice-tasks li.current::before {
+    content: "▶ ";
+    color: var(--violet);
+}
+
+.practice-keys kbd {
+    margin-right: 0.15rem;
+}
+
+/* 共同練習: ほかの人のカーソル */
+.vp-remote {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.vp-remote-cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: transform 0.08s linear;
+}
+
+.vp-remote-cursor[hidden] {
+    display: none;
+}
+
+.vp-remote-cursor .dot {
+    width: 12px;
+    height: 12px;
+    margin: -6px 0 0 -6px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--peer);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.vp-remote-cursor .name {
+    max-width: 10rem;
+    padding: 1px 6px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--peer);
+    color: #111;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* 共同練習ページ */
+.room-peers {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.room-peers li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.room-peers li:last-child {
+    border-bottom: none;
+}
+
+.room-peers .swatch {
+    flex: 0 0 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    background: var(--peer);
+}
+
+.room-peers .peer-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.room-peers .btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.room-status.is-ok {
+    color: #4ade80;
+}
+
+.room-status.is-warn {
+    color: #fbbf24;
+}
+
+[data-bs-theme="light"] .room-status.is-ok {
+    color: #15803d;
+}
+
+[data-bs-theme="light"] .room-status.is-warn {
+    color: #b45309;
+}
+
+/* ---------- Unity の練習（wwwroot/js/unity.js）。Unity のダークテーマに近い色で、サイトのテーマに関わらず同じ ---------- */
+.unity-editor {
+    --ue-bg: #383838;
+    --ue-panel: #282828;
+    --ue-tab: #3c3c3c;
+    --ue-line: #1d1d1d;
+    --ue-text: #d2d2d2;
+    --ue-muted: #9a9a9a;
+    --ue-sel: #2c5d87;
+    --ue-input: #2a2a2a;
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(130px, 22%) 1fr minmax(170px, 28%);
+    grid-template-rows: 22px 28px 1fr 118px 20px;
+    grid-template-areas:
+        "menu menu menu"
+        "tools tools tools"
+        "hier scene insp"
+        "proj proj insp"
+        "status status status";
+    height: 560px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--ue-bg);
+    color: var(--ue-text);
+    font-family: system-ui, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+    font-size: 12px;
+    user-select: none;
+    outline: none;
+}
+
+.practice-embed .tut-vp.unity-editor {
+    aspect-ratio: auto;
+}
+
+/* 記事内チュートリアル（Unity）: 読み込む前の枠と、スマートフォン用の画像の比率 */
+.practice-embed[data-engine="unity"] .tut-vp:not(.unity-editor) {
+    height: 560px;
+    border-radius: 8px;
+    background: #383838;
+}
+
+.practice-embed[data-engine="unity"] .tut-step-card img,
+.practice-embed[data-engine="unity"] .tut-step-noimg {
+    aspect-ratio: 1100 / 840;
+}
+
+.unity-editor button {
+    color: inherit;
+    font: inherit;
+}
+
+.ue-menubar {
+    grid-area: menu;
+    display: flex;
+    background: #1f1f1f;
+}
+
+.ue-menubar button {
+    padding: 0 8px;
+    border: 0;
+    background: none;
+}
+
+.ue-menubar button:hover {
+    background: #3e3e3e;
+}
+
+.ue-toolbar {
+    grid-area: tools;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 6px;
+    border-bottom: 1px solid var(--ue-line);
+    background: #2b2b2b;
+}
+
+.ue-toolbar [data-tool] {
+    width: 26px;
+    height: 22px;
+    border: 1px solid #1a1a1a;
+    border-radius: 3px;
+    background: #4a4a4a;
+}
+
+.ue-toolbar [data-tool].is-on {
+    background: #5d84b5;
+    color: #fff;
+}
+
+.ue-toolbar-sep {
+    width: 10px;
+}
+
+.ue-toolbar-label {
+    padding: 2px 6px;
+    border: 1px solid #1a1a1a;
+    border-radius: 3px;
+    background: #3e3e3e;
+    color: var(--ue-muted);
+}
+
+.ue-play {
+    display: flex;
+    gap: 2px;
+    margin: 0 auto;
+    color: var(--ue-muted);
+    font-size: 14px;
+}
+
+.ue-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-right: 1px solid var(--ue-line);
+    border-bottom: 1px solid var(--ue-line);
+    background: var(--ue-panel);
+}
+
+.ue-hierarchy { grid-area: hier; }
+.ue-scene { grid-area: scene; }
+.ue-inspector { grid-area: insp; border-right: 0; }
+.ue-project { grid-area: proj; }
+
+.ue-tab {
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    border-bottom: 1px solid var(--ue-line);
+    background: var(--ue-tab);
+    font-weight: 600;
+}
+
+.ue-hier-list,
+.ue-insp-body,
+.ue-proj-grid {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.ue-scene-row {
+    padding: 2px 6px;
+    background: #323232;
+    color: var(--ue-muted);
+}
+
+.ue-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 20px;
+    padding-right: 4px;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.ue-row:hover {
+    background: #303030;
+}
+
+.ue-row.is-selected {
+    background: var(--ue-sel);
+    color: #fff;
+}
+
+.ue-row.is-prefab .ue-row-name {
+    color: #7fb4ff;
+}
+
+.ue-row.is-inactive {
+    opacity: 0.5;
+}
+
+.ue-fold {
+    flex: 0 0 12px;
+    font-size: 9px;
+    text-align: center;
+    color: var(--ue-muted);
+}
+
+.ue-row-icon {
+    color: var(--ue-muted);
+}
+
+.ue-row-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ue-row-tag {
+    margin-left: auto;
+    padding: 0 4px;
+    border-radius: 3px;
+    background: #4d3b1c;
+    color: #ffcf70;
+    font-size: 10px;
+}
+
+.ue-hier-empty {
+    min-height: 40px;
+}
+
+.ue-scene-view {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.ue-scene-view canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.ue-scene-info {
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    color: #f0f0f0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+}
+
+.ue-preview {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.ue-preview[hidden] { display: none; }
+
+.ue-preview-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(20, 20, 20, 0.88);
+    color: #f0f0f0;
+}
+
+.ue-preview-box .bi {
+    color: #5fd068;
+    font-size: 16px;
+}
+
+.ue-progress {
+    flex: 0 0 60px;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: #444;
+}
+
+.ue-progress span {
+    display: block;
+    width: 40%;
+    height: 100%;
+    background: #5d84b5;
+    animation: ue-progress 0.9s linear infinite;
+}
+
+@keyframes ue-progress {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+}
+
+.ue-insp-empty {
+    padding: 10px;
+    color: var(--ue-muted);
+}
+
+.ue-insp-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    background: #3a3a3a;
+}
+
+.ue-name {
+    flex: 1;
+    min-width: 0;
+    padding: 1px 4px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: var(--ue-input);
+    color: var(--ue-text);
+}
+
+.ue-tagrow {
+    padding: 4px 6px;
+    background: #3a3a3a;
+    border-bottom: 1px solid var(--ue-line);
+}
+
+.ue-tag {
+    flex: 1;
+    padding: 0 2px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: var(--ue-input);
+    color: var(--ue-text);
+}
+
+.ue-comp {
+    border-bottom: 1px solid var(--ue-line);
+}
+
+.ue-comp-head {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 6px;
+    background: #333;
+    font-size: 11.5px;
+}
+
+.ue-comp-head .bi {
+    font-size: 8px;
+    color: var(--ue-muted);
+}
+
+.ue-comp-body {
+    padding: 3px 6px 6px;
+}
+
+.ue-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 20px;
+}
+
+.ue-field-label {
+    flex: 0 0 38%;
+    overflow: hidden;
+    color: var(--ue-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ue-vec {
+    display: flex;
+    flex: 1;
+    gap: 3px;
+    min-width: 0;
+}
+
+.ue-num {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    margin: 0;
+}
+
+.ue-num input::-webkit-inner-spin-button,
+.ue-num input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.ue-num input {
+    appearance: textfield;
+    -moz-appearance: textfield;
+    width: 100%;
+    min-width: 0;
+    padding: 0 2px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: var(--ue-input);
+    color: var(--ue-text);
+    font-size: 11px;
+}
+
+.ue-objfield {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0 4px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: var(--ue-input);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ue-muted {
+    color: var(--ue-muted);
+}
+
+.ue-addcomp-wrap {
+    padding: 10px;
+    text-align: center;
+}
+
+.ue-addcomp {
+    width: 80%;
+    padding: 3px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: #585858;
+}
+
+.ue-proj-path {
+    padding: 2px 8px;
+    color: var(--ue-muted);
+    border-bottom: 1px solid var(--ue-line);
+}
+
+.ue-proj-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 4px;
+    padding: 6px;
+}
+
+.ue-asset {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 74px;
+    padding: 3px 2px;
+    border-radius: 4px;
+    text-align: center;
+    cursor: grab;
+}
+
+.ue-asset .bi {
+    font-size: 26px;
+    color: #7fb4ff;
+}
+
+.ue-asset span {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 10.5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ue-asset:hover {
+    background: #3a3a3a;
+}
+
+.ue-status {
+    grid-area: status;
+    padding: 2px 8px;
+    overflow: hidden;
+    background: #1f1f1f;
+    color: var(--ue-muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ue-popup {
+    position: absolute;
+    z-index: 20;
+}
+
+.ue-popup[hidden] { display: none; }
+
+.ue-menu {
+    min-width: 180px;
+    padding: 3px;
+    border: 1px solid #111;
+    border-radius: 4px;
+    background: #2d2d2d;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.ue-menu button {
+    display: block;
+    width: 100%;
+    padding: 3px 8px;
+    border: 0;
+    border-radius: 3px;
+    background: none;
+    text-align: left;
+}
+
+.ue-menu button:hover:not(:disabled) {
+    background: var(--ue-sel);
+    color: #fff;
+}
+
+.ue-menu button:disabled {
+    color: #6c6c6c;
+}
+
+.ue-menu-title {
+    padding: 2px 8px 4px;
+    color: var(--ue-muted);
+}
+
+.ue-addmenu {
+    width: 230px;
+}
+
+.ue-addsearch {
+    width: 100%;
+    margin-bottom: 3px;
+    padding: 2px 6px;
+    border: 1px solid #1d1d1d;
+    border-radius: 3px;
+    background: var(--ue-input);
+    color: var(--ue-text);
+}
+
+.ue-addlist {
+    max-height: 200px;
+    overflow: auto;
+}
+
+.ue-sdk {
+    position: absolute;
+    left: 50%;
+    top: 56px;
+    z-index: 15;
+    width: min(420px, 92%);
+    transform: translateX(-50%);
+    border: 1px solid #111;
+    border-radius: 6px;
+    background: #2e2e2e;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.ue-sdk[hidden] { display: none; }
+
+.ue-sdk-head {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background: #1f1f1f;
+    font-weight: 600;
+}
+
+.ue-sdk-head button {
+    border: 0;
+    background: none;
+}
+
+.ue-sdk-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 4px 8px 0;
+}
+
+.ue-sdk-tabs span {
+    padding: 2px 10px;
+    border-radius: 4px 4px 0 0;
+    background: #3a3a3a;
+    color: var(--ue-muted);
+}
+
+.ue-sdk-tabs .is-on {
+    background: #4a4a4a;
+    color: #fff;
+}
+
+.ue-sdk-body {
+    display: grid;
+    gap: 6px;
+    padding: 8px;
+    border-top: 1px solid var(--ue-line);
+}
+
+.ue-note {
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.ue-note-warn { background: #4d3b1c; color: #ffd38a; }
+.ue-note-info { background: #24394f; color: #b9d8ff; }
+
+.ue-perf {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ue-perf td,
+.ue-perf th {
+    padding: 2px 4px;
+    border-bottom: 1px solid #3a3a3a;
+    text-align: left;
+}
+
+.ue-rank {
+    padding: 0 5px;
+    border-radius: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+}
+
+.ue-rank-0 { background: #2f7d3c; color: #fff; }
+.ue-rank-1 { background: #3b78b5; color: #fff; }
+.ue-rank-2 { background: #b58a2e; color: #fff; }
+.ue-rank-3 { background: #b5552e; color: #fff; }
+.ue-rank-4 { background: #8e2b2b; color: #fff; }
+
+.ue-sdk-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.ue-sdk-buttons button {
+    flex: 1;
+    padding: 4px;
+    border: 1px solid #111;
+    border-radius: 4px;
+    background: #4f6f97;
+    color: #fff;
+}
+
+.ue-ghost {
+    position: absolute;
+    z-index: 30;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(44, 93, 135, 0.95);
+    color: #fff;
+    pointer-events: none;
+}
+
+.ue-drop {
+    outline: 2px solid #7fb4ff;
+    outline-offset: -2px;
+}
+
+/* チュートリアルの案内（setHighlight） */
+.unity-editor .ue-hl {
+    outline: 2px solid var(--violet);
+    outline-offset: -1px;
+    animation: vp-pulse 1.2s ease-in-out 3;
+}
+
+.ue-hl-label {
+    position: absolute;
+    z-index: 25;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--violet-deep);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    transform: translate(-50%, -100%);
+    pointer-events: none;
+}
+
+.ue-hl-label[hidden] { display: none; }
+
+@media (max-width: 640px) {
+    .unity-editor {
+        grid-template-columns: 34% 1fr;
+        grid-template-rows: 22px 28px 1fr 160px 90px 20px;
+        grid-template-areas:
+            "menu menu"
+            "tools tools"
+            "scene scene"
+            "hier insp"
+            "proj proj"
+            "status status";
+        height: 640px;
+    }
+
+    .ue-menubar {
+        overflow-x: auto;
+    }
+}
+
+/* 3D ビュー上部のボタン（選択モード・透過・統計・ミラー） */
+.vp-tools {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    z-index: 3;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.vp-tools-edit {
+    display: inline-flex;
+}
+
+.vp-tools-edit[hidden] {
+    display: none;
+}
+
+.vp-tools button {
+    padding: 2px 9px;
+    border: 1px solid #1f1f1f;
+    background: #545454;
+    color: #e6e6e6;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.vp-tools > button {
+    border-radius: 4px;
+}
+
+.vp-tools-edit button:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.vp-tools-edit button:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.vp-tools button:hover:not(:disabled) {
+    background: #656565;
+}
+
+.vp-tools button.is-on {
+    background: #4772b3;
+    color: #fff;
+}
+
+.vp-tools button:disabled {
+    opacity: 0.5;
+}
+
+.vp-tools button.is-highlight {
+    position: relative;
+    z-index: 1;
+    outline: 2px solid var(--violet);
+    animation: vp-pulse 1.2s ease-in-out 3;
+}
+
+.vp-stats {
+    margin-top: 0.4rem;
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+.vp-stats[hidden] {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .vp-tools {
+        left: auto;
+        right: 6px;
+        transform: none;
+    }
+
+    .vp-tools button {
+        padding: 1px 6px;
+    }
+}
+
+/* 案内中の対象（viewport.js の setHighlight） */
+.practice-viewport .vp-view.is-highlight {
+    display: inline-block;
+    margin-left: -6px;
+    padding: 0 6px;
+    border-radius: 4px;
+    background: rgba(168, 85, 247, 0.6);
+    animation: vp-pulse 1.2s ease-in-out 3;
+}
+
+.vp-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.vp-marker-label {
+    position: absolute;
+    left: 0;
+    bottom: 12px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--violet-deep);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+    animation: vp-bob 1s ease-in-out 3;
+}
+
+.vp-marker-label::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--violet-deep);
+}
+
+@keyframes vp-bob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -5px); }
+}
+
+@keyframes vp-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); }
+    50% { box-shadow: 0 0 0 4px rgba(168, 85, 247, 0); }
+}
+
+/* ---------- 記事内チュートリアル（::: practice、wwwroot/js/tutorial.js） ---------- */
+.practice-embed {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--surface);
+    line-height: 1.6;
+}
+
+.practice-embed:not(.is-ready) {
+    min-height: 12rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bs-secondary-color);
+}
+
+.practice-embed:not(.is-ready)::before {
+    content: "3D ビューを準備しています…";
+}
+
+.tut-head {
+    display: flex;
+    flex-wrap: nowrap; /* 手順の数字の幅で折り返しが変わり、下の内容がずれないように */
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.tut-label {
+    flex: none;
+    white-space: nowrap;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--violet), var(--indigo));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.tut-title {
+    min-width: 0;
+    font-weight: 700;
+}
+
+.tut-count {
+    flex: none;
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+    color: var(--bs-secondary-color);
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.85rem;
+}
+
+.tut-progress {
+    height: 4px;
+    margin-bottom: 0.75rem;
+    border-radius: 2px;
+    background: var(--border);
+    overflow: hidden;
+}
+
+.tut-progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--grad);
+    transition: width 0.3s ease-out;
+}
+
+.tut-intro {
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.tut-intro > :last-child {
+    margin-bottom: 0;
+}
+
+/* 案内の吹き出し（下のビューを指す） */
+.tut-bubble {
+    position: relative;
+    margin-bottom: 14px;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--bs-secondary-bg);
+}
+
+.tut-bubble::before,
+.tut-bubble::after {
+    content: "";
+    position: absolute;
+    left: 1.6rem;
+    top: 100%;
+    border: 9px solid transparent;
+    border-top-color: var(--border-strong);
+}
+
+.tut-bubble::after {
+    left: calc(1.6rem + 1px);
+    border-width: 8px;
+    border-top-color: var(--bs-secondary-bg);
+}
+
+.tut-bubble.is-ok {
+    animation: tut-flash 0.7s ease-out;
+}
+
+@keyframes tut-flash {
+    0% { box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.6); border-color: #4ade80; }
+    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+.tut-text {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+}
+
+.tut-step-no {
+    flex: 0 0 1.6rem;
+    height: 1.6rem;
+    margin-top: 0.05rem;
+    border-radius: 50%;
+    background: var(--violet-deep);
+    color: #fff;
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 「できました！」やヒントは吹き出しの外（ビューの上）に重ねる。吹き出しの高さが変わって、ビューがずれないようにするため */
+.tut-msg {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    z-index: 4;
+    max-width: calc(100% - 90px);
+    padding: 0.3rem 0.7rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: rgba(12, 6, 22, 0.88);
+    color: #f3edff;
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
+.tut-msg[hidden] {
+    display: none;
+}
+
+.tut-msg.is-ok {
+    border-color: #4ade80;
+    color: #86efac;
+    font-weight: 600;
+}
+
+.tut-msg.is-hint,
+.tut-msg.is-info {
+    border-color: #67e8f9;
+}
+
+.tut-msg.is-warn {
+    border-color: #fbbf24;
+}
+
+.tut-stage {
+    position: relative;
+}
+
+.practice-embed.is-focused .tut-vp {
+    border-color: var(--violet);
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.45);
+}
+
+/* 画面下のキー表示。押すと沈む */
+.tut-keys {
+    position: absolute;
+    left: 50%;
+    bottom: 34px;
+    z-index: 2;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    color: #ddd;
+    pointer-events: none;
+}
+
+.practice-embed .tut-keys kbd {
+    padding: 4px 10px;
+    border: 1px solid #6b6b6b;
+    border-radius: 6px;
+    background: #2b2b2b;
+    box-shadow: 0 3px 0 #111;
+    color: #fff;
+    font-size: 1rem;
+    transition: transform 0.08s, background-color 0.08s, box-shadow 0.08s;
+}
+
+.practice-embed .tut-keys kbd.is-pressed {
+    transform: translateY(3px);
+    background: var(--violet-deep);
+    box-shadow: 0 0 0 #111;
+}
+
+.tut-mouse {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #eee;
+    font-size: 0.8rem;
+}
+
+.tut-ok {
+    position: absolute;
+    right: 16px;
+    top: 14px;
+    z-index: 4;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.92);
+    color: #fff;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tut-ok.is-on {
+    animation: tut-pop 0.7s ease-out;
+}
+
+@keyframes tut-pop {
+    0% { opacity: 0; transform: scale(0.5); }
+    25% { opacity: 1; transform: scale(1.1); }
+    60% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1); }
+}
+
+.tut-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    border: none;
+    border-radius: 8px;
+    background: rgba(12, 6, 22, 0.55);
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.tut-overlay[hidden] {
+    display: none;
+}
+
+.tut-overlay > span {
+    padding: 0.6rem 1.3rem;
+    border-radius: 999px;
+    background: var(--violet-deep);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.tut-overlay.is-light {
+    background: rgba(12, 6, 22, 0.25);
+}
+
+.tut-overlay.is-light > span {
+    font-size: 0.9rem;
+}
+
+.tut-complete {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    padding: 1rem;
+    border-radius: 8px;
+    background: rgba(20, 10, 38, 0.85);
+    color: #fff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.tut-complete[hidden] {
+    display: none;
+}
+
+.tut-complete-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.tut-complete-title .bi {
+    color: #fbbf24;
+}
+
+/* 画像で見る（スマートフォン・「画像で見る」）。手順ごとの画像を横にめくる */
+.practice-embed.is-images .tut-bubble,
+.practice-embed.is-images .tut-stage,
+.practice-embed.is-images .tut-toolbar > :not(.tut-mode-btn) {
+    display: none;
+}
+
+.tut-steps[hidden] {
+    display: none;
+}
+
+.tut-steps-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    border-radius: 8px;
+}
+
+.tut-steps-track::-webkit-scrollbar {
+    display: none;
+}
+
+.tut-step-card {
+    flex: 0 0 100%;
+    margin: 0;
+    scroll-snap-align: start;
+}
+
+.practice-embed .tut-step-card img,
+.tut-step-noimg {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    margin: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #3d3d3d;
+}
+
+.tut-step-noimg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #cfcfcf;
+    font-size: 0.85rem;
+}
+
+.tut-step-card figcaption {
+    padding: 0.6rem 0.1rem 0;
+}
+
+.tut-step-keys {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.4rem 0 0 2.2rem;
+}
+
+.tut-mouse-inline {
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+}
+
+.tut-steps-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0.6rem 0 0.4rem;
+}
+
+.tut-steps-count {
+    font-family: "Outfit", system-ui, sans-serif;
+    color: var(--bs-secondary-color);
+}
+
+/* 画像を作るとき（tools/tutorial-images/）は、ビューの上に重ねる表示を消す */
+.practice-embed.is-capturing .tut-overlay,
+.practice-embed.is-capturing .tut-keys,
+.practice-embed.is-capturing .tut-ok,
+.practice-embed.is-capturing .tut-msg,
+.practice-embed.is-capturing .tut-complete {
+    display: none !important;
+}
+
+.practice-embed.is-capturing .tut-vp {
+    border-color: var(--border);
+    box-shadow: none;
+}
+
+.tut-toolbar .btn-outline-secondary,
+.tut-steps-nav .btn-outline-secondary {
+    --bs-btn-color: var(--bs-body-color);
+    --bs-btn-border-color: var(--border-strong);
+    --bs-btn-hover-color: var(--bs-body-color);
+    --bs-btn-hover-bg: rgba(168, 85, 247, 0.12);
+    --bs-btn-hover-border-color: var(--violet);
+}
+
+.tut-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+
+.tut-error {
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.practice-viewport .tut-error {
+    color: #e6e6e6;
+}
+
+@media (max-width: 640px) {
+    .tut-tip {
+        display: none;
+    }
+
+    .practice-embed {
+        padding: 0.75rem;
+    }
+
+    .practice-embed .tut-keys kbd {
+        font-size: 0.8rem;
+        padding: 2px 7px;
+    }
+
+    .practice-npanel {
+        width: 160px;
+    }
+}
+
+[data-bs-theme="light"] .practice-embed {
+    box-shadow: 0 2px 10px rgba(80, 40, 140, 0.08);
+}
+
+/* 動きを減らす設定(prefers-reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+    .vp-marker-label,
+    .vp-tools button.is-highlight,
+    .practice-viewport .vp-view.is-highlight,
+    .unity-editor .ue-hl,
+    .ue-progress span,
+    .tut-bubble.is-ok {
+        animation: none;
+    }
+
+    /* 「できた」の印は動かさず、出して消すだけにする */
+    .tut-ok.is-on {
+        animation: tut-pop-still 0.7s linear;
+    }
+
+    .tut-progress span {
+        transition: none;
+    }
+}
+
+@keyframes tut-pop-still {
+    0%, 85% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* 練習ページのスマートフォン向け案内（Web の Layout/TouchPracticeGuide.razor）。
+   タッチだけの端末（記事内チュートリアルの「画像で見る」と同じ判定）では、キーボード操作の練習を隠して案内を出す */
+@media (hover: none) and (pointer: coarse) {
+    .practice-pc-only {
+        display: none !important;
+    }
+}
+
+.touch-practice-note {
+    margin: 0 0 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border-strong);
+    border-left: 4px solid var(--bs-primary);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.touch-practice-note h2 {
+    margin-bottom: 0.4rem;
+}
+
+.touch-practice-links {
+    margin: 0 0 1rem;
+    padding-left: 0;
+}
+
+.touch-practice-links li {
+    padding: 0.35rem 0;
+}
+
+.touch-practice-item {
+    margin: 0 0 0.75rem;
+}
+
+.touch-practice-item > summary {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.touch-practice-sum {
+    font-weight: 400;
+    color: var(--bs-secondary-color);
+}
+
+.touch-practice-item[open] > summary {
+    margin-bottom: 0.5rem;
+}
+
+.touch-practice-item .practice-embed {
+    margin-top: 0.5rem;
+}
+

@@ -1,4 +1,4 @@
-// サイト内検索（wwwroot/js/searchcore.js）の読みの判定のテスト。  node --test tests/js/search.test.mjs
+// サイト内検索（tests/js/fixtures/searchcore.reference.js）の読みの判定のテスト。  node --test tests/js/search.test.mjs
 // 題名の読み（reading）でローマ字・かなから探せること、既存の一致（題名・小見出し・本文）の点数が変わらないこと、
 // 2 文字のかなは完全・前方一致だけ、長音の揺れを同じに扱うことを確かめる。
 import { test } from "node:test";
@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 
-const SRC = readFileSync(new URL("../../wwwroot/js/searchcore.js", import.meta.url), "utf8");
+const SRC = readFileSync(new URL("./fixtures/searchcore.reference.js", import.meta.url), "utf8");
 const sandbox = { window: {}, console };
 runInNewContext(SRC, sandbox);
 const S = sandbox.window.faraSearch;
@@ -93,13 +93,14 @@ test("読みを消した索引と比べて、既存の一致（題名・小見�
   }
 });
 
-// ---- 実際の索引（dist/search-index.json。書き出し: dotnet run -- --export dist）での回帰テスト ----
+// ---- 実際の索引（Build が書く search-index.json）での回帰テスト ----
+// 場所は環境変数 SEARCH_INDEX_FILE（既定: publish/wwwroot/search-index.json。dotnet publish のあと Build を実行すると出る）
 // 変更前後で上位の並びが崩れていないことと、2 文字のかな（ローマ字から変換した形）の誤ヒットが出ないことを確かめる。
-const INDEX_FILE = new URL("../../dist/search-index.json", import.meta.url);
+const INDEX_FILE = process.env.SEARCH_INDEX_FILE ?? new URL("../../publish/wwwroot/search-index.json", import.meta.url);
 function realIndex() {
   let raw;
   try { raw = readFileSync(INDEX_FILE, "utf8"); } catch {
-    throw new Error("dist/search-index.json がない。先に dotnet run -- --export dist を実行する");
+    throw new Error("search-index.json がない。先に dotnet publish と Build を実行して、SEARCH_INDEX_FILE で場所を指定する（README のビルド手順）");
   }
   return JSON.parse(raw).map(S.prepare);
 }

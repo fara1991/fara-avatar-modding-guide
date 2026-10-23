@@ -1,0 +1,26 @@
+@* 用語集・何て名前？・TIPS・Q&A の絞り込み（文字とタグ）。静的 HTML（Build の Fragments.TipsFilter）と同じ構造。状態は、ページ（Pages/Tips/FilterPage）が持つ *@
+<div class="tips-filter mb-4"><input type="search" class="form-control mb-2" placeholder="@Placeholder" aria-label="この一覧を絞り込む" autocomplete="off" value="@Query" @oninput="OnInput" /><div class="d-flex flex-wrap gap-2" role="group" aria-label="タグで絞り込む"><button type="button" class="@ButtonClass("")" aria-pressed="@Pressed("")" @onclick="@(() => OnTag.InvokeAsync(""))">すべて</button>@foreach (var tag in Tags) {<button type="button" class="@ButtonClass(tag)" aria-pressed="@Pressed(tag)" @onclick="@(() => OnTag.InvokeAsync(tag))">@tag</button>}@if (HasDiscord) {<button type="button" class="@ButtonClass("source:discord")" aria-pressed="@Pressed("source:discord")" @onclick="@(() => OnTag.InvokeAsync("source:discord"))">Discord より</button>}</div><p class="small text-body-secondary mt-2 mb-0" aria-live="polite">@CountText</p></div>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<string> Tags { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "この一覧を絞り込む";
+    [Parameter] public bool HasDiscord { get; set; }
+
+    /// <summary>入力している文字。</summary>
+    [Parameter] public string Query { get; set; } = "";
+
+    /// <summary>選んでいるタグ（空はすべて）。</summary>
+    [Parameter] public string Tag { get; set; } = "";
+
+    /// <summary>「N 件」または「N 件中 M 件」。</summary>
+    [Parameter] public string CountText { get; set; } = "";
+
+    [Parameter] public EventCallback<string?> OnQuery { get; set; }
+    [Parameter] public EventCallback<string> OnTag { get; set; }
+
+    private Task OnInput(ChangeEventArgs e) => OnQuery.InvokeAsync(e.Value?.ToString());
+
+    private string ButtonClass(string tag) => "btn btn-sm " + (Tag == tag ? "btn-primary" : "btn-outline-primary");
+
+    private string Pressed(string tag) => Tag == tag ? "true" : "false";
+}

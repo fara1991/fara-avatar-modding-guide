@@ -6,8 +6,13 @@ obj/
 *.userosscache
 *.sln.docstates
 
-## 静的サイトの書き出し先 (dotnet run -- --export dist)
+## wrangler の assets（公開物を置く。deploy.yml が環境ごとの出力を dist に置く）
 dist/
+
+## dotnet publish の出力と、Build が環境ごとに書き足したコピー（deploy.yml / README のビルド手順）
+publish/
+site-production/
+site-develop/
 
 ## IDE
 .idea/
@@ -17,3 +22,6 @@ dist/
 
 ## Claude Code
 .claude/
+
+## wrangler dev の作業フォルダ
+.wrangler/

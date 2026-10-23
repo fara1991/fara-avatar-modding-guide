@@ -1,0 +1,241 @@
+@page "/learn/{CategoryId}/{Slug}"
+@inherits ProgressAware
+@implements IAsyncDisposable
+@inject ContentStore Store
+@inject SiteSettings Settings
+@inject IJSRuntime JS
+
+@* 静的 HTML（Build の PageBodies.Article）と同じ構造・class。本文（article.Html）は Build が Markdig で HTML にしたもの。
+   目次の「今読んでいる見出し」は js/toc.js が見つけて、このページに知らせる（SetCurrentHeading）。完了の記録は ProgressStore（localStorage）。
+   記事が無いとき（content.json に無い URL）は、404 の表示 *@
+@if (Store.Content is not { } content || category is null || article is null)
+{
+    <NotFoundView HomeHref="/" />
+}
+else
+{
+    var done = Progress.IsDone(article.Id);
+    <PageTitle>@article.Title - @Settings.Title</PageTitle>
+    <Breadcrumb Items="@Crumbs(content)" />
+
+    <header class="article-header mb-4" data-progress-page="@article.Id">
+        <h1>@article.Title</h1>
+        <div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary small">
+            <DoneBadge Done="@done" />
+            <DifficultyBadge Difficulty="@article.Difficulty" />
+            @* 対象のソフトとバージョン。Unity / VRChat の区切りの記事は Unity のバージョン *@
+            @if (category.Section is "unity" or "vrchat")
+            {
+                <span><AvIcon Name="GridView" /> Unity @Settings.UnityVersion</span>
+            }
+            else
+            {
+                <span><AvIcon Name="ViewInAr" /> Blender @(article.BlenderVersion ?? Settings.BlenderVersion)</span>
+            }
+            @if (article.Updated is { } updated)
+            {
+                <span><AvIcon Name="History" /> 更新: @updated</span>
+            }
+        </div>
+        @if (!string.IsNullOrEmpty(article.Description))
+        {
+            <p class="lead mt-2 mb-0">@article.Description</p>
+        }
+    </header>
+
+    @* スマートフォンでは記事タイトルの下に畳んで置く。PC は右の列（js/toc.js が今読んでいる見出しを強調する） *@
+    @if (headings.Count > 0)
+    {
+        <details class="article-toc-mobile d-lg-none mb-4">
+            <summary>この記事の目次（@headings.Count）</summary>
+            <ol class="toc-list">
+                @foreach (var h in headings)
+                {
+                    <li><a href="@article.Url#@h.Id" class="@CurrentClass(h.Id)" aria-current="@CurrentAria(h.Id)">@h.Text</a></li>
+                }
+            </ol>
+        </details>
+    }
+
+    <div class="row g-4">
+        <div class="@(HasAside ? "col-lg-9" : "col-12")">
+            <div class="article-body">
+                @((MarkupString)article.Html)
+            </div>
+        </div>
+
+        @if (HasAside)
+        {
+            <aside class="col-lg-3" aria-label="この記事の補足">
+                <div class="article-aside">
+                    @if (headings.Count > 0)
+                    {
+                        <nav class="article-toc d-none d-lg-block" aria-labelledby="article-toc-title">
+                            <div class="article-toc-title" id="article-toc-title">この記事の目次</div>
+                            <ol class="toc-list">
+                                @foreach (var h in headings)
+                                {
+                                    <li><a href="@article.Url#@h.Id" class="@CurrentClass(h.Id)" aria-current="@CurrentAria(h.Id)">@h.Text</a></li>
+                                }
+                            </ol>
+                        </nav>
+                    }
+                    @if (article.Shortcuts.Count > 0)
+                    {
+                        <div class="card article-keys">
+                            <div class="card-header"><AvIcon Name="Keyboard" Class="me-1" />この記事で使うキー</div>
+                            <ul class="list-group list-group-flush">
+                                @foreach (var key in article.Shortcuts)
+                                {
+                                    var shortcut = content.Shortcuts.FirstOrDefault(x => x.Key == key);
+                                    <li class="list-group-item d-flex justify-content-between align-items-center gap-2"><kbd>@key</kbd>@if (shortcut is not null) {<a href="/shortcuts?category=@SiteLookups.Q(shortcut.Category)" class="small text-decoration-none">@shortcut.Function</a>}</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </aside>
+        }
+    </div>
+
+    <div class="article-complete d-flex flex-wrap align-items-center gap-3 mt-5">
+        <button type="button" class="@("btn btn-progress" + (done ? " is-done" : ""))" aria-pressed="@(done ? "true" : "false")" @onclick="() => Progress.Set(article.Id, !done)">
+            @if (done)
+            {
+                <AvIcon Name="CheckCircle" /><text> 完了済み（クリックで取り消す）</text>
+            }
+            else
+            {
+                <AvIcon Name="RadioButtonUnchecked" /><text> このページを完了にする</text>
+            }
+        </button>
+        <span class="small text-body-secondary">完了の記録はこのブラウザにだけ保存されます。</span>
+    </div>
+
+    <nav class="article-nav d-flex justify-content-between gap-3 mt-4 pt-4 border-top" aria-label="前後の記事">
+        @if (prev is not null)
+        {
+            <a href="@prev.Url" class="btn btn-outline-secondary text-start"><small class="d-block text-body-secondary">← 前へ</small>@prev.Title</a>
+        }
+        else
+        {
+            <span></span>
+        }
+        @if (next is not null)
+        {
+            <a href="@next.Url" class="btn btn-primary text-end"><small class="d-block">次へ →</small>@next.Title</a>
+        }
+    </nav>
+}
+
+@code {
+    [Parameter] public string CategoryId { get; set; } = string.Empty;
+    [Parameter] public string Slug { get; set; } = string.Empty;
+
+    private CategoryDto? category;
+    private ArticleDto? article;
+    private ArticleDto? prev;
+    private ArticleDto? next;
+    private IReadOnlyList<(string Id, string Text)> headings = [];
+    private string? currentHeading;
+    private string? observedUrl;
+    private DotNetObjectReference<ArticlePage>? self;
+    private PracticeHost? tutorials;
+    private string? tutorialsUrl;
+
+    // 目次は h2 が 3 個以上の記事だけ。PC は右の列に目次とキー一覧を並べる
+    private bool HasAside => article is not null && (headings.Count > 0 || article.Shortcuts.Count > 0);
+
+    protected override void OnParametersSet()
+    {
+        var content = Store.Content;
+        category = content?.CategoryById(CategoryId);
+        var found = category is null ? null : content!.ArticleOf(category.Id, Slug);
+        if (found?.Url != article?.Url) currentHeading = null;
+        article = found;
+        (prev, next) = article is null ? (null, null) : content!.Neighbors(article);
+        headings = article is null ? [] : SiteLookups.Headings(article.Html);
+    }
+
+    /// <summary>描画のあとで、いまの記事の見出しの監視と、記事内チュートリアル(::: practice)を、記事が替わったときだけ始め直す。</summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await SyncTocAsync();
+        await SyncTutorialsAsync();
+    }
+
+    /// <summary>
+    /// 記事内チュートリアル: 本文(MarkupString)の中の空の div(.practice-embed)に、tutorial.js が 3D ビューを埋め込む。
+    /// 記事が替わったとき(このページの部品は再利用される)・離れるときに、前の記事のチュートリアル(WebGL のコンテキスト・観察・イベント)を解放してから、次を始める。
+    /// </summary>
+    private async Task SyncTutorialsAsync()
+    {
+        var url = article is { PracticeScenarios.Count: > 0 } ? article.Url : null;
+        if (url == tutorialsUrl) return;
+        tutorialsUrl = url;
+        if (tutorials is not null) await tutorials.DisposeAsync();
+        tutorials = null;
+        if (url is null) return;
+        tutorials = new PracticeHost(JS);
+        await tutorials.StartArticleAsync(".article-body");
+    }
+
+    private async Task SyncTocAsync()
+    {
+        var url = article is not null && headings.Count > 0 ? article.Url : null;
+        if (url == observedUrl) return;
+        observedUrl = url;
+        try
+        {
+            if (url is null) await JS.InvokeVoidAsync("avatarToc.stop");
+            else
+            {
+                self ??= DotNetObjectReference.Create(this);
+                await JS.InvokeVoidAsync("avatarToc.start", self, headings.Select(h => h.Id).ToArray());
+            }
+        }
+        catch (JSException) { /* 目次の強調は飾りなので、JS が使えなくても本文は読める */ }
+    }
+
+    /// <summary>js/toc.js から: 今読んでいる見出し（なければ null）。</summary>
+    [JSInvokable]
+    public void SetCurrentHeading(string? id)
+    {
+        if (id == currentHeading) return;
+        currentHeading = id;
+        StateHasChanged();
+    }
+
+    private string? CurrentClass(string id) => id == currentHeading ? "is-current" : null;
+
+    private string? CurrentAria(string id) => id == currentHeading ? "location" : null;
+
+    private IReadOnlyList<(string? Href, string Text)> Crumbs(SiteContent content)
+    {
+        var crumbs = new List<(string?, string)> { ("/learn", "目次") };
+        if (content.SectionOf(category!) is { } section) crumbs.Add(($"/learn#section-{section.Id}", section.Title));
+        crumbs.Add(($"/learn/{category!.Id}", category.Title));
+        crumbs.Add((null, article!.Title));
+        return crumbs;
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        if (observedUrl is not null && JS is IJSInProcessRuntime sync)
+        {
+            try { sync.InvokeVoid("avatarToc.stop"); }
+            catch (JSException) { }
+        }
+        self?.Dispose();
+    }
+
+    /// <summary>記事を離れるとき: 目次の監視と完了の記録の購読(Dispose)に加えて、記事内チュートリアルの 3D を解放する。IAsyncDisposable があると Blazor は DisposeAsync だけを呼ぶので、Dispose もここから呼ぶ。</summary>
+    public async ValueTask DisposeAsync()
+    {
+        Dispose();
+        tutorialsUrl = null;
+        if (tutorials is not null) await tutorials.DisposeAsync();
+        tutorials = null;
+    }
+}

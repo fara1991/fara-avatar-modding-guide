@@ -1,0 +1,15 @@
+@inherits ProgressAware
+@* 記事のカード（カテゴリのページ）。静的 HTML（Build の PageBodies.Category）と同じ構造・class *@
+<a href="@Article.Url" class="@("article-card card h-100 text-decoration-none" + (Progress.IsDone(Article.Id) ? " is-done" : ""))" data-article="@Article.Id">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+            <h5 class="card-title mb-0"><span class="badge bg-primary me-2">@Article.Order</span>@Article.Title</h5>
+            <div class="d-flex flex-column align-items-end gap-1"><DifficultyBadge Difficulty="@Article.Difficulty" /><DoneBadge Done="@Progress.IsDone(Article.Id)" /></div>
+        </div>
+        <p class="card-text text-body-secondary mb-0">@Article.Description</p>
+    </div>
+</a>
+
+@code {
+    [Parameter, EditorRequired] public required ArticleDto Article { get; set; }
+}

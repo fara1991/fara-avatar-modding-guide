@@ -1,0 +1,58 @@
+@page "/links"
+@inject ContentStore Store
+@inject SiteSettings Settings
+
+<PageTitle>リンク集 - @Settings.Title</PageTitle>
+
+<h1>リンク集</h1>
+<p class="lead">アバター改変の相談で紹介されたツール・資料・商品のリンクです。Blender のアドオンは <a href="/addons">アドオン</a> のページにまとめています。</p>
+<p class="small text-body-secondary">外部のサイトです。配布・販売の状況や対応バージョンは変わることがあるので、使う前・買う前にリンク先で確かめてください。<span class="badge bg-warning text-dark">古い情報</span> は、今は別の方法が主流になっている・販売や更新が終わっている可能性があるものです。</p>
+
+@if (Store.Content is not { } content)
+{
+    <p class="text-body-secondary" role="status">リンクを読み込めませんでした。ページを再読み込みしてください。</p>
+}
+else
+{
+    <nav class="links-toc mb-4" aria-label="区切り">
+        @foreach (var c in content.LinkCategories)
+        {
+            <a href="/links#@c.Id" class="btn btn-sm btn-outline-primary"><AvIcon Name="@c.Icon" /> @c.Title <span class="text-body-secondary">(@content.Links.Count(l => l.Category == c.Id))</span></a>
+        }
+    </nav>
+
+    @foreach (var c in content.LinkCategories)
+    {
+        <section class="links-section mb-5" id="@c.Id">
+            <h2 class="h4"><AvIcon Name="@c.Icon" Class="me-2" />@c.Title</h2>
+            <p class="text-body-secondary small">@c.Description</p>
+            <ul class="link-list list-unstyled">
+                @foreach (var l in content.Links.Where(l => l.Category == c.Id))
+                {
+                    <li class="link-item" id="@l.Id">
+                        <div class="d-flex flex-wrap align-items-baseline gap-2">
+                            <a href="@l.Url" target="_blank" rel="noopener" class="link-name">@l.Name <AvIcon Name="OpenInNew" Class="small" /></a>
+                            @if (l.Status == "old")
+                            {
+                                <span class="badge bg-warning text-dark" title="今は別の方法が主流・販売や更新が終わっている可能性があります">古い情報</span>
+                            }
+                            else if (l.Status == "current")
+                            {
+                                <span class="badge bg-success" title="今も使われているもの">今も使われている</span>
+                            }
+                            @if (l.Source == "discord")
+                            {
+                                <span class="tip-tag tip-source-discord" title="Discord での質問・会話で紹介されたもの"><AvIcon Name="Forum" /> Discord より</span>
+                            }
+                        </div>
+                        <div class="small">@l.Description</div>
+                        @if (!string.IsNullOrEmpty(l.Note))
+                        {
+                            <div class="small text-body-secondary">@l.Note</div>
+                        }
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+}

@@ -1,0 +1,44 @@
+@* スマートフォン・タブレット(タッチだけの端末)で練習ページを開いたときの案内。
+   キーボードとマウスが必要な練習は出さず、代わりに記事内チュートリアルの「画像で見る」を並べる。
+   PC では何も出ない(hidden のまま。js/practice-entry.js は、タッチだけの端末のときに限って hidden を外し、中の .practice-embed に tutorial.js を始める)。
+   旧 SSR 版(Phase 5 で削除。Components/Shared/TouchPracticeGuide.razor)は <template> に入れていたが、Blazor は <template> の中身を .content ではなく子として作るので、
+   PC では hidden の中に置く(タッチ端末でだけ tutorial.js が動く)。静的 HTML(Build の PageBodies.TouchGuide)と同じ構造にする(Web.Tests が突き合わせる)。 *@
+<section class="touch-practice" id="touch-practice" aria-labelledby="touch-practice-title" hidden>
+    <div class="touch-practice-note">
+        <h2 class="h5" id="touch-practice-title"><AvIcon Name="Keyboard" /> この練習はパソコンで開いてください</h2>
+        <p class="mb-0">@Message</p>
+    </div>
+    @if (!Embed)
+    {
+        <ul class="touch-practice-links list-unstyled">
+            @foreach (var i in Items)
+            {
+                <li><a href="@i.Url">@i.Title</a></li>
+            }
+        </ul>
+    }
+    else
+    {
+        @foreach (var i in Items)
+        {
+            <details class="touch-practice-item">
+                <summary>@i.Title<span class="touch-practice-sum"> を画像で見る</span></summary>
+                <div class="practice-embed" data-scenario="@i.Scenario"></div>
+                <p class="small mb-0"><a href="@i.Url">記事を開く</a></p>
+            </details>
+        }
+    }
+</section>
+
+@code {
+    public record Item(string Scenario, string Title, string Url);
+
+    [Parameter, EditorRequired] public IReadOnlyList<Item> Items { get; set; } = [];
+
+    /// <summary>true なら、各項目に記事内チュートリアルの「画像で見る」を埋め込む。false ならリンクだけ(みんなで練習)。</summary>
+    [Parameter] public bool Embed { get; set; } = true;
+
+    [Parameter] public string Message { get; set; } = DefaultMessage;
+
+    public const string DefaultMessage = "キーボードとマウスが必要なので、スマートフォンでは操作できません。代わりに、手順を画像で見られます。";
+}

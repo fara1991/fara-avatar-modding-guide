@@ -2,7 +2,9 @@
 
 アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。
 サイト名は `appsettings.json` の `Site:Title` にだけ書いてあり、画面の表示はすべてそこから取ります（名前を変えるときはそこだけ直す）。
-.NET 10 の Blazor Web App（静的サーバーサイドレンダリング）で実装し、記事は Markdown で管理しています。
+.NET 10 の Blazor WebAssembly + MudBlazor で実装し、記事は Markdown で管理しています。ページごとの本文入りの静的 HTML をビルド時に作り（検索エンジン・JavaScript が無い環境向け）、読み込み後に WebAssembly が引き継ぎます。
+
+> 2026-10 に、静的サーバーサイドレンダリング（Blazor Web App）から Blazor WebAssembly + MudBlazor に移行しました（計画と記録: [docs/wasm-migration-plan.md](docs/wasm-migration-plan.md)、切り替えと戻し方: [docs/release-switch-and-rollback.md](docs/release-switch-and-rollback.md)）。URL・本文・localStorage のキーは移行前と同じです。
 
 ## 特徴
 
@@ -10,41 +12,76 @@
 - **1記事 = 1 URL**: 記事ごとにブックマーク・共有・検索エンジンからの到達ができる
 - **ショートカット連携**: 各記事に「この記事で使うキー」を表示し、一覧ページで逆引きできる
 - **Markdown で執筆**: `Content/` 以下にファイルを置くだけで記事を追加できる（コードの変更不要）
+- **操作の練習**: ブラウザ上の 3D ビューで Blender と同じキー操作を試せる（共同練習の部屋つき）
 - **レスポンシブ**: スマートフォンでも閲覧可能
 
 ## 公開 URL
 
-| 環境 | URL | ブランチ |
-| --- | --- | --- |
-| 本番 | https://avatar.fara-labs.com | `master` |
-| 開発 | https://avatar-dev.fara-labs.com（Cloudflare Access で自分だけが閲覧可能） | `develop` |
+| 環境 | URL | ブランチ | Worker |
+| --- | --- | --- | --- |
+| 本番 | https://avatar.fara-labs.com | `master` | `fara-avatar` |
+| 確認用 | https://avatar-dev.fara-labs.com（Cloudflare Access で自分だけが閲覧可能） | `develop` | `fara-avatar-dev` |
 
-Cloudflare の Worker 名は本番 `fara-avatar`、develop `fara-avatar-dev` です（`wrangler.toml` の `name` はダッシュボードの Worker 名と一致させる。違うと別の Worker が作られる）。
+`wrangler.toml` の `name` はダッシュボードの Worker 名と一致させます（違うと別の Worker が作られる）。
+
+**本番（master）へは、`develop` → `master` の Pull Request のマージ（ユーザーが行う）でしか届きません。** 作業のブランチは `develop` から切り、PR は `develop` 向けに作ります。
 
 ## 技術スタック
 
-- .NET 10 / ASP.NET Core Blazor Web App（静的 SSR、SignalR 接続なし）
-- 公開時は静的サイトとして書き出し、Cloudflare Workers（Static Assets + Durable Objects）でホスティング
-- [Markdig](https://github.com/xoofx/markdig)（Markdown → HTML）
-- [YamlDotNet](https://github.com/aaubry/YamlDotNet)（フロントマター・データファイル）
-- Bootstrap 5.3 / Bootstrap Icons（CDN）
+- .NET 10 / Blazor WebAssembly（ホスティングは静的ファイルのみ。サーバーで .NET は動かさない）
+- [MudBlazor](https://mudblazor.com/)（画面部品）
+- 共通部品: [fara-site-kit](https://github.com/fara1991/fara-site-kit)（`external/fara-site-kit`。git submodule。レイアウト・フッター・報告フォーム・メンテナンス表示・静的 HTML の生成・CSP・Worker の共有 JS）
+- [Markdig](https://github.com/xoofx/markdig)（Markdown → HTML）と [YamlDotNet](https://github.com/aaubry/YamlDotNet)（フロントマター・データ）は、ビルド時だけ使う（ブラウザには載らない）
+- Three.js（練習の 3D。`src/FaraAvatarModdingGuide.Web/wwwroot/lib/three/` に同梱）
+- Cloudflare Workers（Static Assets + Durable Objects）でホスティング
 
 ## セットアップ
 
 ### 前提条件
 
 - .NET 10.0 SDK
-
-### 実行
+- Node.js 22 以上（静的 HTML の生成に kit の Node ツールを使う。テストにも使う）
+- `external/fara-site-kit` の submodule（無いとビルド・テストが失敗する）
 
 ```bash
-git clone https://github.com/fara1991/fara-avatar-modding-guide.git
+git clone --recurse-submodules https://github.com/fara1991/fara-avatar-modding-guide.git
 cd fara-avatar-modding-guide
-dotnet run
+# すでに clone してあるとき: git submodule update --init
 ```
 
-起動後、`Properties/launchSettings.json` に書かれた URL（既定では `https://localhost:55505`）を開いてください。
-開発環境では `Content/` の変更がブラウザをリロードするだけで反映されます。
+### ビルドと確認
+
+公開物は 3 段で作ります（CI の `.github/workflows/deploy.yml` も同じ手順）。
+
+```bash
+# 1. WebAssembly のアプリ（publish/wwwroot）
+dotnet publish src/FaraAvatarModdingGuide.Web -c Release -o publish
+
+# 2. 公開物のコピーに、Build が本文入りの静的 HTML・データの JSON・robots・sitemap・_headers などを書き足す
+#    --env develop    = 確認用（X-Robots-Tag: noindex・sitemap なし・canonical は avatar-dev）
+#    --env production = 本番用（noindex なし・sitemap あり・canonical は avatar.fara-labs.com）
+rm -rf dist && cp -r publish/wwwroot dist        # PowerShell: Remove-Item dist -Recurse -Force; Copy-Item publish/wwwroot dist -Recurse
+dotnet run --project src/FaraAvatarModdingGuide.Build -c Release -- --template publish/wwwroot/index.html --out dist --env develop
+
+# 3. Cloudflare と同じ動き（Worker・_headers の CSP・/api/maintenance）で配信する → http://localhost:8787
+npx wrangler@4.149.0 dev --env dev
+```
+
+- `dist/` が wrangler の `assets`（`wrangler.toml`）です。本番用と確認用で内容が違うので、公開するときは **公開先の環境のビルドだけ** を置きます（CI は `site-production/` と `site-develop/` に作り、`deploy` ジョブが公開先の方だけを `dist` に取り出し、`.github/scripts/verify-site.mjs` で環境を確かめます）。
+- 記事（`Content/`）を直したら、2 と 3 をやり直します（Build が記事を静的 HTML と `data/*.json` にするため、ブラウザのリロードだけでは変わりません）。アプリ（`src/FaraAvatarModdingGuide.Web`）を直したら、1 からやり直します。
+- 検索の索引・正規化の確認: `SEARCH_INDEX_FILE=dist/search-index.json node --test tests/js/search.test.mjs`、`node tests/js/search-norm.mjs dist/data/search.json`。
+- ローカル（WSL など）で `dotnet publish` の ILLink が断続的に落ちることがあります。コードの問題ではなく、再実行で通ります。
+
+### テスト
+
+```bash
+dotnet test -c Release                       # Content.Tests・Build.Tests・Web.Tests（Build.Tests は Node と kit を使う）
+node --test external/fara-site-kit/worker/report.test.mjs external/fara-site-kit/worker/maintenance.test.mjs worker/index.test.mjs
+node --test .github/scripts/require-maintenance.test.mjs .github/scripts/verify-site.test.mjs
+node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/search-norm-fn.test.mjs tests/js/notice.test.mjs tests/js/practice-entry.test.mjs tests/js/head-sync.test.mjs
+```
+
+ブラウザでの動作確認（Playwright。CI では動かさない）は [tools/verify/README.md](tools/verify/README.md)。
 
 ## プロジェクト構造
 
@@ -59,36 +96,31 @@ fara-avatar-modding-guide/
 │   ├── shortcuts.yml
 │   ├── addons.yml
 │   └── links.yml             # リンク集
-├── Components/
-│   ├── App.razor             # HTML ドキュメントのルート
-│   ├── Routes.razor          # ルーター・NotFound
-│   ├── Layout/               # サイドバー付きレイアウト
-│   ├── Pages/                # ページ（/、/learn/...、/shortcuts、/addons、/error）
-│   └── Shared/               # ロードマップ、記事カードなどの共通部品
-├── Data/
-│   ├── Models.cs             # 記事・ショートカット・アドオンのモデル
-│   └── ContentService.cs     # Content/ を読み込んで提供するサービス
-├── wwwroot/                  # 静的ファイル（CSS、画像、JS）
-│   ├── js/
-│   │   ├── viewport.js       # Blender と同じキー操作の 3D ビュー（Three.js）。/practice と記事内チュートリアルで共用
-│   │   ├── editmesh.js       # 編集モードのメッシュ（頂点・辺・面）と、押し出し・ループカットなどの操作
-│   │   ├── practice.js       # /practice のお題
-│   │   ├── touch-practice.js # 練習ページの入口。タッチ端末（スマートフォン）ではキーボード操作の練習を出さず、記事内チュートリアルの「画像で見る」を差し込む
-│   │   ├── tutorial.js       # 記事内チュートリアル（::: practice）の案内
-│   │   ├── toc.js            # 記事内の目次（h2 が 3 個以上の記事）で、今読んでいる見出しを強調
-│   │   ├── scenarios.js      # 記事内チュートリアルの手順
-│   │   ├── room.js           # みんなで練習（部屋）の通信
-│   │   ├── unity.js          # Unity エディターに似た練習用の画面（Hierarchy・Scene・Inspector・Project・VRChat SDK の再現）
-│   │   ├── unity-practice.js # /practice/unity のお題
-│   │   └── progress.js       # ページの完了の記録（localStorage）
-│   └── images/tutorials/     # 記事内チュートリアルの手順画像（tools/tutorial-images/ で生成）
+├── src/
+│   ├── FaraAvatarModdingGuide.Web/      # Blazor WebAssembly + MudBlazor のアプリ（ページ・検索・進捗・練習の組み込み）
+│   │   └── wwwroot/          # index.html（Build のテンプレート）・css・js（練習の 3D = viewport.js など）・lib/three
+│   ├── FaraAvatarModdingGuide.Build/    # 公開物の生成: 本文入りの静的 HTML・data/*.json・robots・sitemap・_headers（kit の Node ツールも使う）
+│   ├── FaraAvatarModdingGuide.Content/  # Content/ を読む（Markdown → HTML）。Build が使う
+│   └── FaraAvatarModdingGuide.Shared/   # Build と Web が共有する型・サイドバーの項目
+├── wwwroot/images/           # 画像（記事内チュートリアルの手順画像 = tools/tutorial-images で生成）。Build が公開物にコピーする
+├── tests/
+│   ├── FaraAvatarModdingGuide.Content.Tests / Build.Tests / Web.Tests   # xUnit（Web.Tests は bUnit。公開の設定の検査 = DeployWorkflowTests を含む）
+│   └── js/                   # Node のテスト。fixtures/searchcore.reference.js は検索の正解（旧 SSR 版の写しを固定したもの）
 ├── tools/
+│   ├── site.json             # 公開先の設定（origin・devOrigin・CSP・robots）。Build が kit に渡す
+│   ├── verify/               # Playwright での確認スクリプト（練習・SEO・CSP・起動の前後の差など）
 │   ├── screenshots/          # 記事用スクリーンショットの自動撮影（Blender を自動操作）。tools/screenshots/README.md 参照
 │   ├── tutorial-images/      # 手順画像を、サイトの 3D ビューをヘッドレス Chrome で動かして撮る。Content/README.md 参照
+│   ├── icons/                # 練習の JS が使う Bootstrap Icons を、CSS だけで描く css/bi-icons.css に書き出す
 │   └── room-check/           # 共同練習の部屋（Durable Object）の動作確認スクリプト
-├── worker/index.js           # Cloudflare Worker（/api/* だけ）と、共同練習の部屋の Durable Object
-├── Program.cs
-└── appsettings.json          # Site セクション（サイト名、対象 Blender バージョン、リポジトリ URL）
+├── worker/index.js           # Cloudflare Worker（/api/* と共同練習の部屋の Durable Object）。報告・メンテナンスの判定は kit の共有 JS
+├── external/fara-site-kit/   # 共通部品（git submodule）
+├── .github/
+│   ├── workflows/deploy.yml  # ビルド・テスト・公開（master = 本番、develop = 確認用）
+│   └── scripts/              # require-maintenance.mjs（本番の公開のゲート）・verify-site.mjs（環境の取り違えを止める）
+├── docs/                     # wasm-migration-plan.md（移行の計画と記録）・release-switch-and-rollback.md（切り替えと戻し方）
+├── wrangler.toml
+└── appsettings.json          # Site セクション（サイト名、対象 Blender バージョン、リポジトリ URL、フッターの SNS）。Build とテストが読む
 ```
 
 ## URL 一覧
@@ -106,20 +138,21 @@ fara-avatar-modding-guide/
 | `/learn/{category}/{slug}` | 記事 |
 | `/shortcuts?category=…` | ショートカット一覧（カテゴリで絞り込み） |
 | `/addons` | おすすめアドオン |
+| `/changelog` `/search` `/report` `/privacy` | 更新履歴・検索・作者への報告（Turnstile 付き）・プライバシーポリシー |
 
-旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へリダイレクトされます。
+旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へ 301 で転送されます（`_redirects`）。静的 HTML は 76 本、存在しないパスは `404.html`（404 のステータス）です。
 
-各記事の「このページを完了にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `avatar-modding-guide.progress` に保存）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
+各記事の「このページを完了にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `avatar-modding-guide.progress` に保存。移行前と同じキー）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
 
 ## みんなで練習（共同練習の部屋）
 
 `/practice/room` で「部屋を作る」と `?room=<ID>` 付きの URL ができ、その URL を開いた人どうしで 1 つの 3D ビューを操作できます。ログインはありません。
 
 ```
-ブラウザ（wwwroot/js/room.js + viewport.js）
+ブラウザ（src/FaraAvatarModdingGuide.Web/wwwroot/js/room.js + viewport.js）
    │  WebSocket  /api/rooms/<ID>/ws
    ▼
-Worker（worker/index.js）── /api/* 以外は dist/ の静的ファイル（run_worker_first = ["/api/*"]）
+Worker（worker/index.js）── 静的ファイルは env.ASSETS（run_worker_first = true。メンテナンス・報告・/api/maintenance のため全リクエストが通る）
    │  部屋の ID ごとに 1 つ
    ▼
 Durable Object「Room」（SQLite 版。WebSocket Hibernation）
@@ -133,7 +166,7 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 - サーバーは受け取ったメッセージの形式と値の範囲（座標 ±1000 m、スケール 0.001〜1000、種類は 6 種類など）をすべて確かめ、不正なものは捨てる。不正なものが続くと切断
 - 最後の変更から 24 時間で部屋の内容を消す（Durable Object のアラーム）。60 秒何も届かない接続は外す（クライアントは 20 秒ごとに ping。ping の応答は Durable Object を起こさない）
 - ほかの人の変更を受け取ると、取り消し（<kbd>Ctrl</kbd>+<kbd>Z</kbd>）の記録は消える（食い違いを防ぐため）
-- `dotnet run` だけでは `/api` がないので部屋は使えない。確認は書き出してから `npx wrangler dev`（Durable Object もローカルで動く）。`node tools/room-check/check.mjs http://localhost:8787` で同期・上限・入力の検査をまとめて確かめられる
+- 部屋は Worker（Durable Object）が要るので、上の「ビルドと確認」の `wrangler dev` で確かめる。`node tools/room-check/check.mjs http://localhost:8787` で同期・上限・入力の検査をまとめて確かめられる
 
 ## 記事を追加する
 
@@ -146,32 +179,50 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 
 ## デプロイ（Cloudflare）
 
-`master` / `develop` への push で `.github/workflows/deploy.yml` が動き、静的サイトを書き出して Cloudflare Workers にデプロイします（静的ファイル + `worker/index.js` の Worker と Durable Object。設定は `wrangler.toml`）。Pull Request ではビルドと書き出しだけ行います。
+> **本番（avatar.fara-labs.com）に届く経路は 1 つだけ: `master` への push（`develop` → `master` の PR のマージ）と、`master` を選んだ手動実行（Actions の Run workflow）。**
+> develop への push は確認用（avatar-dev）にしか届きません。ほかのブランチ・Pull Request は、ビルドとテスト、`wrangler deploy --dry-run` だけで、公開しません。
+> `develop` → `master` の PR のマージは、中身（特に `deploy.yml`・`wrangler.toml`・Worker）を確かめてからユーザーが行います。Claude は PR の作成までで、master にはマージしません。
 
-```bash
-# ローカルで書き出して確認する
-dotnet run -- --export dist
-npx wrangler dev            # http://localhost:8787 で dist/ を配信
-npx wrangler deploy --env dev   # 手動で develop 環境へ（本番は --env production）
-```
+`.github/workflows/deploy.yml` が、1 つのファイルで本番と確認用を担います。
+
+| きっかけ | build | deploy 先 |
+| --- | --- | --- |
+| Pull Request / 他のブランチ | ビルド・テスト・本番用と確認用の両方の出力・環境の確認・dry-run | 公開しない |
+| `develop` への push | 同上 | `fara-avatar-dev`（`--env dev`）に、確認用の出力を公開 |
+| `master` への push | 同上 | `fara-avatar`（`--env production`）に、本番用の出力を公開（下の「本番の公開とメンテナンス」） |
+| 手動実行（master / develop を選んだときだけ） | 同上 | 選んだブランチの環境へ。入力でメンテナンス表示を切り替えられる |
+
+build ジョブは、本番用（`--env production`）と確認用（`--env develop`）の出力を別のフォルダに作り、`verify-site.mjs` で「本番用は noindex なし・`sitemap.xml` あり・canonical が `https://avatar.fara-labs.com/`、確認用はその逆」を確かめ、`wrangler deploy --dry-run` を両方の環境で実行します。deploy ジョブは公開先の環境の出力だけを取り出し、公開の直前に `verify-site.mjs` でもう一度確かめます（取り違えていれば止まります）。さらに、`production` へは master 以外から、`dev` へは develop 以外からは、公開のステップが止まります。
 
 ### 初回設定
 
 1. GitHub リポジトリの **Settings → Secrets and variables → Actions** に以下を登録（値は fara-portfolio-site と同じものを使えます）
    - Secrets: `CLOUDFLARE_API_TOKEN`（テンプレート Edit Cloudflare Workers、Zone Resources は `fara-labs.com`）
    - Variables: `CLOUDFLARE_ACCOUNT_ID`
-2. Cloudflare の `fara-labs.com` の **DNS → Records** に `avatar` / `avatar-dev` のレコードが無いことを確認
-3. 最初のデプロイで `wrangler.toml` の `custom_domain = true` により Cloudflare が DNS レコードと証明書を自動作成します（数分かかります）
-4. 開発環境を自分だけに見せるため、Cloudflare **Zero Trust → Access → Applications** の確認用アプリケーションに public hostname `avatar-dev.fara-labs.com` を追加します
-   - 開発環境には `X-Robots-Tag: noindex` も付けています（公開のワークフロー `.github/workflows/deploy.yml` が `dist/_headers` に付ける）
+2. Cloudflare の `fara-labs.com` の **DNS → Records** に `avatar` / `avatar-dev` のレコードが無いことを確認（`wrangler.toml` の `custom_domain = true` で自動作成される）
+3. 開発環境を自分だけに見せるため、Cloudflare **Zero Trust → Access → Applications** の確認用アプリケーションに public hostname `avatar-dev.fara-labs.com` を追加します
+4. 報告フォーム（`/report`）の変数（`TURNSTILE_SITE_KEY`・`TURNSTILE_SECRET`・`DISCORD_WEBHOOK_URL`）を、各 Worker（`fara-avatar`・`fara-avatar-dev`）にダッシュボードで設定します。`wrangler.toml` の `keep_vars = true` で、公開のたびに消えません
+
+### 本番の公開とメンテナンス（MAINTENANCE_MODE）
+
+- Worker の変数 `MAINTENANCE_MODE`（`true` = 全体メンテナンス・全ページ 503 / `notice` = お知らせ帯 / `false` または未設定 = 通常）と `MAINTENANCE_MESSAGE`（文面）で切り替えます。旧名 `MAINTENANCE` は読みません（残っていても無視。ダッシュボードで削除してかまいません）。
+- 切り替えは **Actions → Deploy → Run workflow**（本番は Use workflow from を `master`、確認用は `develop`）で、`maintenance_mode`（true / notice / false / 空）と `maintenance_message`（空 = 変更しない）を入れて実行します。4 サイトまとめては `external/fara-site-kit/tools/maintenance.mjs`（`external/fara-site-kit/docs/maintenance-cli.md`）。実行ページ下部のジョブサマリーに、設定した値と反映後の現在値が出ます。
+- **本番の push（master）と、何も指定しない手動実行**は、公開の前に `MAINTENANCE_MODE` が `notice` か `true` かをゲート（`.github/scripts/require-maintenance.mjs`）で確かめ、公開と同時に `--var MAINTENANCE_MODE:true`（メンテナンス画面）にします。作業が終わったら `maintenance_mode` に `false` を入れて Run workflow（master）で通常に戻します（お知らせも一緒に消える。このとき、その時点の master の内容がすべて公開されます）。
+  - `maintenance_mode` を指定した手動実行はゲートを飛ばし、その値を渡します。`maintenance_message` だけの手動実行は `MAINTENANCE_MODE` を変えません。
+  - `skip_maintenance_check` は確認を飛ばし、`MAINTENANCE_MODE` を作りも変えもしません（**お知らせなし・メンテナンス画面なしで、すぐ公開されます**。緊急の修正用）。
+- **本番の初回の公開**（Worker `fara-avatar` がまだ無い）: ゲートは Worker の不在（Cloudflare API が 404）を「初回の公開」として通します。master への push（または `maintenance_mode` を空にした手動実行）で `--var MAINTENANCE_MODE:true` が付くので、**Worker・カスタムドメイン・Durable Object が作られ、全ページがメンテナンス画面（503）のまま公開されます**。
+  1. 公開前の確認は avatar-dev で行う（同じコードの確認用ビルド。本番は 503 で、中身は見えない）
+  2. master への初回の push のあと、ダッシュボードで `fara-avatar` に報告の変数（上の初回設定の 4）を設定する
+  3. Actions → Deploy → Run workflow（Use workflow from: `master`）で `maintenance_mode` に `false`（先にお知らせを見せるなら `notice`）を入れて実行 → 通常公開になる
+  - `skip_maintenance_check` は初回には使わない（メンテナンス画面を経由せず、すぐ公開されてしまう）。
+- 切り替えの手順・戻し方・Cloudflare 側の後始末は [docs/release-switch-and-rollback.md](docs/release-switch-and-rollback.md)。
 
 ### 仕組み
 
-- `dotnet run -- --export dist` が自身を起動して全ページを取得し、`dist/` に `index.html`、`learn/basics/transform.html` などを書き出します（`Publishing/StaticSiteExporter.cs`）
-- `wwwroot/` と `Content/learn/**/images/` もコピーされます
-- 旧 URL（パス）のリダイレクトは `dist/_redirects`、404 は `dist/404.html` で処理します
-- すべてのリクエストが Worker を通るので（`run_worker_first = true`）、静的ファイルの配信も Workers のリクエスト数に数えられます（無料プランは 1 日 10 万リクエスト）
-- 記事を追加したら push するだけで反映されます
+- `dotnet publish` が WebAssembly のアプリ一式（`_framework/`・`index.html`・css・js）を作り、Build が `Content/` の記事から本文入りの静的 HTML（76 本）・`404.html`・`data/*.json`・`search-index.json`・`robots.txt`・`sitemap.xml`（本番のみ）・`_headers`（CSP。確認用は `X-Robots-Tag: noindex`）・`_redirects`（旧 URL の 301）を書き足します。ルートの `wwwroot/images/` と `Content/learn/**/images/` もコピーされます。
+- 静的 HTML は読み込み前でも本文が読める（JavaScript が無くても読める）ようにしたもので、WebAssembly が起動すると同じ DOM・同じ class のまま引き継ぎます（起動の前後の差は 0px。`tools/verify/boot-diff.mjs`）。
+- すべてのリクエストが Worker を通るので（`run_worker_first = true`）、静的ファイルの配信も Workers のリクエスト数に数えられます（無料プランは 1 日 10 万リクエスト）。
+- 記事を追加したら、develop に push するだけで確認用に反映されます。
 
 ## ライセンス
 

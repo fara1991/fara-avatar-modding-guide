@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    公開用の静的ファイル一式を作るコマンド（docs/wasm-migration-plan.md の 3.3）。
+    Content/ の記事・データから、本文入りの静的 HTML・データの JSON・404.html・_redirects・_headers などを書き出す。
+    ページごとの head・robots.txt・sitemap.xml・_headers は、fara-site-kit の build/build-pages.mjs（Node）に任せる。
+    MudBlazor への参照は、Material アイコン（SVG の path）の定数を使うためだけ。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FaraAvatarModdingGuide.Build</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FaraAvatarModdingGuide.Content\FaraAvatarModdingGuide.Content.csproj" />
+    <ProjectReference Include="..\FaraAvatarModdingGuide.Shared\FaraAvatarModdingGuide.Shared.csproj" />
+    <PackageReference Include="MudBlazor" Version="9.11.0" />
+    <!-- 画像・動画の判定（FileExtensionContentTypeProvider）に使う。サーバーは起動しない -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="FaraAvatarModdingGuide.Build.Tests" />
+    <InternalsVisibleTo Include="FaraAvatarModdingGuide.Web.Tests" />
+  </ItemGroup>
+
+</Project>

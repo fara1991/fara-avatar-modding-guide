@@ -80,10 +80,10 @@
 | 12 | 記事内の「この記事で使うキー」 | `ArticlePage.razor`（shortcuts 参照） | Razor | ✕ |
 | 13 | 進捗の記録（読み終えた記事・件数・「続きを読む」） | `progress.js`・`ProgressSummary.razor`（キー `avatar-modding-guide.progress`）・`tutorial.js` 側の `avatar-modding-guide.tutorials` | Blazor 側の状態＋ localStorage。**キー名と値の形式を変えない**（既存の記録が消えないように）。`ProgressSummary` は Razor に | △（`AppState`/`CloudSync` の localStorage 保存の型） |
 | 14 | 記事内チュートリアル（`::: practice <scenario>`） | `Data/ContentService.cs`（`practice-embed` div）・`tutorial.js`（three.js・importmap） | 記事の静的 HTML にはプレースホルダを残し、記事を開いたあとに JS（three.js）を interop で起動。JS 無しでも本文は読める | ✕ |
-| 15 | 背景の 3D | `wwwroot/js/bgscene.js`（three.js、全ページ） | JS モジュールを Layout から interop で起動・停止。ページ移動では止めない（破棄しない） | ✕ |
+| 15 | 背景の 3D | `wwwroot/js/bgscene.js`（実体は **2D の canvas**。three.js は使わない） | `index.html` から `defer` で全ページに 1 度だけ読む（interop での起動・停止はしない）。ページ移動では本文だけが替わるので、そのまま残る（多重に作らない） | ✕ |
 | 16 | スクロール進捗線（画面上部） | `scrollprogress.js`・CSS `.scroll-progress` | 小さな JS interop、または CSS（scroll-driven）。読み上げには出さない（aria-hidden） | ✕ |
 | 17 | お知らせ帯（更新予定） | Worker `withNotice`（HTML に注入。`worker/maintenance.js`） | **決定（§0・§4.8）**: WASM が起動時に `GET /api/maintenance` を読み、表示する（Phase 1） | ◎ pokemon `Services/MaintenanceInfo.cs`（起動時に `GET api/maintenance`、2 秒で打ち切り、読めなければ通常）・`Shared/MaintenanceBanner.razor`（Notice のときだけ出す）・Worker の `/api/maintenance`（pokemon `worker/index.js` に同じ形。確認済み） |
-| 18 | メンテナンス画面（503） | Worker（`getMaintenance` → `maintenanceResponse`。`MAINTENANCE=on`） | Worker のまま（全リクエストを 503 にする）。WASM 側の画面は不要 | △（`MaintenanceScreen.razor` は WASM 内の表示。avatar は Worker で止めるので原則不要） |
+| 18 | メンテナンス画面（503） | Worker（`getMaintenance` → `maintenanceResponse`。`MAINTENANCE_MODE=on`） | Worker のまま（全リクエストを 503 にする）。WASM 側の画面は不要 | △（`MaintenanceScreen.razor` は WASM 内の表示。avatar は Worker で止めるので原則不要） |
 | 19 | 問い合わせ・報告（`/report`） | `Report.razor`・`report.js`（Turnstile）・`worker/report.js`（Discord 転送、`/api/report`、`/api/report/config`） | Blazor のフォームで `/api/report` に POST。Turnstile は JS（`challenges.cloudflare.com`）を interop で描画しトークンを受け取る。Worker は変えない | ◎ pokemon `Services/ReportForm.cs`（入力の検査。サーバーと同じ上限）・`Components/Pages/Report.razor`（HttpClient と JS で Turnstile）・`wwwroot/js/report.js`・`worker/report.js`（同じ API 形）。いずれも確認済み |
 | 20 | プライバシーポリシー | `Privacy.razor` | Razor（本文は移す） | ○ |
 | 21 | 更新履歴 | `Changelog.razor`・`changelog.yml`・`ChangelogTests` | Razor（ContentService の ParseChangelog を流用） | ○ `Services/Changelog.cs`（考え方） |
@@ -333,7 +333,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 2. `dotnet publish src/FaraAvatarModdingGuide.Web -c Release`（WebAssembly）。
 3. `dotnet run --project src/FaraAvatarModdingGuide.Build -- --content Content --template <publish の index.html> --out dist`（静的 HTML・JSON・404.html・_redirects・_headers・画像・sitemap・robots。sitemap と robots は kit の Node ツールを呼ぶ）。
 4. 確認用は `_headers` に `X-Robots-Tag: noindex, nofollow` を追記（現行と同じ。deploy.yml の `cat >>`。Build の出力は末尾改行を必ず付ける）。
-5. 本番（master）の MAINTENANCE=notice の確認（`require-maintenance.mjs`）は現行のまま。
+5. 本番（master）の MAINTENANCE_MODE=notice の確認（`require-maintenance.mjs`）は現行のまま。
 6. Node テスト（report・maintenance・require-maintenance）は残す。nav.test.mjs は削除。
 7. `actions/checkout@v4` の build・deploy 両ジョブに `submodules: true`（kit を使うため。§8）。
 
@@ -362,11 +362,12 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
   - 既知の差・リスク: 描画の細部の差（KNI は半球光がなく、左面が暗い等）、KNI の Tick のばらつき（原因は未切り分け）、新しいブラウザのコンテキストで描画が始まらなくなる問題（原因は未特定）。
   - 描画層の選定（Phase 3b の最初に決める）: WebGL を自作の薄い層で持つか、KNI を使うか。先に上の未解決の問題を調べてから選ぶ。
 
-**importmap の扱い（既定を決める）**:
-- **既定: importmap は Build が出す静的 HTML のテンプレート（`index.html` の head）に 1 つだけ置く**（全ページ共通。`three` の CDN のみ。`three@0.170.0` のバージョン固定）。CSP は importmap の sha256 を `script-src` に入れる（§4.9）。
+**importmap の扱い（Phase 3 の検証で決定。§12.1）**:
+- **決定: importmap は Build が出す静的 HTML のテンプレート（`index.html` の head、WASM-ONLY の中）に 1 つだけ置く**（全ページ共通）。**three.js は CDN（jsDelivr）ではなく、自分のサイトに同梱する**（`wwwroot/lib/three/three.module.js`。three@0.170.0。ファイルは、以前 SSR 版が jsDelivr で SRI を付けて読んでいたものと同一: sha384 が一致）。importmap は `{"imports":{"three":"/lib/three/three.module.js"}}`。CSP は importmap の sha256 を `script-src` に入れる（§4.9。ハッシュは Build が、テンプレートの importmap の中身から計算する）。
+- 当初の既定（Phase 0 の記述）は「`three` の CDN のみ」だった。同梱に変えた理由は §12.1。
 - 理由: importmap は、その文書で最初の module script が読まれる前に存在している必要がある。Blazor が描画後に挿入した importmap は、後から読む module の解決に効かない可能性が高い【推測。仕様上の性質。試作は練習ページを含まず未検証】。
 - 代案: JS の `import "three"` を CDN の絶対 URL（バージョン固定）に書き換え、importmap を無くす。既存の JS を編集するため、既定にはしない。
-- **検証タスク（Phase 3 の最初）**: 練習ページ 1 つ（`/practice`）で、テンプレートの importmap と CSP のハッシュの組み合わせで three.js が読み込まれ、Blazor の画面遷移のあとも動くことを確認する。動かなければ代案に切り替える。
+- **検証タスク（Phase 3 の最初）→ 完了**: 練習ページ 1 つ（`/practice`）で、テンプレートの importmap と CSP のハッシュの組み合わせで three.js が読み込まれ、Blazor の画面遷移のあとも動くことを確認した（代案には切り替えていない。結果は §12.1）。
 - ページ移動のあとに module を二重に読まない（nav.js の「二重登録しない」の教訓）。
 
 - PC 専用（`practice-pc-only`）: 現行どおり、スマホではガイドだけを出す（`TouchPracticeGuide`）。
@@ -381,9 +382,9 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 - テスト: 既存の `FooterAndReportTests` の一部（フォームの項目・API の形）を、Blazor 版の検査に替える。
 
 ### 4.7 背景 3D・スクロール線
-- `bgscene.js`（three.js）: Layout から一度だけ起動。ページ移動では止めない（Blazor の移動は画面を差し替えるだけなので、背景は残る）。`prefers-reduced-motion` の扱いは現行（bgscene.js）どおり。
+- `bgscene.js`（実体は **2D の canvas**。床の方眼と回る針金のアバターを描く。three.js は使わない）: `index.html` から `defer` で一度だけ読む（Layout からの起動・停止はしない）。ページ移動では止めない（Blazor の移動は画面を差し替えるだけなので、背景は残る）。`prefers-reduced-motion` の扱いは現行（bgscene.js）どおり。
 - `scrollprogress.js`: 小さな JS interop か CSS（`animation-timeline: scroll()`）。読み上げには出さない。
-- いずれも Phase 1 で移し、Phase 3 の練習ページと干渉しないことを確かめる（three.js の renderer が 2 つ動く状態の確認）。
+- いずれも Phase 1 で移し、Phase 3 の練習ページと干渉しないことを確かめる（練習の three.js の WebGL と、背景の 2D の canvas の描画ループが、往復で増えないことの確認。§12.3）。
 - `ScrollProgressTests`（5 件）は Blazor 版の検査に替える（§1.5）。
 
 ### 4.8 Worker（お知らせ帯・メンテナンス・API）（D4）
@@ -391,7 +392,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 - **お知らせ帯（決定・§0）**: WASM が起動時に `GET /api/maintenance` を読み、`state` が `notice` のときだけ帯を出す（ポケモンの `Services/MaintenanceInfo.cs` と同じ作り。2 秒で打ち切り、読めなければ通常）。Worker の `/api/maintenance` は、ポケモンの `worker/index.js`（origin/develop）と同じ形（`{state, message}`）を返す。avatar の `worker/maintenance.js` の `getMaintenance` は既に `state` と `message` を返すので、ルートを一つ足すだけで済む。**実施は Phase 1**。
   - 代償: 起動の前（数秒）は帯が出ない。JS が無い環境では出ない。
   - 削除するもの（Phase 1）: `worker/index.js` の `withNotice` による HTML 注入、`worker/maintenance.js` の `noticeHtml`・`rewriteWithHtmlRewriter`、それらのテスト（`worker/maintenance.test.mjs` の該当部分）。
-  - 残すもの: 503（`MAINTENANCE=on`）の処理と画面（`getMaintenance`・`maintenanceResponse`）。
+  - 残すもの: 503（`MAINTENANCE_MODE=on`）の処理と画面（`getMaintenance`・`maintenanceResponse`）。
 - `_headers` は Build が出す（CSP は §4.9）。
 
 ### 4.9 CSP（ポケモンの `_headers` を基準。ユーザー決定）
@@ -401,7 +402,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 **決定（ユーザー）**: `'wasm-unsafe-eval'` と `style-src 'unsafe-inline'` は許可。`script-src` の `'unsafe-inline'` と `'unsafe-eval'` は**許可しない**。ホストは使うものだけに限定する。
 
 **avatar の CSP（Phase 1 の Build が出す初版）**:
-- `script-src 'self' 'wasm-unsafe-eval' 'sha256-…'（importmap のハッシュ。Build が計算）https://cdn.jsdelivr.net https://challenges.cloudflare.com`（報告の Turnstile）。Cloudflare Web Analytics を使う場合は `https://static.cloudflareinsights.com` を足す（現状の avatar は未確認）。
+- `script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com 'sha256-…'`（報告の Turnstile と、importmap のハッシュ。ハッシュは Build が計算する）。**jsDelivr は許可しない**（three.js は同梱。§12.1）。Cloudflare Web Analytics を使う場合は `https://static.cloudflareinsights.com` を足す（現状の avatar は未確認）。
 - `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`（Bootstrap は廃止するので CDN は外す）。
 - `font-src 'self' https://fonts.gstatic.com`、`img-src 'self' data:`（avatar は外部の画像を使わない）。
 - `connect-src 'self'`（`/api/*`・`/api/rooms/*/ws` は同じオリジン。WebSocket は `wss:` の扱いを確かめる）、`frame-src https://challenges.cloudflare.com`。
@@ -414,6 +415,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 - Blazor の `blazor.webassembly.js` と MudBlazor の JS は同じオリジンなので `'self'` で足りる。
 
 ### 4.10 起動時のちらつき対策
+**（Phase 4 で実施・検証済み: §13.3。静的な枠を起動後と同じ構造にして、オーバーレイをやめた）**
 - 静的 HTML の本文と WASM の描画は、**同じ DOM 構造・同じクラス**にする（MudBlazor のクラスを静的 HTML にも付ける）。
 - 静的 HTML の本文は、WASM の起動まで見えたまま残す。起動後に Blazor が `#app` の中身（静的 HTML）を置き換える。ここで見た目が変わらないことを検証する。
 - 検証: 起動の前後で、スクリーンショットの差（ピクセル差）を記事 5 ページ・ホーム・検索で取る。差が閾値を超えるページは静的 HTML の CSS を直す。
@@ -489,6 +491,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 - 独立プロジェクト化: 試作と同じく、本体の csproj とは分ける（§3.1.1 の除外の考え方に従う）。
 
 ### Phase 4: SEO の仕上げ — 約 3〜5 人日（推測）
+**（実施: §13。PR #94〜#97）**
 - 内容（P1 で作った生成の上に、仕上げだけを行う）:
   - `sitemap.xml`（本番のみ）と `robots.txt` の最終形。**sitemap の対象（推奨）**: 固定ページ（16）・カテゴリ（10）・記事（50）。除外: `/report`（noindex）・`/search`（検索結果のための画面で中身が薄い）・旧 URL・404・`/search-index.json`。`/privacy` は含める。
   - OGP の全ページ適用（og:image を §4.12 の PNG に）、canonical の検査。
@@ -588,7 +591,7 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 - [ ] 旧 URL 3 件が 301 で転送される
 - [ ] 記事 50 件の本文テキストが、現行 SSR 版と一致する（改行・空白を除く）
 - [ ] 静的 HTML の 76 本すべてが、JS 無しで本文を読める
-- [ ] title・description・canonical・OGP が全ページにある。sitemap.xml（本番）・robots.txt がある。確認用は noindex。`/report` は noindex
+- [ ] title・description・canonical・OGP が全ページにある。sitemap.xml（本番。74 URL）・robots.txt がある。確認用は noindex。noindex のページは `/report` と `/search` だけ（練習の 3 ページ・`/privacy` は index 可。§13.1）
 - [ ] 検索の件数・順序が現行と一致する（テストデータ 100 件程度）
 - [ ] 進捗の記録（既存の localStorage）が読める
 - [ ] 練習 3 ページ・記事内チュートリアル・共有ルームが、現行と同じ操作で動く（PC）。スマホは案内が出る
@@ -730,3 +733,151 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 
 - **静的 HTML（事前生成）**: ビルド時に作る、ページごとの HTML。本文が入っている。
 - **#app の引き継ぎ**: 静的 HTML の `#app` の中身を、WebAssembly の起動で置き換えること。
+
+---
+
+## 11. Phase 2 の運用メモと、Phase 3 への宿題
+
+### 11.1 本文の突き合わせの運用(`tools/compare/known-differences.json`)
+- CI は develop の SSR を別に書き出して(`Content/` だけ移行版のものに差し替え)、`tools/compare/compare-text.mjs` で記事 50 件と、そのほかのページを比べる。比べるのは、文字・構造(見出し id・ol/ul・table・li・kbd)・属性(href・src・alt・title・target・rel)。
+- **`/` と `/learn` の既知の差は、「最初の記事の題名とリンク」に依存している**(`known-differences.json` の `new: ["インストールと日本語化"]`、`newAttributes: ["a href=/learn/getting-started/install"]`)。目次の先頭の記事(`Content/learn/categories.yml` の最初のカテゴリの `order` が最小の記事)を変えたり、題名を直したりしたら、CI がこの 2 ページで「差あり」「古くなった記述」を出す。そのときは、この 2 つの値を新しい最初の記事に合わせて直す(移行版の静的 HTML は、何も完了していないときの「次に読む」を最初の記事にしておくため。SSR 版は空のリンクを JavaScript が埋める)。
+- 既知の差を足すときは、理由(`reason`)を必ず書く。書いていない差と、見つからない断片(古くなった記述)は CI の失敗になる。練習 3 ページと `/report` の `skip: true` は、Phase 3 で外した(理由つきの既知の差に置き換えた。§12)。
+- （Phase 5 で `tools/compare` と CI の比較を削除。§14.2）比べる SSR は `ref: develop`。develop が進んだら、`migration/wasm` に取り込むまで、新しい SSR の変更は差として出る(`migration/wasm` へのマージを定期的に)。
+
+### 11.2 Phase 3 の宿題
+- **（Phase 3 で解決。§12.1）プライバシーポリシーの jsDelivr の文言と CSP の食い違い**: `/privacy` は「jsDelivr(練習の 3D 表示の部品。練習のページを開くと、配信元にアクセスの情報が送られます)」と書いているが、Phase 1 の CSP(`tools/site.json` の `csp`)は `script-src` に jsdelivr を許可していない(three.js を読むと違反になる)。Phase 3 の最初の検証(importmap の確認。§4.5)で、three.js の読み込み元(jsdelivr か自分のサイトに同梱か)を決めて、CSP(`script-src` のホストと importmap のハッシュ)と `/privacy` の文言を**同時に**揃える。同梱にするなら、文言から jsDelivr を外す(`known-differences.json` の `/privacy` も直す)。
+- 練習の JavaScript(tutorial.js など)は `window.faraProgress.isDone / set` を使う。Phase 2 で `js/storage.js` が C# の `ProgressStore` につないである(目次の完了の印も、すぐ替わる)。
+- 記事内の `::: practice`(`<div class="practice-embed" data-scenario>`)は、Markdown から空の div として出ていて、Blazor は中身を触らない(MarkupString)。tutorial.js が埋めるときは、記事が替わったとき(`ArticlePage` の再利用)に、前の中身が残らないか確かめる。
+- 検索の突き合わせ(`SearchParityTests`)は `wwwroot/js/searchcore.js` を正解にしている。Phase 5 で消す前に、固定の写しを `tests/js/` に置く。
+
+### 11.3 起動中の読み込み表示(不透明なオーバーレイ)の検討(§3.4・§4.10)
+**（Phase 4 で解決: §13.3。案 C を実装して、そのまま案 B に切り替えた。本文の位置の差 0px・ピクセル差 0.3% 以下。以下は検討の記録）**
+現在は、起動のあいだ、不透明なオーバーレイ(`#boot-indicator`)で静的な本文を全面に覆っている(静的本文は DOM に残り、`inert`・`aria-hidden` で操作・読み上げの対象外)。計画の「本文を見えたまま残す」方針との比較:
+
+| 案 | 見た目 | リスク |
+| --- | --- | --- |
+| A. 今のまま(不透明) | 起動まで本文は見えない。切り替えで本文が飛ぶことはない | 回線が遅いと、本文が読めるのに隠れている(速さは決定事項として問題にしない)。JS が使えない環境では、CSS の 60 秒で外れる |
+| B. 半透明・本文が見える(操作は `inert` で止める) | 本文がすぐ読める | **静的な枠(`av-static`: 名前とリンクだけのヘッダー)と、起動後の枠(MudLayout: ヘッダー + 左のサイドバー + 検索欄)が違う**ので、起動の瞬間に本文が右へ動く(PC で約 230px)・上下も動く(CLS)。リンクを押せるように見えて押せない(`inert`)。起動後の本文は同じ DOM に置き換わるので、二重描画はない(`#app` の中身が置き換わる) |
+| C. B + 静的な枠を起動後と同じ形にする(サイドバーの骨組みを静的 HTML に入れる) | 本文が動かない | 静的 HTML に、サイドバー(区切り・カテゴリ 10 件・リファレンス・練習)とヘッダーの検索欄の骨組みを足す必要がある。Build の `Wrap` と `app.css` の変更が大きい。MudBlazor の見た目の細部(Mini ドロワーの幅・アイコン)を CSS で写す必要がある |
+
+**推奨**: Phase 4(ちらつきのピクセル差の検証)で C を試し、差が閾値以下になったら B に切り替える。それまでは A のまま。今、B だけを入れると、PC で起動のたびに本文が約 230px 動く(CLS が出る)ので、見た目が悪くなる。
+
+## 12. Phase 3（練習）の記録
+
+### 12.1 three.js の読み込み元の決定（jsDelivr か、自分のサイトに同梱か）
+最初の検証は `/practice` で行った（importmap をテンプレートの head に置き、CSP の `script-src` に importmap の sha256 を入れる組み合わせ。Blazor の画面遷移のあとも動く）。そのうえで、three.js（three@0.170.0。約 1.3 MB）の読み込み元を比べた。
+
+| 案 | CSP | プライバシー | 注意 |
+| --- | --- | --- | --- |
+| A. jsDelivr（SSR 版と同じ） | `script-src` に `https://cdn.jsdelivr.net` を足す（ホスト単位の許可。パッケージ名での絞り込みはできない） | 練習・記事内チュートリアルを開くと jsDelivr にアクセスの情報が送られる。`/privacy` に jsDelivr を残す | importmap の `integrity`（SRI）を付けないと、配信元が書き換わったときに気づけない。SRI 付きの importmap はブラウザの対応に差がある |
+| **B. 自分のサイトに同梱（決定）** | `script-src` は `'self'` と importmap のハッシュだけ。jsDelivr は許可しない | 外部に送らない。`/privacy` から jsDelivr の項目を外す | リポジトリが約 1.3 MB 増える。three.js の版を上げるときは、ファイルを置き換える（importmap の中身は変わらないので、ハッシュは変わらない） |
+
+- **決定: B**。ホスト単位の許可（A）より、CSP が狭くなる。外部への送信が減り、プライバシーの文言が短くなる。同梱のファイルは、SSR 版が jsDelivr で SRI（sha384）を付けて読んでいたものと**同一**（sha384 が一致。`sha384-GY5FqjttLCFRt/McQbyaVdCk2O1IQtOeX8Py6NfD89BIAsIyJFRl4UgSXrk2vXAk`）。ライセンス（MIT）は `wwwroot/lib/three/LICENSE`。
+- importmap は `{"imports":{"three":"/lib/three/three.module.js"}}`。`index.html` の head（WASM-ONLY の中）に 1 つだけ置く。CSP のハッシュは Build（`SiteBuilder.ImportMapHashes`）が、タグの中身から計算して `_headers` に入れる（手で書かない。Build.Tests が、`_headers` のハッシュとテンプレートの中身が一致することを確かめる）。
+- 静的 HTML のページ（WebAssembly を読まないページ）には importmap は不要（練習は全部 WebAssembly のページ）。
+- `/privacy` の文言と CSP は同じ変更で揃えた（Web の `Privacy.razor`・Build の `PageBodies`・`known-differences.json` の `/privacy`）。
+- 配信（`/lib/three/*`）は、Cloudflare の静的アセットで、特別な設定は要らない。キャッシュは既定どおり。
+
+### 12.2 練習の組み込み方（Phase 3 の実装メモ）
+- 3D の本体（`viewport.js`・`editmesh.js`・`unity.js`・`unity-practice.js`・`room.js`・`scenarios.js`・`tutorial.js`・`practice.js`）は SSR 版の JavaScript を**そのまま**移した。Blazor は 3D の中身を知らない。
+- Blazor との橋渡しは `Services/PracticeHost.cs` と `js/practice-entry.js` だけ。ページ（`Practice`・`PracticeUnity`・`PracticeRoom`）と記事（`ArticlePage`。記事が替わったときも）が、始める・解放するを呼ぶ。`practice-entry.js` は同時に 1 つだけ動かし、始めるときに前のものを解放し、解放は「いま動いているものと同じ id」のときだけ効く（前のページの解放が遅れて届いても、次のページを止めない）。
+- 背景の 3D（`bgscene.js`）は 2D の canvas で、`index.html` から全ページで 1 度だけ読む（ページを移っても本文だけが替わるので、そのまま残る。多重に作らない）。スクロール線（SSR 版の `scrollprogress.js`）は、Phase 1 から共通部品（fara-site-kit の `ScrollProgress`・`scroll-progress.js`）で動いていて、Phase 3 で移すものはない（`SiteLayout` が 1 つだけ置き、ページの移動で増えない）。
+- スマホ（hover: none かつ pointer: coarse）は、練習の 3 ページで案内（`TouchPracticeGuide`）を出し、WebGL を使わない。記事内チュートリアルは「画像で見る」のまま。
+- `/practice*` の暫定 noindex は、Phase 3 では維持した。**Phase 4 で見直し、練習の 3 ページは index 可にした**（§13.1。noindex は `/report` と `/search` だけ）。
+
+### 12.3 確認の結果と、確認の注意（Phase 3）
+- 確認は `tools/verify/practice.mjs`（Playwright。PC 1280・スマホ 390。WebGL は SwiftShader）と `tools/room-check/check.mjs`（WebSocket を直接）。SSR 版（develop）と同じ操作をして結果を比べる（`/practice` は位置・回転・スケール・視点・お題の進み、`/practice/unity` は階層・お題）。往復 20 回で、WebGL の context・ResizeObserver・IntersectionObserver・setInterval・WebSocket・window/document のイベント・canvas・背景の描画ループが増えない。
+- **往復の確認で「節（Nodes）が増え続ける」ように見えたのは、確認スクリプトの側の問題だった**: Playwright の `page.waitForSelector()` は要素の参照（ElementHandle）を返し、解放しないと、外れた DOM を保持する。往復の確認では `locator(...).waitFor()`（参照を返さない）を使う。同じ作りで確認を書くときは注意する。
+- `/practice/room` の画面からの確認（二人が入る・追加が届く・退室が消える）は、`?debug=1` を付けると `window.__room` で状態を見られる（`room.js`）。
+- 背景の描画ループ（`bgscene.js`）の回数は、別のタブ（背景のタブ）では減る（ブラウザが間引く）ので、前後の比較は同じタブで測る。
+
+---
+
+## 13. Phase 4（SEO の仕上げ）の記録
+
+Phase 4 は 4 つの PR に分けた: SEO（#95）・起動の前後のちらつき（#96）・ワークフローの修正（#94）・レビュー指摘の残りと docs（この PR）。
+
+### 13.1 sitemap・robots・noindex の最終形（#95）
+- **sitemap.xml（本番のみ）は 74 URL**: 固定ページ 16 から問い合わせ（`/report`）と検索（`/search`）を除いた 14 + カテゴリ 10 + 記事 50。`/privacy` と練習の 3 ページを含む。除外: `/report`・`/search`・旧 URL 3 件・404・`/search-index.json`。確認用は sitemap.xml を出さず、全 URL に `X-Robots-Tag: noindex`、robots.txt は `Allow: /`（禁止すると X-Robots-Tag を読ませられない）。
+- **robots.txt（本番）**: `Disallow: /api/`・`Disallow: /practice/room?room=`（共有ルームの URL。クローラーが開いて Durable Object の部屋を作らない）・`Sitemap:`。noindex のページ（`/report`・`/search`）は禁止しない（禁止すると noindex の meta が読まれず効かない）。
+- **暫定 noindex の見直し**: `/search` は noindex を維持（検索結果の画面。検索語ごとに中身が変わり、静的 HTML は枠だけで薄い）。**練習の 3 ページ（`/practice`・`/practice/unity`・`/practice/room`）は index 可にした**。理由: 現行の SSR 版（develop）は `/report` 以外に noindex を付けておらず、noindex にすると切り替えで検索結果から消える後退になる / 静的 HTML に操作の説明が 650〜1,200 字あり、JavaScript が無くても読める / 共有ルームの `?room=` 付き URL は canonical が `/practice/room`、robots でも読ませない。戻すときは `PageCatalog.NoIndexPaths` に足す。
+- **OGP**: `og:image` は `wwwroot/images/og-image.png` が出力にあれば全ページに自動で付き、`twitter:card` は `summary_large_image` になる（画像なしは `summary` で `og:image` を出さない）。画像は未決定（ユーザーが決めたら置く）。`og:type` は記事 50 件だけ `article`、ほかは `website`。
+- **hreflang・JSON-LD は入れない**（単一言語。構造化データは、必要になるまで入れない。テストで「無いこと」を固定）。
+- **アプリ内の移動のあとの head**: title は `PageTitle` が替えるが、description・canonical・OGP・robots は最初のページの値のまま残る問題があった。`data/pages.json`（Build が書く）と `js/head-sync.js` で、別のページへ移ったとき既存のタグを書き換える（タグは増やさない）。kit の `ReportFormView`・`NotFoundView` の `HeadContent`（noindex）は、静的 HTML の meta と重なるので `NoIndex="false"` にした。
+- 検査: `SeoTests`（Build.Tests）・`tools/verify/seo.mjs`（全 76 ページ + 404 の head・内部リンク全件・旧 URL・X-Robots-Tag・起動後と移動後の head）。
+
+### 13.2 three.js の更新手順（#91 のレビュー指摘）
+three.js は `src/FaraAvatarModdingGuide.Web/wwwroot/lib/three/` に同梱している（現在 r170。§12.1）。`three.module.js` と `LICENSE` の 2 ファイル。importmap は `{"imports":{"three":"/lib/three/three.module.js"}}` で、版を上げても変わらない（変わるのは importmap の文字を変えたときだけ。CSP のハッシュは Build が計算するので手では直さない）。
+1. 新しい版のビルドを取得する（例: `npm pack three@<版>` で、`build/three.module.js` と `LICENSE`）。
+2. **r171 以降は、`three.module.js` が同じフォルダの `three.core.js` を import する**（r170 までは単体）。`build/three.module.js` と **`build/three.core.js`** の両方を `lib/three/` に置く（`three.core.js` が無いと、importmap は通っても `three.module.js` の読み込みが失敗して、練習・記事内チュートリアルの 3D が動かない）。さらに版によって `three.webgpu.js` などが増えるが、このサイトは `three` だけを使う（`three/addons/...` を import している箇所は無い。足すときは importmap にマッピングを足す = CSP のハッシュも変わる）。
+3. `LICENSE` を更新し、`.gitattributes` の `**/wwwroot/lib/** -diff linguist-vendored` で、差分・言語の集計から外れていることを確認する（`git check-attr -a <ファイル>`）。
+4. 練習の JavaScript（`viewport.js`・`editmesh.js`・`unity.js` など）は three.js の API を使う。版を上げると API の変更（非推奨・削除）に当たることがある。`tools/verify/practice.mjs`（SSR との比較・往復での解放）と `tools/verify/csp-check.mjs`（CSP 違反 0）を通す。
+5. このドキュメントの版の記述（§12.1）と、`Web.Tests` の three.js の版のテストがあれば合わせる。`/privacy` は変えなくてよい（自己ホストのまま）。
+SRI の値（§12.1 の sha384）は、SSR 版が jsDelivr で読んでいた r170 と同一であることの確認に使ったもので、更新したら不要になる。
+
+### 13.3 起動の前後のちらつき（#96。§11.3 の宿題を解決）
+**案 C（静的な枠を起動後と同じ形にする）を実装し、そのまま案 B（本文を見えたまま残す）に切り替えた。** 数値は #96 の PR 本文: 本文の位置の差 PC 230px・スマホ約 80px → 0px、ピクセル差 10〜22% → PC 0.3%・スマホ 0.0%、起動の瞬間の見出しの移動 0px。
+- 静的 HTML の枠（`StaticFrame`）= ヘッダー・サイドバー・フッターを、起動後の MudBlazor のレイアウトと同じ DOM・同じ class で書く。サイドバーの項目は `Shared/SiteNav.cs` が持ち、Build と Web が共有する。
+- MudBlazor の変数（`--mud-*`）は起動前は無いので `app.css` の `.av-static` が持つ（`SiteTheme` と突き合わせるテストあり）。
+- 静的な枠のルートに `mud-layout` / `fsk-page` を付けない（kit の `boot-indicator.js` が「描画された」と判断して、読み込み表示を外し inert を解く）。
+- 読み込み表示は右下の小さな表示（本文を覆わない・操作を止めない）。45 秒のときの案内・60 秒の保険は従来どおり。
+- 静的な本文は window でスクロールし、起動の前に動かしたスクロールは起動の後に引き継ぐ。
+- CLS（layout-shift）は起動の評価に使えない: Blazor が `#app` の要素を置き換えるので、前後で同じ要素しか数えない。起動を止めた静的な状態でも、Web フォントの読み込みで 0.01〜0.14 が出る。位置を直接測る（`tools/verify/boot-diff.mjs`）。
+- 限界: 実ブラウザのクラシックなスクロールバーは headless で測れず、静的 → 起動後で本文の幅が 8px 前後変わりうる。起動中の本文は kit の仕様で inert のまま（操作・選択ができない。解くには kit の変更が要る）。
+- §4.10 の「ポケモンの `MaintenanceScreen` 方式は採らない」は変わらない。
+
+### 13.4 CSP の違反ゼロの確認
+`tools/verify/csp-check.mjs`: `_headers` の CSP が効く配信（wrangler dev）で、主要 23 ページ × PC 1280・スマホ 390 を開き、スクロール・テーマ切り替え・検索（Ctrl+K）・練習の 3D（クリックとキー）・チュートリアル・共有ルームの WebSocket を操作して、`securitypolicyviolation`・コンソールのエラー/警告・失敗したリクエスト・ページのエラーを集める。自己ホストの three.js（`/lib/three/three.module.js`）と importmap のハッシュ（`script-src` の `'sha256-…'`）を含む。結果（#96 の構成）: **46 画面（23 ページ × PC・スマホ）で CSP 違反 0・コンソールのエラー/警告 0**。練習 3 ページの WebGL・共有ルームの WebSocket・記事内チュートリアルを含む。違反を検出できることは、インラインの script を足して確認済み（`script-src-elem inline` が拾われる）。
+
+### 13.5 `/practice/unity` の静的 HTML と Blazor の DOM の差（#91 のレビュー指摘）
+- **静的 HTML と Blazor の DOM（起動後）は同じ**: `tools/verify/dom-diff.mjs` で、練習 3 ページを含む全 76 ページの本文（`#fsk-main` の中）を、Blazor のコメント・空白・JavaScript が中身を入れる枠（3D・お題の一覧・チュートリアル・進捗の印）を除いてで比べた結果、**74 ページは差なし**（練習 3 ページを含む）。差があるのは `/report`（静的 HTML は題名と説明だけの枠、フォームは kit の `ReportFormView` が WebAssembly で描く）と `/search`（静的 HTML の案内文の構造。known-differences に理由つき）の 2 ページで、設計どおり。`Web.Tests` の `PageDomParityTests` も同じ内容を bUnit で確認している。差が出るのは、JavaScript が起動後に入れる部分だけ（`#unity-practice` に Unity 風の画面・`.unity-editor` の class、`#unity-tasks` にお題の `li`、`practice-embed` の `data-engine`）で、これは SSR 版でも同じ。
+- **SSR 版（develop）との差**は `tools/compare/known-differences.json` にある（`/practice`・`/practice/unity`）: スマホ向けの案内（`TouchPracticeGuide`）の「画像で見る」の項目。SSR 版は `<template>` に入れて、タッチ端末の JavaScript が `.content` から取り出す。Razor は `<template>` の中身を `.content` ではなく子として作るので、Blazor 版は `hidden` の案内の中にそのまま置く（PC では見えない。タッチ端末では `practice-entry.js` が `hidden` を外す）。解消はしない（解消するには、JavaScript 側が両方の形を扱う必要があり、利点が無い）。理由つきの既知の差として維持。
+
+### 13.6 そのほかの修正（この PR）
+- `PracticeRoom.razor` の部屋 ID の正規表現を `\z` に（.NET の `$` は末尾の改行の前にも一致し、`"abcdef12\n"` を部屋 ID として通してしまう。worker・room.js の JS の `/^…$/` と食い違う）。テストを追加。
+- `index.html` の importmap のコメント（「版を上げるとハッシュが変わる」は誤り。§12.1 のとおり、版を上げても importmap の文字は変わらず、ハッシュも変わらない）を直した。
+- `.gitattributes` に `**/wwwroot/lib/** -diff linguist-vendored`（`wwwroot/lib/**` と書くとスラッシュを含むのでリポジトリのルートの `wwwroot` にしか効かない）。
+- §1.2 の 15 と §4.7 の背景の 3D の記述を、実装（2D の canvas。three.js は使わない）に合わせた。
+- `Deploy (wasm-dev)` の Summary の手順の bash の構文エラー（#94）。
+
+### 13.7 JavaScript が無い環境
+静的な枠のスマホは、起動後の画面に合わせて上部ナビをやめた（サイドバーはハンバーガーで開く一時的なメニューで、JavaScript が無いと開けない）。JavaScript が無いときだけ（`noscript` の style）、サイドバーを本文とフッターの後ろに並べて出し、ページの移動に使えるようにした（#96）。PC は左のサイドバーがそのまま出る。
+
+### 13.8 独立レビューの指摘への対応（Phase 4 のあと）
+- **静的な枠のサイドバーで、いまのページの強調が出ていなかった**: `.av-static .fsk-sidebar .mud-nav-link.active`（詳細度 0,4,0）が MudBlazor の `.mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled)`（0,5,0）に負け、色の変数（`--mud-palette-*`）が無い起動前は灰色・背景透明になって、起動の瞬間に強調が現れていた。`.mud-navmenu.mud-navmenu-default` を足して上回らせた（`!important` は使わない。`StaticFrameTests` で固定）。ピクセル差・位置の閾値では見つからない小さな領域なので、`boot-diff.mjs` に、強調要素の計算済みスタイル（color・background-color）を静的と起動後で比べる検査を足した（修正前のダークで検出されることを確認）。
+- **404 から他のページへアプリ内で移ったときの head**: 404.html の head は title と noindex だけで、`head-sync` は既存のタグの書き換えだけだったので、canonical・description・OGP が無いままだった。`head-sync` が、無いタグ（canonical・description・og:title・og:description・og:type・og:url）を固定の meta/link として 1 つずつ作る（`innerHTML` は使わない。2 回移っても増えない。noindex は外す）。canonical の出どころは、canonical が無いので開いているホスト（`location.origin`）。`head-sync.test.mjs` と `seo.mjs` で確認。
+- **`csp-check` の `requestfailed: /api/maintenance`**: 実際の不具合ではない。kit の `MaintenanceInfo` が 2 秒で打ち切る（仕様。読めなければ通常表示）ので、配信が重いとき（別のスクリプトと並列に動かしたとき）に、ページを開いた直後に出る。単独・直列で再実行すると 46 画面で 0 件、並列に重ねると再現した。`csp-check.mjs` はその失敗だけのときに 1 回やり直し、`tools/verify/README.md` に注意を書いた。
+- **`/report` のタブの題名**: kit の `ReportFormView` の `PageTitle` は「問い合わせ | サイト名」で、上書きできない（呼び出し側の `PageTitle` を前後どちらに置いても、kit のほうが使われる）。静的 HTML の title・og:title も `/report` だけ区切りを「 | 」にして、起動の前後でタブの題名が替わらないようにした（ほかのページは「 - 」。404 は kit の形で「 | 」）。`seo.mjs` が、全ページで起動後の `document.title` が静的 HTML の title と同じであることを確かめる。区切りを全ページで揃えるのは kit の変更が要るので、既知の差として残す。
+
+### 13.9 残っている宿題
+- OGP 画像（ユーザーが決める。`wwwroot/images/og-image.png`。計画書 4.12）。
+- kit: 起動中の静的な本文の inert を解く設定（本文を読みながらリンクを押せるように）。
+- 実機（PC・スマホ・ライト/ダーク）の目視（§8）。
+- Phase 5（切り替え）。
+
+## 14. Phase 5（切り替え）の記録
+
+PR は 3 つに分け（すべて `migration/wasm` 向け。前の PR の変更を含む積み重ね）、`migration/wasm` → `develop` の統合 PR を最後に作った。どれも master には触れない。手順と戻し方は [release-switch-and-rollback.md](release-switch-and-rollback.md)。
+
+### 14.1 CI/デプロイ（(1/3)）
+- `deploy.yml` は 1 ファイルのまま（master = 本番、develop = 確認用。kit の一括変更がこのファイル名を使う）。build ジョブは `dotnet publish` の出力を 2 つにコピーし、Build を `--env production` と `--env develop` で別々に実行する（`site-production/`・`site-develop/`）。deploy ジョブは公開先の環境のほうだけを `dist` に取り出す。
+- `verify-site.mjs`（build と deploy の公開直前の 2 回）: 本番用は noindex なし・sitemap あり・canonical が avatar.fara-labs.com、確認用はその逆、別の環境のホスト名が混ざっていないこと。取り違えは公開前に止まる。公開のステップも、`production` は master 以外から、`dev` は develop 以外からは wrangler を呼ぶ前に止まる。
+- build で `wrangler deploy --dry-run` を `--env production`・`--env dev` の両方で実行（認証不要。assets は `./dist`）。
+- 確認用の noindex の追記（`cat >> dist/_headers`）は削除: Build が `--env develop` で `X-Robots-Tag: noindex` を出すので、残すと二重になる。`--dev-origin` は付けない（devOrigin は `tools/site.json` の avatar-dev）。
+- `deploy-wasm-dev.yml` と `env.wasm-dev` は削除: 統合のあとは avatar-dev が WebAssembly 版になり、`migration/wasm` の確認用 Worker は役目を終える。`migration/wasm` への push は、どこにも公開しない。
+- 本番の Worker はまだ無い（master の実行が 0 件、名前も引けない）ので、`env.production` に Durable Object のマイグレーション（`v1`, `Room`）を明示した（wrangler 4.149.0 では top-level の `[[migrations]]` が env に引き継がれることを `unstable_readConfig` で確認したうえで、初回の公開で確実に作られるように）。
+- 公開の設定の検査は `Web.Tests` の `DeployWorkflowTests` に集約（旧 `MaintenanceConfigTests`・`DeployConfigTests` から移し、取り違えのテストを足した。bash で公開のステップを実際に動かして wrangler に渡る引数を確かめるテストは維持）。
+
+### 14.2 旧 SSR の削除とテスト（(2/3)）
+- 削除: `Components/`・`Publishing/`・`Program.cs`・`FaraAvatarModdingGuide.csproj`・`Properties/`・`appsettings.Development.json`・ルートの `wwwroot/css`・`wwwroot/js`・`tests/FaraAvatarModdingGuide.Tests`（SSR の CSS/Razor を検査していたテスト）。残した: `wwwroot/images/`（Build がコピー）、`appsettings.json`（`Site` のみにした。Build・テストが読む。移すと、リポジトリのルートを探す 6 か所の仕組みを変える必要があり、利点が無い）。
+- 検索の正解: `searchcore.js` を `tests/js/fixtures/searchcore.reference.js` に固定（本体は無変更。先頭に説明の 4 行）。5 つの JS テストと `SearchParityTests` の突き合わせ（`search-reference.mjs`）はこれを読む。
+- `tools/compare`（develop の SSR との本文比較）は削除: 比べる相手の SSR が無くなる。固定の基準データにする案は、記事を 1 文字直すたびに基準が古くなる（SSR と比べられたのは、同じ `Content/` を両方に使ったから）ので採らない。削除の前に最後の比較を実行した: **develop の SSR と移行版（確認用ビルド）で、記事 50 件・そのほかのページ 26 件、差あり 0 件**。以後の回帰は、`tools/verify/dom-diff.mjs`（静的 HTML と起動後の DOM）・`seo.mjs`・`boot-diff.mjs`・`PageParityTests`・`PageDomParityTests`・`SeoTests` が担う。
+- `tools/verify/shots.mjs`（SSR との見た目の比較）は削除。`practice.mjs` の SSR との比較は、SSR と移行版で結果が一致したときの値を `practice-baseline.json` に固定して、基準との比較に置き換えた（固定する前に、両方で実行して一致を確認: `/practice` の位置・回転・スケール・お題、`/practice/unity` の階層）。
+
+### 14.3 検証の結果（Phase 5 の最終状態の確認用ビルド・本番用ビルド）
+- `dotnet test`（Content 26・Build 47・Web 196）、Node のテスト（kit の worker・`worker/index.test.mjs`・ゲート・`verify-site`・`tests/js`）が通る。
+- Playwright（wrangler dev で `--env dev` と `--env production` の 2 つを配信）: article・search-filters-progress・back-nav・hash-links・fixes・practice（20 往復）が ok、`seo.mjs` 失敗 0（確認用・本番用の両方）、`csp-check.mjs` は両方で 46 画面 CSP 違反 0・コンソールのエラー/警告 0、`boot-scroll.mjs` ok、`dom-diff.mjs ALL=1` の差は `/report`・`/search` の 2 ページのみ（設計どおり。§13.5）。
+
+### 14.4 残っている宿題
+- OGP 画像・実機の目視・kit の inert の設定（§13.9）。Phase 3b（練習の 3D の C# 化）は統合のあと。
+- 本番の初公開（`develop` → `master`）はユーザーが判断する。既存の PR #4 の扱いは release-switch-and-rollback.md の 2.2。
