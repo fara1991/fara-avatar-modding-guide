@@ -139,7 +139,7 @@ function snapshot(vp, events) {
   };
 }
 
-function runScenario(c) {
+export function runScenario(c) {
   const { vp, handlers, events } = makeViewport(c);
   for (const idx of c.selected ?? []) { vp.selected.push(vp.objects[idx]); vp.active = vp.objects[idx]; }
   const base = { preventDefault() { }, target: { closest: () => null }, pointerId: 1, shiftKey: false, ctrlKey: false, altKey: false, metaKey: false, button: 0, clientX: 0, clientY: 0 };

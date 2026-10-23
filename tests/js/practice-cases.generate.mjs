@@ -126,6 +126,12 @@ const scenarios = [
     steps: [move(center.x, center.y), letter("g"), move(center.x + 120, center.y + 60), letter("x"), move(center.x + 160, center.y + 20), key("KeyY", "Y", true), move(center.x - 50, center.y + 90), key("KeyY", "Y", true), letter("z"), letter("z"),
       digit(1), key("Period", "."), digit(5), key("Minus", "-"), key("Backspace"), key("Backspace"), key("Backspace"), key("Backspace"), digit(3), key("Minus", "-"), enter()],
   }),
+  scenario("数値入力が 「-.」 のあいだは数値入力なし(G・R・S。NaN でオブジェクトが消えない)", {
+    selected: [0],
+    steps: [move(center.x, center.y), letter("g"), move(center.x + 80, center.y + 20), key("Minus", "-"), key("Period", "."), move(center.x + 90, center.y + 25), digit(5), key("Backspace"), key("Backspace"), enter(),
+      move(center.x - 120, center.y + 70), letter("r"), move(center.x + 10, center.y - 60), key("Minus", "-"), key("Period", "."), move(center.x - 40, center.y - 50), digit(3), enter(),
+      move(center.x - 150, center.y + 100), letter("s"), move(center.x + 120, center.y + 10), key("Minus", "-"), key("Period", "."), move(center.x + 150, center.y + 10), key("Backspace"), key("Backspace"), enter()],
+  }),
   scenario("G の Ctrl(刻み)と Shift(細かく)・キーの上げ下げ", {
     selected: [0],
     steps: [move(center.x, center.y), letter("g"), move(center.x + 123, center.y + 47, false, true), move(center.x + 123, center.y + 47, true, true), key("ShiftLeft", "Shift", true, true), { e: "keyup", ctrl: true }, { e: "keyup" }, move(center.x - 77, center.y - 31, true), letter("x"), move(center.x - 177, center.y - 31, true, true), enter()],
@@ -232,7 +238,6 @@ function randomScenario(i) {
         else if (k === "period") next = numeric.includes(".") ? numeric : numeric + ".";
         else if (k === "minus") next = numeric.startsWith("-") ? numeric.slice(1) : "-" + numeric;
         else next = numeric.slice(0, -1);
-        if (next === "-.") continue; // 現行の JS は NaN になる(C# は数値入力なしとして扱う)。突き合わせの対象にしない
         numeric = next;
         if (k === "digit") steps.push(digit(pick([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])));
         else if (k === "period") steps.push(key("Period", "."));
