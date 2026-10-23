@@ -35,6 +35,10 @@ public static class SiteBuilder
     public const string WasmStart = "<!-- WASM-ONLY:START -->";
     public const string WasmEnd = "<!-- WASM-ONLY:END -->";
 
+    /// <summary>その逆。WebAssembly を使わないページ（静的 HTML のまま）にだけ要るもの（「更新予定」の帯を出す notice.js）を囲む印。</summary>
+    public const string StaticStart = "<!-- STATIC-ONLY:START -->";
+    public const string StaticEnd = "<!-- STATIC-ONLY:END -->";
+
     /// <summary>旧 URL の転送（現行の StaticSiteExporter / Program.cs と同じ）。</summary>
     public static readonly IReadOnlyList<(string From, string To)> Redirects =
     [
@@ -128,18 +132,19 @@ public static class SiteBuilder
 
         // --- WebAssembly を使わないページから、読み込み表示と Blazor のスクリプトを外す -------
         foreach (var page in pages) StripWasm(outDir, page);
-        StripWasmFile(Path.Combine(outDir, "404.html"), keep: true);
+        StripWasmFile(Path.Combine(outDir, "404.html"), wasm: true);
     }
 
     /// <summary>kit が書いたページのファイル名（urlStyle=html: /x/y → x/y.html、/ → index.html）。</summary>
     public static string FileFor(string path) => path == "/" ? "index.html" : path.TrimStart('/') + ".html";
 
-    private static void StripWasm(string outDir, PagePlan page) => StripWasmFile(Path.Combine(outDir, FileFor(page.Path)), keep: page.Wasm);
+    private static void StripWasm(string outDir, PagePlan page) => StripWasmFile(Path.Combine(outDir, FileFor(page.Path)), wasm: page.Wasm);
 
-    private static void StripWasmFile(string file, bool keep)
+    /// <summary>WebAssembly を使うページ（wasm）は WASM-ONLY を残し、STATIC-ONLY を外す。使わないページは逆。</summary>
+    private static void StripWasmFile(string file, bool wasm)
     {
         var html = File.ReadAllText(file);
-        var updated = RemoveWasmOnly(html, keep);
+        var updated = RemoveStaticOnly(RemoveWasmOnly(html, keep: wasm), keep: !wasm);
         if (updated != html) File.WriteAllText(file, updated, new UTF8Encoding(false));
     }
 
@@ -147,13 +152,18 @@ public static class SiteBuilder
     /// 印（WASM-ONLY）で囲んだ部分を、WebAssembly を使うページ（keep）では印だけ外し、使わないページでは中身ごと外す。
     /// 印の対応が崩れていたら例外にする（テンプレートの書き間違いに気づくため）。
     /// </summary>
-    public static string RemoveWasmOnly(string html, bool keep)
+    public static string RemoveWasmOnly(string html, bool keep) => RemoveMarked(html, WasmStart, WasmEnd, keep);
+
+    /// <summary>印（STATIC-ONLY）で囲んだ部分。静的 HTML のままのページ（keep）では印だけ外し、WebAssembly を使うページでは中身ごと外す。</summary>
+    public static string RemoveStaticOnly(string html, bool keep) => RemoveMarked(html, StaticStart, StaticEnd, keep);
+
+    private static string RemoveMarked(string html, string start, string end, bool keep)
     {
-        var starts = Regex.Matches(html, Regex.Escape(WasmStart)).Count;
-        var ends = Regex.Matches(html, Regex.Escape(WasmEnd)).Count;
-        if (starts != ends) throw new InvalidDataException($"{WasmStart} と {WasmEnd} の数が違います（{starts} / {ends}）");
+        var starts = Regex.Matches(html, Regex.Escape(start)).Count;
+        var ends = Regex.Matches(html, Regex.Escape(end)).Count;
+        if (starts != ends) throw new InvalidDataException($"{start} と {end} の数が違います（{starts} / {ends}）");
         if (starts == 0) return html;
-        var pattern = new Regex(Regex.Escape(WasmStart) + @"(.*?)" + Regex.Escape(WasmEnd) + @"[ \t]*\r?\n?", RegexOptions.Singleline);
+        var pattern = new Regex(Regex.Escape(start) + @"(.*?)" + Regex.Escape(end) + @"[ \t]*\r?\n?", RegexOptions.Singleline);
         return keep
             ? pattern.Replace(html, m => m.Groups[1].Value.TrimStart('\r', '\n'))
             : pattern.Replace(html, string.Empty);

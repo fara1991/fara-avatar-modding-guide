@@ -47,6 +47,8 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
             Assert.Contains("id=\"boot-indicator\"", html);
             Assert.Contains("_framework/blazor.webassembly.js", html);
             Assert.DoesNotContain("WASM-ONLY", html);                    // 印は残さない
+            Assert.DoesNotContain("STATIC-ONLY", html);
+            Assert.DoesNotContain("notice.js", html);                    // 帯は kit の MaintenanceBanner が出す（二重にしない）
         }
         foreach (var file in new[] { "learn.html", "learn/basics/select.html", "shortcuts.html", "practice.html", "glossary.html" })
         {
@@ -54,10 +56,13 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
             Assert.DoesNotContain("boot-indicator", html);
             Assert.DoesNotContain("blazor.webassembly.js", html);
             Assert.DoesNotContain("WASM-ONLY", html);
+            Assert.DoesNotContain("STATIC-ONLY", html);
+            Assert.Contains("js/notice.js", html);                       // 静的なページは、notice.js が「更新予定」の帯を出す
             Assert.Contains("theme-init.js", html);                      // テーマの反映は全ページに残す
         }
         // 404.html は WebAssembly が起動して、NotFoundView を出す
         Assert.Contains("blazor.webassembly.js", Read(fx.Production, "404.html"));
+        Assert.DoesNotContain("notice.js", Read(fx.Production, "404.html"));
     }
 
     [NodeFact]
@@ -190,6 +195,19 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
         Assert.Equal("a\n<x/>\nb\n", SiteBuilder.RemoveWasmOnly(template, keep: true));
         Assert.Equal("a", SiteBuilder.RemoveWasmOnly("a", keep: false));
         Assert.Throws<InvalidDataException>(() => SiteBuilder.RemoveWasmOnly("<!-- WASM-ONLY:START -->", keep: false));
+    }
+
+    [Fact]
+    public void RemoveStaticOnly_is_the_inverse_of_RemoveWasmOnly()
+    {
+        const string template = "a\n<!-- STATIC-ONLY:START -->\n<s/>\n<!-- STATIC-ONLY:END -->\nb\n";
+        Assert.Equal("a\nb\n", SiteBuilder.RemoveStaticOnly(template, keep: false));
+        Assert.Equal("a\n<s/>\nb\n", SiteBuilder.RemoveStaticOnly(template, keep: true));
+        Assert.Throws<InvalidDataException>(() => SiteBuilder.RemoveStaticOnly("<!-- STATIC-ONLY:END -->", keep: true));
+        // 2 種類の印が混ざっていても、それぞれ独立に外せる
+        const string both = "<!-- WASM-ONLY:START -->\nw\n<!-- WASM-ONLY:END -->\n<!-- STATIC-ONLY:START -->\ns\n<!-- STATIC-ONLY:END -->\n";
+        Assert.Equal("s\n", SiteBuilder.RemoveStaticOnly(SiteBuilder.RemoveWasmOnly(both, keep: false), keep: true));
+        Assert.Equal("w\n", SiteBuilder.RemoveStaticOnly(SiteBuilder.RemoveWasmOnly(both, keep: true), keep: false));
     }
 
     [Fact]

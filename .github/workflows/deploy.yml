@@ -43,8 +43,9 @@ jobs:
       - name: Test
         run: dotnet test -c Release --no-build --nologo
 
-      - name: Report endpoint test
-        run: node --test worker/report.test.mjs worker/maintenance.test.mjs
+      # 報告の受け口・メンテナンスの判定は共通部品（external/fara-site-kit/worker）。Worker の入口（worker/index.js）のテストと一緒に動かす
+      - name: Worker tests (report, maintenance, entry)
+        run: node --test external/fara-site-kit/worker/report.test.mjs external/fara-site-kit/worker/maintenance.test.mjs worker/index.test.mjs
 
       - name: Deploy gate test
         run: node --test .github/scripts/require-maintenance.test.mjs
@@ -60,8 +61,8 @@ jobs:
         run: node --test tests/js/search.test.mjs
 
       # --- 移行先（Blazor WebAssembly + MudBlazor。docs/wasm-migration-plan.md）の確認。公開はしない（確認用への公開は deploy-wasm-dev.yml） ---
-      - name: Storage migration script test
-        run: node --test tests/js/storage-migrate.test.mjs
+      - name: Browser script tests (storage migration, notice banner)
+        run: node --test tests/js/storage-migrate.test.mjs tests/js/notice.test.mjs
 
       - name: Publish web (WebAssembly)
         run: dotnet publish src/FaraAvatarModdingGuide.Web -c Release --nologo -o publish
@@ -95,7 +96,10 @@ jobs:
       name: ${{ github.ref_name == 'master' && 'production' || 'develop' }}
       url: ${{ github.ref_name == 'master' && 'https://avatar.fara-labs.com' || 'https://avatar-dev.fara-labs.com' }}
     steps:
+      # worker/index.js が external/fara-site-kit の report.js・maintenance.js を読み込むので、wrangler がバンドルできるよう submodule も取得する
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - uses: actions/download-artifact@v4
         with:

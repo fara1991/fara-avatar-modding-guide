@@ -783,8 +783,18 @@ body {
     padding-bottom: 2rem;
 }
 
+/* フッターは、WebAssembly のページと同じく画面の下に固定する（ページ全体がスクロールするので、貼り付ける） */
 .av-static .fsk-footer {
     margin-top: auto;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: var(--fsk-body-bg);
+}
+
+/* 「更新予定」の帯（notice.js）。静的なページにはヘッダーを固定していないので、画面の上端に貼り付ける */
+.av-static .fsk-notice {
+    top: 0;
 }
 
 /* 動きを減らす設定 */

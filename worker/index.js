@@ -1,6 +1,7 @@
 // Cloudflare Worker。すべてのリクエストがまずここを通る（wrangler.toml の run_worker_first = true）。
 // - /api/rooms/<部屋ID>/ws は共同練習の部屋（Durable Object）へ
-// - それ以外は静的ファイル（dist/）。確認用の noindex は、公開のワークフローが dist/_headers に付ける
+// - /api/maintenance はメンテナンスの状態（{state, message}）。WebAssembly のアプリが起動時に読んで、お知らせの帯を出す（HTML には注入しない）
+// - それ以外は静的ファイル（wrangler の assets。dotnet publish の wwwroot に、Build が書き足したもの）。確認用の noindex は、Build が _headers に付ける
 //
 // 共同練習の部屋（/practice/room）: 部屋ごとに 1 つの Durable Object（Room）が WebSocket をまとめ、
 // オブジェクトモードのシーン（立方体などの種類・名前・位置・回転・スケール）を全員で共有する。
@@ -10,8 +11,9 @@
 // - 最後の変更から 24 時間たつと、アラームで部屋の内容を消す
 // - ping は Durable Object を起こさずに自動で返す（WebSocket Hibernation）。応答の時刻で、切れた接続を見つけて外す
 import { DurableObject } from "cloudflare:workers";
-import { handleReport } from "./report.js";
-import { getMaintenance, maintenanceResponse, withNotice } from "./maintenance.js";
+// 報告の受け口とメンテナンスの判定は、共通部品（fara-site-kit）の同じファイルを使う（各サイトに同じコピーを持たない）
+import { handleReport } from "../external/fara-site-kit/worker/report.js";
+import { getMaintenance, maintenanceResponse } from "../external/fara-site-kit/worker/maintenance.js";
 
 // ---------------------------------------------------------------- 上限
 export const LIMITS = {
@@ -40,9 +42,15 @@ const OBJ_ID = /^[a-z0-9]{1,24}$/;
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    // メンテナンス（Worker の変数 MAINTENANCE。worker/maintenance.js）。true の間は、すべて 503 のメンテナンス画面
+    // メンテナンス（Worker の変数 MAINTENANCE。external/fara-site-kit/worker/maintenance.js）。true の間は、すべて 503 のメンテナンス画面
     const maintenance = getMaintenance(env);
     if (maintenance.state === "on") return maintenanceResponse(request, maintenance, "Avatar Modding Guide");
+    // メンテナンスの状態。アプリ（WebAssembly）が起動時に 1 回読む。キャッシュさせない（MAINTENANCE を変えたら、すぐ反映するため）
+    if (url.pathname === "/api/maintenance") {
+      return new Response(JSON.stringify({ state: maintenance.state, message: maintenance.message }), {
+        headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+      });
+    }
     const m = url.pathname.match(/^\/api\/rooms\/([^/]+)\/ws$/);
     if (m) {
       if (!ROOM_ID.test(m[1])) return new Response("bad room id", { status: 400 });
@@ -53,7 +61,7 @@ export default {
       const stub = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
       return stub.fetch(request);
     }
-    // 作者への報告の受け口（worker/report.js）
+    // 作者への報告の受け口（external/fara-site-kit/worker/report.js）
     if (url.pathname === "/api/report" || url.pathname === "/api/report/config") {
       try {
         return await handleReport(request, env, "Avatar Modding Guide");
@@ -62,8 +70,8 @@ export default {
       }
     }
     if (url.pathname.startsWith("/api/")) return new Response("not found", { status: 404 });
-    // お知らせ（MAINTENANCE=notice）のときは、HTML の先頭に「更新予定」のバナーを足す
-    return withNotice(await env.ASSETS.fetch(request), maintenance);
+    // 静的ファイル。お知らせ（MAINTENANCE=notice）の帯は、アプリ側が /api/maintenance を読んで出す（HTML の書き換えはしない）
+    return env.ASSETS.fetch(request);
   },
 };
 

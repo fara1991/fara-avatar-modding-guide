@@ -53,7 +53,7 @@ internal sealed class FakeDataHandler(SiteContent? content, bool fail = false) :
 }
 
 /// <summary>ページの Razor を描画するテストの土台。</summary>
-public abstract class WebTestContext : BunitContext
+public abstract class WebTestContext : BunitContext, IAsyncLifetime
 {
     protected WebTestContext(bool contentLoaded = true)
     {
@@ -63,4 +63,9 @@ public abstract class WebTestContext : BunitContext
         store.LoadAsync().GetAwaiter().GetResult();
         Services.AddSingleton(store);
     }
+
+    /// <summary>MudBlazor のサービスは非同期に破棄するため、xUnit からは非同期の破棄（DisposeAsync）を呼ばせる。</summary>
+    async Task IAsyncLifetime.DisposeAsync() => await base.DisposeAsync();
+
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
 }
