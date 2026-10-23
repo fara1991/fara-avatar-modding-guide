@@ -1,0 +1,206 @@
+using System.Diagnostics;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using FaraAvatarModdingGuide.Data;
+using Microsoft.AspNetCore.StaticFiles;
+
+namespace FaraAvatarModdingGuide.Build;
+
+/// <summary>Build コマンドの引数。</summary>
+public sealed record BuildOptions(
+    string RepoRoot,
+    string TemplatePath,
+    string OutDir,
+    string Env,
+    string? DevOrigin = null,
+    string? KitDir = null,
+    string Node = "node")
+{
+    public string KitPath => KitDir ?? Path.Combine(RepoRoot, "external", "fara-site-kit");
+}
+
+/// <summary>
+/// 公開用の静的ファイル一式を作る（計画書 3.3）。出力先は dotnet publish の wwwroot で、そこに書き足す（既存のファイルは消さない）。
+///   本文入りの静的 HTML（76 本）・404.html・robots.txt・sitemap.xml（本番）・_headers・_redirects … kit の build/build-pages.mjs が書く
+///   data/content.json・data/search.json・data/site.json、search-index.json、画像・動画 … ここで書く
+/// </summary>
+public static class SiteBuilder
+{
+    /// <summary>テンプレート（index.html）の中の、WebAssembly を使うページにだけ要るもの（読み込み表示・Blazor のスクリプト）を囲む印。</summary>
+    public const string WasmStart = "<!-- WASM-ONLY:START -->";
+    public const string WasmEnd = "<!-- WASM-ONLY:END -->";
+
+    /// <summary>旧 URL の転送（現行の StaticSiteExporter / Program.cs と同じ）。</summary>
+    public static readonly IReadOnlyList<(string From, string To)> Redirects =
+    [
+        ("/operations", "/learn"),
+        ("/avatar-clothing", "/learn/avatar-clothing"),
+        ("/plugins", "/addons"),
+    ];
+
+    private static readonly JsonSerializerOptions DataJson = new(JsonSerializerDefaults.Web)
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,   // 日本語を \uXXXX にエスケープしない
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
+
+    private static readonly FileExtensionContentTypeProvider ContentTypes = new();
+
+    /// <summary>記事フォルダから配信する画像・動画か（SSR 版の StaticSiteExporter.IsMedia と同じ判定）。</summary>
+    public static bool IsMedia(string path) =>
+        ContentTypes.TryGetContentType(path, out var type) &&
+        (type.StartsWith("image/", StringComparison.Ordinal) || type.StartsWith("video/", StringComparison.Ordinal));
+
+    public static void Run(BuildOptions options)
+    {
+        if (options.Env is not ("production" or "develop")) throw new ArgumentException("--env は production か develop を指定してください");
+        if (!File.Exists(options.TemplatePath)) throw new FileNotFoundException($"テンプレート（dotnet publish の index.html）がありません: {options.TemplatePath}");
+        var repo = Path.GetFullPath(options.RepoRoot);
+        var outDir = Path.GetFullPath(options.OutDir);
+        if (string.Equals(Path.TrimEndingDirectorySeparator(outDir), Path.TrimEndingDirectorySeparator(repo), StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("--out にリポジトリのルートは指定できません（専用の出力フォルダを指定してください）");
+        // 出力先は、リポジトリのルート・その親・ソース（src / tests / external / Content）の中ではないこと（テンプレートやソースの上書き、親の下の圧縮ファイルの削除を防ぐ）
+        var repoPrefix = Path.TrimEndingDirectorySeparator(repo) + Path.DirectorySeparatorChar;
+        var outPrefix = Path.TrimEndingDirectorySeparator(outDir) + Path.DirectorySeparatorChar;
+        if (repoPrefix.StartsWith(outPrefix, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("--out にリポジトリのルートやその親は指定できません（専用の出力フォルダを指定してください）");
+        foreach (var protectedDir in new[] { "src", "tests", "external", "Content", "worker", ".github" })
+        {
+            if (outPrefix.StartsWith(Path.Combine(repo, protectedDir) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException($"--out にソースのフォルダ（{protectedDir}）の中は指定できません: {outDir}");
+        }
+        Directory.CreateDirectory(outDir);
+
+        var kitScript = Path.Combine(options.KitPath, "build", "build-pages.mjs");
+        if (!File.Exists(kitScript)) throw new FileNotFoundException($"fara-site-kit がありません（git submodule update --init が必要）: {kitScript}");
+
+        var contentService = new ContentService(Path.Combine(repo, "Content"));
+        var content = SiteContent.From(contentService);
+        var siteJson = JsonNode.Parse(File.ReadAllText(Path.Combine(repo, "tools", "site.json")))!.AsObject();
+        var devOrigin = options.DevOrigin ?? siteJson["devOrigin"]!.GetValue<string>();
+        var settings = SiteSettings.Load(Path.Combine(repo, "appsettings.json"), new Uri(devOrigin).Host);
+
+        // --- データ（WebAssembly が起動時に読む）--------------------------------
+        WriteJson(Path.Combine(outDir, "data", "content.json"), content);
+        WriteJson(Path.Combine(outDir, "data", "site.json"), settings);
+        var searchEntries = contentService.BuildSearchIndex();
+        WriteJson(Path.Combine(outDir, "data", "search.json"), SearchIndexJson.From(searchEntries));
+        // 現行と同じ URL・同じ形（/search-index.json）。外部からの参照を壊さない
+        WriteJson(Path.Combine(outDir, "search-index.json"), searchEntries);
+
+        // --- 画像・動画 -----------------------------------------------------
+        CopyDirectory(Path.Combine(repo, "wwwroot", "images"), Path.Combine(outDir, "images"), _ => true);
+        CopyDirectory(Path.Combine(repo, "Content", "learn"), Path.Combine(outDir, "learn"), IsMedia);
+
+        // --- 静的 HTML・robots・sitemap・_headers・_redirects（kit）------------------
+        var pages = PageCatalog.Build(content, settings);
+        var ogImage = File.Exists(Path.Combine(outDir, "images", "og-image.png")) ? "/images/og-image.png" : null;   // 承認された OGP 画像が置かれたら自動で付く
+        var kitPages = new JsonArray(pages.Select(p =>
+        {
+            var page = new JsonObject
+            {
+                ["path"] = p.Path,
+                ["title"] = p.Title,
+                ["description"] = p.Description,
+                ["bodyHtml"] = PageCatalog.Wrap(p.Main, settings, p.Path),
+            };
+            if (p.NoIndex) page["noindex"] = true;
+            if (ogImage is not null) page["ogImage"] = ogImage;
+            return (JsonNode)page;
+        }).ToArray());
+        var kitRedirects = new JsonArray(Redirects.Select(r => (JsonNode)new JsonObject { ["from"] = r.From, ["to"] = r.To, ["status"] = 301 }).ToArray());
+        siteJson["devOrigin"] = devOrigin;
+        siteJson["notFoundPage"] = new JsonObject
+        {
+            ["title"] = PageCatalog.NotFoundTitle(settings),
+            ["bodyHtml"] = PageCatalog.Wrap(PageBodies.NotFound(), settings),
+        };
+
+        var work = Path.Combine(repo, "obj", "build-pages", Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(work);
+        var templateCopy = Path.Combine(work, "index.html");   // 出力先の index.html は kit が上書きするので、テンプレートは先に別の場所へ写す
+        File.Copy(options.TemplatePath, templateCopy, overwrite: true);
+        var siteFile = Path.Combine(work, "site.json");
+        var pagesFile = Path.Combine(work, "pages.json");
+        File.WriteAllText(siteFile, siteJson.ToJsonString(DataJson), new UTF8Encoding(false));
+        File.WriteAllText(pagesFile, new JsonObject { ["pages"] = kitPages, ["redirects"] = kitRedirects }.ToJsonString(DataJson), new UTF8Encoding(false));
+        RunKit(options, kitScript, siteFile, pagesFile, templateCopy, outDir);
+
+        // --- WebAssembly を使わないページから、読み込み表示と Blazor のスクリプトを外す -------
+        foreach (var page in pages) StripWasm(outDir, page);
+        StripWasmFile(Path.Combine(outDir, "404.html"), keep: true);
+    }
+
+    /// <summary>kit が書いたページのファイル名（urlStyle=html: /x/y → x/y.html、/ → index.html）。</summary>
+    public static string FileFor(string path) => path == "/" ? "index.html" : path.TrimStart('/') + ".html";
+
+    private static void StripWasm(string outDir, PagePlan page) => StripWasmFile(Path.Combine(outDir, FileFor(page.Path)), keep: page.Wasm);
+
+    private static void StripWasmFile(string file, bool keep)
+    {
+        var html = File.ReadAllText(file);
+        var updated = RemoveWasmOnly(html, keep);
+        if (updated != html) File.WriteAllText(file, updated, new UTF8Encoding(false));
+    }
+
+    /// <summary>
+    /// 印（WASM-ONLY）で囲んだ部分を、WebAssembly を使うページ（keep）では印だけ外し、使わないページでは中身ごと外す。
+    /// 印の対応が崩れていたら例外にする（テンプレートの書き間違いに気づくため）。
+    /// </summary>
+    public static string RemoveWasmOnly(string html, bool keep)
+    {
+        var starts = Regex.Matches(html, Regex.Escape(WasmStart)).Count;
+        var ends = Regex.Matches(html, Regex.Escape(WasmEnd)).Count;
+        if (starts != ends) throw new InvalidDataException($"{WasmStart} と {WasmEnd} の数が違います（{starts} / {ends}）");
+        if (starts == 0) return html;
+        var pattern = new Regex(Regex.Escape(WasmStart) + @"(.*?)" + Regex.Escape(WasmEnd) + @"[ \t]*\r?\n?", RegexOptions.Singleline);
+        return keep
+            ? pattern.Replace(html, m => m.Groups[1].Value.TrimStart('\r', '\n'))
+            : pattern.Replace(html, string.Empty);
+    }
+
+    private static void RunKit(BuildOptions options, string script, string site, string pages, string template, string outDir)
+    {
+        var info = new ProcessStartInfo(options.Node)
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
+        };
+        foreach (var arg in new[] { script, "--site", site, "--pages", pages, "--template", template, "--out", outDir, "--env", options.Env })
+        {
+            info.ArgumentList.Add(arg);
+        }
+        using var process = Process.Start(info) ?? throw new InvalidOperationException($"{options.Node} を起動できません");
+        var stdout = process.StandardOutput.ReadToEndAsync();
+        var stderr = process.StandardError.ReadToEndAsync();
+        process.WaitForExit();
+        if (process.ExitCode != 0)
+            throw new InvalidOperationException($"fara-site-kit の build-pages.mjs が失敗しました（終了コード {process.ExitCode}）:\n{stderr.Result}{stdout.Result}");
+        Console.WriteLine(stdout.Result.Trim());
+    }
+
+    private static void WriteJson<T>(string path, T value)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, JsonSerializer.Serialize(value, DataJson), new UTF8Encoding(false));
+    }
+
+    private static void CopyDirectory(string source, string target, Func<string, bool> include)
+    {
+        if (!Directory.Exists(source)) return;
+        foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+        {
+            if (!include(file)) continue;
+            var destination = Path.Combine(target, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            File.Copy(file, destination, overwrite: true);
+        }
+    }
+}

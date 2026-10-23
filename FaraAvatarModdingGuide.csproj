@@ -7,11 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- テストプロジェクト（tests/）と、移行先の新プロジェクト（src/）のソースを、このプロジェクトに取り込まない
+    <!-- テストプロジェクト（tests/）と、移行先の新プロジェクト（src/）・共通部品（external/）のソースを、このプロジェクトに取り込まない
          （Sdk.Web は **/*.cs を拾うので、src/ の .cs や obj/ の自動生成ファイルが混ざってビルドが壊れる） -->
-    <Compile Remove="tests\**;src\**" />
-    <EmbeddedResource Remove="tests\**;src\**" />
-    <None Remove="tests\**;src\**" />
+    <Compile Remove="tests\**;src\**;external\**" />
+    <EmbeddedResource Remove="tests\**;src\**;external\**" />
+    <None Remove="tests\**;src\**;external\**" />
+    <RazorComponent Remove="tests\**;src\**;external\**" />
+    <Content Remove="tests\**;src\**;external\**" />
   </ItemGroup>
 
   <ItemGroup>
