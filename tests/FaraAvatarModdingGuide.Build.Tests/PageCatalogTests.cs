@@ -41,7 +41,7 @@ public class PageCatalogTests
         Assert.All(Pages, p =>
         {
             Assert.False(string.IsNullOrWhiteSpace(p.Title));
-            Assert.EndsWith(" - Avatar Modding Guide", p.Title);
+            Assert.Matches(" [-|] Avatar Modding Guide$", p.Title);   // 区切りは「 - 」(/report だけ kit に合わせて「 | 」)
             Assert.False(string.IsNullOrWhiteSpace(p.Description), p.Path);
             Assert.True(p.Description.Length <= 160, p.Path + " の説明が長い");
             Assert.False(string.IsNullOrWhiteSpace(p.Main), p.Path);
@@ -152,5 +152,13 @@ public class PageCatalogTests
         var described = Html.Describe(long150);
         Assert.Equal(150, described.Length);
         Assert.EndsWith("…", described);
+    }
+
+    [Fact]
+    public void Report_title_uses_the_kit_separator_so_the_tab_title_does_not_change_after_boot()
+    {
+        // kit の ReportFormView の PageTitle は「問い合わせ | サイト名」(上書きできない)。静的 HTML の title がちがうと、起動の後にタブの題名が替わる
+        Assert.Equal("問い合わせ | " + Settings.Title, Pages.Single(p => p.Path == "/report").Title);
+        Assert.All(Pages.Where(p => p.Path != "/report"), p => Assert.EndsWith(" - " + Settings.Title, p.Title));
     }
 }

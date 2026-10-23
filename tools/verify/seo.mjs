@@ -174,6 +174,9 @@ if (!NO_BROWSER) {
     const want = NOINDEX.has(path) ? 1 : 0;
     if (s.robots.length !== want) fail(`起動後 ${path}: robots meta が ${s.robots.length} 個(期待 ${want})`);
     if (s.canonical[0] !== `${ORIGIN_EXPECT}${path === "/" ? "/" : path}`) fail(`起動後 ${path}: canonical=${s.canonical[0]}`);
+    // タブの題名は、静的 HTML の title と同じ(起動の前後で、区切りなどが変わらない)
+    const staticTitle = (htmlByPath.get(path) ?? "").match(/<title>(.*?)<\/title>/)?.[1]?.replace(/&amp;/g, "&");
+    if (staticTitle && s.titleText !== staticTitle) fail(`起動後 ${path}: document.title「${s.titleText}」が静的 HTML の title「${staticTitle}」と違う`);
     if (p.problems.length) fail(`起動後 ${path}: コンソール ${p.problems.join(" | ")}`);
     await p.context().close();
   }
@@ -198,6 +201,22 @@ if (!NO_BROWSER) {
   if (staleCanonical) fail("アプリ内の移動のあと、canonical が新しいページのものに替わっていない");
   if (staleDescription) fail("アプリ内の移動のあと、description が新しいページのものに替わっていない");
   await p.context().close();
+  // 404 から他のページへアプリ内で移ったとき: 404.html の head は title と noindex だけなので、canonical・description・OGP が足され、noindex が外れる
+  const q = await newPage(b, { width: 1280, height: 800 });
+  await q.goto(NEW + "/no-such-page-here", { waitUntil: "load" });
+  await q.waitForSelector(".fsk-not-found", { timeout: 60000 });
+  const from404 = await snapshot(q);
+  if (from404.canonical.length !== 0) fail("404 の head に canonical がある(あってはいけない)");
+  await q.locator('a.mud-nav-link[href="learn/modeling"]').click();
+  await q.waitForURL("**/learn/modeling");
+  await q.waitForTimeout(500);
+  const to = await snapshot(q);
+  dup(to, "404 から移ったあと /learn/modeling");
+  // canonical の出どころは、canonical が無いので、開いているホスト(location.origin)。本番・確認用の公開先では canonical の出どころと同じ
+  if (to.canonical[0] !== `${NEW}/learn/modeling`) fail(`404 から移ったあとの canonical=${to.canonical[0]}`);
+  if (to.robots.length !== 0) fail("404 から移ったあと、noindex の meta が残っている");
+  ok(`404 から移ったあと: canonical・description・OGP が 1 つずつ(${to.ogType[0]})・noindex なし`);
+  await q.context().close();
   await b.close();
 }
 

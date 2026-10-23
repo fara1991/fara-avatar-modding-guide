@@ -6,6 +6,7 @@
 //   ・本文(見出し・最初の段落・パンくず)の位置の差(getBoundingClientRect。起動の前後。CLS の API は、前後で「同じ要素」でないと数えない = Blazor は #app の中身を置き換えるので、
 //     数値が 0 でも位置は動いている。そのため位置を直接測る)
 //   ・起動の瞬間の本文の動き: 毎フレーム見出しの位置を記録し、静的 → 起動後に切り替わる 1 フレームでの移動(px)を出す(Web フォントの読み込みによる再配置は、起動と関係ないので数えない)
+//   ・サイドバーの「いまのページ」の強調の計算済みスタイル(color・background-color)が、静的と起動後で同じ(PC。スマホはサイドバーが閉じていて、静的は出さない)
 //   ・CLS(layout-shift の合計。参考)と、読み込み表示が本文を覆う最大の割合(画面に対する %。右下の小さな表示なので 2% 以下であること)
 // 環境変数: SIDEBAR_HIDDEN=1 で、PC のサイドバーを隠した設定で測る。HIDE_OVERLAY=1 で、前の画面から起動中のオーバーレイを隠す(オーバーレイを除いた「枠のそろい」だけを測る)。
 //   MAX_RATIO(既定 0.5 = %)・MAX_SHIFT(既定 1 = px)を超えたら、終了コード 1。
@@ -74,7 +75,11 @@ const settle = async (p) => {
 const rects = (p) => p.evaluate(() => {
   const r = (el) => { if (!el) return null; const b = el.getBoundingClientRect(); return { x: Math.round(b.x * 10) / 10, y: Math.round(b.y * 10) / 10, w: Math.round(b.width * 10) / 10 }; };
   const main = document.querySelector("#fsk-main") || document.querySelector("main");
+  const active = document.querySelector(".fsk-sidebar .mud-nav-link.active");
+  const acs = active && getComputedStyle(active);
   return {
+    // サイドバーの「いまのページ」の強調(計算済みの色・背景)。静的と起動後で同じであること(位置・ピクセル差の閾値では見つからない小さな領域)
+    activeStyle: acs ? `${acs.color} | ${acs.backgroundColor}` : null,
     h1: r(document.querySelector("#fsk-main h1, main h1, h1")),
     crumb: r(main && main.querySelector(".breadcrumb, nav ol")),
     para: r(main && main.querySelector("p")),
@@ -123,6 +128,8 @@ for (const [vpName, vp] of [["pc", { width: 1280, height: 800 }], ["sp", { width
 
       // 本文の位置の差(前 → 後)
       const d = (k) => (rectBefore[k] && rectAfter[k] ? Math.max(Math.abs(rectBefore[k].x - rectAfter[k].x), Math.abs(rectBefore[k].y - rectAfter[k].y)) : null);
+      const activeBefore = rectBefore.activeStyle, activeAfter = rectAfter.activeStyle;
+      const activeOk = activeBefore === activeAfter;
       const shifts = ["h1", "crumb", "para", "h2"].map(d).filter((v) => v !== null);
       const shift = shifts.length ? Math.max(...shifts) : null;
       // 起動のあいだ(本文が見えているフレームのうち、.mud-layout が出る前後)で、見出しがどれだけ飛んだか
@@ -132,7 +139,7 @@ for (const [vpName, vp] of [["pc", { width: 1280, height: 800 }], ["sp", { width
       if (bootIndex > 0) jump = Math.hypot(frames[bootIndex].x - frames[bootIndex - 1].x, frames[bootIndex].y - frames[bootIndex - 1].y);
       const firstVisible = frames.find((f) => f.vis);
       const visibleBeforeBoot = frames.filter((f) => f.vis && !f.mud).length;
-      rows.push({ name, cover: cover * 100, ratio: (diff / (w * h)) * 100, shift, jump, cls, visibleBeforeBoot, frames: frames.length, firstVisibleMs: firstVisible ? firstVisible.t : null });
+      rows.push({ name, activeOk, activeBefore, activeAfter, cover: cover * 100, ratio: (diff / (w * h)) * 100, shift, jump, cls, visibleBeforeBoot, frames: frames.length, firstVisibleMs: firstVisible ? firstVisible.t : null });
     }
   }
 }
@@ -144,6 +151,8 @@ for (const r of rows) {
   console.log(`${r.ratio.toFixed(2).padStart(10)}  ${(r.shift ?? NaN).toFixed(1).padStart(12)}  ${r.jump.toFixed(1).padStart(24)}  ${r.cls.toFixed(3)}  ${r.cover.toFixed(1).padStart(8)}  ${String(r.visibleBeforeBoot).padStart(8)}/${r.frames}  ${r.name}`);
 }
 writeFileSync(`${out}/summary.json`, JSON.stringify(rows, null, 1));
-const bad = rows.filter((r) => r.ratio > MAX_RATIO || (r.shift ?? 0) > MAX_SHIFT || r.jump > MAX_SHIFT || r.cover > 2);
+const activeBad = rows.filter((r) => !r.activeOk);
+for (const r of activeBad) console.log(`強調の色が違う: ${r.name} 静的「${r.activeBefore}」/ 起動後「${r.activeAfter}」`);
+const bad = rows.filter((r) => !r.activeOk || r.ratio > MAX_RATIO || (r.shift ?? 0) > MAX_SHIFT || r.jump > MAX_SHIFT || r.cover > 2);
 console.log(bad.length ? `\n閾値超え ${bad.length} / ${rows.length}(ピクセル差 ${MAX_RATIO}% ・位置 ${MAX_SHIFT}px)` : `\n全 ${rows.length} 件が閾値以下(ピクセル差 ${MAX_RATIO}% ・位置 ${MAX_SHIFT}px)`);
 process.exit(bad.length ? 1 : 0);

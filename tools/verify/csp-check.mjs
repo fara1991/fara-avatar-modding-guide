@@ -14,6 +14,7 @@ const rows = [];
 let total = 0;
 for (const [vpName, vp] of [["pc", { width: 1280, height: 800 }], ["sp", { width: 390, height: 844, mobile: true }]]) {
   for (const path of PAGES) {
+    const visit = async () => {
     const p = await newPage(b, { ...vp, theme: "dark" });
     const wsErrors = [];
     p.on("websocket", (ws) => ws.on("socketerror", (e) => wsErrors.push("websocket: " + e)));
@@ -42,12 +43,19 @@ for (const [vpName, vp] of [["pc", { width: 1280, height: 800 }], ["sp", { width
     const problems = p.problems.filter((m) => !/favicon/.test(m));
     // 404 ページ(知らない URL)は、ステータス 404 でコンソールにリソースエラーが 1 件出る(ページ自体の取得)。それ以外のエラーは数える
     const filtered = path === "/no-such-page-here" ? problems.filter((m) => !/404 \(Not Found\)|status of 404/.test(m) && !m.startsWith("requestfailed")) : problems;
+    await p.context().close();
+    return { csp, filtered, wsErrors, status };
+    };
+    // /api/maintenance の requestfailed だけは、kit の MaintenanceInfo が 2 秒で打ち切る(仕様)ので、配信が重いとき(他の作業と並列に動かしたとき)に出ることがある。その場合だけ 1 回やり直す
+    let r = await visit();
+    const onlyMaintenance = (x) => x.csp.length === 0 && x.wsErrors.length === 0 && x.filtered.length > 0 && x.filtered.every((m) => m.startsWith("requestfailed:") && m.includes("/api/maintenance"));
+    if (onlyMaintenance(r)) { console.log(`     (${vpName} ${path}: /api/maintenance が 2 秒の打ち切りで失敗。やり直す)`); r = await visit(); }
+    const { csp, filtered, wsErrors, status } = r;
     const n = csp.length + filtered.length + wsErrors.length;
     total += n;
     rows.push({ vp: vpName, path, status, csp, problems: [...filtered, ...wsErrors] });
     console.log(`${n === 0 ? "ok" : "NG"}  ${vpName} ${path} (${status}) CSP 違反 ${csp.length}・コンソール ${filtered.length + wsErrors.length}`);
     for (const m of [...csp, ...filtered, ...wsErrors]) console.log("     " + m);
-    await p.context().close();
   }
 }
 await b.close();

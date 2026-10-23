@@ -3,7 +3,7 @@
 // 静的 HTML の head は、そのページ用に Build が書いたもの。アプリ内で別のページへ移ると、題名(title)だけは PageTitle が替えるが、
 // そのほかは最初のページの値のまま残る。検索エンジンは URL ごとに静的 HTML(の描画結果)を読むので、順位には影響しないが、
 // 開いている画面の head が別のページの値を持たないように(DOM を読む拡張機能・共有の部品など)、ここで合わせる。
-// タグは増やさず、既存のものを書き換える(「全ページに 1 つずつ」を保つ)。無いタグは、robots だけ作る。pages.json に無いパス(404 など)は何もしない。
+// 既存のタグを書き換える(「全ページに 1 つずつ」を保つ)。無いタグ(404.html から移ったとき)は、固定の meta/link だけを 1 つ作る(同じタグを 2 つにはしない)。robots は noindex のページでだけ足す。pages.json に無いパス(404 など)は何もしない。
 (function () {
     "use strict";
     var pages = null;      // 読み込み済みの { パス: { title, description, ogType, noindex } }
@@ -20,21 +20,31 @@
         return loading;
     }
 
-    function setContent(selector, value) {
-        var el = document.querySelector(selector);
-        if (el && typeof value === "string") el.setAttribute("content", value);
+    // 既存のタグの内容を替える。無いタグ(404.html から移ったとき。404.html の head は title と noindex だけ)は、固定の meta/link だけを作って足す(innerHTML は使わない)
+    function ensure(tag, keyAttr, keyValue) {
+        var el = document.querySelector(tag + "[" + keyAttr + '="' + keyValue + '"]');
+        if (!el) {
+            el = document.createElement(tag);
+            el.setAttribute(keyAttr, keyValue);
+            document.head.appendChild(el);
+        }
+        return el;
+    }
+
+    function setContent(keyAttr, keyValue, value) {
+        if (typeof value === "string") ensure("meta", keyAttr, keyValue).setAttribute("content", value);
     }
 
     function apply(path, entry) {
         var canonical = document.querySelector('link[rel="canonical"]');
         var origin = canonical && canonical.getAttribute("href") ? new URL(canonical.getAttribute("href"), location.href).origin : location.origin;
         var url = origin + path;
-        if (canonical) canonical.setAttribute("href", url);
-        setContent('meta[name="description"]', entry.description);
-        setContent('meta[property="og:description"]', entry.description);
-        setContent('meta[property="og:title"]', entry.title);
-        setContent('meta[property="og:type"]', entry.ogType);
-        setContent('meta[property="og:url"]', url);
+        ensure("link", "rel", "canonical").setAttribute("href", url);
+        setContent("name", "description", entry.description);
+        setContent("property", "og:description", entry.description);
+        setContent("property", "og:title", entry.title);
+        setContent("property", "og:type", entry.ogType);
+        setContent("property", "og:url", url);
         var robots = document.querySelector('meta[name="robots"]');
         if (entry.noindex) {
             if (!robots) {
