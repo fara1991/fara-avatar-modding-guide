@@ -29,7 +29,12 @@ public sealed class ObjectBuffers
 /// <summary>
 /// <see cref="ViewportCore"/> の状態から、WebGL に渡す描画の命令(<see cref="Frame"/>)を作る。状態を読むだけで、ロジックには何も書き戻さない。
 /// viewport.js の buildScene / makeObject / rebuild / rebuildOverlay / refreshSelection / setXray / animate に当たる。
-/// 描く順は three.js と同じ: 不透明(renderOrder の小さい順。同じなら、シーンに足した順)→ 透明(renderOrder の小さい順。同じなら、奥から)。
+/// <para><b>契約: <see cref="ViewportCore"/> を作ったら、操作(キー・ポインター・<c>SetMode</c> など)の前にこのクラスを作る。</b>編集モードの点・線・面は
+/// <see cref="ViewportCore.OverlayRebuilt"/> の通知を受けた時点の状態で作る(現行が <c>rebuildOverlay</c> を呼ぶ時点の再現)ので、通知より後に作ると、
+/// 編集中のオブジェクトのオーバーレイは次の通知まで無いままになる。</para>
+/// <para>描く順は three.js の近似: 不透明(renderOrder の小さい順。同じなら、シーンに足した順)→ 透明(renderOrder の小さい順。同じなら、奥から)。
+/// three.js は renderOrder → material.id → z(手前から)→ id の順で、同じ renderOrder のあいだは材質ごとにまとまる。ここは足した順なので、
+/// 深度テストで決まらない重なり(同じ深さ・深度テストなしのもの)の前後は、three.js と違いうる。画像比較では差が出ていない。</para>
 /// </summary>
 public sealed class SceneRenderer : IDisposable
 {

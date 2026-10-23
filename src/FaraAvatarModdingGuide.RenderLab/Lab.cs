@@ -19,6 +19,7 @@ internal static class Lab
     private static SceneRenderer? renderer;
     private static float[] packed = new float[FramePacker.HeaderFloats + FramePacker.ItemFloats * 32];
     private static ViewRect rect = new(0, 0, 0, 0);
+    private static double[]? angles;
     private static long frameTicks;
     private static int frames;
 
@@ -32,6 +33,11 @@ internal static class Lab
     {
         var options = ParseQuery(Gl.GetQuery());
         core = new ViewportCore(new ViewRect(0, 0, 960, 540), options);
+        if (angles is { Length: 2 })
+        {
+            core.View.Theta = angles[0];
+            core.View.Phi = angles[1];
+        }
         renderer = new SceneRenderer(core);
         rect = new ViewRect(0, 0, 0, 0);
         frameTicks = 0;
@@ -132,6 +138,7 @@ internal static class Lab
 
     private static ViewportOptions ParseQuery(string query)
     {
+        angles = null;
         List<SceneSpec>? scene = null;
         double? dist = null;
         double[]? target = null;
@@ -149,6 +156,12 @@ internal static class Lab
                     d.TryGetProperty("p", out var p) ? Doubles(p) : null,
                     d.TryGetProperty("r", out var r) ? Doubles(r) : null,
                     d.TryGetProperty("s", out var s) ? Doubles(s) : null))];
+            }
+            else if (kv[0] == "angles")
+            {
+                // 画像比較用: 視点の角度 [theta, phi](ラジアン)
+                using var doc = JsonDocument.Parse(value);
+                angles = Doubles(doc.RootElement);
             }
             else if (kv[0] == "view")
             {

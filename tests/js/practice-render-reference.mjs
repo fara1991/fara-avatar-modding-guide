@@ -15,6 +15,12 @@ const wwwroot = path.resolve(here, "../../src/FaraAvatarModdingGuide.Web/wwwroot
 const b64 = arr => (arr ? Buffer.from(new Float32Array(arr).buffer).toString("base64") : null);
 const attr = (geo, name) => (geo?.attributes?.[name] ? b64(geo.attributes[name].array) : null);
 const mat = m => Array.from(m.elements);
+/** 材質と描く順の設定(C# の DrawItem と比べる): 色(sRGB の 16 進)・不透明度・透明・深度・polygonOffset・renderOrder・点の大きさ */
+const props = (object, m) => ({
+  color: m.color.getHex(), opacity: m.opacity, transparent: m.transparent, depthTest: m.depthTest, depthWrite: m.depthWrite,
+  polygonOffset: m.polygonOffset, factor: m.polygonOffsetFactor, units: m.polygonOffsetUnits, renderOrder: object.renderOrder,
+  size: m.isPointsMaterial ? m.size : null, sizeAttenuation: m.isPointsMaterial ? m.sizeAttenuation : null, vertexColors: !!m.vertexColors, side: m.side,
+});
 
 /** 方眼・軸・3D カーソル(最初から置くもの。ケースによらない) */
 function staticShot(vp) {
@@ -27,8 +33,10 @@ function staticShot(vp) {
   const expanded = [];
   for (const i of index) expanded.push(rp[i * 3], rp[i * 3 + 1], rp[i * 3 + 2]);
   return {
-    grid: { pos: attr(grid.geometry, "position"), col: attr(grid.geometry, "color"), world: mat(grid.matrixWorld) },
-    axes: lines.map(l => ({ pos: attr(l.geometry, "position"), world: mat(l.matrixWorld), color: l.material.color.getHex() })),
+    grid: { pos: attr(grid.geometry, "position"), col: attr(grid.geometry, "color"), world: mat(grid.matrixWorld), props: props(grid, grid.material) },
+    axes: lines.map(l => ({ pos: attr(l.geometry, "position"), world: mat(l.matrixWorld), color: l.material.color.getHex(), props: props(l, l.material) })),
+    ringProps: props(ring, ring.material),
+    axisLineProps: props(vp.axisLine, vp.axisLine.material),
     ring: b64(expanded),
     axisLinePos: attr(vp.axisLine.geometry, "position"),
   };
@@ -54,6 +62,7 @@ function shot(h, step) {
           pointsPos: attr(points.geometry, "position"), pointsCol: attr(points.geometry, "color"), pointsVisible: points.visible,
           facesPos: attr(faces.geometry, "position"),
           depthTest: lines.material.depthTest, pointsDepthTest: points.material.depthTest, facesDepthTest: faces.material.depthTest,
+          linesProps: props(lines, lines.material), pointsProps: props(points, points.material), facesProps: props(faces, faces.material),
         };
       }
       return {
@@ -61,13 +70,15 @@ function shot(h, step) {
         meshPos: attr(o.geometry, "position"), meshNor: attr(o.geometry, "normal"),
         outlinePos: attr(outline.geometry, "position"), outlineVisible: outline.visible, outlineColor: outline.material.color.getHex(),
         mirrorVisible: mirror.visible, mirrorWorld: mat(mirror.matrixWorld),
+        meshProps: props(o, o.material), outlineProps: props(outline, outline.material), mirrorProps: props(mirror, mirror.material),
         transparent: o.material.transparent, opacity: o.material.opacity, depthWrite: o.material.depthWrite,
         overlay: ov,
       };
     }),
-    axisLine: { visible: vp.axisLine.visible, world: mat(vp.axisLine.matrixWorld), color: vp.axisLine.material.color.getHex() },
+    axisLine: { props: props(vp.axisLine, vp.axisLine.material), visible: vp.axisLine.visible, world: mat(vp.axisLine.matrixWorld), color: vp.axisLine.material.color.getHex() },
     loopPreview: vp.loopcut?.preview ? attr(vp.loopcut.preview.geometry, "position") : null,
     loopPreviewWorld: vp.loopcut?.preview ? mat(vp.loopcut.preview.matrixWorld) : null,
+    loopPreviewProps: vp.loopcut?.preview ? props(vp.loopcut.preview, vp.loopcut.preview.material) : null,
     hasOp: !!op,
   };
 }

@@ -97,6 +97,9 @@ public class RenderParityTests
             CompareMatrix(errors, "axis" + k + ".world", axes[k].GetProperty("world"), item.World);
             Assert.Equal(axes[k].GetProperty("color").GetInt32(), HexOf(item));
         }
+        CompareProps(errors, "grid", grid, s.GetProperty("grid").GetProperty("props"));
+        for (var k = 0; k < 2; k++) CompareProps(errors, "axis" + k, byLabel[k == 0 ? "axis-x" : "axis-y"], axes[k].GetProperty("props"));
+        CompareProps(errors, "cursor", byLabel["cursor"], s.GetProperty("ringProps"));
         // 3D カーソルの輪
         CompareFloats(errors, "ring", Floats(s.GetProperty("ring")), byLabel["cursor"].Buffer.Data);
         // 軸固定の線の点の列
@@ -168,19 +171,25 @@ public class RenderParityTests
             var outlineItem = byLabel.GetValueOrDefault(o.Name + ":outline");
             var jsOutline = j.GetProperty("outlineVisible").GetBoolean() && Floats(j.GetProperty("outlinePos")).Length > 0;
             if (jsOutline != (outlineItem is not null)) errors.Add($"{p}.outline: 表示 JS={jsOutline} C#={outlineItem is not null}");
-            else if (outlineItem is not null && HexOf(outlineItem) != j.GetProperty("outlineColor").GetInt32()) errors.Add($"{p}.outline: 色 JS={j.GetProperty("outlineColor").GetInt32():x6} C#={HexOf(outlineItem):x6}");
+            else if (outlineItem is not null) CompareProps(errors, p + ".outline", outlineItem, j.GetProperty("outlineProps"));
+            if (outlineItem is not null && HexOf(outlineItem) != j.GetProperty("outlineColor").GetInt32()) errors.Add($"{p}.outline: 色 JS={j.GetProperty("outlineColor").GetInt32():x6} C#={HexOf(outlineItem):x6}");
 
             // ミラー
             var mirrorItem = byLabel.GetValueOrDefault(o.Name + ":mirror");
             // 三角形の無いメッシュ(面を全部消した)は、ミラーが有効でも描くものが無い
             var jsMirror = j.GetProperty("mirrorVisible").GetBoolean() && Floats(j.GetProperty("meshPos")).Length > 0;
             if (jsMirror != (mirrorItem is not null)) errors.Add($"{p}.mirror: JS={jsMirror} C#={mirrorItem is not null}");
-            else if (mirrorItem is not null) CompareMatrix(errors, p + ".mirror.world", j.GetProperty("mirrorWorld"), mirrorItem.World);
+            else if (mirrorItem is not null)
+            {
+                CompareMatrix(errors, p + ".mirror.world", j.GetProperty("mirrorWorld"), mirrorItem.World);
+                CompareProps(errors, p + ".mirror", mirrorItem, j.GetProperty("mirrorProps"), j.GetProperty("mirrorWorld"));
+            }
 
             // 材質(透過表示)
             var meshItem = byLabel.GetValueOrDefault(o.Name);
             if (meshItem is not null)
             {
+                CompareProps(errors, p + ".mesh", meshItem, j.GetProperty("meshProps"), j.GetProperty("world"));
                 if (j.GetProperty("transparent").GetBoolean() != meshItem.Transparent) errors.Add($"{p}.transparent: JS={j.GetProperty("transparent").GetBoolean()} C#={meshItem.Transparent}");
                 if (Math.Abs(j.GetProperty("opacity").GetDouble() - meshItem.Opacity) > 1e-6) errors.Add($"{p}.opacity: JS={j.GetProperty("opacity").GetDouble()} C#={meshItem.Opacity}");
                 if (j.GetProperty("depthWrite").GetBoolean() != meshItem.Flags.HasFlag(DrawFlags.DepthWrite)) errors.Add($"{p}.depthWrite");
@@ -203,6 +212,8 @@ public class RenderParityTests
                 CompareFloats(errors, p + ".overlay.points.col", Floats(jo.GetProperty("pointsCol")), Every(ov.Points.Data, 6, 3, 3).Select(c => (float)Rgb.ToLinear(c)).ToArray());
                 CompareFloats(errors, p + ".overlay.faces.pos", Floats(jo.GetProperty("facesPos")), ov.Faces.Data);
                 if (jo.GetProperty("pointsVisible").GetBoolean() != ov.PointsVisible) errors.Add($"{p}.overlay.pointsVisible: JS={jo.GetProperty("pointsVisible").GetBoolean()} C#={ov.PointsVisible}");
+                foreach (var (suffix, key) in new[] { (":edit-lines", "linesProps"), (":edit-points", "pointsProps"), (":edit-faces", "facesProps") })
+                    if (byLabel.GetValueOrDefault(o.Name + suffix) is { } overlayItem) CompareProps(errors, p + ".overlay" + suffix, overlayItem, jo.GetProperty(key));
                 foreach (var key in new[] { "depthTest", "pointsDepthTest", "facesDepthTest" })
                     if (jo.GetProperty(key).GetBoolean() != ov.DepthTest) errors.Add($"{p}.overlay.{key}: JS={jo.GetProperty(key).GetBoolean()} C#={ov.DepthTest}");
             }
@@ -215,6 +226,7 @@ public class RenderParityTests
         else if (axisItem is not null)
         {
             CompareMatrix(errors, "axisLine.world", axis.GetProperty("world"), axisItem.World);
+            CompareProps(errors, "axisLine", axisItem, axis.GetProperty("props"));
             if (HexOf(axisItem) != axis.GetProperty("color").GetInt32()) errors.Add($"axisLine.color: JS={axis.GetProperty("color").GetInt32():x6} C#={HexOf(axisItem):x6}");
         }
 
@@ -226,6 +238,39 @@ public class RenderParityTests
         {
             CompareFloats(errors, "loopcut.pos", Floats(loop), loopItem.Buffer.Data);
             CompareMatrix(errors, "loopcut.world", shot.GetProperty("loopPreviewWorld"), loopItem.World);
+            CompareProps(errors, "loopcut", loopItem, shot.GetProperty("loopPreviewProps"));
+        }
+    }
+
+
+    /// <summary>three.js の材質・オブジェクトの設定(色・不透明度・透明・深度・polygonOffset・renderOrder・点の大きさ・頂点色)と、描画 1 つの設定を比べる。</summary>
+    private static void CompareProps(List<string> errors, string what, DrawItem item, JsonElement j, JsonElement? world = null)
+    {
+        var opacity = j.GetProperty("opacity").GetDouble();
+        if (Math.Abs(opacity - item.Opacity) > 1e-6) errors.Add($"{what}.opacity: JS={opacity} C#={item.Opacity}");
+        void Flag(string name, DrawFlags flag, bool js) { if (item.Flags.HasFlag(flag) != js) errors.Add($"{what}.{name}: JS={js} C#={item.Flags.HasFlag(flag)}"); }
+        Flag("transparent(Blend)", DrawFlags.Blend, j.GetProperty("transparent").GetBoolean());
+        Flag("depthTest", DrawFlags.DepthTest, j.GetProperty("depthTest").GetBoolean());
+        Flag("depthWrite", DrawFlags.DepthWrite, j.GetProperty("depthWrite").GetBoolean());
+        var po = j.GetProperty("polygonOffset").GetBoolean();
+        Flag("polygonOffset", DrawFlags.PolygonOffset, po);
+        var factor = po ? j.GetProperty("factor").GetDouble() : 0;
+        var units = po ? j.GetProperty("units").GetDouble() : 0;
+        if (item.PolygonOffsetFactor != factor || item.PolygonOffsetUnits != units) errors.Add($"{what}.polygonOffset値: JS={factor}/{units} C#={item.PolygonOffsetFactor}/{item.PolygonOffsetUnits}");
+        if (item.RenderOrder != j.GetProperty("renderOrder").GetInt32()) errors.Add($"{what}.renderOrder: JS={j.GetProperty("renderOrder").GetInt32()} C#={item.RenderOrder}");
+        var size = j.GetProperty("size");
+        var jsSize = size.ValueKind == JsonValueKind.Null ? 0 : size.GetDouble();
+        if (item.PointSize != jsSize) errors.Add($"{what}.pointSize: JS={jsSize} C#={item.PointSize}");
+        if ((item.Primitive == Primitive.Points) != (size.ValueKind != JsonValueKind.Null)) errors.Add($"{what}: 点かどうか");
+        if (size.ValueKind != JsonValueKind.Null && j.GetProperty("sizeAttenuation").GetBoolean()) errors.Add($"{what}: sizeAttenuation(C# は距離で小さくしない)");
+        var vertexColors = j.GetProperty("vertexColors").GetBoolean();
+        if (vertexColors != (item.Shading == Shading.VertexColor)) errors.Add($"{what}.vertexColors: JS={vertexColors} C#={item.Shading}");
+        else if (!vertexColors && HexOf(item) != j.GetProperty("color").GetInt32()) errors.Add($"{what}.color: JS={j.GetProperty("color").GetInt32():x6} C#={HexOf(item):x6}");
+        if (item.Primitive == Primitive.Triangles && j.GetProperty("side").GetInt32() != 2) errors.Add($"{what}.side: 三角形は両面");
+        if (world is { } w)
+        {
+            var negative = Mat4.FromElements([.. w.EnumerateArray().Select(x => x.GetDouble())]).Determinant() < 0;
+            if (item.Flags.HasFlag(DrawFlags.FrontFaceCw) != negative) errors.Add($"{what}.frontFaceCW: JS={negative} C#={item.Flags.HasFlag(DrawFlags.FrontFaceCw)}");
         }
     }
 

@@ -90,21 +90,48 @@ public class RenderUnitTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void The_packed_frame_has_the_documented_layout()
+    public void The_packed_frame_has_every_field_in_the_documented_place()
     {
+        // 編集モード + 透過 + ミラー + 面選択で、種類の違う描画を一通り出して、全欄(ヘッダー 24・描画 1 つ 28)を確かめる
         var core = NewCore("cube");
-        var frame = new SceneRenderer(core).Build();
+        core.SetSelection([core.Objects[0]]);
+        core.SetMirror(true);
+        var renderer = new SceneRenderer(core);
+        Key(core, "Tab");
+        Key(core, "KeyA");
+        core.SetXray(true);
+        var frame = renderer.Build();
+        Assert.Contains(frame.Items, i => i.Primitive == Primitive.Points);
+        Assert.Contains(frame.Items, i => i.Flags.HasFlag(DrawFlags.Blend));
+        Assert.Contains(frame.Items, i => i.Label.EndsWith(":edit-faces", StringComparison.Ordinal));
+        Assert.Contains(frame.Items, i => i.Label.EndsWith(":mirror", StringComparison.Ordinal));
         var data = FramePacker.Pack(frame);
-        Assert.Equal(FramePacker.HeaderFloats + frame.Items.Count * FramePacker.ItemFloats, data.Length);
+        Assert.Equal(FramePacker.LengthOf(frame), data.Length);
+        for (var i = 0; i < 16; i++) Assert.Equal(frame.ViewProjection[i], data[i]);
+        Assert.Equal((float)frame.CameraPosition.X, data[16]);
+        Assert.Equal((float)frame.CameraPosition.Y, data[17]);
+        Assert.Equal((float)frame.CameraPosition.Z, data[18]);
         Assert.Equal(frame.Items.Count, data[19]);
+        Assert.All(data[20..24], v => Assert.Equal(0, v));
         var o = FramePacker.HeaderFloats;
         foreach (var item in frame.Items)
         {
             Assert.Equal(item.Buffer.Id, data[o]);
             Assert.Equal((int)item.Primitive, data[o + 1]);
-            Assert.Equal((float)item.World.E[12], data[o + 24]);
+            Assert.Equal((int)item.Shading, data[o + 2]);
+            Assert.Equal((int)item.Flags, data[o + 3]);
+            Assert.Equal(item.PolygonOffsetFactor, data[o + 4]);
+            Assert.Equal(item.PolygonOffsetUnits, data[o + 5]);
+            Assert.Equal(item.Opacity, data[o + 6]);
+            Assert.Equal(item.PointSize, data[o + 7]);
+            Assert.Equal(item.R, data[o + 8]);
+            Assert.Equal(item.G, data[o + 9]);
+            Assert.Equal(item.B, data[o + 10]);
+            Assert.Equal(0, data[o + 11]);
+            for (var k = 0; k < 16; k++) Assert.Equal((float)item.World.E[k], data[o + 12 + k]);
             o += FramePacker.ItemFloats;
         }
+        Assert.Equal(data.Length, o);
     }
 
     [Fact]

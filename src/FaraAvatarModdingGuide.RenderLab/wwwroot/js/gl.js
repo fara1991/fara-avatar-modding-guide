@@ -108,8 +108,10 @@ export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel,
   const canvas = document.createElement("canvas");
   canvas.style.cssText = "display:block;width:100%;height:100%";
   root.insertBefore(canvas, root.firstChild);
+  const prevTabIndex = root.getAttribute("tabindex");
   root.tabIndex = 0;
   const s = {
+    prevTabIndex,
     root, canvas, abort, frame,
     gl: null, program: null, loc: null, buffers: new Map(), copies: new Map(), items: new Float32Array(0),
     raf: 0, onScreen: true, lost: false, disposed: false, pixelRatio: 1,
@@ -120,10 +122,15 @@ export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel,
 
   canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); s.lost = true; s.stats.contextLost++; }, { signal });
   canvas.addEventListener("webglcontextrestored", () => { if (init(s)) { restore(s); s.lost = false; s.stats.contextRestored++; render(s, performance.now()); } }, { signal });
-  if (!init(s)) {
-    abort.abort();
-    canvas.remove();
-    state = null;
+  let ready = false;
+  try {
+    ready = init(s);
+  } catch (e) {
+    cleanupFailedStart(s);   // シェーダーのコンパイル・リンクの失敗など。canvas・リスナー・state を残さない
+    throw e;
+  }
+  if (!ready) {
+    cleanupFailedStart(s);
     return false;
   }
   performance.mark("gl:inited");
@@ -131,18 +138,24 @@ export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel,
   const mods = (e) => (e.shiftKey ? 1 : 0) | (e.ctrlKey ? 2 : 0) | (e.altKey ? 4 : 0) | (e.metaKey ? 8 : 0);
   root.addEventListener("contextmenu", (e) => e.preventDefault(), { signal });
   const at = (e) => { const r = root.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  // 押している間(down から up まで)の印。pointerup が来ないまま終わる場合(pointercancel・lostpointercapture)も、C# にドラッグの終わりを伝える
+  let down = false, lastX = 0, lastY = 0;
+  const finish = (x, y) => { if (!down) return; down = false; pointerUp(x, y); };
   root.addEventListener("pointerdown", (e) => {
     root.focus({ preventScroll: true });
     root.setPointerCapture(e.pointerId);
     const [x, y] = at(e);
+    lastX = x; lastY = y; down = true;
     if (pointerDown(e.button | (mods(e) << 4), x, y)) e.preventDefault();
   }, { signal });
-  root.addEventListener("pointermove", (e) => { const [x, y] = at(e); pointerMove(x, y, mods(e)); }, { signal });
+  root.addEventListener("pointermove", (e) => { const [x, y] = at(e); lastX = x; lastY = y; pointerMove(x, y, mods(e)); }, { signal });
   root.addEventListener("pointerup", (e) => {
     if (root.hasPointerCapture(e.pointerId)) root.releasePointerCapture(e.pointerId);
     const [x, y] = at(e);
-    pointerUp(x, y);
+    finish(x, y);
   }, { signal });
+  root.addEventListener("pointercancel", () => finish(lastX, lastY), { signal });
+  root.addEventListener("lostpointercapture", () => finish(lastX, lastY), { signal });
   // ホイールは passive: false にしないと preventDefault できず、ページがスクロールしてしまう(試作ではここで失敗した)
   root.addEventListener("wheel", (e) => { if (wheel(e.deltaY)) e.preventDefault(); }, { passive: false, signal });
   root.addEventListener("keydown", (e) => { if (key(e.code, e.key, mods(e))) e.preventDefault(); }, { signal });
@@ -176,6 +189,18 @@ export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel,
 }
 
 let state = null;
+
+/** 始めるのに失敗したとき: 作った canvas・リスナー・tabindex を戻して、state を空にする */
+function cleanupFailedStart(s) {
+  s.abort.abort();
+  s.canvas.remove();
+  restoreTabIndex(s);
+  if (state === s) state = null;
+}
+
+function restoreTabIndex(s) {
+  if (s.prevTabIndex === null) s.root.removeAttribute("tabindex"); else s.root.setAttribute("tabindex", s.prevTabIndex);
+}
 
 function compile(gl, type, src) {
   const sh = gl.createShader(type);
@@ -243,6 +268,10 @@ function release(s, id, forget = true) {
 export function uploadBuffer(id, layout, bytes) {
   const s = state;
   if (!s || s.disposed) return;
+  const stride = LAYOUT_STRIDE[layout];
+  if (stride === undefined || bytes.byteLength % (stride * 4) !== 0) {
+    throw new Error(`uploadBuffer: 不正なバッファ(id ${id}, layout ${layout}, ${bytes.byteLength} バイト)`);
+  }
   const copy = new Float32Array(bytes.slice().buffer);
   s.copies.set(id, { layout, data: copy });
   if (!s.lost) upload(s, id, layout, copy, false);
@@ -258,8 +287,10 @@ export function draw(bytes) {
   const s = state;
   if (!s || s.disposed || s.lost) return;
   const n = bytes.byteLength >> 2;
+  if (n < HEADER || (n - HEADER) % STRIDE !== 0 || (n - HEADER) / STRIDE < 0) throw new Error(`draw: 長さが合いません(${n} float)`);
   if (s.items.length < n) s.items = new Float32Array(Math.max(n, s.items.length * 2, 1024));
   bytes.copyTo(new Uint8Array(s.items.buffer, 0, n * 4));
+  if (s.items[19] !== (n - HEADER) / STRIDE) throw new Error(`draw: 描画の数 ${s.items[19]} と長さ(${(n - HEADER) / STRIDE} 個ぶん)が合いません`);
   paint(s, s.items, n);
 }
 
@@ -331,6 +362,7 @@ export function dispose() {
   }
   s.copies.clear();
   s.canvas.remove();
+  restoreTabIndex(s);
 }
 
 /** 調べる用: いまの状態の要約 */

@@ -11,6 +11,8 @@ const ORIGIN = process.env.ORIGIN || "http://127.0.0.1:8790";
 const OUT = process.env.OUT || "./gl-compare-out";
 const WIDTH = Number(process.env.WIDTH || 960);
 const HEIGHT = Math.round((WIDTH * 9) / 16);
+const MAX_OVER_PCT = Number(process.env.MAX_OVER_PCT || 0.15);
+const MAX_DIFF = Number(process.env.MAX_DIFF || 40);
 const FACE_TOLERANCE = Number(process.env.FACE_TOLERANCE || 3);
 mkdirSync(OUT, { recursive: true });
 
@@ -31,7 +33,10 @@ const SCENES = [
   // 透過表示でない編集モード(球。近くから)
   { name: "edit-face-sphere", scene: [{ kind: "sphere" }], view: { dist: 5 }, steps: [["click", 480, 270], ["key", "Tab"], ["key", "Digit3"], ["click", 520, 300]] },
   // ミラー(X 方向): 立方体を右にずらして、鏡像を出す
-  { name: "mirror", scene: [{ kind: "cube", p: [2.5, 0, 0], s: [1, 0.6, 0.6] }], steps: [["click", 600, 285], ["tool", "mirror"]] },
+  // (形がオブジェクトの原点から外れていないと、鏡像は元の形に重なって見えないので、編集モードで形を X 方向に 2 ずらしてからミラーを付ける。鏡像が写っていること自体も確かめる: 最後の操作(ミラーを付ける)の前後で、C# 版の画素が 300 以上変わる)
+  { name: "mirror", scene: [{ kind: "cube", p: [2.5, 0, 0], s: [1, 0.6, 0.6] }], steps: [["click", 562, 238], ["key", "Tab"], ["key", "KeyA"], ["key", "KeyG"], ["key", "KeyX"], ["key", "Digit2"], ["key", "Enter"], ["key", "Tab"], ["tool", "mirror"]], lastStepChanges: 300 },
+  // 鏡面反射(GGX)が効く視点: 光の水平方向の反対側から、地平線すれすれに球を見る(ここで鏡面反射は最大 20 階調ほど。ふつうの視点では 1 階調未満)
+  { name: "specular-grazing", scene: [{ kind: "sphere" }], view: { dist: 5 }, angles: [2.18, 1.45] },
   // 軸固定の移動(G → X): 軸線
   { name: "move-x-axis-line", scene: [{ kind: "cube" }], steps: [["click", 480, 270], ["move", 520, 300], ["key", "KeyG"], ["key", "KeyX"], ["move", 600, 300]] },
   // 平行投影(テンキー 1: 前)
@@ -59,10 +64,14 @@ async function open(url, label) {
 
 const xy = (p, s) => [Math.round((p * WIDTH) / 960), Math.round((s * WIDTH) / 960)];
 
-async function act(page, steps, isLab) {
+async function act(page, steps, isLab, clip) {
   const box = await page.locator("#viewport").boundingBox();
+  let before = null;
   const at = (x, y) => [box.x + (x * WIDTH) / 960, box.y + (y * WIDTH) / 960];
-  for (const [kind, a, b] of steps ?? []) {
+  const list = steps ?? [];
+  for (let i = 0; i < list.length; i++) {
+    const [kind, a, b] = list[i];
+    if (clip && i === list.length - 1) before = PNG.sync.read(await page.screenshot({ clip }));
     if (kind === "click") { const [x, y] = at(a, b); await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.up(); }
     else if (kind === "move") { const [x, y] = at(a, b); await page.mouse.move(x, y, { steps: 3 }); }
     else if (kind === "key") {
@@ -78,6 +87,11 @@ async function act(page, steps, isLab) {
     await sleep(60);
   }
   await sleep(500);
+  if (!clip || !before) return null;
+  const after = PNG.sync.read(await page.screenshot({ clip }));
+  let changed = 0;
+  for (let i = 0; i < after.data.length; i += 4) if (Math.max(...[0, 1, 2].map((c) => Math.abs(after.data[i + c] - before.data[i + c]))) > 8) changed++;
+  return changed;
 }
 
 function patchMean(png, cx, cy, r = 5) {
@@ -92,13 +106,13 @@ function patchMean(png, cx, cy, r = 5) {
 
 for (const s of SCENES) {
   if (only && !s.name.includes(only)) continue;
-  const query = `?scene=${q(s.scene)}${s.view ? `&view=${q(s.view)}` : ""}`;
+  const query = `?scene=${q(s.scene)}${s.view ? `&view=${q(s.view)}` : ""}${s.angles ? `&angles=${q(s.angles)}` : ""}`;
   const a = await open(`${ORIGIN}/ref.html${query}`, "three");
   const b = await open(`${ORIGIN}/lab/${query}`, "lab");
   try {
-    await act(a.page, s.steps, false);
-    await act(b.page, s.steps, true);
     const clip = { x: 0, y: 0, width: WIDTH, height: HEIGHT };
+    await act(a.page, s.steps, false);
+    const lastChanged = await act(b.page, s.steps, true, s.lastStepChanges ? clip : null);
     const ref = PNG.sync.read(await a.page.screenshot({ clip }));
     const got = PNG.sync.read(await b.page.screenshot({ clip }));
     const diff = new PNG({ width: ref.width, height: ref.height });
@@ -115,8 +129,18 @@ for (const s of SCENES) {
     [ref, got, diff].forEach((img, k) => PNG.bitblt(img, triple, 0, 0, img.width, img.height, k * img.width, 0));
     const file = `${OUT}/${s.name}-${WIDTH}.png`;
     (await import("node:fs")).writeFileSync(file, PNG.sync.write(triple));
+    const overPct = (over / total) * 100;
     let line = `${s.name.padEnd(24)} 差>8: ${((over / total) * 100).toFixed(3)}%  最大 ${max}  平均 ${(sum / total).toFixed(3)}`;
     let ok = true;
+    // 画素の差の合否: 現状の最大(透過表示 0.081 % / 最大 25)に余裕を付けた値。シェーダー・GL の状態を壊す変更(鏡面反射・polygonOffset・点の大きさ・半透明ブレンドなど)を検出する
+    if (overPct > MAX_OVER_PCT || max > MAX_DIFF) { ok = false; line += `
+    画素の差が閾値超え(>8 の割合 ${overPct.toFixed(3)} % > ${MAX_OVER_PCT} %、または最大 ${max} > ${MAX_DIFF})`; }
+    if (s.lastStepChanges) {
+      const enough = lastChanged != null && lastChanged >= s.lastStepChanges;
+      line += `
+    最後の操作で変わった画素(C# 版): ${lastChanged}(${s.lastStepChanges} 以上が条件)`;
+      if (!enough) ok = false;
+    }
     for (const [face, [fx, fy]] of Object.entries(s.faces ?? {})) {
       const [x, y] = xy(fx, fy);
       const m1 = patchMean(ref, x, y), m2 = patchMean(got, x, y);

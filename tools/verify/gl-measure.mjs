@@ -40,6 +40,7 @@ for (let i = 0; i < COLD; i++) {
   const marks = await p.evaluate(() => Object.fromEntries(performance.getEntriesByType("mark").map((m) => [m.name, m.startTime])));
   const g = (a, b) => (marks[a] != null && marks[b] != null ? +(marks[b] - marks[a]).toFixed(1) : null);
   cold.push({ started: Math.round(t.started), firstDraw: Math.round(t.firstDraw), decodedBytes: bytes,
+    abs: Object.fromEntries(Object.entries(marks).map(([k, v]) => [k, Math.round(v)])),
     split: { navToMain: Math.round(marks["lab:main"]), importModule: g("lab:main", "lab:imported"), importToGlStart: g("lab:imported", "gl:start"), initContextAndShader: g("gl:start", "gl:inited"), firstFrameCsAndPaint: g("gl:inited", "gl:firstPaint") } });
   if (i === 0) {
     await p.reload();

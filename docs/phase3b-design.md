@@ -299,7 +299,7 @@ S0 は `Object.create(Viewport.prototype)` で一部のメソッドを空にし�
 | --- | --- |
 | `src/FaraAvatarModdingGuide.Render`（新。純粋。JS・Blazor に依存しない） | `SceneRenderer`: `ViewportCore` の状態を読んで、1 フレームの描画の命令（`Frame`: 頂点バッファ・描く順の一覧・行列）を作る。方眼・軸線・オブジェクト（陰影付きの面・選択の輪郭 `EdgesGeometry(g, 20)`・ミラー）・3D カーソル・編集モードの点/線/選んだ面・軸固定の線・ループカットの線。描く順は three.js と同じ（不透明は renderOrder → 足した順、透明は奥から）。`FramePacker`: 1 回の JS 呼び出しで渡す float の列。`RenderBench`: AOT なしの負荷の測定場面 |
 | `Practice` への小さな追加 | `Mat4.Identity/Multiply/Determinant/FromElements`、`OrbitView.Matrices()`、`SceneObject.TriNormals/Version/XrayApplied`、`ViewportCore.OverlayRebuilt/OverlayRemoved`（現行が `rebuildOverlay` を呼ぶ所だけで通知する。§9.4 の「古い状態」を再現するため）。操作の結果は変わらない（Practice.Tests 195 件はそのまま通る） |
-| `src/FaraAvatarModdingGuide.RenderLab`（新。サイトには載せない） | 最小の Blazor WebAssembly（Web と同じ net10.0・同じパッケージの版・`InvariantGlobalization`）。`wwwroot/js/gl.js`（薄い WebGL 2 層。約 330 行）と `[JSImport]`。ポインター・ホイール・キーは `gl.js` のネイティブのリスナー（`passive: false` の wheel を含む）が数値にして C# に渡す。**S3 でこの中身を `/practice` に移す** |
+| `src/FaraAvatarModdingGuide.RenderLab`（新。サイトには載せない） | 最小の Blazor WebAssembly（Web と同じ net10.0・同じパッケージの版・`InvariantGlobalization`）。`wwwroot/js/gl.js`（薄い WebGL 2 層。約 400 行。入力は pointercancel / lostpointercapture でもドラッグの終わりを C# に伝え、始めるのに失敗したら canvas・リスナー・tabindex を戻し、`uploadBuffer` / `draw` は長さ・種類を検査する）と `[JSImport]`。ポインター・ホイール・キーは `gl.js` のネイティブのリスナー（`passive: false` の wheel を含む）が数値にして C# に渡す。**S3 でこの中身を `/practice` に移す** |
 | `tools/verify/gl-*.mjs` ほか | `gl-serve.mjs`（確認用の静的サーバー。本番の CSP を付けられる）、`gl-ref.html`（three.js 版だけを出す参照）、`gl-compare.mjs`（画像比較）、`gl-measure.mjs`（計測）、`gl-csp.mjs`、`gl-context-matrix.mjs`/`gl-probe.*`（§11.2） |
 | `tests/FaraAvatarModdingGuide.Render.Tests`・`tests/js/practice-render-reference.mjs` | three.js との突き合わせ（§11.3）と単体テスト |
 
@@ -319,14 +319,21 @@ S0 は `Object.create(Viewport.prototype)` で一部のメソッドを空にし�
 
 ### 11.3 three.js との突き合わせ（Node で本物の three.js のシーンと比較）
 
-`tests/js/practice-render-reference.mjs` が、S0・S1 と同じ操作列（`practice-cases.json` 82 シナリオ + `practice-edit-cases.json` 127 シナリオ）を**本物の `new Viewport(...)`** に通し、手順 0・40 手順ごと・最後（約 630 時点）で three.js のシーンの中身を取り出す。C# は同じ操作を `ViewportCore` に通して `SceneRenderer` の出力と比べる。比べるもの: カメラの行列、オブジェクトごとの matrixWorld・メッシュの位置と法線（面積 1e-4 未満の面の法線は除く。S1 と同じ理由）・輪郭の線と表示と色・ミラーの行列と表示・透過の有無・不透明度・深度書き込み・編集モードの点/線/面の位置と色と表示と深度テスト・軸線の行列と色・ループカットの線、方眼・軸・カーソルの輪。数値は float の丸め（1e-6）・行列は 1e-9。**218 件（Render.Tests）すべて一致**。入力が部品を一通り通していることも数えている（編集モードの点/線/面・透過・ミラー・軸線・ループカットの線・平行投影・複数オブジェクトの各件数の下限）。陰影そのものは GPU の計算なので §11.4 の画像で見る。
+`tests/js/practice-render-reference.mjs` が、S0・S1 と同じ操作列（`practice-cases.json` 82 シナリオ + `practice-edit-cases.json` 127 シナリオ）を**本物の `new Viewport(...)`** に通し、手順 0・**40 手順ごと**・最後（約 630 時点。**全手順ではない**）で three.js のシーンの中身を取り出す。C# は同じ操作を `ViewportCore` に通して `SceneRenderer` の出力と比べる。
+
+**比べているもの**: カメラの行列、オブジェクトごとの matrixWorld・メッシュの位置と法線（面積 1e-4 未満の面の法線は除く。S1 と同じ理由）・輪郭の線と表示と色・ミラーの行列と表示、**材質と描画の設定（色・不透明度・透明（Blend）・深度テスト・深度書き込み・polygonOffset の有無と値・renderOrder・点の大きさ・頂点色・両面・表の向き（行列式が負なら CW）を、メッシュ・輪郭・ミラー・編集モードの点/線/面・軸線・ループカットの線・方眼・軸・カーソルのそれぞれで）**、編集モードの点/線/面の位置と色と表示、軸線・ループカットの線の行列と色、方眼・軸・カーソルの輪。数値は float の丸め（1e-6）・行列は 1e-9。`FramePacker` は全欄（ヘッダー 24・描画 1 つ 28）を単体テストで検証している。**Render.Tests 218 件**。入力が部品を一通り通していることも数えている（編集モードの点/線/面・透過・ミラー・軸線・ループカットの線・平行投影・複数オブジェクトの各件数の下限）。
+
+**比べていないもの（「一致」と言えない範囲）**: 陰影（シェーダーの出力）・アンチエイリアス・GL の実際の状態（§11.4 の画像で見る）、**描く順そのもの**（three.js は renderOrder → material.id → z（手前から）→ id の順で、同じ renderOrder のあいだは材質ごとにまとまる。`SceneRenderer` は renderOrder → 足した順（透明は奥から）の近似で、three.js の内部の並びとは直接比べていない。深度テストで決まらない重なりだけが、違いうる）、サンプルしていない手順（40 手順の間）、面積 1e-4 未満の面の法線、`guideLine`・`remote-sel`（S4・S6）。
+
+**変異で確かめた**（Render の C# を 1 か所ずつ壊して `dotnet test` を回す）: 編集面の不透明度 0.28→0.6、基本色、メッシュの polygonOffset の符号、メッシュ/ミラーの FrontFaceCw の除去、点の大きさ、編集線の renderOrder、カーソルの renderOrder、カーソルの DepthTest の 9 件すべてが落ちた（以前のテストは、これらの材質・状態を比べておらず生き残っていた）。
 
 ### 11.4 画像比較（`tools/verify/gl-compare.mjs`。three.js 版と同じシーン・同じ操作）
 
 | 条件 | 結果 [実測] |
 | --- | --- |
 | **(a) 面の明るさ**（立方体の既定の視点。中心 11×11 ピクセルの平均） | 上 112・左 70・右 80、three.js と**同じ**（差 0）。基準は ±3。試作は ±2 だった。シェーダーは three.js r170 の MeshStandardMaterial（Lambert/π の半球光 + 平行光 + GGX の鏡面反射。半球光の上は three.js のまま +Y）、sRGB 出力 |
-| 画素の差（どれかのチャンネルが 8 を超える画素） | 11 シーン（既定の立方体・3 オブジェクト + 選択の輪郭・回した立方体と平面・編集モード（頂点全選択・面 1 つ・球の面）・透過表示・ミラー・軸固定の G の線・平行投影・ループカットの線）で 0.000〜0.081 %。最大の差は 25（線の端の画素。アンチエイリアスの差）。**最大は透過表示（0.081 %。最大 9、平均 0.36）**: 半透明の面の重なりの順の差と見られる [推測] |
+| 画素の差（どれかのチャンネルが 8 を超える画素）。**合否に含める**: 割合 0.15 % 以下・最大 40 以下（現状の最大 0.081 % / 25 に余裕を付けた値） | 12 シーン（既定の立方体・3 オブジェクト + 選択の輪郭・回した立方体と平面・編集モード（頂点全選択・面 1 つ・球の面）・透過表示・ミラー（編集モードで形を X に 2 ずらしてから付けるので、鏡像が実際に写る。最後の操作で C# 版の画素が 9,019 変わる）・**鏡面反射が効く視点（光の反対側から地平線すれすれに球を見る。GGX は最大 20 階調ほど。ふつうの視点では 1 階調未満で、画像では見分けられない）**・軸固定の G の線・平行投影・ループカットの線）で 0.000〜0.081 %。最大の差は 25（線の端の画素。アンチエイリアスの差）。**最大は透過表示（0.081 %。最大 9、平均 0.36）**: 半透明の面の重なりの順の差と見られる [推測] |
+| `gl.js` を壊す変異で NG になるか（実際に確認） | 鏡面反射の削除 → `specular-grazing` が NG、polygonOffset 無効 → 8 シーンが NG、点の大きさ半分 → `edit-vert-all`・`loopcut-preview` が NG、半透明ブレンド無効 → 5 シーンが NG、`frontFace` を常に CCW（`FrontFaceCw` の除去と同じ）→ `mirror` が NG |
 | スマホ幅 390（219 高） | 全シーン同じ水準（上 112、左と右の値も three.js と一致、画素の差 0〜0.054 %、最大 25） |
 
 ### 11.5 CSP・サイトの確認
@@ -349,9 +356,9 @@ S0 は `Object.create(Viewport.prototype)` で一部のメソッドを空にし�
 
 （S3〜S6 が増える分は含まない。Practice は S0 の約 28 KB から、ロジックが 4 倍になって 73.7 KB。）
 
-**起動**（localhost・キャッシュなし・SwiftShader。冷たい起動 5 回。`performance.mark` で区間に分けた）: 読み込み開始から最初の描画まで 228〜295 ms（中央 229 ms。1 回目だけ遅い）、同じコンテキストの再読み込み 172 ms。内訳（中央値）: 読み込み開始 → `Main` の開始 **104 ms**（ランタイムの起動。**サイトでは全ページが既に払っている**）、`Main` → `gl.js` の読み込み完了（ホストの組み立て + `ImportAsync`）**43 ms**、→ `gl.start()` の呼び出しまで（`ViewportCore`・`SceneRenderer` を作る。解釈実行の初回）**16 ms**、`start()` 内のコンテキストとシェーダー **5 ms**、最初のフレーム（C# の `Build`・送信・描画）**17 ms**（初回だけ。解釈実行の初回の呼び出しが遅い）。**3D のために増える起動は合計 約 80 ms**（43 + 16 + 5 + 17）。レンダーラボ全体の展開後の転送は約 7.0 MB（ランタイム含む）。
+**起動**（localhost・キャッシュなし・SwiftShader。冷たい起動 5 回。`performance.mark` で区間に分けた）: 読み込み開始から最初の描画まで 228〜295 ms（中央 229 ms。1 回目だけ遅い）、同じコンテキストの再読み込み 172 ms。内訳（中央値）: 読み込み開始 → `Main` の開始 **104 ms**（ランタイムの起動。**サイトでは全ページが既に払っている**）、`Main` → `gl.js` の読み込み完了（ホストの組み立て + `ImportAsync`）**43 ms**、→ `gl.start()` の呼び出しまで（`ViewportCore`・`SceneRenderer` を作る。解釈実行の初回）**16 ms**、`start()` 内のコンテキストとシェーダー **5 ms**、最初のフレーム（C# の `Build`・送信・描画）**17 ms**（初回だけ。解釈実行の初回の呼び出しが遅い）。**3D のために増える起動は、中央値の足し算で約 80 ms**（43 + 16 + 5 + 17。区間ごとの中央値を足したもの）。区間の合計 185〜190 ms（`gl:firstPaint` の mark は読み込み開始から 188〜191 ms。1 回目は 261 ms）が、上の 229 ms と合わないのは、229 ms が「最初の描画を観測した時刻」（`setInterval` の 5 ms ごとの確認が、メインスレッドが空いてから走る）だから。`run-returned`（190 ms）のあと、`Main` の残り（`RunAsync` による Blazor の起動の仕上げ）にメインスレッドが約 40 ms 使われ、その間は確認が走らない [推測。この区間は mark で分けていない]。利用者に見えるのも、そのあとの合成（描画の反映）になる。レンダーラボ全体の展開後の転送は約 7.0 MB（ランタイム含む）。
 
-**フレーム**（球 960 三角形。ページ内。C# の 1 フレーム = `Build` + 詰める + `uploadBuffer`/`draw` の呼び出し）: オブジェクトモード **0.24 ms**（JS から見た呼び出し全体 0.29 ms）、編集モードで全選択（何も変わらない間）0.37 ms。rAF は 60 回/秒のまま。`Build` + 詰めるだけでは 0.060 ms（オブジェクト）・0.066 ms（編集）。→ 止まった画面・視点の操作では、予算（1 フレーム 16 ms のうち 5 ms）に**十分収まる**。**ただし編集モードで密なメッシュ（球 960 三角形）の全頂点を G でドラッグしている間は、マウスの移動のたびに形が変わる**（現行 JS も毎回 `rebuild` → `rebuildOverlay` で作り直す）ので、`Build`（法線・輪郭 `EdgesGeometry`・点/線/面の作り直し）+ 送信が毎フレーム走る。下の表の `drag-edit-frame`。
+**フレーム**（球 960 三角形。ページ内。C# の 1 フレーム = `Build` + 詰める + `uploadBuffer`/`draw` の呼び出し）: オブジェクトモード **0.24 ms**（JS から見た呼び出し全体 0.29 ms）、編集モードで全選択（何も変わらない間）0.37 ms。rAF は 60 回/秒のまま。`Build` + 詰めるだけでは 0.060 ms（オブジェクト）・0.066 ms（編集）。→ 止まった画面・視点の操作では、予算（1 フレーム 16 ms のうち 5 ms）に**十分収まる**。**ただし編集モードで密なメッシュ（球 960 三角形）の全頂点を G でドラッグしている間は、マウスの移動のたびに形が変わる**（現行 JS も毎回 `rebuild` → `rebuildOverlay` で作り直す）ので、`Build`（法線・輪郭 `EdgesGeometry`・点/線/面の作り直し）+ 送信が毎フレーム走る。下の表の `drag-edit-frame`（**ネイティブでも WASM でも下限**: `Build` + 詰める + 変わったバッファの float の数え上げまでで、`uploadBuffer`（MemoryView のコピーと `bufferData`）・`draw`・GL の呼び出しは含まない。実際のドラッグ中のフレームは、これに加えて 1 フレームあたり数 ms の JS/GL の分が乗る [推測。ページ内では測っていない]）。
 
 **重い操作**（球 482 頂点・960 三角形。1 回あたりの ms。同じコードを、ネイティブ（この PC）と WebAssembly（AOT なし）で）:
 
@@ -371,4 +378,4 @@ S0 は `Object.create(Viewport.prototype)` で一部のメソッドを空にし�
 
 - (a) 面の明るさ ±3 以内 → **差 0**。(b) 新しいコンテキストで描画が始まる → **20/20**（原因は非表示の rAF。§11.2）。(c) 毎フレームの CPU が予算内 → 止まった画面・視点の操作は **0.24 ms**（満たす）。**編集モードで 960 三角形の全頂点を G ドラッグ中は 8.1 ms で、5 ms の予算を超える（16 ms のフレームには収まる）**ので、(c) は「通常の操作では満たす。密なメッシュのドラッグは超える」。基準は §3 のとおり「重い部分だけを小さくする」で対処する対象（輪郭 `EdgesGeometry` を形が変わるたびに作り直さない・法線を変わった面だけ更新する・AOT）で、**描画層 (A) の選択を変える結果ではない**（KNI でも同じ C# のロジックが走る）。(a)(b) は満たしたので **(A) を確定**（KNI は採らない）。
 - 確証が持てない点: ① 試作の「描画が始まらない」の当時の状態は再現していない（原因の特定は、隠れたウィンドウで rAF が止まることの実測と、試作の計測の仕方からの推定）。② 計測は SwiftShader（ソフトウェア描画）の Chromium で、GPU・Firefox・Safari は未確認（WebGL 2 の標準 API だけを使っている）。③ 透過表示の画素の差（最大 9）の原因は推定。④ 軸固定の点線ガイド（`guideLine`。チュートリアル用）・ほかの参加者の枠（`remote-sel`）は S4・S6 で足す。⑤ 初回の実行で `Failed to load resource: 404` が 1 回出たが、URL を記録して 3 回やり直した結果は 0 件（一過性と見られる）。
-- S3 の前提: `gl.js`・`Lab.cs` の入力の橋渡しを `/practice` のページ（Razor）に移し、HUD・お題を Razor で作る。
+- S3 の前提: `gl.js`・`Lab.cs` の入力の橋渡しを `/practice` のページ（Razor）に移し、HUD・お題を Razor で作る。**`Lab.ParseQuery`（`?scene=`・`?view=`・`?angles=`・`window.__labControl`・ベンチの口）はレンダーラボの確認用で、S3 には持ち込まない**（`/practice` の最初のシーンは `Practice.razor` が決める。`?engine=cs` のフラグは §4.1）。`SceneRenderer` は `ViewportCore` を作ったあと、操作の前に作る（`OverlayRebuilt` の通知を取りこぼさないため。クラスの契約に書いた）。
