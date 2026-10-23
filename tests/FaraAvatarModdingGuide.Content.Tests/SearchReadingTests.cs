@@ -1,11 +1,9 @@
 using System.Text.RegularExpressions;
 using FaraAvatarModdingGuide.Data;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace FaraAvatarModdingGuide.Tests;
+namespace FaraAvatarModdingGuide.Content.Tests;
 
 /// <summary>
 /// サイト内検索の読み（題名のひらがな。ローマ字・かなで探すため）。題名に漢字があるのに読みが無い、読みに漢字や英字が混じる、
@@ -13,16 +11,6 @@ namespace FaraAvatarModdingGuide.Tests;
 /// </summary>
 public class SearchReadingTests
 {
-    private sealed class Env : IWebHostEnvironment
-    {
-        public string ApplicationName { get; set; } = "FaraAvatarModdingGuide";
-        public IFileProvider ContentRootFileProvider { get; set; } = null!;
-        public string ContentRootPath { get; set; } = "";
-        public string EnvironmentName { get; set; } = "Development";
-        public IFileProvider WebRootFileProvider { get; set; } = null!;
-        public string WebRootPath { get; set; } = "";
-    }
-
     private static readonly Regex HasKanjiOrLatin = new(@"[\p{IsCJKUnifiedIdeographs}A-Za-z]");
     private static readonly Regex HasKanji = new(@"[\p{IsCJKUnifiedIdeographs}]");
 
@@ -31,7 +19,7 @@ public class SearchReadingTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "Content", "learn", "categories.yml"))) dir = dir.Parent;
         Assert.NotNull(dir);
-        return new ContentService(new Env { ContentRootPath = dir!.FullName }, NullLogger<ContentService>.Instance);
+        return new ContentService(Path.Combine(dir!.FullName, "Content"), NullLogger<ContentService>.Instance);
     }
 
     [Fact]

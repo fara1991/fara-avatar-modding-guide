@@ -7,6 +7,8 @@ using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using System.Net;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -30,13 +32,15 @@ public sealed partial class ContentService
         .Build();
 
     private readonly string _root;
-    private readonly ILogger<ContentService> _logger;
+    private readonly ILogger _logger;
     private Snapshot _snapshot;
 
-    public ContentService(IWebHostEnvironment env, ILogger<ContentService> logger)
+    /// <summary>contentDirectory はリポジトリの Content/ ディレクトリ（learn/・shortcuts.yml などが入っている場所）。ASP.NET には依存しない。</summary>
+    public ContentService(string contentDirectory, ILogger? logger = null)
     {
-        _root = Path.Combine(env.ContentRootPath, "Content");
-        _logger = logger;
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentDirectory);
+        _root = contentDirectory;
+        _logger = logger ?? NullLogger.Instance;
         _snapshot = Load();
     }
 
