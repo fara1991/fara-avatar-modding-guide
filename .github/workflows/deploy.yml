@@ -23,11 +23,19 @@ jobs:
     name: Build static site
     runs-on: ubuntu-latest
     steps:
+      # external/fara-site-kit（共通部品。Build の build-pages.mjs が使う）を取得する
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+
+      # Build.Tests が kit の Node ツール（build/build-pages.mjs）を実際に呼ぶ
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
       - name: Build
         run: dotnet build -c Release --nologo
