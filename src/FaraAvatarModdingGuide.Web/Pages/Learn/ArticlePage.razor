@@ -1,5 +1,6 @@
 @page "/learn/{CategoryId}/{Slug}"
 @inherits ProgressAware
+@implements IAsyncDisposable
 @inject ContentStore Store
 @inject SiteSettings Settings
 @inject IJSRuntime JS
@@ -17,7 +18,7 @@ else
     <PageTitle>@article.Title - @Settings.Title</PageTitle>
     <Breadcrumb Items="@Crumbs(content)" />
 
-    <header class="article-header mb-4">
+    <header class="article-header mb-4" data-progress-page="@article.Id">
         <h1>@article.Title</h1>
         <div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary small">
             <DoneBadge Done="@done" />
@@ -139,6 +140,8 @@ else
     private string? currentHeading;
     private string? observedUrl;
     private DotNetObjectReference<ArticlePage>? self;
+    private PracticeHost? tutorials;
+    private string? tutorialsUrl;
 
     // 目次は h2 が 3 個以上の記事だけ。PC は右の列に目次とキー一覧を並べる
     private bool HasAside => article is not null && (headings.Count > 0 || article.Shortcuts.Count > 0);
@@ -154,8 +157,30 @@ else
         headings = article is null ? [] : SiteLookups.Headings(article.Html);
     }
 
-    /// <summary>描画のあとで、いまの記事の見出しの監視を（記事が替わったときだけ）始め直す。</summary>
+    /// <summary>描画のあとで、いまの記事の見出しの監視と、記事内チュートリアル(::: practice)を、記事が替わったときだけ始め直す。</summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await SyncTocAsync();
+        await SyncTutorialsAsync();
+    }
+
+    /// <summary>
+    /// 記事内チュートリアル: 本文(MarkupString)の中の空の div(.practice-embed)に、tutorial.js が 3D ビューを埋め込む。
+    /// 記事が替わったとき(このページの部品は再利用される)・離れるときに、前の記事のチュートリアル(WebGL のコンテキスト・観察・イベント)を解放してから、次を始める。
+    /// </summary>
+    private async Task SyncTutorialsAsync()
+    {
+        var url = article is { PracticeScenarios.Count: > 0 } ? article.Url : null;
+        if (url == tutorialsUrl) return;
+        tutorialsUrl = url;
+        if (tutorials is not null) await tutorials.DisposeAsync();
+        tutorials = null;
+        if (url is null) return;
+        tutorials = new PracticeHost(JS);
+        await tutorials.StartArticleAsync(".article-body");
+    }
+
+    private async Task SyncTocAsync()
     {
         var url = article is not null && headings.Count > 0 ? article.Url : null;
         if (url == observedUrl) return;
@@ -203,5 +228,14 @@ else
             catch (JSException) { }
         }
         self?.Dispose();
+    }
+
+    /// <summary>記事を離れるとき: 目次の監視と完了の記録の購読(Dispose)に加えて、記事内チュートリアルの 3D を解放する。IAsyncDisposable があると Blazor は DisposeAsync だけを呼ぶので、Dispose もここから呼ぶ。</summary>
+    public async ValueTask DisposeAsync()
+    {
+        Dispose();
+        tutorialsUrl = null;
+        if (tutorials is not null) await tutorials.DisposeAsync();
+        tutorials = null;
     }
 }

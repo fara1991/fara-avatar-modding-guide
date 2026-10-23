@@ -21,7 +21,6 @@
 @code {
     /// <summary>
     /// 知らない記事・カテゴリの URL(404 の表示)では、前方一致でカテゴリが強調されないように、強調の class を別の(見た目のない)名前にする。
-    /// 練習のページ(静的 HTML)は、サイトのページとして扱う。
     /// </summary>
     private string ActiveClass => KnownPage ? "active" : "av-no-active";
 
@@ -29,8 +28,7 @@
     {
         get
         {
-            var path = new Uri(Nav.Uri).AbsolutePath;
-            return PageRoutes.IsWasmPage(path, Store.Content) || path.TrimEnd('/') is "/practice" or "/practice/unity" or "/practice/room";
+            return PageRoutes.IsWasmPage(new Uri(Nav.Uri).AbsolutePath, Store.Content);
         }
     }
 

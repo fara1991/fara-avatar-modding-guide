@@ -7,7 +7,7 @@
 // 比べるもの:
 //   ・記事(50 件): .article-body の文字(空白・改行を除く)と、構造(見出しの id・ol/ul・table・li・kbd などの並び)と、本文の中の属性(href・src・alt・title・target・rel)。href・src は <base href="/"> に従って絶対 URL にしてから比べる
 //   ・そのほかのページ: 本文(article.content / article.fsk-content)の文字と、同じ属性。既知の差(known-differences.json)だけを除いて比べる
-// 既知の差は、ページのパスごとに、SSR 側・移行版側の文字の断片(ssr / new)と属性(ssrAttributes / newAttributes)・構造(ssrStructure / newStructure: structureOf のトークン)、理由(reason)を書く。
+// 既知の差は、ページのパスごとに、SSR 側・移行版側の文字の断片(ssr / new)と属性(ssrAttributes / newAttributes)・構造(ssrStructure / newStructure: structureOf のトークン。"li@6" のように @ で、同じ種類の中の N 番目を指せる)、理由(reason)を書く。
 // 本文が JavaScript で描かれていて、静的 HTML と作りが違うページ(練習・問い合わせ)は、skip: true(理由つき)で、その移行のフェーズまで比べない。
 // 断片を取り除いたら一致することを確かめ、断片が見つからなければ(古くなった記述)失敗にする。
 // 既知の差に書いていない差、記事が 50 件に満たない、移行版にページが無い、のどれかがあれば、終了コード 1。
@@ -98,6 +98,20 @@ function removeKnown(text, snippets, path, side, problems) {
     return out;
 }
 
+/**
+ * 構造の並び(structureOf のトークン)から、既知の差のトークンを 1 つ取り除く。取り除けたか(古くなった記述でないか)を返す。
+ * "li" は最初の li、"li@6" は 6 番目(1 から数える)の li。同じ種類が並ぶ中の特定の 1 つ(外部サービスの一覧の 1 項目など)を指すときに使う。
+ */
+function dropToken(list, token) {
+    const m = /^(.+)@(\d+)$/.exec(token);
+    const name = m ? m[1] : token;
+    let n = m ? Number(m[2]) : 1;
+    for (let i = 0; i < list.length; i++) {
+        if (list[i] === name && --n === 0) { list.splice(i, 1); return true; }
+    }
+    return false;
+}
+
 const MIN_ARTICLES = 50;
 let articleCount = 0, pageCount = 0, failures = 0;
 const problems = [];
@@ -147,8 +161,7 @@ for (const file of walk(ssrDir)) {
         const ka = structureOf(sa), kb = structureOf(sb);
         for (const [list, side, drop] of [[ka, "SSR", entry?.ssrStructure], [kb, "移行版", entry?.newStructure]]) {
             for (const d of drop ?? []) {
-                const at = list.indexOf(d);
-                if (at < 0) problems.push(`既知の差が見つからない(古くなった記述): ${pagePath} ${side} 構造「${d}」`); else list.splice(at, 1);
+                if (!dropToken(list, d)) problems.push(`既知の差が見つからない(古くなった記述): ${pagePath} ${side} 構造「${d}」`);
             }
         }
         if (ka.join(" ") !== kb.join(" ")) {

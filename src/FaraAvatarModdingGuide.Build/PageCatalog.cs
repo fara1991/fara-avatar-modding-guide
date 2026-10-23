@@ -8,8 +8,7 @@ public sealed record PagePlan(string Path, string Title, string Description, str
 
 /// <summary>
 /// 公開する全ページの一覧（固定ページ 16 + カテゴリ 10 + 記事 50 = 76 本。計画書 1.1）。
-/// Wasm が true のページだけ WebAssembly を読み込む（フェーズ 2 で、練習の 3 ページ以外のすべて: 記事・カテゴリ・目次・検索・一覧・ホーム・リンク集など）。
-/// 練習の 3 ページは、静的な HTML のまま（フェーズ 3 で WebAssembly 化する）。
+/// Wasm が true のページだけ WebAssembly を読み込む（フェーズ 3 で、すべてのページになった: 記事・カテゴリ・目次・検索・一覧・ホーム・リンク集・練習の 3 ページなど）。
 /// Web プロジェクトの @page と、この一覧の Wasm が一致することを Web.Tests が確かめる。
 /// </summary>
 public static class PageCatalog
@@ -18,11 +17,12 @@ public static class PageCatalog
     public static readonly IReadOnlyList<string> WasmPaths =
     [
         "/", "/learn", "/shortcuts", "/addons", "/glossary", "/howto", "/tips", "/qa", "/links", "/changelog", "/report", "/privacy", "/search",
+        "/practice", "/practice/unity", "/practice/room",
     ];
 
     /// <summary>
-    /// フェーズ 4 までは、検索エンジンに載せないページ。/search は検索の画面（JavaScript が無いと中身が出ない）、練習の 3 ページは 3D の本体が JavaScript で動くので、
-    /// 静的 HTML だけでは中身が薄い。noindex にすると sitemap.xml からも外れる（kit は noindex のページを入れない）。フェーズ 4 で見直す。
+    /// フェーズ 4 までは、検索エンジンに載せないページ（フェーズ 3 では維持。フェーズ 4 で見直す）。/search は検索の画面（JavaScript が無いと中身が出ない）、練習の 3 ページは 3D の本体が JavaScript で動くので、
+    /// 静的 HTML だけでは中身が薄い。noindex にすると sitemap.xml からも外れる（kit は noindex のページを入れない）。
     /// </summary>
     public static readonly IReadOnlyList<string> ProvisionalNoIndex = ["/search", "/practice", "/practice/room", "/practice/unity"];
 

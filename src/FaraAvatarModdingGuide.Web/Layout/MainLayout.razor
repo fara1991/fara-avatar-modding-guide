@@ -55,8 +55,8 @@
     }
 
     /// <summary>
-    /// 静的 HTML のままのページ(練習)への移動は、Blazor の移動ではなく、ブラウザの通常の移動(location.assign)にする
-    /// (Blazor に任せると、Router に載っていないページとして NotFound になってしまう)。知らない URL も、読み直して 404.html を出す。
+    /// Router に載っていないページ(フェーズ 3 で練習の 3 ページも載ったので、今は知らない URL だけ)への移動は、Blazor の移動ではなく、ブラウザの通常の移動(location.assign)にする
+    /// (Blazor に任せると、NotFound の表示になる)。知らない URL は、読み直して 404.html(HTTP 404)を出す。
     /// NavigateTo(forceLoad) はこの処理をもう一度通って呼び合うので使わない。フラグも持たない(読み込みを止めたあとも、次の移動が正しく動くように)。
     /// </summary>
     private async ValueTask OnLocationChanging(LocationChangingContext context)

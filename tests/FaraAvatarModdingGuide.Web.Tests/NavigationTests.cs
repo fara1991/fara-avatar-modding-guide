@@ -43,8 +43,8 @@ public class NavigationTests
             Assert.Equal(page.Wasm, PageRoutes.IsWasmPage(page.Path, TestData.Content));                  // Web の判定 = Build の判定
             Assert.Equal(page.Wasm, RouteTemplates.Any(t => MatchesRoute(t, page.Path)));                  // WebAssembly のページは、どれかの @page に合う
         }
-        // フェーズ 2 の段階で、静的 HTML のままなのは練習の 3 ページだけ
-        Assert.Equal(["/practice", "/practice/room", "/practice/unity"], pages.Where(p => !p.Wasm).Select(p => p.Path).Order().ToArray());
+        // フェーズ 3 で、練習の 3 ページも WebAssembly になった。静的 HTML のままのページは無い
+        Assert.DoesNotContain(pages, p => !p.Wasm);
         Assert.Equal(50, pages.Count(p => p.Path.Count(c => c == '/') == 3 && p.Wasm));                    // 記事 50 件
     }
 
@@ -59,8 +59,9 @@ public class NavigationTests
     [InlineData("http://localhost/links", true)]
     [InlineData("http://localhost/report?from=%2Flearn", true)]
     [InlineData("http://localhost/", true)]
-    [InlineData("http://localhost/practice", false)]                    // 練習(静的 HTML のまま) → 読み直す
-    [InlineData("http://localhost/practice/unity#x", false)]
+    [InlineData("http://localhost/practice", true)]                     // 練習(フェーズ 3 で WebAssembly) → Blazor
+    [InlineData("http://localhost/practice/unity#x", true)]
+    [InlineData("http://localhost/practice/room?room=abcdef123456", true)]
     [InlineData("http://localhost/learn/basics/no-such-article", false)]   // 知らない記事 → 読み直して 404.html
     [InlineData("http://localhost/learn/no-such-category", false)]
     [InlineData("http://localhost/no-such-page", false)]
