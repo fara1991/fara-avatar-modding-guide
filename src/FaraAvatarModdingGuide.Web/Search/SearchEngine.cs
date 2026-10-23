@@ -11,7 +11,7 @@ public sealed record SearchHit(SearchRecord Entry, double Score);
 public readonly record struct Segment(string Text, bool Match);
 
 /// <summary>
-/// サイト内検索（一致の判定・並べ方・強調・抜き出し）。wwwroot/js/searchcore.js の C# への移植で、同じ入力から同じ件数・同じ順序・同じ強調を返す
+/// サイト内検索（一致の判定・並べ方・強調・抜き出し）。tests/js/fixtures/searchcore.reference.js の C# への移植で、同じ入力から同じ件数・同じ順序・同じ強調を返す
 /// （Web.Tests の SearchParityTests が、searchcore.js を Node で動かした結果と、約 150 件の検索語で突き合わせる）。
 /// 日本語は単語区切りがないため形態素解析はせず、スペース区切りの各語が「すべて含まれる」ものを一致とする。
 /// 全角・半角の違い（Ｇ と G、ｶﾅ とカナ）は NFKC で吸収し、カタカナはひらがなにそろえる。ローマ字（adoon）も、ひらがな（あどおん）にした形で探す。

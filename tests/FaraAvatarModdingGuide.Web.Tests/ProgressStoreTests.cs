@@ -37,7 +37,7 @@ internal sealed class FakeStorageJs : IJSInProcessRuntime
 }
 
 /// <summary>
-/// 完了の記録（既存の localStorage の値が、そのまま読める）。SSR 版の wwwroot/js/progress.js と同じ規則: オブジェクト以外は空・値は JavaScript の真偽・知らない項目は残す・
+/// 完了の記録（既存の localStorage の値が、そのまま読める）。旧 SSR 版の progress.js と同じ規則: オブジェクト以外は空・値は JavaScript の真偽・知らない項目は残す・
 /// 完了は「既に真の値があればそのまま、なければ ISO 8601 の今の時刻」・記録を消すと練習の記録も消える。
 /// </summary>
 public class ProgressStoreTests

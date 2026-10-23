@@ -7,7 +7,7 @@
 // - タッチだけの端末（スマートフォンなど）では 3D ビューを出さず、手順ごとの画像を横にめくるカードで見せる。
 //   PC でも「画像で見る」で切り替えられる。画像は tools/tutorial-images/ のスクリプトで作る（/images/tutorials/<名前>/NN.webp）
 //
-// WebAssembly 版(Blazor のページから呼ぶ)での変更点(SSR 版の wwwroot/js/tutorial.js との差):
+// WebAssembly 版(Blazor のページから呼ぶ)での変更点(旧 SSR 版の tutorial.js との差):
 //   ・読み込んだだけでは動かない。mount(container) で、その中の .practice-embed に始め、返った dispose() で後始末をする
 //     (記事を離れるとき・記事が替わるとき。WebGL のコンテキスト・IntersectionObserver・ResizeObserver・イベントを全部解放する)
 //   ・画像が無いときの「画像は準備中です」は、HTML の onerror 属性(CSP の script-src で止まる)ではなく、イベントの待ち受けで差し替える

@@ -11,7 +11,7 @@ namespace FaraAvatarModdingGuide.Build.Tests;
 public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
 {
     private const string Origin = "https://avatar.fara-labs.com";
-    private const string DevOrigin = "https://avatar-wasm-dev.fara-labs.com";
+    private const string DevOrigin = "https://avatar-preview.fara-labs.com";
 
     private static readonly IReadOnlyList<PagePlan> Pages = PageCatalog.Build(
         SiteContentFactory.From(new FaraAvatarModdingGuide.Data.ContentService(Path.Combine(Repo.Root, "Content"))),

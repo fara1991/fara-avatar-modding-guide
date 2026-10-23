@@ -1,7 +1,7 @@
 // 操作の練習（/practice）。viewport.js の 3D ビューを 1 つ置き、お題を順にチェックする。
 // 記事内の手順つきチュートリアルは tutorial.js / scenarios.js。
 //
-// WebAssembly 版(Blazor のページから呼ぶ)での変更点(SSR 版の wwwroot/js/practice.js との差):
+// WebAssembly 版(Blazor のページから呼ぶ)での変更点(旧 SSR 版の practice.js との差):
 //   ・読み込んだだけでは動かない。start() で始め、返った dispose() で後始末をする(ページを離れるとき。WebGL のコンテキスト・イベントを解放する)
 import { Viewport, near, nearAngle } from "./viewport.js";
 

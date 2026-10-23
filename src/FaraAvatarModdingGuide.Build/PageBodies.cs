@@ -4,7 +4,7 @@ using System.Text;
 namespace FaraAvatarModdingGuide.Build;
 
 /// <summary>
-/// 各ページの本文（main の中身）の静的 HTML。現行の SSR 版（Components/Pages/**）と同じ文言・並び・class で出す
+/// 各ページの本文（main の中身）の静的 HTML。旧 SSR 版（Phase 5 で削除。Git の履歴にある）（Components/Pages/**）と同じ文言・並び・class で出す
 /// （CSS は Web の wwwroot/css/base.css = Bootstrap 5.3.3 から使っているクラスだけを取り出したもの、と app.css）。
 /// アイコンは Bootstrap Icons ではなく Material の SVG（Fragments.Icon）。
 /// ブラウザで動く部分（絞り込み・検索・進捗・3D）は含めない。それらは WebAssembly 側（フェーズ 2〜3）で動く。

@@ -7,7 +7,7 @@ namespace FaraAvatarModdingGuide.Build;
 
 /// <summary>
 /// ページの本文に共通する部品（難易度のバッジ・パンくず・TIPS のタグなど）。
-/// 現行の SSR 版（Components/Shared/**）と同じ HTML・同じ class にする（CSS は Web の wwwroot/css/base.css・app.css。
+/// 旧 SSR 版（Phase 5 で削除。Git の履歴にある）（Components/Shared/**）と同じ HTML・同じ class にする（CSS は Web の wwwroot/css/base.css・app.css。
 /// base.css は Bootstrap 5.3.3 から使っているクラスだけを取り出したもの）。アイコンだけは Bootstrap Icons をやめて、Material の SVG にする。
 /// </summary>
 internal static class Fragments

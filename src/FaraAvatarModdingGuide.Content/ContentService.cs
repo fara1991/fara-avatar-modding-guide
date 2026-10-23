@@ -351,7 +351,7 @@ public sealed partial class ContentService
 
     /// <summary>
     /// 「::: practice transform」のコンテナを、操作のチュートリアルの埋め込み
-    /// （&lt;div class="practice-embed" data-scenario="transform"&gt;）にする。中身は wwwroot/js/tutorial.js が作る。
+    /// （&lt;div class="practice-embed" data-scenario="transform"&gt;）にする。中身は Web の wwwroot/js/tutorial.js が作る。
     /// コンテナの中に書いた文章は、チュートリアルの上に説明として表示される。
     /// </summary>
     private List<string> ConvertPracticeContainers(MarkdownDocument document, string path)

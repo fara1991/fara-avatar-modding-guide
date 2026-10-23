@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 
 const core = { window: {}, console };
-runInNewContext(readFileSync(new URL("../../wwwroot/js/searchcore.js", import.meta.url), "utf8"), core);
+runInNewContext(readFileSync(new URL("./fixtures/searchcore.reference.js", import.meta.url), "utf8"), core);
 const browser = { window: {}, console };
 runInNewContext(readFileSync(new URL("../../src/FaraAvatarModdingGuide.Web/wwwroot/js/search-norm.js", import.meta.url), "utf8"), browser);
 

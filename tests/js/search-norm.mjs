@@ -1,4 +1,4 @@
-// data/search.json（Build が書く検索の索引）の正規化済みの文字列が、wwwroot/js/searchcore.js の norm() と同じ結果かを確かめる。
+// data/search.json（Build が書く検索の索引）の正規化済みの文字列が、tests/js/fixtures/searchcore.reference.js の norm() と同じ結果かを確かめる。
 //   node tests/js/search-norm.mjs <data/search.json>
 // 違う項目があれば一覧を出して終了コード 1。Build.Tests（SiteBuilderTests）からも呼ぶ。
 import { readFileSync } from "node:fs";
@@ -10,7 +10,7 @@ if (!file) {
     process.exit(2);
 }
 
-const source = readFileSync(new URL("../../wwwroot/js/searchcore.js", import.meta.url), "utf8");
+const source = readFileSync(new URL("./fixtures/searchcore.reference.js", import.meta.url), "utf8");
 const sandbox = { window: {}, console };
 runInNewContext(source, sandbox);
 const search = sandbox.window.faraSearch;

@@ -1,3 +1,7 @@
+// 検索の「正解」として固定した写し。Phase 5 で SSR 版(wwwroot/js/searchcore.js)を消す前に、そのまま写した(以下は本体。この 4 行だけが追加)。
+// C# の検索(src/FaraAvatarModdingGuide.Web/Search)と、ビルド時の索引の正規化(Build)・ブラウザの正規化(search-norm.js)が、この実装と同じ結果を返すことを確かめるための基準で、
+// 検索の仕様を変えるとき以外は書き換えない(書き換えるなら、突き合わせの期待値 tests/js/search-queries.json も作り直す: node tests/js/search-reference.mjs)。
+// 元のファイルは Git の履歴にある(PR #98 までの wwwroot/js/searchcore.js)。
 // サイト内検索の共通部分（/search-index.json の読み込み・一致の判定・強調表示）。
 // ヘッダーの検索（quicksearch.js）と検索ページ（search.js）の両方で使う。
 // 日本語は単語区切りがないため形態素解析はせず、スペース区切りの各語が「すべて含まれる」ものを一致とする。

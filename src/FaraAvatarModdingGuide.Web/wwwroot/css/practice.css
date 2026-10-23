@@ -1562,7 +1562,7 @@
     100% { opacity: 0; }
 }
 
-/* 練習ページのスマートフォン向け案内（Components/Shared/TouchPracticeGuide.razor）。
+/* 練習ページのスマートフォン向け案内（Web の Layout/TouchPracticeGuide.razor）。
    タッチだけの端末（記事内チュートリアルの「画像で見る」と同じ判定）では、キーボード操作の練習を隠して案内を出す */
 @media (hover: none) and (pointer: coarse) {
     .practice-pc-only {

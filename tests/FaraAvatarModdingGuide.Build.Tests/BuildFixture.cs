@@ -103,7 +103,7 @@ public sealed class BuildFixture : IDisposable
         var template = Path.Combine(_root, "index.html");
         File.WriteAllText(template, TestTemplate.Html);
         SiteBuilder.Run(new BuildOptions(Repo.Root, template, Production, "production"));
-        SiteBuilder.Run(new BuildOptions(Repo.Root, template, Develop, "develop", DevOrigin: "https://avatar-wasm-dev.fara-labs.com"));
+        SiteBuilder.Run(new BuildOptions(Repo.Root, template, Develop, "develop", DevOrigin: "https://avatar-preview.fara-labs.com"));
         SiteBuilder.Run(new BuildOptions(Repo.Root, Path.Combine(Repo.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "index.html"), Real, "production"));
         Directory.CreateDirectory(Path.Combine(WithOgImage, "images"));
         File.WriteAllBytes(Path.Combine(WithOgImage, "images", "og-image.png"), [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);   // 仮の PNG（先頭の印だけ）

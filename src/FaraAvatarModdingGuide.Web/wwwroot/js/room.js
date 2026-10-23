@@ -6,7 +6,7 @@
 // - カーソル（3D ビュー上の位置）・選択・視点もほかの人に送る。「視点に合わせる」はその人の視点を追いかける
 // - 編集モード（Tab）の変更は送らない（自分の画面だけ）
 //
-// WebAssembly 版(Blazor のページから呼ぶ)での変更点(SSR 版の wwwroot/js/room.js との差):
+// WebAssembly 版(Blazor のページから呼ぶ)での変更点(旧 SSR 版の room.js との差):
 //   ・読み込んだだけでは動かない。start(roomId) で部屋に入り、返った dispose() で退室と後始末をする(ページを離れるとき・別の部屋へ移るとき)
 //   ・部屋の ID の検査と、ロビー(部屋を作る)・部屋の表示の切り替えは、Blazor の PracticeRoom.razor が持つ(roomId は検査済みで渡る)
 //   ・タイマー(動き・ping・再接続)、WebSocket、イベント(pagehide・ボタンなど)は、dispose() で全部止める

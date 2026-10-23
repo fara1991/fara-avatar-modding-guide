@@ -22,7 +22,7 @@ internal static class TestData
     public static readonly string Root = FindRoot();
     public static readonly ContentService Service = new(Path.Combine(Root, "Content"));
     public static readonly SiteContent Content = SiteContentFactory.From(Service);
-    public static readonly SiteSettings Settings = SiteSettingsLoader.Load(Path.Combine(Root, "appsettings.json"), "avatar-wasm-dev.fara-labs.com");
+    public static readonly SiteSettings Settings = SiteSettingsLoader.Load(Path.Combine(Root, "appsettings.json"), "avatar-preview.fara-labs.com");
 
     private static string FindRoot()
     {

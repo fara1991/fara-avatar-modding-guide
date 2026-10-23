@@ -1,16 +1,18 @@
 // 練習 3 ページ・記事内チュートリアル・背景の 3D の確認(Phase 3)。  node practice.mjs
-//   NEW=http://127.0.0.1:8787 (移行版。wrangler dev --env wasm-dev)  SSR=http://127.0.0.1:5000 (現行の SSR。develop)  ROUNDS=20(往復の回数)  CHROME_PATH=…
+//   NEW=http://127.0.0.1:8787 (publish + Build の出力を ./dist に置いて wrangler dev --env dev)  ROUNDS=20(往復の回数)  CHROME_PATH=…
 // ブラウザは WebGL が使える設定(lib.mjs の WEBGL_ARGS)で起動する。確認するのは、次のとおり。
-//   1. 操作が現行(SSR)と同じ: /practice と /practice/unity で、同じキー・マウスの操作をして、結果(位置・回転・スケール・お題の進み・Unity の階層)が一致する
+//   1. 操作の結果が基準と同じ: /practice と /practice/unity で、決まったキー・マウスの操作をして、結果(位置・回転・スケール・お題の進み・Unity の階層)が practice-baseline.json と一致する
+//      (基準は Phase 5 で SSR 版を消す前に、SSR(develop)と移行版の結果が一致したときの値を固定したもの)
 //   2. CSP 違反 0・コンソールのエラーと警告 0(練習 3 ページ・記事内チュートリアル・往復の全部で)
 //   3. ページ往復で、WebGL の context・ResizeObserver・IntersectionObserver・setInterval・WebSocket・window/document のイベント・DOM の数が増えない(ROUNDS 往復。ガベージコレクションのあと)
 //   4. 背景の 3D(canvas#site-scene)は 1 つだけで、ページを移っても増えず、描画のループが増えない
 //   5. スマホ(390): 練習 3 ページは案内を出し、WebGL を使わず、記事内チュートリアルの「画像で見る」が動く
 //   6. 共有ルーム: 二人が同じ部屋に入れて、追加・移動が届く(tools/room-check/check.mjs は WebSocket だけを直接確かめる。ここは画面から)
+import { readFileSync } from "node:fs";
 import { launch, newPage, csp } from "./lib.mjs";
 
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
-const SSR = process.env.SSR || "";
+const BASELINE = JSON.parse(readFileSync(new URL("./practice-baseline.json", import.meta.url), "utf8"));
 const ROUNDS = Number(process.env.ROUNDS || 20);
 const ARTICLE = "/learn/basics/transform";   // 記事内チュートリアル(::: practice transform)がある記事
 const ARTICLE2 = "/learn/basics/select";
@@ -106,7 +108,7 @@ async function problems(page, label) {
   ok(page.problems.length === 0, `${label}: コンソールのエラー・警告 0`, page.problems.join(" | "));
 }
 
-// ---------------------------------------------------------------- 1. /practice の操作(SSR と同じ結果)
+// ---------------------------------------------------------------- 1. /practice の操作(基準と同じ結果)
 async function practiceOps(browser, base, isNew) {
   const page = await open(browser, { width: 1280, height: 800 });
   await page.goto(base + "/practice?debug=1", { waitUntil: "load" });
@@ -337,22 +339,13 @@ const only = new Set((process.env.ONLY || "ops,tutorial,phone,room,trips").split
 const browser = await launch();
 try {
   if (only.has("ops")) {
-    if (SSR) {
-      const [s, n] = [await practiceOps(browser, SSR, false), await practiceOps(browser, NEW, true)];
-      console.log("     SSR:", JSON.stringify(s));
-      console.log("     NEW:", JSON.stringify(n));
-      ok(JSON.stringify(s) === JSON.stringify(n), "/practice: 同じ操作の結果(オブジェクトの位置・回転・スケール・視点・お題の進み)が SSR と一致する");
-      const [su, nu] = [await unityOps(browser, SSR, false), await unityOps(browser, NEW, true)];
-      console.log("     SSR:", JSON.stringify(su));
-      console.log("     NEW:", JSON.stringify(nu));
-      ok(su.hoodie && nu.hoodie, "/practice/unity: Hoodie を Avatar へドラッグして入れられる");
-      ok(JSON.stringify(su) === JSON.stringify(nu), "/practice/unity: 同じ操作の結果(階層・お題)が SSR と一致する");
-    } else {
-      const n = await practiceOps(browser, NEW, true);
-      console.log("     NEW:", JSON.stringify(n));
-      const nu = await unityOps(browser, NEW, true);
-      console.log("     NEW:", JSON.stringify(nu));
-    }
+    const n = await practiceOps(browser, NEW, true);
+    console.log("     NEW:", JSON.stringify(n));
+    ok(JSON.stringify(n) === JSON.stringify(BASELINE.practice), "/practice: 同じ操作の結果(オブジェクトの位置・回転・スケール・視点・お題の進み)が基準(practice-baseline.json)と一致する", JSON.stringify(BASELINE.practice));
+    const nu = await unityOps(browser, NEW, true);
+    console.log("     NEW:", JSON.stringify(nu));
+    ok(nu.hoodie, "/practice/unity: Hoodie を Avatar へドラッグして入れられる");
+    ok(JSON.stringify(nu) === JSON.stringify(BASELINE.unity), "/practice/unity: 同じ操作の結果(階層・お題)が基準と一致する", JSON.stringify(BASELINE.unity));
   }
   if (only.has("tutorial")) await tutorial(browser);
   if (only.has("phone")) await phone(browser);

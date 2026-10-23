@@ -5,7 +5,7 @@ using Microsoft.JSInterop;
 namespace FaraAvatarModdingGuide.Web.Services;
 
 /// <summary>
-/// 読み終えたページの記録（ログインなし。このブラウザの localStorage にだけ保存する）。SSR 版の wwwroot/js/progress.js と同じキー・同じ形式で、
+/// 読み終えたページの記録（ログインなし。このブラウザの localStorage にだけ保存する）。旧 SSR 版の progress.js と同じキー・同じ形式で、
 /// 既に保存されている記録がそのまま読める。
 ///   キー "avatar-modding-guide.progress"  値 { "カテゴリ/スラッグ": 完了日時（ISO 8601）, ... }
 /// 読み方は progress.js と同じ: オブジェクト以外（配列・壊れた JSON）は空として扱う。値は JavaScript の真偽（空文字・0・false・null は未完了）で見る。

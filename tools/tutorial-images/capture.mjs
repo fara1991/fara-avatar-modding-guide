@@ -3,7 +3,7 @@
 // サイトの 3D ビューをヘッドレス Chrome で動かして撮る（各手順を「次へ（スキップ）」と同じ処理で再現した直後の画面）。
 //
 // 使い方（Node.js 22 以上。外部パッケージは不要）:
-//   1. サイトを起動する: dotnet run（http://localhost:5xxx）か、書き出して npx wrangler dev（http://localhost:8787）
+//   1. サイトを起動する: publish + Build の出力を dist に置いて npx wrangler dev --env dev（http://localhost:8787。手順は README の「ビルドと公開」）
 //   2. node tools/tutorial-images/capture.mjs http://localhost:8787            … すべてのシナリオ
 //      node tools/tutorial-images/capture.mjs http://localhost:8787 transform  … 指定したシナリオだけ
 //   Chrome の場所は環境変数 CHROME で変えられる。シナリオ（wwwroot/js/scenarios.js）を変えたら撮り直す。

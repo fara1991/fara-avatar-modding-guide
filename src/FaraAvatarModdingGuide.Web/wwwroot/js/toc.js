@@ -1,5 +1,5 @@
 // 記事の目次(ArticlePage.razor)。今読んでいる h2 を見つけて、C# に知らせる(C# が目次のリンクを is-current・aria-current="location" にする)。
-// 見出しが画面の上の方を通ったかどうかで決める。ページの一番下まで来たら最後の見出しにする。SSR 版の wwwroot/js/toc.js 相当。
+// 見出しが画面の上の方を通ったかどうかで決める。ページの一番下まで来たら最後の見出しにする。旧 SSR 版の toc.js 相当。
 // スクロールするのは、PC は本文の領域(.fsk-content。kit のレイアウト)、スマホ(MobilePageScroll)は window。どちらでも動くよう、document で scroll を捕まえる。
 // 記事が替わったら avatarToc.start を呼び直す(前の監視は止める)。
 (function () {

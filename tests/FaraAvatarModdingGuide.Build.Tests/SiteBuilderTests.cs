@@ -100,10 +100,10 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
     public void Develop_uses_the_dev_origin_and_marks_everything_noindex()
     {
         var home = Read(fx.Develop, "index.html");
-        Assert.Contains("<link rel=\"canonical\" href=\"https://avatar-wasm-dev.fara-labs.com/\"", home);
+        Assert.Contains("<link rel=\"canonical\" href=\"https://avatar-preview.fara-labs.com/\"", home);
         Assert.Contains("X-Robots-Tag: noindex", Read(fx.Develop, "_headers"));
         var site = JsonDocument.Parse(Read(fx.Develop, "data/site.json")).RootElement;
-        Assert.Equal("avatar-wasm-dev.fara-labs.com", site.GetProperty("developHost").GetString());   // フッターの作者リンクを確認用に切り替える基準
+        Assert.Equal("avatar-preview.fara-labs.com", site.GetProperty("developHost").GetString());   // フッターの作者リンクを確認用に切り替える基準
     }
 
     [NodeFact]

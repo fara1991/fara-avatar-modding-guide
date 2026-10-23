@@ -1,4 +1,4 @@
-// サイト内検索（wwwroot/js/searchcore.js）の読みの判定のテスト。  node --test tests/js/search.test.mjs
+// サイト内検索（tests/js/fixtures/searchcore.reference.js）の読みの判定のテスト。  node --test tests/js/search.test.mjs
 // 題名の読み（reading）でローマ字・かなから探せること、既存の一致（題名・小見出し・本文）の点数が変わらないこと、
 // 2 文字のかなは完全・前方一致だけ、長音の揺れを同じに扱うことを確かめる。
 import { test } from "node:test";
@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 
-const SRC = readFileSync(new URL("../../wwwroot/js/searchcore.js", import.meta.url), "utf8");
+const SRC = readFileSync(new URL("./fixtures/searchcore.reference.js", import.meta.url), "utf8");
 const sandbox = { window: {}, console };
 runInNewContext(SRC, sandbox);
 const S = sandbox.window.faraSearch;
