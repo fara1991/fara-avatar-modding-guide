@@ -16,6 +16,18 @@ public sealed class PracticeHost(IJSRuntime js) : IAsyncDisposable
     /// <summary>PC 用の練習(pcScript: 例 "practice.js")を始める。タッチだけの端末では、案内を出して、記事内チュートリアルの「画像で見る」を始める。</summary>
     public Task StartAsync(string pcScript, object? options) => starting = StartCoreAsync(pcScript, options);
 
+    /// <summary>タッチだけの端末か(?engine=cs の C# 版は PC 用。タッチの端末は、これまでの案内の画面にする)。</summary>
+    public async Task<bool> IsTouchOnlyAsync()
+    {
+        try
+        {
+            module ??= await js.InvokeAsync<IJSObjectReference>("import", "./js/practice-entry.js");
+            return await module.InvokeAsync<bool>("isTouchOnly");
+        }
+        catch (JSException) { return false; }
+        catch (JSDisconnectedException) { return false; }
+    }
+
     /// <summary>記事の本文(selector)の中の記事内チュートリアル(.practice-embed)を始める。PC は 3D ビュー、タッチだけの端末は「画像で見る」。</summary>
     public Task StartArticleAsync(string selector) => starting = StartCoreAsync(null, selector);
 

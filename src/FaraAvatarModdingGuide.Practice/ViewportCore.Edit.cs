@@ -425,6 +425,21 @@ public sealed partial class ViewportCore
     {
         CloseMenu();
         Menu = new MenuState(title, items);
+        MenuPosition = MousePx();
+    }
+
+    /// <summary>開いているメニューを出す位置(ビューポート内のピクセル。メニューを開いたときのマウスの位置。はみ出さないようにする補正は画面側)。</summary>
+    public (double X, double Y) MenuPosition { get; private set; }
+
+    /// <summary>ボックス選択で囲んでいる範囲(ビューポート内のピクセル。動かしていないときは null。画面の点線の枠)。</summary>
+    public (double X, double Y, double Width, double Height)? BoxRect
+    {
+        get
+        {
+            if (drag is not { Kind: DragKind.Box, Moved: true } d) return null;
+            var (px, py) = Pixel(mouseClientX, mouseClientY);
+            return (Math.Min(px, d.StartX), Math.Min(py, d.StartY), Math.Abs(px - d.StartX), Math.Abs(py - d.StartY));
+        }
     }
 
     private void CloseMenu() => Menu = null;

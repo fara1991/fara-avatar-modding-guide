@@ -42,7 +42,7 @@ public class PracticeTests : WebTestContext
     public async Task Practice_page_starts_its_script_once_and_disposes_with_the_same_id()
     {
         var entry = Entry();
-        var cut = Render<Practice>();
+        var cut = Render<Web.Pages.Practice>();
         cut.WaitForAssertion(() => Assert.Single(entry.Invocations["start"]));
         var call = entry.Invocations["start"].Single();
         Assert.Equal("practice.js", call.Arguments[1]);

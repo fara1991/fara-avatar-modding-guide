@@ -89,7 +89,7 @@ public class PageDomParityTests : WebTestContext
     public void Practice_pages_have_the_same_dom_as_the_static_pages()
     {
         // 練習 3 ページ(フェーズ 3)。3D とお題の中身は JavaScript が入れるので、どちらも空の枠。みんなで練習は、部屋に入っていない(ロビー)状態
-        AssertSame("/practice", Page<Practice>("/practice"));
+        AssertSame("/practice", Page<Web.Pages.Practice>("/practice"));
         AssertSame("/practice/unity", Page<PracticeUnity>("/practice/unity"));
         AssertSame("/practice/room", Page<PracticeRoom>("/practice/room"));
     }

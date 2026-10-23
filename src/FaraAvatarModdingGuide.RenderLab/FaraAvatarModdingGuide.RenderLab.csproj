@@ -22,6 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- 薄い WebGL 層は Web のもの(/practice の C# 版と同じファイル)をそのまま使う -->
+    <Content Include="..\FaraAvatarModdingGuide.Web\wwwroot\js\gl.js" Link="wwwroot\js\gl.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FaraAvatarModdingGuide.Render\FaraAvatarModdingGuide.Render.csproj" />
   </ItemGroup>
 

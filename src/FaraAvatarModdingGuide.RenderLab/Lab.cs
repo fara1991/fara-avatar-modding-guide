@@ -28,6 +28,7 @@ internal static class Lab
     public static void Run()
     {
         Gl.ExposeControl(Control);
+        Gl.ExposeDebugGlobals();
         if (!StartViewport()) Console.Error.WriteLine("WebGL 2 を使えません");
     }
 

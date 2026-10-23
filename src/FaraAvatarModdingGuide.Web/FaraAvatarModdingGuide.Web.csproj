@@ -17,6 +17,8 @@
     <CompressionEnabled>false</CompressionEnabled>
     <!-- ICU（文化依存の比較・書式）を載せない（約 240 KiB を配らずに済む）。このプロジェクトに文化依存の処理は無い（日本語の並びは Build が済ませる） -->
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- [JSImport](練習の 3D の C# 版 = Services/PracticeCs.cs)の生成コードに要る -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,9 +29,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FaraAvatarModdingGuide.Shared\FaraAvatarModdingGuide.Shared.csproj" />
+    <!-- 練習の 3D の C# 版(?engine=cs で試す。docs/phase3b-design.md の S3)。起動のときには読み込まず、?engine=cs で開いたときだけ読む(下の BlazorWebAssemblyLazyLoad) -->
+    <ProjectReference Include="..\FaraAvatarModdingGuide.Practice\FaraAvatarModdingGuide.Practice.csproj" />
+    <ProjectReference Include="..\FaraAvatarModdingGuide.Render\FaraAvatarModdingGuide.Render.csproj" />
     <!-- 共通部品（Core: SiteLinks・MaintenanceInfo・ReportForm・SiteOptions。Razor: レイアウト・フッター・報告フォームなど） -->
     <ProjectReference Include="..\..\external\fara-site-kit\src\FaraSiteKit.Core\FaraSiteKit.Core.csproj" />
     <ProjectReference Include="..\..\external\fara-site-kit\src\FaraSiteKit.Razor\FaraSiteKit.Razor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <BlazorWebAssemblyLazyLoad Include="FaraAvatarModdingGuide.Practice.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="FaraAvatarModdingGuide.Render.wasm" />
   </ItemGroup>
 
   <ItemGroup>

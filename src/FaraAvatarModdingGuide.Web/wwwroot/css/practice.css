@@ -30,6 +30,12 @@
     }
 }
 
+/* C# 版(?engine=cs)の canvas の置き場。Blazor が描く HUD の兄弟に外から canvas を足さないよう、中身が空の要素に入れる */
+.practice-gl {
+    position: absolute;
+    inset: 0;
+}
+
 .practice-viewport canvas {
     display: block;
     width: 100%;
