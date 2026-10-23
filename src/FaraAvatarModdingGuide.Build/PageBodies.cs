@@ -817,7 +817,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
 
             <section class="mb-4">
                 <h2 class="h5">アクセス解析・広告</h2>
-                <p>このサイトでは、アクセス解析ツールと広告は使っていません。Cloudflare が、サイトを配信するために通常のアクセスの記録（アクセス元の IP アドレス・ブラウザなど）を取ることがあります。広告（Google AdSense など）を表示することにしたときは、この項目に、使う事業者・Cookie の扱い・配信を止める方法を追記します。</p>
+                <p>このサイトは、Cloudflare Web Analytics を使って、閲覧数や、閲覧されたページ・国・ブラウザなどの統計を集めています。Cookie は使わず、個人を特定する情報は集めません。サイトの改善にだけ使います。広告は使っていません。Cloudflare が、サイトを配信するために通常のアクセスの記録（アクセス元の IP アドレス・ブラウザなど）を取ることもあります。広告（Google AdSense など）を表示することにしたときは、この項目に、使う事業者・Cookie の扱い・配信を止める方法を追記します。</p>
             </section>
 
             <section class="mb-4">
@@ -828,7 +828,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
             <section class="mb-4">
                 <h2 class="h5">外部のサービス</h2>
                 <ul>
-                    <li>Cloudflare（サイトの配信・共同練習の部屋・Turnstile）</li>
+                    <li>Cloudflare（サイトの配信・共同練習の部屋・Turnstile・アクセス解析）</li>
                     <li>Google Fonts（文字の表示。サイトを開くと、Google にアクセスの情報が送られます）</li>
                     <li>GitHub（記事の修正の提案の受け付け）</li>
                     <li>Discord（問い合わせの通知）</li>

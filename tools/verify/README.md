@@ -15,4 +15,5 @@
 - `boot-scroll.mjs` … 起動の前の静的な本文でスクロールしてから起動しても、読んでいる位置が飛ばない(PC・スマホ)
 - `dom-diff.mjs` … 静的 HTML(WebAssembly を止めた状態)と、起動後の本文(`#fsk-main` の中)の DOM を比べる(練習 3 ページが既定。`ALL=1` で全 76 ページ)。Blazor のコメント・空白・JavaScript が中身を入れる枠を除く。`/practice/unity` の静的 HTML と Blazor の差の確認(計画書 13.5)
 - `csp-check.mjs` … CSP の違反ゼロの確認(Phase 4。計画書 13.4): `_headers` の CSP が効く配信で、主要 23 ページ × PC・スマホを開き、スクロール・テーマ・検索・練習の 3D・共有ルームを操作して、`securitypolicyviolation`・コンソールのエラー/警告・失敗したリクエスト・ページのエラーを集める。1 件でもあれば終了コード 1
+  - `csp-check.mjs` の注意(Web Analytics): ビーコン(`static.cloudflareinsights.com/beacon.min.js`)は、Cloudflare がゾーンの設定で本番・確認用の配信にだけ差し込む。`wrangler dev --local` では差し込まれないので、この検査では見えない。CSP の許可(script-src `static.cloudflareinsights.com`・connect-src `cloudflareinsights.com`)は `tools/site.json` と `SiteBuilderTests` で確かめ、実際の配信(avatar-dev)のコンソールで違反が無いことを目で確かめる
   - `csp-check.mjs` の注意: `requestfailed: …/api/maintenance` は、kit の `MaintenanceInfo` が 2 秒で打ち切る(仕様。読めなければ通常表示)ので、配信(wrangler dev)が重いとき(別の作業・別のスクリプトと**並列**に動かしたとき)に、ページを開いた直後に出ることがある。CSP の違反ではなく、実際の不具合でもない。このスクリプトは、その失敗だけのときに 1 回やり直す。それでも出るときは、配信を単独にして直列で再実行する
