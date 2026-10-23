@@ -81,6 +81,19 @@ public class PageCatalogTests
         Assert.Contains("<svg class=\"av-icon", Pages.Single(p => p.Path == "/").Main);
     }
 
+    [Theory]
+    [InlineData("/learn/basics/select", "/report?from=%2Flearn%2Fbasics%2Fselect")]
+    [InlineData("/", "/report?from=%2F")]
+    [InlineData("/report", "/report")]
+    [InlineData("/privacy", "/report")]
+    [InlineData(null, "/report")]
+    [InlineData("/a b", "/report")]
+    public void Footer_report_link_carries_the_current_page(string? path, string expected)
+    {
+        Assert.Equal(expected, PageCatalog.ReportHref(path));
+        Assert.Contains($"<a href=\"{expected}\">問い合わせ</a>", PageCatalog.Wrap("<p>x</p>", Settings, path));
+    }
+
     [Fact]
     public void Wrapped_page_starts_with_the_entry_static_root_that_kit_requires()
     {
