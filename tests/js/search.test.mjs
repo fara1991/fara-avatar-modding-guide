@@ -93,13 +93,14 @@ test("読みを消した索引と比べて、既存の一致（題名・小見�
   }
 });
 
-// ---- 実際の索引（dist/search-index.json。書き出し: dotnet run -- --export dist）での回帰テスト ----
+// ---- 実際の索引（Build が書く search-index.json）での回帰テスト ----
+// 場所は環境変数 SEARCH_INDEX_FILE（既定: publish/wwwroot/search-index.json。dotnet publish のあと Build を実行すると出る）
 // 変更前後で上位の並びが崩れていないことと、2 文字のかな（ローマ字から変換した形）の誤ヒットが出ないことを確かめる。
-const INDEX_FILE = new URL("../../dist/search-index.json", import.meta.url);
+const INDEX_FILE = process.env.SEARCH_INDEX_FILE ?? new URL("../../publish/wwwroot/search-index.json", import.meta.url);
 function realIndex() {
   let raw;
   try { raw = readFileSync(INDEX_FILE, "utf8"); } catch {
-    throw new Error("dist/search-index.json がない。先に dotnet run -- --export dist を実行する");
+    throw new Error("search-index.json がない。先に dotnet publish と Build を実行して、SEARCH_INDEX_FILE で場所を指定する（README のビルド手順）");
   }
   return JSON.parse(raw).map(S.prepare);
 }
