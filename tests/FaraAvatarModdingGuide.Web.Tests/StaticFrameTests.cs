@@ -124,4 +124,19 @@ public class StaticFrameTests : WebTestContext
         foreach (var entry in SiteNav.Build(TestData.Content).SelectMany(s => s.Items))
             Assert.Equal(SiteIcons.SvgMarkup(entry.Icon), FaraAvatarModdingGuide.Web.Services.IconMap.Get(entry.Icon));
     }
+
+    [Fact]
+    public void Static_active_highlight_selector_is_more_specific_than_mudblazor_s_without_important()
+    {
+        // MudBlazor: .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) = (0,5,0)。静的な枠のルールは、これより詳細度が高いこと
+        // (負けると、色の変数が無い起動前は灰色・背景透明になり、起動の瞬間に強調が現れる)。!important は使わない
+        var rules = Regex.Matches(AppCss, @"(?<sel>[^{}]*\.av-static \.fsk-sidebar[^{}]*\.mud-nav-link\.active)\s*\{(?<body>[^}]*)\}").ToList();
+        Assert.Equal(2, rules.Count);                                    // ダークとライト
+        foreach (var rule in rules)
+        {
+            var sel = rule.Groups["sel"].Value;
+            Assert.Contains(".mud-navmenu.mud-navmenu-default", sel);
+            Assert.DoesNotContain("!important", rule.Groups["body"].Value);
+        }
+    }
 }

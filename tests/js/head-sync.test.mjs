@@ -13,7 +13,7 @@ const PAGES = {
 };
 
 /** 最小の head の代用(タグを 1 つずつ持つ。robots は最初は無い) */
-function setup({ path, pages = PAGES, fetchOk = true }) {
+function setup({ path, pages = PAGES, fetchOk = true, bare = false }) {
     const make = (attrs) => ({
         attrs: { ...attrs },
         getAttribute(k) { return this.attrs[k] ?? null; },
@@ -22,12 +22,14 @@ function setup({ path, pages = PAGES, fetchOk = true }) {
     });
     const head = { children: [], appendChild(c) { c.parentNode = head; head.children.push(c); }, removeChild(c) { head.children.splice(head.children.indexOf(c), 1); } };
     const add = (attrs) => { const el = make(attrs); el.parentNode = head; head.children.push(el); return el; };
-    add({ rel: "canonical", href: "https://avatar.fara-labs.com" + (path === "/" ? "/" : path) });
-    add({ name: "description", content: "最初の説明" });
-    add({ property: "og:description", content: "最初の説明" });
-    add({ property: "og:title", content: "最初の題名" });
-    add({ property: "og:type", content: "website" });
-    add({ property: "og:url", content: "https://avatar.fara-labs.com" + path });
+    if (!bare) {
+        add({ rel: "canonical", href: "https://avatar.fara-labs.com" + (path === "/" ? "/" : path) });
+        add({ name: "description", content: "最初の説明" });
+        add({ property: "og:description", content: "最初の説明" });
+        add({ property: "og:title", content: "最初の題名" });
+        add({ property: "og:type", content: "website" });
+        add({ property: "og:url", content: "https://avatar.fara-labs.com" + path });
+    }
     const matches = (el, sel) => {
         const m = sel.match(/^(\w+)\[(\w+)="([^"]+)"\]$/);
         return m ? el.attrs[m[2]] === m[3] : false;
@@ -102,4 +104,19 @@ test("pages.json が読めなくても例外にしない(何も変えず、次�
     assert.equal(t.tags('meta[name="robots"]').length, 0);
     await t.sync("/report");
     assert.equal(t.fetched(), 2);
+});
+
+test("404.html から移ったとき(head に canonical・description・OGP が無い)は、固定のタグを 1 つずつ作る。2 回移っても増えない", async () => {
+    const t = setup({ path: "/no-such-page", bare: true });
+    t.location.pathname = "/learn/basics/select";
+    await t.sync("/learn/basics/select");
+    await t.sync("/learn/basics/select");
+    assert.equal(t.tags('link[rel="canonical"]').length, 1);
+    assert.equal(t.tags('link[rel="canonical"]')[0].attrs.href, "https://avatar.fara-labs.com/learn/basics/select");
+    for (const [attr, key, value] of [["name", "description", "選択の説明"], ["property", "og:description", "選択の説明"], ["property", "og:title", "選択 - Site"], ["property", "og:type", "article"], ["property", "og:url", "https://avatar.fara-labs.com/learn/basics/select"]]) {
+        const found = t.tags(`meta[${attr}="${key}"]`);
+        assert.equal(found.length, 1, key);
+        assert.equal(found[0].attrs.content, value, key);
+    }
+    assert.equal(t.head.children.length, 6);
 });

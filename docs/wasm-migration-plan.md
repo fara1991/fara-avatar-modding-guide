@@ -591,7 +591,7 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 - [ ] 旧 URL 3 件が 301 で転送される
 - [ ] 記事 50 件の本文テキストが、現行 SSR 版と一致する（改行・空白を除く）
 - [ ] 静的 HTML の 76 本すべてが、JS 無しで本文を読める
-- [ ] title・description・canonical・OGP が全ページにある。sitemap.xml（本番）・robots.txt がある。確認用は noindex。`/report` は noindex
+- [ ] title・description・canonical・OGP が全ページにある。sitemap.xml（本番。74 URL）・robots.txt がある。確認用は noindex。noindex のページは `/report` と `/search` だけ（練習の 3 ページ・`/privacy` は index 可。§13.1）
 - [ ] 検索の件数・順序が現行と一致する（テストデータ 100 件程度）
 - [ ] 進捗の記録（既存の localStorage）が読める
 - [ ] 練習 3 ページ・記事内チュートリアル・共有ルームが、現行と同じ操作で動く（PC）。スマホは案内が出る
@@ -783,7 +783,7 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 - Blazor との橋渡しは `Services/PracticeHost.cs` と `js/practice-entry.js` だけ。ページ（`Practice`・`PracticeUnity`・`PracticeRoom`）と記事（`ArticlePage`。記事が替わったときも）が、始める・解放するを呼ぶ。`practice-entry.js` は同時に 1 つだけ動かし、始めるときに前のものを解放し、解放は「いま動いているものと同じ id」のときだけ効く（前のページの解放が遅れて届いても、次のページを止めない）。
 - 背景の 3D（`bgscene.js`）は 2D の canvas で、`index.html` から全ページで 1 度だけ読む（ページを移っても本文だけが替わるので、そのまま残る。多重に作らない）。スクロール線（SSR 版の `scrollprogress.js`）は、Phase 1 から共通部品（fara-site-kit の `ScrollProgress`・`scroll-progress.js`）で動いていて、Phase 3 で移すものはない（`SiteLayout` が 1 つだけ置き、ページの移動で増えない）。
 - スマホ（hover: none かつ pointer: coarse）は、練習の 3 ページで案内（`TouchPracticeGuide`）を出し、WebGL を使わない。記事内チュートリアルは「画像で見る」のまま。
-- `/practice*` の暫定 noindex は維持（Phase 4 で見直す）。
+- `/practice*` の暫定 noindex は、Phase 3 では維持した。**Phase 4 で見直し、練習の 3 ページは index 可にした**（§13.1。noindex は `/report` と `/search` だけ）。
 
 ### 12.3 確認の結果と、確認の注意（Phase 3）
 - 確認は `tools/verify/practice.mjs`（Playwright。PC 1280・スマホ 390。WebGL は SwiftShader）と `tools/room-check/check.mjs`（WebSocket を直接）。SSR 版（develop）と同じ操作をして結果を比べる（`/practice` は位置・回転・スケール・視点・お題の進み、`/practice/unity` は階層・お題）。往復 20 回で、WebGL の context・ResizeObserver・IntersectionObserver・setInterval・WebSocket・window/document のイベント・canvas・背景の描画ループが増えない。
@@ -843,7 +843,13 @@ SRI の値（§12.1 の sha384）は、SSR 版が jsDelivr で読んでいた r1
 ### 13.7 JavaScript が無い環境
 静的な枠のスマホは、起動後の画面に合わせて上部ナビをやめた（サイドバーはハンバーガーで開く一時的なメニューで、JavaScript が無いと開けない）。JavaScript が無いときだけ（`noscript` の style）、サイドバーを本文とフッターの後ろに並べて出し、ページの移動に使えるようにした（#96）。PC は左のサイドバーがそのまま出る。
 
-### 13.8 残っている宿題
+### 13.8 独立レビューの指摘への対応（Phase 4 のあと）
+- **静的な枠のサイドバーで、いまのページの強調が出ていなかった**: `.av-static .fsk-sidebar .mud-nav-link.active`（詳細度 0,4,0）が MudBlazor の `.mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled)`（0,5,0）に負け、色の変数（`--mud-palette-*`）が無い起動前は灰色・背景透明になって、起動の瞬間に強調が現れていた。`.mud-navmenu.mud-navmenu-default` を足して上回らせた（`!important` は使わない。`StaticFrameTests` で固定）。ピクセル差・位置の閾値では見つからない小さな領域なので、`boot-diff.mjs` に、強調要素の計算済みスタイル（color・background-color）を静的と起動後で比べる検査を足した（修正前のダークで検出されることを確認）。
+- **404 から他のページへアプリ内で移ったときの head**: 404.html の head は title と noindex だけで、`head-sync` は既存のタグの書き換えだけだったので、canonical・description・OGP が無いままだった。`head-sync` が、無いタグ（canonical・description・og:title・og:description・og:type・og:url）を固定の meta/link として 1 つずつ作る（`innerHTML` は使わない。2 回移っても増えない。noindex は外す）。canonical の出どころは、canonical が無いので開いているホスト（`location.origin`）。`head-sync.test.mjs` と `seo.mjs` で確認。
+- **`csp-check` の `requestfailed: /api/maintenance`**: 実際の不具合ではない。kit の `MaintenanceInfo` が 2 秒で打ち切る（仕様。読めなければ通常表示）ので、配信が重いとき（別のスクリプトと並列に動かしたとき）に、ページを開いた直後に出る。単独・直列で再実行すると 46 画面で 0 件、並列に重ねると再現した。`csp-check.mjs` はその失敗だけのときに 1 回やり直し、`tools/verify/README.md` に注意を書いた。
+- **`/report` のタブの題名**: kit の `ReportFormView` の `PageTitle` は「問い合わせ | サイト名」で、上書きできない（呼び出し側の `PageTitle` を前後どちらに置いても、kit のほうが使われる）。静的 HTML の title・og:title も `/report` だけ区切りを「 | 」にして、起動の前後でタブの題名が替わらないようにした（ほかのページは「 - 」。404 は kit の形で「 | 」）。`seo.mjs` が、全ページで起動後の `document.title` が静的 HTML の title と同じであることを確かめる。区切りを全ページで揃えるのは kit の変更が要るので、既知の差として残す。
+
+### 13.9 残っている宿題
 - OGP 画像（ユーザーが決める。`wwwroot/images/og-image.png`。計画書 4.12）。
 - kit: 起動中の静的な本文の inert を解く設定（本文を読みながらリンクを押せるように）。
 - 実機（PC・スマホ・ライト/ダーク）の目視（§8）。

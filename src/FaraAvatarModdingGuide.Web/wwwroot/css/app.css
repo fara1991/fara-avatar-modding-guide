@@ -1348,13 +1348,13 @@ h1:focus {
     }
 }
 
-/* 静的 HTML のサイドバーの「いまのページ」の強調。起動の後は MudBlazor が色の変数(--mud-palette-*)から決める色を、同じ値で直接書く(ダーク／ライト) */
-.av-static .fsk-sidebar .mud-nav-link.active {
+/* 静的 HTML のサイドバーの「いまのページ」の強調(詳細度は MudBlazor の .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) = 0,5,0 より高くする。負けると、色の変数が無い起動前は灰色・背景透明になる)。起動の後は MudBlazor が色の変数(--mud-palette-*)から決める色を、同じ値で直接書く(ダーク／ライト) */
+.av-static .fsk-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
     color: #a855f7;
     background-color: rgba(173, 173, 177, 0.06);
 }
 
-[data-bs-theme="light"] .av-static .fsk-sidebar .mud-nav-link.active {
+[data-bs-theme="light"] .av-static .fsk-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
     color: #7c3aed;
     background-color: rgba(0, 0, 0, 0.06);
 }
