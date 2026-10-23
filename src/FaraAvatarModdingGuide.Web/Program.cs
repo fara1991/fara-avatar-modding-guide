@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using FaraAvatarModdingGuide.Models;
 using FaraAvatarModdingGuide.Web;
+using FaraAvatarModdingGuide.Web.Search;
 using FaraAvatarModdingGuide.Web.Services;
 using FaraSiteKit.Core;
 using FaraSiteKit.Razor;
@@ -36,6 +37,8 @@ builder.Services.AddSingleton(settings);
 builder.Services.AddFaraSiteKit(options => SiteInfo.Configure(options, settings));
 builder.Services.AddSingleton(maintenanceTask.Result);
 builder.Services.AddSingleton(store);
+builder.Services.AddSingleton<ISearchNormalizer, JsSearchNormalizer>();
+builder.Services.AddSingleton<SearchService>();   // 検索の索引は、最初に検索するときに読む
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");   // 報告・404 の noindex と、ページの題名に必要
