@@ -1,5 +1,6 @@
 ---
 title: シェイプキー
+reading: しぇいぷきー
 description: 表情や体型の変化を作る「シェイプキー」の作り方と、服をアバターの体型変化に合わせる方法です。
 difficulty: 中級
 updated: 2026-10-10

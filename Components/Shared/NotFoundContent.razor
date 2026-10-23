@@ -1,8 +1,11 @@
 <PageTitle>ページが見つかりません</PageTitle>
 
-<h1>ページが見つかりません</h1>
-<p role="alert">お探しのページは移動したか、削除された可能性があります。</p>
-<div class="d-flex gap-2">
-    <a href="/" class="btn btn-primary">ホームへ戻る</a>
-    <a href="/search" class="btn btn-outline-secondary">検索する</a>
-</div>
+<section class="not-found">
+    <p class="not-found-code" aria-hidden="true">404</p>
+    <h1>ページが見つかりません</h1>
+    <p class="not-found-text">URL が間違っているか、ページが移動した可能性があります。</p>
+    <div class="not-found-actions">
+        <a href="/" class="btn btn-primary">ホームへ戻る <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        <a href="/search" class="btn btn-outline-secondary">検索する</a>
+    </div>
+</section>

@@ -1,5 +1,6 @@
 ---
 title: 移動・回転・スケール
+reading: いどうかいてんすけーる
 description: G / R / S の 3 つのキーと軸の固定、数値入力、トランスフォームの適用を覚えます。
 difficulty: 初級
 updated: 2026-10-10

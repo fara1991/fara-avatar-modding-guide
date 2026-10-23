@@ -116,11 +116,12 @@ public class FooterAndReportTests
         Assert.True(report.IndexOf("id=\"report-done\"", StringComparison.Ordinal) < report.IndexOf("<script src=\"/js/report.js\"", StringComparison.Ordinal));
 
         var privacy = await RenderAsync<Privacy>();
-        Assert.Matches("<div class=\"page-column\">\\s*<h1>プライバシーポリシー</h1>", privacy);
+        Assert.Matches("<div class=\"page-column page-column-wide\">\\s*<h1>プライバシーポリシー</h1>", privacy);
 
         // 列は、幅の上限（フォームと同じ 42rem）を付けて、左右の余白を auto で中央に置く
         var css = File.ReadAllText(FindUp(Path.Combine("wwwroot", "css", "site.css")));
         Assert.Contains(".page-column { max-width: 42rem; margin-inline: auto; }", css);
+        Assert.Contains(".page-column.page-column-wide { max-width: 72rem;", css);
     }
 
     [Fact]
@@ -231,8 +232,8 @@ public class FooterAndReportTests
         Assert.True(mediaStart >= 0, "フッターの 640px 以下の指定が無い");
         var mediaEnd = css.IndexOf("\n}\n", mediaStart, StringComparison.Ordinal);
         var phone = css.Substring(mediaStart, mediaEnd - mediaStart);
-        Assert.Contains(".site-footer { text-align: center; }", phone);
-        Assert.Contains(".site-footer-line { justify-content: center; gap: 0.35rem 1rem; }", phone);
+        Assert.Contains(".site-footer { text-align: center;", phone);
+        Assert.Contains(".site-footer-line { justify-content: center; gap: 0.2rem 0.9rem; }", phone);
         Assert.Contains(".site-footer-line > * { white-space: nowrap; }", phone);
         // 狭い画面では区切りの「|」を出さない（項目の間は gap で空ける）
         Assert.Contains(".site-footer-sep { display: none; }", phone);

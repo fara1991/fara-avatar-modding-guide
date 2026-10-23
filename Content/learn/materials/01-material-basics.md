@@ -1,5 +1,6 @@
 ---
 title: マテリアルの基本
+reading: まてりあるのきほん
 description: 色と質感を決める「マテリアル」の作り方、プリンシプル BSDF の主な項目、複数マテリアルの割り当てを覚えます。
 difficulty: 初級
 updated: 2026-10-10

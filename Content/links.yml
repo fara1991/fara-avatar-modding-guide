@@ -176,6 +176,7 @@
 
 - id: booth-2474761
   name: VRC用 ホバーアニメーション (Hover Motion)
+  reading: ぶいあーるしーよう ほばーあにめーしょん
   url: https://moca-studio.booth.pm/items/2474761
   category: vrchat
   description: 移動速度に応じた Blend Tree の構成例として参考になる移動モーション
@@ -183,6 +184,7 @@
 
 - id: openvr-spacecalibrator-fork
   name: OpenVR-SpaceCalibrator（補正機能付き fork）
+  reading: おーぷんぶいあーるすぺーすきゃりぶれーたー ほせいきのうつきふぉーく
   url: https://github.com/bdunderscore/OpenVR-SpaceCalibrator
   category: reference
   description: '異なるトラッキングシステム間の位置合わせツール（オリジナル: pushrax/OpenVR-SpaceCalibrator）'
@@ -191,6 +193,7 @@
 
 - id: blender-unity-note
   name: BlenderとUnityの座標系の違いを治す（note）
+  reading: ぶれんだーとゆにてぃーのざひょうけいのちがいをなおす
   url: https://note.com/blendermagic/n/nb6a024d648e9
   category: reference
   description: Blender と Unity の座標系の違いで向きがずれるときの修正手順（シェイプキーがある場合の手順あり）
@@ -199,6 +202,7 @@
 
 - id: blender
   name: Blender ピボットポイントの解説（サルブレ）
+  reading: ぶれんだーぴぼっとぽいんとのかいせつ
   url: https://saru-blender.com/pivot-point
   category: reference
   description: ピボットポイント（3D カーソル・原点）の解説
@@ -208,6 +212,7 @@
 
 - id: vrchat-blender2-91-1-note
   name: VRChat はじめてのBlender2.91を使ったアバター最適化①（note）
+  reading: ぶいあーるちゃっとはじめてのぶれんだー2.91をつかったあばたーさいてきか①
   url: https://note.com/kluele_vrc/n/nc792e44b2aba
   category: reference
   description: Blender でのメッシュ結合による最適化の入門記事
@@ -216,6 +221,7 @@
 
 - id: vrchat-blender2-92-1-note
   name: VRChat はじめてのBlender2.92を使ったアバター改変①（note）
+  reading: ぶいあーるちゃっとはじめてのぶれんだー2.92をつかったあばたーかいへん①
   url: https://note.com/kluele_vrc/n/n8970030c9df7
   category: reference
   description: Blender を使ったアバター改変の入門記事
@@ -224,6 +230,7 @@
 
 - id: vroid-studio-3d-blender-unity-note
   name: VRoid Studioで出力した3DモデルをBlender・Unityで様々な要素を追加しよう（note）
+  reading: ぶいろいどすたじおでしゅつりょくしたすりーでぃーもでるをぶれんだー・ゆにてぃーでさまざまなようそをついかしよう
   url: https://note.com/vsrx/n/nea5a41977ebb
   category: reference
   description: VRoid 出力モデルにパーツなどを追加する入門記事
@@ -232,6 +239,7 @@
 
 - id: 52blendshapes
   name: パーフェクトシンク対応モデルをつくろう！52BlendShapes制作メモ（はてなブログ）
+  reading: ぱーふぇくとしんくたいおうもでるをつくろう！52ぶれんどしぇいぷせいさくめも
   url: https://hinzka.hatenablog.com/entry/2021/12/02/005814
   category: reference
   description: iPhone 顔トラッキング用 52 BlendShape の作成メモ
@@ -240,6 +248,7 @@
 
 - id: vrmspringbone-note
   name: VRMSpringBoneにおけるゲーム内移動時のスカート貫通対策についてのメモ（note）
+  reading: ぶいあーるえむすぷりんぐぼーんにおけるげーむないいどうじのすかーとかんつうたいさくについてのめも
   url: https://note.com/mendosu/n/n7370b9c60285
   category: reference
   description: SpringBone の Center 設定で移動時のスカート破綻を防ぐ方法
@@ -248,6 +257,7 @@
 
 - id: unity-constraint
   name: ひざを二重関節とUnityのConstraintで修正する（ブログ）
+  reading: ひざをにじゅうかんせつとゆにてぃーのこんすとれいんとでしゅうせいする
   url: https://amaotolog.com/vr/125
   category: reference
   description: 膝を二重関節にして Constraint でつなぎ、曲げたときの形を改善する方法
@@ -256,6 +266,7 @@
 
 - id: twistbone-note
   name: 肘関節が痩せるのを防止するTwistBone設定（note）
+  reading: ひじかんせつがやせるのをぼうしするついすとぼーんせってい
   url: https://note.com/citron_vr/n/n8a1998c368e7
   category: reference
   description: 腕のツイストボーン設定で肘・手首の痩せを防ぐ
@@ -264,6 +275,7 @@
 
 - id: blender-toon-note
   name: blenderでToon用に顔の法線を整える（note）
+  reading: ぶれんだーでとぅーんようにかおのほうせんをととのえる
   url: https://note.com/ig_k/n/n7b63c1b5a312
   category: reference
   description: 顔のカスタム法線を転写し直してトゥーン向けの陰影に整える方法
@@ -272,6 +284,7 @@
 
 - id: blender-2
   name: Blenderでアバターの首を綺麗に接合する（ブログ）
+  reading: ぶれんだーでアバターのくびをきれいにせつごうする
   url: https://antnestin.hatenablog.com/entry/2021/09/26/201814
   category: reference
   description: 首すげ替え時に首の継ぎ目をきれいにつなぐ手順
@@ -280,6 +293,7 @@
 
 - id: physbones-notion
   name: PhysBones 公式ドキュメント有志翻訳（Notion）
+  reading: ふぃじっくぼーんず こうしきどきゅめんと ゆうしほんやく
   url: https://bdunderscore.notion.site/PhysBones-780cc1a0c1e94dc08892c68d4ea5130e
   category: vrchat
   description: PhysBone 導入当初の公式ドキュメントの日本語訳
@@ -296,6 +310,7 @@
 
 - id: step-3-vrchat-wiki
   name: アバター導入方法 Step.3（VRChat Wiki）
+  reading: あばたーどうにゅうほうほう すてっぷすりー
   url: https://vrc.wiki/beginner/767/
   category: vrchat
   description: 初心者向けアバターアップロード手順
@@ -305,6 +320,7 @@
 
 - id: booth-vrchat
   name: Boothで買ったアバターをVRChatにアップロードする方法（ブログ）
+  reading: ぶーすでかったあばたーをぶいあーるちゃっとにあっぷろーどするほうほう
   url: https://noa-phantom.com/vrchat-avatar-upload/
   category: vrchat
   description: 購入アバターのアップロード手順
@@ -313,6 +329,7 @@
 
 - id: missing-remover
   name: Missing Removerの使い方（ブログ）
+  reading: みっしんぐりむーばーのつかいかた
   url: https://signyamo.blog/vrchat_use_missing-remover/
   category: vrchat
   description: DynamicBone 未所持時に欠けたスクリプトを削除する手順
@@ -330,6 +347,7 @@
 
 - id: youtube
   name: 【初心者必見】ウェイトペイントで綺麗に塗るコツ徹底解説～基本編～（YouTube）
+  reading: しょしんしゃひっけんうぇいとぺいんとできれいにぬるこつてっていかいせつきほんへん
   url: https://www.youtube.com/watch?v=N0qUvuMjSGk
   category: reference
   description: ウェイトペイントの基本の塗り方解説動画
@@ -338,6 +356,7 @@
 
 - id: vrc-youtube
   name: 【VRC想定】アバターに非対応服を着せる（YouTube）
+  reading: ぶいあーるしーそうていあばたーにひたいおうふくをきせる
   url: https://www.youtube.com/watch?v=0z5y-PUujJY
   category: reference
   description: 非対応衣装の着せ替え手順の解説動画
@@ -346,6 +365,7 @@
 
 - id: re-youtube
   name: Re:スノウエルフちゃんに幽狐さんの素体を移植する方法（YouTube）
+  reading: りー すのうえるふちゃんにゆうこさんのそたいをいしょくするほうほう
   url: https://www.youtube.com/watch?v=XR2Md6R7lZ8
   category: reference
   description: 素体データのないアバターに別アバターの素体を移植する解説動画
@@ -355,6 +375,7 @@
 
 - id: clip-studio-ask
   name: 'CLIP STUDIO ASK: レイヤーカラーの変更方法'
+  reading: くりっぷすたじおあすく れいやーからーのへんこうほうほう
   url: https://ask.clip-studio.com/ja-jp/detail?id=2855
   category: reference
   description: クリスタのレイヤーカラーで雑に色を変える方法
@@ -364,6 +385,7 @@
 
 - id: gimp
   name: GIMP（窓の杜）
+  reading: ぎんぷ まどのもり
   url: https://forest.watch.impress.co.jp/library/software/gimp/
   category: reference
   description: 無料の画像編集ソフト。色変更程度なら十分
@@ -373,6 +395,7 @@
 
 - id: booth-1833786
   name: VRアバターのデザイン 第２版
+  reading: ぶいあーるあばたーのでざいん だいにはん
   url: https://booth.pm/ja/items/1833786
   category: reference
   description: VR アバターのデザインに関する本
@@ -380,6 +403,7 @@
 
 - id: booth-1202638
   name: スノウエルフのお嬢様
+  reading: すのうえるふのおじょうさま
   url: https://booth.pm/ja/items/1202638
   category: booth-avatar
   description: オリジナル 3D アバター（素体移植の解説動画でも使われた）
@@ -387,6 +411,7 @@
 
 - id: booth-1484117
   name: 幽狐族のお姉様
+  reading: ゆうこぞくのおねえさま
   url: https://booth.pm/ja/items/1484117
   category: booth-avatar
   description: オリジナル 3D アバター（素体データあり。対応衣装が多い）
@@ -401,6 +426,7 @@
 
 - id: booth-3681787
   name: 桔梗
+  reading: ききょう
   url: https://ponderogen.booth.pm/items/3681787
   category: booth-avatar
   description: オリジナル 3D アバター（ボディを首すげ替えに使う例も多い）
@@ -436,6 +462,7 @@
 
 - id: booth-3160480
   name: 心-556
+  reading: こころ-556
   url: https://yueou.booth.pm/items/3160480
   category: booth-avatar
   description: オリジナル 3D アバター
@@ -450,6 +477,7 @@
 
 - id: booth-3779028
   name: ゲーム少女 Amu（アミュ）
+  reading: げーむしょうじょ あみゅ
   url: https://booth.pm/ja/items/3779028
   category: booth-avatar
   description: VR アバター向け 3D モデル
@@ -471,6 +499,7 @@
 
 - id: booth-3827222
   name: 橙華
+  reading: とうか
   url: https://inorin.booth.pm/items/3827222
   category: booth-avatar
   description: オリジナル 3D アバター
@@ -478,6 +507,7 @@
 
 - id: booth-3776127
   name: ゆきはね式チルノ
+  reading: ゆきはねしきちるの
   url: https://booth.pm/ja/items/3776127
   category: booth-avatar
   description: VRChat 向けアバター
@@ -527,6 +557,7 @@
 
 - id: booth-4344924
   name: 姫華
+  reading: ひめか
   url: https://kuroinyan.booth.pm/items/4344924
   category: booth-avatar
   description: VRC 用アバター
@@ -541,6 +572,7 @@
 
 - id: booth-3443188
   name: 竜胆
+  reading: りんどう
   url: https://jingo1016.booth.pm/items/3443188
   category: booth-avatar
   description: オリジナル 3D アバター（PB 対応版）
@@ -569,6 +601,7 @@
 
 - id: booth-3464556
   name: 竜胆ちゃん用ゴシックメイド服「フェ・ド ラ フィデリテ」
+  reading: りんどうちゃんようごしっくめいどふく「ふぇ・ど ら ふぃでりて」
   url: https://booth.pm/ja/items/3464556
   category: booth-outfit
   description: 竜胆向けゴシックメイド服
@@ -576,6 +609,7 @@
 
 - id: booth-3254683
   name: Goth Crown（6 アバター対応）
+  reading: ごすくらうん 6あばたーたいおう
   url: https://ek-shop.booth.pm/items/3254683
   category: booth-outfit
   description: 複数アバター対応のゴシック系アクセサリー
@@ -583,6 +617,7 @@
 
 - id: booth-3199129
   name: MilkyStar（ここあ・狐雪・ティエン用ドレス）
+  reading: みるきーすたー ここあ・きつねゆき・てぃえんようどれす
   url: https://ek-shop.booth.pm/items/3199129
   category: booth-outfit
   description: 特定アバター向けドレス（対応アバターなら Unity だけで着せ替え可能）
@@ -590,6 +625,7 @@
 
 - id: booth-3615249
   name: カジュアル ゴシック（4 アバター対応）
+  reading: かじゅある ごしっく 4あばたーたいおう
   url: https://attic.booth.pm/items/3615249
   category: booth-outfit
   description: 複数アバター対応のゴシック衣装
@@ -597,6 +633,7 @@
 
 - id: booth-3725413
   name: 長さの変わるタバコ
+  reading: ながさのかわるたばこ
   url: https://booth.pm/ja/items/3725413
   category: booth-outfit
   description: VRChat 向け小物
@@ -604,6 +641,7 @@
 
 - id: booth-3763823
   name: 舞夜_絶対ゴシック宣言！
+  reading: まいや_ぜったいごしっくせんげん！
   url: https://as025886.booth.pm/items/3763823
   category: booth-outfit
   description: VRChat 向け衣装
@@ -611,6 +649,7 @@
 
 - id: booth-2710589
   name: ノーブルドレス「ディアボリックローズ」（サタリナ向け）
+  reading: のーぶるどれす「でぃあぼりっくろーず」（さたりなむけ）
   url: https://booth.pm/ja/items/2710589
   category: booth-outfit
   description: Blender で他アバターへ合わせる前提ならおすすめとされたドレス
@@ -618,6 +657,7 @@
 
 - id: booth-2428269
   name: ロリータドレス「ル・ジャルダン スクレ」（幽狐向け）
+  reading: ろりーたどれす「る・じゃるだん すくれ」（ゆうこむけ）
   url: https://booth.pm/ja/items/2428269
   category: booth-outfit
   description: 露出が少なく Blender なしでも合わせやすい可能性があるドレス
@@ -639,6 +679,7 @@
 
 - id: booth-3830992
   name: ペチュニア（ルルリア専用）
+  reading: ぺちゅにあ（るるりあせんよう）
   url: https://booth.pm/ja/items/3830992
   category: booth-outfit
   description: ルルリア専用衣装
@@ -646,6 +687,7 @@
 
 - id: booth-3934060
   name: お忍びヴァンパイアドレス（18 アバター対応）
+  reading: おしのびゔぁんぱいあどれす 18あばたーたいおう
   url: https://miarestore.booth.pm/items/3934060
   category: booth-outfit
   description: 多数アバター対応・パーティクル付きドレス
@@ -653,6 +695,7 @@
 
 - id: booth-3966056
   name: 酒吞嵐舞
+  reading: しゅてんらんぶ
   url: https://booth.pm/ja/items/3966056
   category: booth-outfit
   description: 和服系衣装
@@ -667,6 +710,7 @@
 
 - id: booth-4082949
   name: ノースリーブセットアップ（2 アバター対応）
+  reading: のーすりーぶせっとあっぷ 2あばたーたいおう
   url: https://booth.pm/ja/items/4082949
   category: booth-outfit
   description: 衣装
@@ -681,6 +725,7 @@
 
 - id: booth-4101477
   name: ダボ袖 女教師（7 アバター対応）
+  reading: だぼそで じょきょうし 7あばたーたいおう
   url: https://booth.pm/ja/items/4101477
   category: booth-outfit
   description: 複数アバター対応衣装
@@ -688,6 +733,7 @@
 
 - id: booth-4107815
   name: 桔梗ちゃんカジュアル衣装セット（スキニング済）
+  reading: ききょうちゃんかじゅある いしょうせっと すきにんぐずみ
   url: https://booth.pm/ja/items/4107815
   category: booth-outfit
   description: 桔梗向けスキニング済み衣装
@@ -695,6 +741,7 @@
 
 - id: booth-4351638
   name: スピカライトメモリアル（7 アバター対応）
+  reading: すぴからいとめもりある 7あばたーたいおう
   url: https://booth.pm/ja/items/4351638
   category: booth-outfit
   description: 複数アバター対応衣装
@@ -702,6 +749,7 @@
 
 - id: booth-5410790
   name: IDOLISHMAID TYPE：T（複数アバター対応）
+  reading: あいどりっしゅめいど たいぷ・てぃー ふくすうあばたーたいおう
   url: https://northfox22.booth.pm/items/5410790
   category: booth-outfit
   description: 複数アバター対応のメイド衣装
@@ -716,6 +764,7 @@
 
 - id: booth-5420885
   name: Dreamy Step（12 アバター対応）
+  reading: どりーみーすてっぷ 12あばたーたいおう
   url: https://booth.pm/ja/items/5420885
   category: booth-outfit
   description: 多数アバター対応衣装
@@ -723,6 +772,7 @@
 
 - id: booth-5792625
   name: シャーロックの人形（11 アバター対応）
+  reading: しゃーろっくのにんぎょう 11あばたーたいおう
   url: https://booth.pm/ja/items/5792625
   category: booth-outfit
   description: 多数アバター対応衣装
@@ -737,6 +787,7 @@
 
 - id: booth-3889421
   name: Milina Costume（単品）
+  reading: みりーなこすちゅーむ たんぴん
   url: https://booth.pm/ja/items/3889421
   category: booth-outfit
   description: 構造が複雑で、初めての非対応衣装の着せ替えには難易度が高いとされた衣装
@@ -751,6 +802,7 @@
 
 - id: booth-4032819
   name: げんきいっぱいオーバーオール（12 アバター対応）
+  reading: げんきいっぱいおーばーおーる 12あばたーたいおう
   url: https://booth.pm/ja/items/4032819
   category: booth-outfit
   description: 多数アバター対応・パーティクル付き衣装
@@ -758,6 +810,7 @@
 
 - id: booth-3393679
   name: DEATH MASK（死神の仮面）
+  reading: ですますく（ししがみのかめん）
   url: https://booth.pm/ja/items/3393679
   category: booth-outfit
   description: 仮面アクセサリー
@@ -765,6 +818,7 @@
 
 - id: booth-3407762
   name: サキュバスコスチューム（舞夜用）
+  reading: さきゅばすこすちゅーむ（まいやよう）
   url: https://booth.pm/ja/items/3407762
   category: booth-outfit
   description: 舞夜向け衣装
@@ -772,6 +826,7 @@
 
 - id: booth-407949
   name: トゲ鉄球（可動＆非可動）
+  reading: とげてっきゅう（かどうあんかどう）
   url: https://booth.pm/ja/items/407949
   category: booth-outfit
   description: 3D 小物
@@ -779,6 +834,7 @@
 
 - id: booth-3086026
   name: 鉄球
+  reading: てっきゅう
   url: https://booth.pm/ja/items/3086026
   category: booth-outfit
   description: 3D 小物
@@ -786,6 +842,7 @@
 
 - id: booth-3057896
   name: モーニングスター／いかつめの鉄球
+  reading: もーにんぐすたー いかつめのてっきゅう
   url: https://booth.pm/ja/items/3057896
   category: booth-outfit
   description: 3D 素材（blend / FBX）。テクスチャなしの場合はシェーダーで質感を付ける
@@ -793,6 +850,7 @@
 
 - id: booth-5793816
   name: Enchanted Bridal Gown（複数アバター対応）
+  reading: えんちゃんてっど ぶらいだる がうん ふくすうあばたーたいおう
   url: https://booth.pm/ja/items/5793816
   category: booth-outfit
   description: MatCap を多用しており、MToon（VRM）への変換が難しかった例

@@ -1,5 +1,6 @@
 ---
 title: UV 展開とテクスチャ
+reading: ゆーぶいてんかいとてくすちゃ
 description: 作ったシャツを展開し、1 枚のテクスチャに色を描いて、マテリアルを整えます。
 difficulty: 中級
 updated: 2026-10-10

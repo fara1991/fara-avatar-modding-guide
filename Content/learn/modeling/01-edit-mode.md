@@ -1,5 +1,6 @@
 ---
 title: 編集モードの基本
+reading: へんしゅうもーどのきほん
 description: 頂点・辺・面の選び方と、編集モードならではの選択テクニックを覚えます。
 difficulty: 初級
 updated: 2026-10-10

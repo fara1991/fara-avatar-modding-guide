@@ -1,5 +1,6 @@
 ---
 title: Unity の画面の見方
+reading: ゆにてぃーのがめんのみかた
 description: アバターの作業で使う Unity のウィンドウ（Hierarchy・Inspector・Project・Scene）と、Scene ビューの視点の動かし方です。
 difficulty: 初級
 updated: 2026-10-11

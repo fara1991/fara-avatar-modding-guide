@@ -14,6 +14,7 @@
 # ---------------------------------------------------------------- Blender: 形を作る
 - id: merge-vertices
   question: 頂点をくっつけたい
+  reading: ちょうてんをくっつけたい
   answer: マージ
   answer_en: Merge
   menu: 編集モード > メッシュ > マージ
@@ -26,6 +27,7 @@
 
 - id: remove-doubles
   question: 重なった頂点をまとめて消したい
+  reading: かさなったちょうてんをまとめてけしたい
   answer: 距離でマージ
   answer_en: Merge by Distance
   menu: 編集モード > メッシュ > マージ > 距離で
@@ -38,6 +40,7 @@
 
 - id: join-objects
   question: 2 つのオブジェクトを 1 つにしたい
+  reading: ふたつのおぶじぇくとをひとつにしたい
   answer: 統合
   answer_en: Join
   menu: オブジェクトモード > オブジェクト > 統合
@@ -50,6 +53,7 @@
 
 - id: separate-part
   question: 一部を別のオブジェクトにしたい
+  reading: いちぶをべつのおぶじぇくとにしたい
   answer: 分離
   answer_en: Separate
   menu: 編集モード > メッシュ > 分離
@@ -62,6 +66,7 @@
 
 - id: fill-hole
   question: 穴をふさぎたい
+  reading: あなをふさぎたい
   answer: 面を作成（フィル）
   answer_en: Fill
   menu: 編集モード > 辺 / 面 > 面を作成
@@ -74,6 +79,7 @@
 
 - id: round-corner
   question: 角を丸めたい
+  reading: かどをまるめたい
   answer: ベベル
   answer_en: Bevel
   menu: 編集モード > 辺 > 辺をベベル
@@ -86,6 +92,7 @@
 
 - id: add-edge-loop
   question: 辺を一周ぶん増やしたい
+  reading: へんをいっしゅうぶんふやしたい
   answer: ループカット
   answer_en: Loop Cut and Slide
   menu: 編集モード > 辺 > ループカットとスライド
@@ -98,6 +105,7 @@
 
 - id: extend-face
   question: 面を伸ばしたい
+  reading: めんをのばしたい
   answer: 押し出し
   answer_en: Extrude
   menu: 編集モード > メッシュ > 押し出し
@@ -110,6 +118,7 @@
 
 - id: inner-face
   question: 面の内側に、ひと回り小さい面を作りたい
+  reading: めんのうちがわに、ひとまわりちいさいめんをつくりたい
   answer: 面を差し込む
   answer_en: Inset Faces
   menu: 編集モード > 面 > 面を差し込む
@@ -122,6 +131,7 @@
 
 - id: make-symmetric
   question: 左右対称に作りたい
+  reading: さゆうたいしょうにつくりたい
   answer: ミラー モディファイアー
   answer_en: Mirror Modifier
   menu: プロパティ > モディファイアー > 追加 > 生成 > ミラー
@@ -133,6 +143,7 @@
 
 - id: smooth-look
   question: 角ばった見た目をなめらかにしたい
+  reading: かくばったみためをなめらかにしたい
   answer: スムーズシェード / 自動スムーズシェード
   answer_en: Shade Smooth / Shade Auto Smooth
   menu: オブジェクトモード > オブジェクト > スムーズシェード
@@ -144,6 +155,7 @@
 
 - id: fix-normals
   question: 面の向き（表裏）をそろえたい
+  reading: めんのむき（おもてうら）をそろえたい
   answer: 面の向きを外側に揃える
   answer_en: Recalculate Outside
   menu: 編集モード > メッシュ > ノーマル > 面の向きを外側に揃える
@@ -156,6 +168,7 @@
 
 - id: see-through
   question: 裏側の頂点も選びたい
+  reading: うらがわのちょうてんもえらびたい
   answer: 透過表示
   answer_en: Toggle X-Ray
   menu: 3D ビューのヘッダー右上のボタン
@@ -168,6 +181,7 @@
 
 - id: hide-parts
   question: 作業の邪魔なものを一時的に隠したい
+  reading: さぎょうのじゃまなものをいちじてきにかくしたい
   answer: 隠す / 選択以外を隠す
   answer_en: Hide / Hide Unselected
   menu: オブジェクト（メッシュ）> 表示 / 隠す
@@ -180,6 +194,7 @@
 
 - id: count-polygons
   question: 頂点数・ポリゴン数を見たい
+  reading: ちょうてんすう・ぽりごんすうをみたい
   answer: 統計
   answer_en: Statistics
   menu: 3D ビューのヘッダー > オーバーレイ > 統計
@@ -192,6 +207,7 @@
 # ---------------------------------------------------------------- Blender: 位置・大きさ
 - id: apply-scale
   question: 今の大きさを「1 倍」として確定したい
+  reading: いまのおおきさを「いちばい」としてかくていしたい
   answer: トランスフォームの適用
   answer_en: Apply Transform
   menu: オブジェクトモード > オブジェクト > 適用 > スケール（全トランスフォーム）
@@ -204,6 +220,7 @@
 
 - id: move-origin
   question: 原点（オブジェクトの中心）を移したい
+  reading: げんてん（おぶじぇくとのちゅうしん）をうつしたい
   answer: 原点を設定
   answer_en: Set Origin
   menu: オブジェクトモード > オブジェクト > 原点を設定
@@ -215,6 +232,7 @@
 
 - id: cursor-to-center
   question: 3D カーソルを中央に戻したい
+  reading: すりーでぃーかーそるをちゅうおうにもどしたい
   answer: カーソル → ワールド原点
   answer_en: Cursor to World Origin
   menu: スナップ（Shift+S）> カーソル → ワールド原点
@@ -227,6 +245,7 @@
 
 - id: rotate-around-point
   question: 決まった点を中心に回したい
+  reading: きまったてんをちゅうしんにまわしたい
   answer: ピボットポイント
   answer_en: Transform Pivot Point
   menu: 3D ビューのヘッダー > ピボットポイント
@@ -239,6 +258,7 @@
 # ---------------------------------------------------------------- Blender: 服・リギング
 - id: fit-to-body
   question: 服を体の表面に沿わせたい
+  reading: ふくをからだのひょうめんにそわせたい
   answer: シュリンクラップ モディファイアー
   answer_en: Shrinkwrap Modifier
   menu: プロパティ > モディファイアー > 追加 > 変形 > シュリンクラップ
@@ -268,6 +288,7 @@
 
 - id: add-thickness
   question: 服に厚みを付けたい
+  reading: ふくにあつみをつけたい
   answer: ソリッド化 モディファイアー
   answer_en: Solidify Modifier
   menu: プロパティ > モディファイアー > 追加 > 生成 > ソリッド化
@@ -279,6 +300,7 @@
 
 - id: copy-weights
   question: 体のウェイトを服にコピーしたい
+  reading: からだのうぇいとをふくにこぴーしたい
   answer: データ転送 モディファイアー（頂点グループ）
   answer_en: Data Transfer Modifier (Vertex Groups)
   menu: プロパティ > モディファイアー > 追加 > 編集 > データ転送
@@ -322,6 +344,7 @@
 
 - id: bind-to-armature
   question: メッシュをボーンで動くようにしたい
+  reading: めっしゅをぼーんでうごくようにしたい
   answer: 親子付け（自動のウェイトで）
   answer_en: Parent > With Automatic Weights
   menu: オブジェクトモード > オブジェクト > ペアレント > 自動のウェイトで
@@ -334,6 +357,7 @@
 
 - id: pose-test
   question: ボーンを動かして変形を確かめたい
+  reading: ぼーんをうごかしてへんけいをたしかめたい
   answer: ポーズモード
   answer_en: Pose Mode
   menu: アーマチュアを選んでモード切り替え > ポーズモード
@@ -347,6 +371,7 @@
 # ---------------------------------------------------------------- Unity
 - id: frame-object
   question: Unity で選んだものを画面の真ん中に大きく表示したい
+  reading: ゆにてぃーでえらんだものをがめんのまんなかにおおきくひょうじしたい
   answer: Frame Selected
   answer_en: Frame Selected
   menu: Edit > Frame Selected
@@ -358,6 +383,7 @@
 
 - id: dress-outfit
   question: 衣装をアバターに着せたい
+  reading: いしょうをあばたーにきせたい
   answer: Setup Outfit（Modular Avatar）
   answer_en: Modular Avatar > Setup Outfit
   menu: 衣装をアバターの子にする → 衣装を右クリック > Modular Avatar > Setup Outfit
@@ -383,6 +409,7 @@
 
 - id: hide-original
   question: 元の服（アバターの初期衣装）を消したい
+  reading: もとのふく（あばたーのしょきいしょう）をけしたい
   answer: GameObject を無効にする
   answer_en: Deactivate GameObject
   menu: Hierarchy で服のメッシュを選び、Inspector 左上のチェックを外す
@@ -394,6 +421,7 @@
 
 - id: follow-body-shape
   question: 体型の変更（シェイプキー）に服を合わせたい
+  reading: たいけいのへんこう（しぇいぷきー）にふくをあわせたい
   answer: MA Blendshape Sync
   answer_en: MA Blendshape Sync
   menu: 服のメッシュの Inspector > Add Component > Modular Avatar > MA Blendshape Sync
@@ -405,6 +433,7 @@
 
 - id: change-material
   question: Unity でマテリアルを差し替えたい
+  reading: ゆにてぃーでまてりあるをさしかえたい
   answer: マテリアルをスロットにドラッグ
   answer_en: Materials (Element)
   menu: メッシュの Inspector > Skinned Mesh Renderer > Materials
@@ -416,6 +445,7 @@
 
 - id: add-jiggle
   question: 髪やスカートを揺らしたい
+  reading: かみやすかーとをゆらしたい
   answer: VRC Phys Bone
   answer_en: VRC Phys Bone
   menu: 揺らすボーンの根元の Inspector > Add Component > VRC Phys Bone
@@ -428,6 +458,7 @@
 # ---------------------------------------------------------------- VRChat
 - id: test-upload
   question: アップロードする前に、VRChat の中で試したい
+  reading: あっぷろーどするまえに、ぶいあーるちゃっとのなかでためしたい
   answer: Build & Test
   answer_en: Build & Test
   menu: VRChat SDK > Show Control Panel > Builder > Build & Test
@@ -439,6 +470,7 @@
 
 - id: upload-avatar
   question: アバターを VRChat にアップロードしたい
+  reading: あばたーをぶいあーるちゃっとにあっぷろーどしたい
   answer: Build & Publish
   answer_en: Build & Publish
   menu: VRChat SDK > Show Control Panel > Builder > Build & Publish
@@ -450,6 +482,7 @@
 
 - id: check-performance
   question: アバターの重さ（ランク）を確かめたい
+  reading: あばたーのおもさ（らんく）をたしかめたい
   answer: パフォーマンスランク
   answer_en: Avatar Performance Rank
   menu: VRChat SDK > Show Control Panel > Builder（アバターを選んだ画面）
@@ -461,6 +494,7 @@
 
 - id: set-view-position
   question: VRChat での目の高さを直したい
+  reading: ぶいあーるちゃっとでのめのたかさをなおしたい
   answer: View Position
   answer_en: View Position
   menu: アバターの Inspector > VRC Avatar Descriptor > View > Edit
@@ -471,6 +505,7 @@
 
 - id: upload-as-new
   question: 同じアバターを、別のアバターとしてアップロードしたい
+  reading: おなじあばたーを、べつのあばたーとしてあっぷろーどしたい
   answer: Blueprint ID を外す（Detach）
   answer_en: Pipeline Manager > Detach
   menu: アバターの Inspector > Pipeline Manager > Detach
@@ -483,6 +518,7 @@
 
 - id: find-texture
   question: 使っているテクスチャの画像ファイルを探したい
+  reading: つかっているてくすちゃのがぞうふぁいるをさがしたい
   answer: Materials の要素をクリック → テクスチャを Show in Explorer
   menu: Inspector > Skinned Mesh Renderer > Materials > Element 0
   note: Hierarchy でメッシュを選び、Inspector の Materials の要素をクリックすると Project 上でマテリアルが強調表示されます。マテリアルのメインテクスチャ欄をクリックすると画像ファイルの場所がわかります。
@@ -500,6 +536,7 @@
 
 - id: reduce-bones
   question: 揺らさない髪のボーンを減らしたい
+  reading: ゆらさないかみのぼーんをへらしたい
   answer: 親ボーンの頂点グループにウェイト 1.0 で割り当て → 子ボーンを削除
   menu: 編集モード > オブジェクトデータプロパティ > 頂点グループ > 割り当て
   menu_en: Object Data Properties > Vertex Groups > Assign
@@ -521,6 +558,7 @@
 
 - id: decimate
   question: ポリゴン数を減らしたい
+  reading: ぽりごんすうをへらしたい
   answer: デシメート モディファイアー
   answer_en: Decimate
   menu: プロパティ > モディファイアー > 追加 > 生成 > デシメート
@@ -539,6 +577,7 @@
 
 - id: toggle-objects
   question: 衣装や小物をメニューで ON / OFF したい
+  reading: いしょうやこものをめにゅーでおん・おふしたい
   answer: Create Toggle（Modular Avatar の MA Object Toggle）
   answer_en: Modular Avatar > Create Toggle
   menu: Hierarchy でアバターを右クリック > Modular Avatar > Create Toggle
@@ -568,6 +607,7 @@
 
 - id: apply-pose-as-rest
   question: ポーズモードで合わせた形を、そのまま元の形にしたい
+  reading: ぽーずもーどであわせたかたちを、そのままもとのかたちにしたい
   answer: レストポーズとして適用
   answer_en: Apply Pose as Rest Pose
   menu: ポーズモード > ポーズ > 適用 > レストポーズとして適用
@@ -592,6 +632,7 @@
 
 - id: normalize-weights
   question: ウェイトの合計を 1 にそろえたい・一部のウェイトを消したい
+  reading: うぇいとのごうけいをいちにそろえたい・いちぶのうぇいとをけしたい
   answer: すべてを正規化
   answer_en: Normalize All
   menu: ウェイトペイントモード > ウェイト > すべてを正規化
@@ -608,6 +649,7 @@
 
 - id: hair-gloss
   question: 髪にツヤ（天使の輪）を出したい
+  reading: かみにつや（てんしのわ）をだしたい
   answer: MatCap ＋ ノーマルマップ（lilToon）
   note: MatCap に天使の輪のような白黒の模様を入れると見る角度で変化するツヤが出ます。それだけだと金属っぽくなるので、髪の流れに沿ったヘアライン画像からノーマルマップを作って割り当てると、さらさらした質感になります。
   body: |-

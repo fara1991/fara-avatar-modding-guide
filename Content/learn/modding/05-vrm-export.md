@@ -1,5 +1,6 @@
 ---
 title: VRM に書き出す
+reading: ぶいあーるえむにかきだす
 description: 着せ替えたアバターを、配信や VRM 対応のゲームで使う VRM にする流れです。正規化、表情（BlendShape）、揺れもの（SpringBone）、一人称の設定、MToon への置き換え、容量の減らし方。
 difficulty: 上級
 updated: 2026-10-11
