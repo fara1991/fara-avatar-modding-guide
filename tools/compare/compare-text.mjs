@@ -7,7 +7,7 @@
 // 比べるもの:
 //   ・記事(50 件): .article-body の文字(空白・改行を除く)と、構造(見出しの id・ol/ul・table・li・kbd などの並び)と、本文の中の属性(href・src・alt・title・target・rel)。href・src は <base href="/"> に従って絶対 URL にしてから比べる
 //   ・そのほかのページ: 本文(article.content / article.fsk-content)の文字と、同じ属性。既知の差(known-differences.json)だけを除いて比べる
-// 既知の差は、ページのパスごとに、SSR 側・移行版側の文字の断片(ssr / new)と属性(ssrAttributes / newAttributes)、理由(reason)を書く。
+// 既知の差は、ページのパスごとに、SSR 側・移行版側の文字の断片(ssr / new)と属性(ssrAttributes / newAttributes)・構造(ssrStructure / newStructure: structureOf のトークン)、理由(reason)を書く。
 // 本文が JavaScript で描かれていて、静的 HTML と作りが違うページ(練習・問い合わせ)は、skip: true(理由つき)で、その移行のフェーズまで比べない。
 // 断片を取り除いたら一致することを確かめ、断片が見つからなければ(古くなった記述)失敗にする。
 // 既知の差に書いていない差、記事が 50 件に満たない、移行版にページが無い、のどれかがあれば、終了コード 1。
@@ -145,6 +145,12 @@ for (const file of walk(ssrDir)) {
         if (ta !== tb) { failures++; console.log(`DIFF page text ${rel} (SSR ${ta.length} / 移行版 ${tb.length}) ${firstDiff(ta, tb)}`); }
         const aa = attributesOf(sa, ssrFull, pagePath), ab = attributesOf(sb, newFull, pagePath);
         const ka = structureOf(sa), kb = structureOf(sb);
+        for (const [list, side, drop] of [[ka, "SSR", entry?.ssrStructure], [kb, "移行版", entry?.newStructure]]) {
+            for (const d of drop ?? []) {
+                const at = list.indexOf(d);
+                if (at < 0) problems.push(`既知の差が見つからない(古くなった記述): ${pagePath} ${side} 構造「${d}」`); else list.splice(at, 1);
+            }
+        }
         if (ka.join(" ") !== kb.join(" ")) {
             failures++;
             const i = ka.findIndex((x, k) => x !== kb[k]);
