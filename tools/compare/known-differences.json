@@ -1,0 +1,39 @@
+{
+    "/": {
+        "reason": "目次の進捗の「次に読む」リンク。SSR 版は、空の非表示のリンクを JavaScript(progress.js)が埋める。移行版の静的 HTML は、何も完了していないときの最初の記事を最初から入れておく(起動の前後で並びが変わらない)",
+        "new": ["インストールと日本語化"],
+        "ssrAttributes": ["a href=/learn"],
+        "newAttributes": ["a href=/learn/getting-started/install"]
+    },
+    "/learn": {
+        "reason": "ホームと同じ(目次の進捗の「次に読む」リンク)",
+        "new": ["インストールと日本語化"],
+        "ssrAttributes": ["a href=/learn"],
+        "newAttributes": ["a href=/learn/getting-started/install"]
+    },
+    "/privacy": {
+        "reason": "Bootstrap と Bootstrap Icons の CDN をやめた(Phase 1)。jsDelivr は、練習の 3D 表示の部品(three.js)だけに使う",
+        "ssr": ["jsDelivr（画面の部品のCSS・アイコン。サイトを開くと、配信元にアクセスの情報が送られます）"],
+        "new": ["jsDelivr（練習の3D表示の部品。練習のページを開くと、配信元にアクセスの情報が送られます）"]
+    },
+    "/search": {
+        "reason": "SSR 版の本文は、検索語がないときの案内を JavaScript(search.js)が入れる。移行版の静的 HTML は、最初から入れておく(起動の前後で並びが変わらない)",
+        "new": ["キーワードを入力してください。どのページでもCtrl+Kか/で上の検索欄に移動できます。"]
+    },
+    "/report": {
+        "skip": true,
+        "reason": "報告フォームは JavaScript(Turnstile)で描く。SSR 版は Razor のフォーム、移行版の静的 HTML は説明文だけ(フォームは kit の ReportFormView が WebAssembly で描く)"
+    },
+    "/practice": {
+        "skip": true,
+        "reason": "フェーズ 3 で WebAssembly 化するまで。SSR 版は PC 専用の案内とお題を含む。移行版の静的 HTML は、説明とキーの一覧(SEO 用)だけ"
+    },
+    "/practice/room": {
+        "skip": true,
+        "reason": "フェーズ 3 で WebAssembly 化するまで(/practice と同じ)"
+    },
+    "/practice/unity": {
+        "skip": true,
+        "reason": "フェーズ 3 で WebAssembly 化するまで(/practice と同じ)"
+    }
+}
