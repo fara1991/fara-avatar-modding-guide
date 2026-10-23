@@ -70,13 +70,15 @@ public class PageCatalogTests
     }
 
     [Fact]
-    public void Pages_do_not_use_bootstrap_classes_or_icons()
+    public void Pages_use_material_svg_icons_and_never_the_bootstrap_icons_font()
     {
         foreach (var page in Pages)
         {
             var html = PageCatalog.Wrap(page.Main, Settings);
-            Assert.DoesNotMatch(@"class=""[^""]*(?<![\w-])(?:bi|bi-[a-z0-9-]+|btn-primary|card-body|d-flex|row|col-[a-z0-9-]+|bg-[a-z]+)(?![\w-])", html);
+            Assert.DoesNotContain("class=\"bi ", html);
+            Assert.DoesNotContain("bi-", Regex.Replace(html, "<svg.*?</svg>", "", RegexOptions.Singleline), StringComparison.Ordinal);   // アイコンの名前の取りこぼし
         }
+        Assert.Contains("<svg class=\"av-icon", Pages.Single(p => p.Path == "/").Main);
     }
 
     [Fact]
@@ -102,7 +104,7 @@ public class PageCatalogTests
         var home = Pages.Single(p => p.Path == "/").Main;
         foreach (var section in Site.Sections) Assert.Contains($"id=\"section-{section.Id}\"", home);
         foreach (var entry in Site.Changelog.Take(PageBodies.RecentChangelogCount)) Assert.Contains(System.Net.WebUtility.HtmlEncode(entry.Title), home);
-        Assert.Equal(8, Regex.Matches(home, "class=\"av-card article-card\"").Count);
+        Assert.Equal(8, Regex.Matches(home, "class=\"card h-100 text-decoration-none article-card\"").Count);
     }
 
     [Theory]

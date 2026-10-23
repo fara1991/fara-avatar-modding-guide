@@ -164,12 +164,12 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
     }
 
     [NodeFact]
-    public void Static_pages_have_no_script_tags_of_their_own_and_no_bootstrap_markup()
+    public void Static_pages_have_no_inline_scripts_and_no_bootstrap_cdn()
     {
         foreach (var file in Directory.EnumerateFiles(fx.Production, "*.html", SearchOption.AllDirectories))
         {
             var html = File.ReadAllText(file);
-            Assert.DoesNotContain("bootstrap", html, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("bootstrap", html, StringComparison.OrdinalIgnoreCase);   // CDN の参照も class 名も無い（CSS は自前の base.css）
             Assert.DoesNotContain("class=\"bi ", html);
             // インラインの script は CSP で止まるので置かない（JSON-LD など type が実行されないものは対象外）
             foreach (Match m in Regex.Matches(html, "<script(?<attrs>[^>]*)>(?<body>.*?)</script>", RegexOptions.Singleline))
