@@ -1,9 +1,9 @@
 @page "/report"
 @inject SiteSettings Settings
 @* 問い合わせ。画面・送信・ボット判定（Turnstile）は、kit の ReportFormView。このサイト固有の文言だけを渡す。
-   送信先は SiteOptions.ReportApiPath（既定 api/report。worker/report.js が受ける）。noindex も ReportFormView が出す *@
+   送信先は SiteOptions.ReportApiPath（既定 api/report。worker/report.js が受ける）。noindex は静的 HTML の head にあり(Build)、移動のあとの head は js/head-sync.js が合わせる(ReportFormView の HeadContent も出すと、robots の meta が 2 つになる。NoIndex="false") *@
 
-<ReportFormView From="@From"
+<ReportFormView From="@From" NoIndex="false"
                 Lead="記事の間違い・不具合・要望・ご意見を、作者に直接送れます。いただいた内容は、作者に通知されます（公開はされません）。"
                 UnavailableNote="お急ぎの場合は、画面下のフッターにある Twitter のアイコンからお願いします。"
                 MessagePlaceholder="例: 〇〇の記事の、△△の手順が実際の画面と違います（どの記事か・どこかを書いてもらえると助かります）"

@@ -6,6 +6,7 @@
     "locale": "ja_JP",
     "bodyRootClass": "entry-static",
     "developRobots": "allow",
+    "robotsDisallow": ["/api/", "/practice/room?room="],
     "csp": {
         "scriptSrc": ["https://challenges.cloudflare.com"],
         "styleSrc": ["https://fonts.googleapis.com"],

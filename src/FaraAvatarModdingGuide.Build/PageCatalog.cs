@@ -3,8 +3,8 @@ using System.Text;
 
 namespace FaraAvatarModdingGuide.Build;
 
-/// <summary>1 ページ分の計画。Main は main の中身、Wasm は WebAssembly が起動して引き継ぐページか。</summary>
-public sealed record PagePlan(string Path, string Title, string Description, string Main, bool Wasm, bool NoIndex = false);
+/// <summary>1 ページ分の計画。Main は main の中身、Wasm は WebAssembly が起動して引き継ぐページか、OgType は og:type（記事は article、それ以外は website）。</summary>
+public sealed record PagePlan(string Path, string Title, string Description, string Main, bool Wasm, bool NoIndex = false, string OgType = PageCatalog.OgWebsite);
 
 /// <summary>
 /// 公開する全ページの一覧（固定ページ 16 + カテゴリ 10 + 記事 50 = 76 本。計画書 1.1）。
@@ -20,11 +20,18 @@ public static class PageCatalog
         "/practice", "/practice/unity", "/practice/room",
     ];
 
+    /// <summary>og:type。記事だけ article、そのほか（ホーム・目次・一覧・練習など）は website。</summary>
+    public const string OgWebsite = "website";
+    public const string OgArticle = "article";
+
     /// <summary>
-    /// フェーズ 4 までは、検索エンジンに載せないページ（フェーズ 3 では維持。フェーズ 4 で見直す）。/search は検索の画面（JavaScript が無いと中身が出ない）、練習の 3 ページは 3D の本体が JavaScript で動くので、
-    /// 静的 HTML だけでは中身が薄い。noindex にすると sitemap.xml からも外れる（kit は noindex のページを入れない）。
+    /// 検索エンジンに載せないページ（noindex。kit は noindex のページを sitemap.xml に入れない）。
+    /// /report は問い合わせフォーム（中身が無い）、/search は検索結果の画面（検索語ごとに中身が変わり、静的 HTML は枠だけで薄い）。
+    /// 練習の 3 ページ（/practice・/practice/unity・/practice/room）は、フェーズ 4 で noindex をやめた（計画書 13.1）: 現行の SSR 版は
+    /// noindex を付けておらず（Report 以外に noindex は無い）、noindex にすると、切り替えのときに検索結果から消える後退になる。
+    /// 静的 HTML にも、操作の説明（キーの対応表・手順・共有の仕組みと制限）が 650〜1,200 文字あり、JavaScript が無くても読める。
     /// </summary>
-    public static readonly IReadOnlyList<string> ProvisionalNoIndex = ["/search", "/practice", "/practice/room", "/practice/unity"];
+    public static readonly IReadOnlyList<string> NoIndexPaths = ["/report", "/search"];
 
     /// <summary>このパスのページは、WebAssembly が引き継ぐか（固定のページ、または content.json にある記事・カテゴリ）。</summary>
     public static bool IsWasm(string path, SiteContent content) => WasmPaths.Contains(path) || content.IsContentPath(path);
@@ -35,8 +42,8 @@ public static class PageCatalog
         var site = settings.Title;
         var pages = new List<PagePlan>();
 
-        PagePlan Page(string path, string title, string description, string main, bool noIndex = false) =>
-            new(path, $"{title} - {site}", Html.Describe(description), main, IsWasm(path, content), noIndex || ProvisionalNoIndex.Contains(path));
+        PagePlan Page(string path, string title, string description, string main, string ogType = OgWebsite) =>
+            new(path, $"{title} - {site}", Html.Describe(description), main, IsWasm(path, content), NoIndexPaths.Contains(path), ogType);
 
         pages.Add(new("/", $"ホーム - {site}",
             Html.Describe("アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。"),
@@ -53,7 +60,7 @@ public static class PageCatalog
         pages.Add(Page("/qa", "改変 Q&A", "非対応衣装の着せ替え、ウェイト、首すげ替え、テクスチャの色変え、表情・アニメーター、PhysBone、VRM など、アバター改変でよく出る質問と答え・手順です。", bodies.Qa()));
         pages.Add(Page("/links", "リンク集", "アバター改変で使う Unity のツール、VRChat の資料、参考になる記事・動画、話題になった BOOTH のアバター・衣装のリンク集です。", bodies.Links()));
         pages.Add(Page("/changelog", "更新履歴", $"{site} の更新履歴です。記事の追加・見た目や機能の変更を新しい順に載せています。", bodies.Changelog()));
-        pages.Add(Page("/report", "問い合わせ", $"{site} の不具合・要望・ご意見を、作者に直接送るフォームです。", bodies.Report(), noIndex: true));
+        pages.Add(Page("/report", "問い合わせ", $"{site} の不具合・要望・ご意見を、作者に直接送るフォームです。", bodies.Report()));
         pages.Add(Page("/privacy", "プライバシーポリシー", $"{site} で、どんな情報を何のために扱うかのまとめです。", bodies.Privacy()));
         pages.Add(Page("/search", "検索", "記事・用語集・何て名前？・TIPS・改変 Q&A・ショートカット・アドオン・リンク集をまとめて検索します。", bodies.Search()));
 
@@ -65,7 +72,7 @@ public static class PageCatalog
         {
             var category = content.Categories.First(c => c.Id == article.Category);
             var description = string.IsNullOrWhiteSpace(article.Description) ? category.Description : article.Description;
-            pages.Add(Page(article.Url, article.Title, description, bodies.Article(article)));
+            pages.Add(Page(article.Url, article.Title, description, bodies.Article(article), OgArticle));
         }
         return pages;
     }
