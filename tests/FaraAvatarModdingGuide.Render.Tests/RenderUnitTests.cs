@@ -65,6 +65,7 @@ public class RenderUnitTests(ITestOutputHelper output)
         Assert.NotEmpty(first.Uploads);
         Assert.Empty(renderer.Build().Uploads);        // 何も変わらなければ送らない
         core.SetSelection([core.Objects[0]]);
+        Assert.Contains(renderer.Build().Uploads, b => b.Layout == BufferLayout.Position);   // 選択すると輪郭を描くので、そのとき初めて輪郭を作って送る
         Key(core, "KeyG");
         core.PointerMove(100, 100, new Modifiers());
         core.PointerMove(300, 200, new Modifiers());

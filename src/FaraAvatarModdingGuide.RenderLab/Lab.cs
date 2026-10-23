@@ -22,6 +22,8 @@ internal static class Lab
     private static double[]? angles;
     private static long frameTicks;
     private static int frames;
+    private static long pointerTicks;
+    private static int pointerEvents;
 
     public static void Run()
     {
@@ -42,6 +44,8 @@ internal static class Lab
         rect = new ViewRect(0, 0, 0, 0);
         frameTicks = 0;
         frames = 0;
+        pointerTicks = 0;
+        pointerEvents = 0;
         return Gl.Start("viewport", OnFrame, OnPointerDown, OnPointerMove, OnPointerUp, OnWheel, OnKey, OnKeyUp, OnFocus);
     }
 
@@ -80,7 +84,14 @@ internal static class Lab
     /// <summary>button の下位 4 ビットがボタン、その上が修飾キー(1 Shift・2 Ctrl・4 Alt・8 Meta)。</summary>
     private static bool OnPointerDown(int buttonAndMods, double x, double y) => core?.PointerDown(buttonAndMods & 15, x, y, Mods(buttonAndMods >> 4)) ?? false;
 
-    private static void OnPointerMove(double x, double y, int mods) => core?.PointerMove(x, y, Mods(mods));
+    private static void OnPointerMove(double x, double y, int mods)
+    {
+        // ドラッグ中の形の作り直し(編集モードの点・線・面の描画データ)は、この中(OverlayRebuilt)で走るので、ここの時間も数える
+        var t0 = Stopwatch.GetTimestamp();
+        core?.PointerMove(x, y, Mods(mods));
+        pointerTicks += Stopwatch.GetTimestamp() - t0;
+        pointerEvents++;
+    }
 
     private static void OnPointerUp(double x, double y) => core?.PointerUp(x, y);
 
@@ -103,7 +114,7 @@ internal static class Lab
             case "stop": StopViewport(); return 0;
             case "start": return StartViewport() ? 1 : 0;
             case "frames":
-                Gl.Report("frames", $"{{\"frames\":{frames},\"msPerFrame\":{Format(frames == 0 ? 0 : frameTicks * 1000.0 / Stopwatch.Frequency / frames)}}}");
+                Gl.Report("frames", $"{{\"pointerMs\":{Format(pointerTicks * 1000.0 / Stopwatch.Frequency)},\"pointerEvents\":{pointerEvents},\"frames\":{frames},\"msPerFrame\":{Format(frames == 0 ? 0 : frameTicks * 1000.0 / Stopwatch.Frequency / frames)}}}");
                 return frames;
             case "state": Gl.Report("state", StateJson()); return 0;
             case var t when t.StartsWith("tool:", StringComparison.Ordinal): core?.ClickTool(t[5..]); return 0;
