@@ -36,7 +36,7 @@ public class HelperTests
     public void ParseNumeric_reads_what_the_numeric_input_can_build(string text, double expected) => Assert.Equal(expected, Js.ParseNumeric(text));
 
     [Theory]
-    [InlineData("-.")]   // 現行の JavaScript は NaN になり、オブジェクトが消える。C# は数値入力なしとして扱う(意図した差。ParityTests の入力には含めない)
+    [InlineData("-.")]   // 数値入力なしとして扱う(現行の JavaScript も S1 で同じに直した。ParityTests の入力にも含む)
     [InlineData("")]
     public void ParseNumeric_returns_null_when_there_is_no_number(string text) => Assert.Null(Js.ParseNumeric(text));
 

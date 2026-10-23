@@ -1273,7 +1273,9 @@ export class Viewport {
     if (!op) return;
     const cam = this.camera;
     const snap = this.keys.ctrl, fine = this.keys.shift;
-    const numeric = op.numeric === "" || op.numeric === "-" || op.numeric === "." ? null : parseFloat(op.numeric);
+    // 入力が空・"-"・"."・"-." のように数値にならないあいだは、数値入力なし(マウスの動きを使う)。"-." が NaN になってオブジェクトが消えるのを防ぐ
+    const typed = parseFloat(op.numeric);
+    const numeric = Number.isNaN(typed) ? null : typed;
     const cur = new THREE.Vector2(this.mouse.x, this.mouse.y);
     const curPx = this.mousePx();
     const axisName = a => (a === "n" ? "法線" : a.toUpperCase());
