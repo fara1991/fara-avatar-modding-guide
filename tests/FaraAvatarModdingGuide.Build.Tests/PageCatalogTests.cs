@@ -50,15 +50,22 @@ public class PageCatalogTests
     }
 
     [Fact]
-    public void Noindex_pages_are_the_report_and_the_provisional_ones_and_every_page_is_wasm()
+    public void Noindex_pages_are_only_the_report_and_the_search_screen_and_every_page_is_wasm()
     {
-        // /report と、フェーズ 4 までの暫定(検索の画面・練習の 3 ページ。sitemap にも載せない)
-        Assert.Equal(new[] { "/report" }.Concat(PageCatalog.ProvisionalNoIndex).Order().ToArray(), Pages.Where(p => p.NoIndex).Select(p => p.Path).Order().ToArray());
+        // フェーズ 4 の決定: noindex は /report(問い合わせ)と /search(検索結果の画面)だけ。練習の 3 ページは index 可(現行の SSR 版も noindex ではない)
+        Assert.Equal(["/report", "/search"], Pages.Where(p => p.NoIndex).Select(p => p.Path).Order().ToArray());
+        Assert.Equal(["/report", "/search"], PageCatalog.NoIndexPaths.Order().ToArray());
+        Assert.All(new[] { "/practice", "/practice/room", "/practice/unity", "/privacy" }, path => Assert.False(Pages.Single(p => p.Path == path).NoIndex, path));
         Assert.Equal(PageCatalog.WasmPaths.Concat(Pages.Where(p => p.Path.StartsWith("/learn/", StringComparison.Ordinal)).Select(p => p.Path)).Order().ToArray(),
             Pages.Where(p => p.Wasm).Select(p => p.Path).Order().ToArray());
-        // フェーズ 3 で、練習の 3 ページも WebAssembly になった(noindex は、フェーズ 4 で見直すまで維持)
         Assert.DoesNotContain(Pages, p => !p.Wasm);
-        Assert.Equal(["/practice", "/practice/room", "/practice/unity", "/search"], PageCatalog.ProvisionalNoIndex.Order().ToArray());
+    }
+
+    [Fact]
+    public void Only_the_fifty_articles_are_og_type_article()
+    {
+        Assert.Equal(50, Pages.Count(p => p.OgType == PageCatalog.OgArticle));
+        Assert.All(Pages, p => Assert.Equal(Regex.IsMatch(p.Path, "^/learn/[^/]+/[^/]+$") ? "article" : "website", p.OgType));
     }
 
     [Fact]

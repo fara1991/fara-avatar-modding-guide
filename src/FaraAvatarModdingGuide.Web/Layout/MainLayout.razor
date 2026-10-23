@@ -81,6 +81,8 @@
             // 見出し付きの URL へ移動したときは、その見出しへ(Blazor は、本文の領域 .fsk-content の中の見出しへは動かさない)。そうでなければ、別のページへ移ったときだけ、一番上へ
             if (new Uri(e.Location).Fragment.Length > 1) await JS.InvokeVoidAsync("avatarPage.scrollToHash");
             else if (!samePage) await JS.InvokeVoidAsync("avatarPage.resetScroll");
+            // head の description・canonical・OGP・robots を、移った先のページに合わせる(題名は PageTitle が替える)。別のページへ移ったときだけ
+            if (!samePage) await JS.InvokeVoidAsync("avatarHead.sync", path.Length == 0 ? "/" : path);
         }
         catch (JSException) { /* スクロールを動かせなくても、表示は変わっている */ }
     }

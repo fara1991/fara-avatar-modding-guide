@@ -11,3 +11,4 @@
 - `hash-links.mjs` … 見出し付き URL(直接・アプリ内・同じページの目次)で見出しに止まる(PC・スマホ)
 - `shots.mjs` … SSR(`SSR=` 現行の develop をローカルで動かしたもの)との見た目の比較(PC 1280・スマホ 390・ダーク/ライトの 3 枚組と差の割合)。コンソールエラー・CSP 違反も出す
 - `practice.mjs` … 練習(Phase 3): `/practice`・`/practice/unity` の操作が SSR(`SSR=`)と同じ結果になる・記事内チュートリアル(画像で見る・別の記事へ移ると前の 3D が解放される)・スマホ(390)は案内だけで WebGL を使わない・共有ルームに二人が入って追加が届く(画面から)・ページ往復(`ROUNDS=` 回。既定 20)で WebGL の context・ResizeObserver・IntersectionObserver・setInterval・WebSocket・window/document のイベント・DOM・背景の 3D(`#site-scene` が 1 つ・描画のループ)が増えない。CSP 違反 0・コンソールのエラーと警告 0
+- `seo.mjs` … SEO の検査(Phase 4): 全 76 ページ + 404 の head(title・description・canonical・OGP・noindex が 1 つずつ)と本文・内部リンク全件のリンク切れ・旧 URL の 301・404・X-Robots-Tag・起動後と、アプリ内の移動のあとの head。`ORIGIN_EXPECT=` で canonical の出どころ(確認用は https://avatar-wasm-dev.fara-labs.com)、`EXPECT_NOINDEX_HEADER=0` で本番相当(X-Robots-Tag なし・sitemap.xml が 74 URL)を確かめる

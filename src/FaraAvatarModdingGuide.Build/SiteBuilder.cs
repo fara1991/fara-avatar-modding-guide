@@ -109,6 +109,8 @@ public static class SiteBuilder
         // --- 静的 HTML・robots・sitemap・_headers・_redirects（kit）------------------
         var pages = PageCatalog.Build(content, settings);
         var ogImage = File.Exists(Path.Combine(outDir, "images", "og-image.png")) ? "/images/og-image.png" : null;   // 承認された OGP 画像が置かれたら自動で付く
+        // アプリ内の移動のあとに、head（description・canonical・OGP・robots）を移った先のページに合わせるための表（js/head-sync.js が読む）
+        WritePageMeta(Path.Combine(outDir, "data", "pages.json"), pages);
         var kitPages = new JsonArray(pages.Select(p =>
         {
             var page = new JsonObject
@@ -119,6 +121,7 @@ public static class SiteBuilder
                 ["bodyHtml"] = PageCatalog.Wrap(p.Main, settings, p.Path),
             };
             if (p.NoIndex) page["noindex"] = true;
+            if (p.OgType != PageCatalog.OgWebsite) page["ogType"] = p.OgType;
             if (ogImage is not null) page["ogImage"] = ogImage;
             return (JsonNode)page;
         }).ToArray());
@@ -145,6 +148,20 @@ public static class SiteBuilder
         // --- WebAssembly を使わないページから、読み込み表示と Blazor のスクリプトを外す -------
         foreach (var page in pages) StripWasm(outDir, page);
         StripWasmFile(Path.Combine(outDir, "404.html"), wasm: true);
+    }
+
+    /// <summary>data/pages.json: パス → { title, description, ogType, noindex }。head に書く値と同じ（kit の head と同じ文字列。js/head-sync.js が使う）。</summary>
+    private static void WritePageMeta(string path, IReadOnlyList<PagePlan> pages)
+    {
+        var map = new JsonObject();
+        foreach (var p in pages)
+        {
+            var entry = new JsonObject { ["title"] = p.Title, ["description"] = p.Description, ["ogType"] = p.OgType };
+            if (p.NoIndex) entry["noindex"] = true;
+            map[p.Path] = entry;
+        }
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, map.ToJsonString(DataJson), new UTF8Encoding(false));
     }
 
     /// <summary>
