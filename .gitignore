@@ -23,3 +23,7 @@ publish/
 
 ## wrangler dev の作業フォルダ
 .wrangler/
+
+## SSR の比較用の書き出し(CI)
+dist-ssr/
+ssr-develop/

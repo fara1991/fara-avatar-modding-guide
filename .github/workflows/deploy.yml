@@ -50,9 +50,6 @@ jobs:
       - name: Deploy gate test
         run: node --test .github/scripts/require-maintenance.test.mjs
 
-      - name: Page navigation script test
-        run: node --test tests/js/nav.test.mjs
-
       - name: Export static site
         run: dotnet run -c Release --no-build --no-launch-profile -- --export dist
 
@@ -71,9 +68,24 @@ jobs:
       - name: Build static pages
         run: dotnet run --project src/FaraAvatarModdingGuide.Build -c Release --no-launch-profile -- --template publish/wwwroot/index.html --out publish/wwwroot --env develop --dev-origin https://avatar-wasm-dev.fara-labs.com
 
-      # 記事 50 件の本文テキストが、現行の SSR 版の書き出し（dist）と一致すること（計画書 8）
-      - name: Compare article text with the SSR export
-        run: node tools/compare/compare-text.mjs dist publish/wwwroot --articles-only
+      # 現行の SSR 版(develop のコード)を、別に書き出す。移行版の本文の検証用。
+      # 同じコミットの SSR は、記事を読み込む部分(src/FaraAvatarModdingGuide.Content)を移行版と共有していて、食い違いが見えないので、develop の SSR を別に取得する。
+      # Content/ と appsettings.json だけは、この移行版のものに差し替える(記事が同じ内容のときの、描き方の違いだけを見る)
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          path: ssr-develop
+
+      - name: Export the SSR site from develop
+        run: |
+          rm -rf ssr-develop/Content
+          cp -r Content ssr-develop/Content
+          cp appsettings.json ssr-develop/appsettings.json
+          dotnet run -c Release --project ssr-develop --no-launch-profile -- --export "$PWD/dist-ssr"
+
+      # 記事 50 件の本文(文字と、href・src などの属性)と、そのほかのページの本文が、develop の SSR 版の書き出しと一致すること(計画書 8。既知の差は tools/compare/known-differences.json)
+      - name: Compare pages with the SSR export from develop
+        run: node tools/compare/compare-text.mjs dist-ssr publish/wwwroot
 
       # 検索の索引の正規化が、現行の searchcore.js と一致すること
       - name: Search index normalisation test

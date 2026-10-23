@@ -63,11 +63,24 @@ jobs:
       - name: Build static pages (develop)
         run: dotnet run --project src/FaraAvatarModdingGuide.Build -c Release --no-launch-profile -- --template publish/wwwroot/index.html --out publish/wwwroot --env develop --dev-origin https://avatar-wasm-dev.fara-labs.com
 
-      # 記事 50 件の本文テキストが、現行の SSR 版の書き出しと一致していること（develop の取り込みなどで、本文が食い違ったまま公開しない）
-      - name: Compare article text with the SSR export
+      # 現行の SSR 版(develop のコード)を、別に書き出す。移行版の本文の検証用。
+      # 同じコミットの SSR は、記事を読み込む部分(src/FaraAvatarModdingGuide.Content)を移行版と共有していて、食い違いが見えないので、develop の SSR を別に取得する。
+      # Content/ と appsettings.json だけは、この移行版のものに差し替える(記事が同じ内容のときの、描き方の違いだけを見る)
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          path: ssr-develop
+
+      - name: Export the SSR site from develop
         run: |
-          dotnet run -c Release --no-build --no-launch-profile -- --export dist
-          node tools/compare/compare-text.mjs dist publish/wwwroot --articles-only
+          rm -rf ssr-develop/Content
+          cp -r Content ssr-develop/Content
+          cp appsettings.json ssr-develop/appsettings.json
+          dotnet run -c Release --project ssr-develop --no-launch-profile -- --export "$PWD/dist-ssr"
+
+      # 記事 50 件の本文(文字と属性)と、そのほかのページの本文が、develop の SSR 版の書き出しと一致していること(develop の取り込みなどで、本文が食い違ったまま公開しない)
+      - name: Compare pages with the SSR export from develop
+        run: node tools/compare/compare-text.mjs dist-ssr publish/wwwroot
 
       # MAINTENANCE は付けない（確認用なので、メンテナンス画面にもならない）。--env wasm-dev で、本番・develop とは別の Worker に出す
       - uses: cloudflare/wrangler-action@v3
