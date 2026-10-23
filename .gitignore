@@ -11,6 +11,7 @@ dist/
 
 ## dotnet publish の出力と、Build が環境ごとに書き足したコピー（deploy.yml / README のビルド手順）
 publish/
+publish-lab/
 site-production/
 site-develop/
 

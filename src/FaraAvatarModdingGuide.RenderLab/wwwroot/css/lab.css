@@ -1,0 +1,12 @@
+html, body { margin: 0; background: #222; color: #e6e6e6; }
+/* 幅は 960px まで(狭い画面では画面の幅)、高さは 16:9。参照のページ(tools/verify/gl-ref.html)も同じ大きさ */
+.lab-viewport {
+    position: relative;
+    width: min(960px, 100vw);
+    height: calc(min(960px, 100vw) * 9 / 16);
+    background: #3d3d3d;
+    overflow: hidden;
+    outline: none;
+    touch-action: none;
+}
+.lab-viewport canvas { display: block; width: 100%; height: 100%; }

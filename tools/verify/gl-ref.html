@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>three.js 版のビューポート(参照)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="importmap">{"imports":{"three":"/lib/three/three.module.js"}}</script>
+<link rel="stylesheet" href="/css/practice.css">
+<!-- レンダーラボ(/lab/)と同じ大きさ。HUD は画素の比較のじゃまなので隠す -->
+<style>
+html,body{margin:0;background:#222}
+#viewport{width:min(960px,100vw);height:calc(min(960px,100vw)*9/16);max-height:none;aspect-ratio:auto;border:0;border-radius:0}
+.practice-hud,.vp-tools,.practice-npanel,.vp-marker,.practice-status,.vp-remote{display:none!important}
+</style>
+</head>
+<body>
+<div id="viewport" class="practice-viewport"></div>
+<script type="module" src="/ref.js"></script>
+</body>
+</html>

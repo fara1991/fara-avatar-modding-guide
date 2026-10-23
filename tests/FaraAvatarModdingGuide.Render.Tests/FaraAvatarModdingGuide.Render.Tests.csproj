@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 練習の 3D の描画の中身(src/FaraAvatarModdingGuide.Render)のテスト。現行の viewport.js(three.js)のシーンとの突き合わせ(Node が要る)と、描画の命令の単体テスト -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FaraAvatarModdingGuide.Render\FaraAvatarModdingGuide.Render.csproj" />
+    <!-- 突き合わせの入力(ViewportDriver・JsReference)は Practice.Tests のものを使う -->
+    <ProjectReference Include="..\FaraAvatarModdingGuide.Practice.Tests\FaraAvatarModdingGuide.Practice.Tests.csproj" />
+  </ItemGroup>
+
+</Project>
