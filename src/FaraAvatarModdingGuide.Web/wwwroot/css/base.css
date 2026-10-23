@@ -1,7 +1,7 @@
 /* Bootstrap 5.3.3 から、このサイトで使っているクラスだけを取り出したもの（reboot・変数・グリッド・ユーティリティ・カード・ボタン・バッジ・表・パンくずなど）。
    Bootstrap 本体（CDN）と Bootstrap Icons は、MudBlazor への置き換えで外した（アイコンは Material の SVG。.av-icon は app.css）。
    ポケモンのサイトの css/base.css と同じ方式。以後は、このファイルを直接直す（Bootstrap のクラスを新しく使うときは、ここに足す）。
-   取り出し方: bootstrap.min.css を PurgeCSS で、Components/**・wwwroot/js/**・src/** の文字列に出てくるクラスだけに絞り、prettier で整形した。 */
+   取り出し方: bootstrap.min.css を PurgeCSS で、（当時の）Components/**・wwwroot/js/**・src/** の文字列に出てくるクラスだけに絞り、prettier で整形した。 */
 /*!
  * Bootstrap  v5.3.3 (https://getbootstrap.com/)
  * Copyright 2011-2024 The Bootstrap Authors

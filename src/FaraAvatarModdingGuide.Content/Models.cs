@@ -45,11 +45,11 @@ public sealed class Article
     public required string Html { get; init; }
     /// <summary>本文のプレーンテキスト（検索インデックス用）</summary>
     public required string PlainText { get; init; }
-    /// <summary>本文に埋め込んだ操作のチュートリアル（::: practice &lt;名前&gt;）の名前。wwwroot/js/scenarios.js のキー</summary>
+    /// <summary>本文に埋め込んだ操作のチュートリアル（::: practice &lt;名前&gt;）の名前。Web の wwwroot/js/scenarios.js のキー</summary>
     public IReadOnlyList<string> PracticeScenarios { get; init; } = [];
 
     public string Url => $"/learn/{Category}/{Slug}";
-    /// <summary>完了の記録（wwwroot/js/progress.js）に使うキー。例: basics/transform</summary>
+    /// <summary>完了の記録（Web の ProgressStore。localStorage）に使うキー。例: basics/transform</summary>
     public string Id => $"{Category}/{Slug}";
 }
 
@@ -90,7 +90,7 @@ public sealed class Addon
     public string Source { get; set; } = "manual";
 }
 
-/// <summary>appsettings.json の "Site" セクション</summary>
+/// <summary>appsettings.json の "Site" セクション（リポジトリ直下。Build が読んで data/site.json にする）</summary>
 public sealed class SiteOptions
 {
     /// <summary>サイト名。表示はすべてここから取る（appsettings.json の Site:Title。ほかに書かない）</summary>
@@ -108,7 +108,7 @@ public sealed class SiteOptions
     public List<SocialLink> Socials { get; set; } = new();
 }
 
-/// <summary>フッターの SNS アイコン 1 つ。Service は github / twitter / twitch / discord（Components/Shared/Icon.razor のアイコン名と同じ）。</summary>
+/// <summary>フッターの SNS アイコン 1 つ。Service は github / twitter / twitch / discord（フッターのアイコン名と同じ）。</summary>
 public sealed class SocialLink
 {
     public string Service { get; set; } = string.Empty;

@@ -69,7 +69,7 @@ public sealed record SocialDto(string Service, string Label, string Url);
 
 /// <summary>
 /// data/search.json の 1 件。検索の索引は、ビルド時に正規化した文字列（*Norm）を持つ（計画書 4.4）。
-/// ブラウザの WebAssembly では string.Normalize が使えないため。正規化の規則は wwwroot/js/searchcore.js の norm() と同じ。
+/// ブラウザの WebAssembly では string.Normalize が使えないため。正規化の規則は tests/js/fixtures/searchcore.reference.js の norm() と同じ。
 /// </summary>
 public sealed record SearchRecord(
     string Type, string Title, string? Subtitle, string Url, string Text, string? Reading,

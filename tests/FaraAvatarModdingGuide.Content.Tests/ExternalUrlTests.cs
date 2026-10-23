@@ -57,6 +57,30 @@ public class ExternalUrlTests
     }
 
     [Fact]
+    public void Shipped_settings_use_the_agreed_year_and_homepage_and_socials_match_the_portfolio_site()
+    {
+        // 旧 SSR 版のテスト(FooterAndReportTests)から移した。ポートフォリオの wwwroot/data/profile.json の url と同じ
+        using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "appsettings.json")));
+        var site = doc.RootElement.GetProperty("Site");
+        Assert.Equal(2026, site.GetProperty("PublishedYear").GetInt32());
+        Assert.Equal("https://fara-labs.com/", site.GetProperty("PortfolioUrl").GetString());
+        var socials = site.GetProperty("Socials").EnumerateArray().ToDictionary(s => s.GetProperty("Service").GetString()!, s => s.GetProperty("Url").GetString()!);
+        Assert.Equal("https://github.com/fara1991", socials["github"]);
+        Assert.Equal("https://twitter.com/game_fara", socials["twitter"]);
+        Assert.Equal("https://twitch.tv/game_fara", socials["twitch"]);
+        Assert.Equal("https://discord.com/invite/B38eCSYyk5", socials["discord"]);
+        Assert.Equal(4, socials.Count);
+    }
+
+    [Fact]
+    public void Appsettings_has_only_the_site_section_now_that_there_is_no_aspnet_host()
+    {
+        using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "appsettings.json")));
+        Assert.Equal(["Site"], doc.RootElement.EnumerateObject().Select(p => p.Name).ToArray());
+        Assert.False(File.Exists(Path.Combine(Root, "appsettings.Development.json")));
+    }
+
+    [Fact]
     public void Article_links_and_images_use_safe_schemes()
     {
         var checkedCount = 0;

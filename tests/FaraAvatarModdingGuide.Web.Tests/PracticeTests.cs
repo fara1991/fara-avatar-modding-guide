@@ -225,15 +225,14 @@ public class PracticeTests : WebTestContext
     }
 
     [Fact]
-    public void Unchanged_copies_of_the_ssr_scripts_are_identical_to_the_originals()
+    public void The_unmodified_3d_scripts_are_in_the_web_project()
     {
-        // 3D の本体は書き換えない(計画書 4.5)。SSR 版(root の wwwroot/js)が変わったら(develop の取り込み)、この写しも合わせる。Phase 5 で root を消すときに、このテストも外す
+        // 3D の本体(viewport・editmesh・unity・scenarios・bgscene)は、旧 SSR 版から書き換えずに持ってきたもの(計画書 4.5)。SSR 版を消したので、これが唯一の本体(元は Git の履歴)。
+        // 比べる相手はもう無いので、置いてあることだけを確かめる(中身は tools/verify/practice.mjs が、実際の操作で確かめる)
+        var dir = Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "js");
         foreach (var name in new[] { "viewport.js", "editmesh.js", "unity.js", "scenarios.js", "bgscene.js" })
-        {
-            var original = File.ReadAllText(Path.Combine(TestData.Root, "wwwroot", "js", name));
-            var copy = File.ReadAllText(Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "js", name));
-            Assert.True(original == copy, $"{name} が SSR 版と違います(写し直してください)");
-        }
+            Assert.True(File.Exists(Path.Combine(dir, name)), name);
+        Assert.False(Directory.Exists(Path.Combine(TestData.Root, "wwwroot", "js")), "ルートの wwwroot/js(旧 SSR 版)は消した");
     }
 
     [Fact]

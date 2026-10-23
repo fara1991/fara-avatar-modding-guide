@@ -7,7 +7,7 @@ using Microsoft.JSInterop;
 namespace FaraAvatarModdingGuide.Web.Pages.Tips;
 
 /// <summary>
-/// 用語集・何て名前？・TIPS・改変 Q&amp;A の絞り込み（文字とタグ）の土台。SSR 版の wwwroot/js/tipsfilter.js と同じ動き:
+/// 用語集・何て名前？・TIPS・改変 Q&amp;A の絞り込み（文字とタグ）の土台。旧 SSR 版の tipsfilter.js と同じ動き:
 ///   ・文字: 空白で区切った語が、すべて含まれる項目だけ（NFKC・小文字にそろえて、部分一致）。項目の表示される文字（折りたたみの中・別名を含む）が対象
 ///   ・タグ: ?tag=Unity のように URL でも指定できる（押すと URL を置き換える）。source:discord は「Discord より」
 ///   ・#id で飛んできたとき: その項目が隠れないように絞り込みを外し、「詳しく」を開いて、その項目へスクロールする

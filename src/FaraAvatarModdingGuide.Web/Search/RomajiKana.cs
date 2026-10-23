@@ -3,7 +3,7 @@ using System.Text;
 namespace FaraAvatarModdingGuide.Web.Search;
 
 /// <summary>
-/// ローマ字 → ひらがな（検索語用）と、長音の書き方の揺れの吸収。wwwroot/js/searchcore.js の romajiToHiragana・looseKana の移植。
+/// ローマ字 → ひらがな（検索語用）と、長音の書き方の揺れの吸収。tests/js/fixtures/searchcore.reference.js の romajiToHiragana・looseKana の移植。
 /// 同じ入力で同じ結果になることを、Web.Tests の検索の突き合わせ（SearchParityTests）が確かめる。
 /// </summary>
 public static class RomajiKana

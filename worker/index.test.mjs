@@ -24,7 +24,7 @@ function assets(body = "<!doctype html><html><body><div id=\"app\">静的ペー�
   return { calls, fetch: async (request) => { calls.push(new URL(request.url).pathname); return new Response(body, { headers: { "Content-Type": "text/html; charset=utf-8" } }); } };
 }
 
-const call = (path, env, init) => worker.fetch(new Request(`https://avatar-wasm-dev.example${path}`, init), env);
+const call = (path, env, init) => worker.fetch(new Request(`https://avatar-dev.example${path}`, init), env);
 
 test("/api/maintenance: 通常は off・空の文、キャッシュさせない", async () => {
   const res = await call("/api/maintenance", { ASSETS: assets() });
@@ -95,6 +95,6 @@ test("共同練習の部屋: 部屋 ID の形が違えば 400、WebSocket でな
   assert.equal((await call("/api/rooms/abcdef12/ws", env)).status, 426);
   const foreign = await call("/api/rooms/abcdef12/ws", env, { headers: { Upgrade: "websocket", Origin: "https://evil.example" } });
   assert.equal(foreign.status, 403);
-  const same = await call("/api/rooms/abcdef12/ws", env, { headers: { Upgrade: "websocket", Origin: "https://avatar-wasm-dev.example" } });
+  const same = await call("/api/rooms/abcdef12/ws", env, { headers: { Upgrade: "websocket", Origin: "https://avatar-dev.example" } });
   assert.equal(await same.text(), "room");
 });

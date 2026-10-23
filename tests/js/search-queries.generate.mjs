@@ -46,7 +46,7 @@ function sample() {
 
 /** ローマ字変換表の全キー(searchcore.js の add("...") から取り出す)を、3 回ずつ並べた語と、全部つなげた語。変換表が 1 つでも違えば、突き合わせで見つかる */
 function romajiKeys() {
-    const source = readFileSync(new URL("../../wwwroot/js/searchcore.js", import.meta.url), "utf8");
+    const source = readFileSync(new URL("./fixtures/searchcore.reference.js", import.meta.url), "utf8");
     const keys = [...new Set([...source.matchAll(/add\("([^"]+)"/g)].flatMap((m) => m[1].split(" ")))];
     return [...keys.map((k) => k.repeat(3)), keys.join(""), "ka-ki-ku", "kka", "ttsu", "nna", "nnya", "n'a", "xtsu", "ltu"];
 }

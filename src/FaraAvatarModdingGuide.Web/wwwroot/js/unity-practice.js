@@ -1,7 +1,7 @@
 // Unity の練習（/practice/unity）。unity.js の画面を 1 つ置き、お題を順にチェックする。
 // 手順つきの案内は記事内チュートリアル（scenarios.js の "ma-outfit"）。
 //
-// WebAssembly 版(Blazor のページから呼ぶ)での変更点(SSR 版の wwwroot/js/unity-practice.js との差):
+// WebAssembly 版(Blazor のページから呼ぶ)での変更点(旧 SSR 版の unity-practice.js との差):
 //   ・読み込んだだけでは動かない。start() で始め、返った dispose() で後始末をする(ページを離れるとき)
 import { UnityEditor } from "./unity.js";
 

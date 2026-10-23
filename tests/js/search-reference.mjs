@@ -1,4 +1,4 @@
-// 現行の検索（wwwroot/js/searchcore.js）を、同じ索引・同じ検索語で動かして、結果を JSON で出す。C# の SearchEngine（Web.Tests の SearchParityTests）の正解データ。
+// 現行の検索（tests/js/fixtures/searchcore.reference.js）を、同じ索引・同じ検索語で動かして、結果を JSON で出す。C# の SearchEngine（Web.Tests の SearchParityTests）の正解データ。
 //   node tests/js/search-reference.mjs <索引の JSON（data/search.json と同じ形）> <検索語の JSON（文字列の配列）> <結果を書く JSON>
 // 各検索語について: 正規化した検索語・件数・全件の並び（種類・題名・URL・点数）・上位の題名/小見出しの強調 HTML・本文の抜き出しと強調。
 import { readFileSync, writeFileSync } from "node:fs";
@@ -9,7 +9,7 @@ if (!indexFile || !queriesFile || !outFile) {
     console.error("usage: node tests/js/search-reference.mjs <index.json> <queries.json> <out.json>");
     process.exit(2);
 }
-const source = readFileSync(new URL("../../wwwroot/js/searchcore.js", import.meta.url), "utf8");
+const source = readFileSync(new URL("./fixtures/searchcore.reference.js", import.meta.url), "utf8");
 const sandbox = { window: {}, console };
 runInNewContext(source, sandbox);
 const S = sandbox.window.faraSearch;

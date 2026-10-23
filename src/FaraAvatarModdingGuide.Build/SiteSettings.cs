@@ -8,7 +8,8 @@ namespace FaraAvatarModdingGuide.Build;
 public static class SiteSettingsLoader
 {
     /// <summary>
-    /// SSR 版と同じ情報源（appsettings.json の Site）を読む。SSR を消すフェーズ 5 で、これを tools/ の設定に移す。
+    /// サイトの名前・Blender/Unity のバージョン・リポジトリ・フッターの SNS は、リポジトリ直下の appsettings.json の Site に書く（ASP.NET Core の設定ではなく、Build とテストが読む JSON。
+    /// 旧 SSR 版の名残の名前だが、Phase 5 でそのまま情報源として残した。公開先の設定（origin・CSP）は tools/site.json）。
     /// developHost は、確認用の公開先のホスト名。
     /// </summary>
     public static SiteSettings Load(string appSettingsPath, string developHost)
