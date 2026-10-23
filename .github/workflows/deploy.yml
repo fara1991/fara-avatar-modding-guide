@@ -58,8 +58,8 @@ jobs:
         run: node --test tests/js/search.test.mjs
 
       # --- 移行先（Blazor WebAssembly + MudBlazor。docs/wasm-migration-plan.md）の確認。公開はしない（確認用への公開は deploy-wasm-dev.yml） ---
-      - name: Browser script tests (storage migration, default theme, search normaliser, compare tool, notice banner)
-        run: node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/search-norm-fn.test.mjs tests/js/compare-text.test.mjs tests/js/notice.test.mjs
+      - name: Browser script tests (storage migration, default theme, search normaliser, compare tool, notice banner, practice entry)
+        run: node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/search-norm-fn.test.mjs tests/js/compare-text.test.mjs tests/js/notice.test.mjs tests/js/practice-entry.test.mjs
 
       - name: Publish web (WebAssembly)
         run: dotnet publish src/FaraAvatarModdingGuide.Web -c Release --nologo -o publish

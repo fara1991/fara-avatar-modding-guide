@@ -195,7 +195,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         crumbs.Add((null, article.Title));
         sb.Append(Fragments.Breadcrumb(crumbs));
 
-        sb.Line("<header class=\"article-header mb-4\">");
+        sb.Line($"<header class=\"article-header mb-4\" data-progress-page=\"{E(article.Id)}\">");
         sb.Line($"<h1>{E(article.Title)}</h1>");
         sb.Line("<div class=\"d-flex flex-wrap align-items-center gap-2 text-body-secondary small\">");
         sb.Line(Fragments.DoneBadge());
@@ -538,101 +538,241 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
 
     // ------------------------------------------------------------ 練習・検索・問い合わせ・プライバシー
 
-    /// <summary>練習 3 ページの静的な本文（説明と使えるキー）。3D ビューそのものは WebAssembly 側（フェーズ 3）で動く。</summary>
+    /// <summary>
+    /// 練習 3 ページの静的な本文。WebAssembly の画面（Web の Practice.razor・PracticeUnity.razor・PracticeRoom.razor）と同じ構造・文言にする（起動の前後でちらつかないように。Web.Tests が突き合わせる）。
+    /// 3D ビューとお題の中身は、JavaScript（js/practice.js など）が起動のあとに入れる。この静的 HTML では空の枠のまま。
+    /// </summary>
     public string Practice() =>
         "<h1>操作の練習</h1>\n" +
-        "<p class=\"lead\">ブラウザ上の 3D ビューで、Blender と同じキー操作を試せます。下のお題を順にこなしてください。<kbd>Tab</kbd> で編集モードにも入れます。</p>\n" +
-        "<p class=\"text-body-secondary small\">各記事の「やってみよう」では、同じビューで 1 キーずつ案内付きで操作できます（<a href=\"/learn/basics/transform\">移動・回転・スケール</a> など）。ここは案内なしで自由に試す場所です。何人かで同じビューを操作したいときは <a href=\"/practice/room\">みんなで練習</a> へ。</p>\n" +
-        "<div class=\"card practice-keys\">\n<div class=\"card-header fw-semibold\">使えるキー</div>\n<div class=\"card-body small\">\n" + PracticeKeys + "</div>\n</div>\n";
-
-    private const string PracticeKeys = """
-        <table class="table table-sm mb-0">
-        <tbody>
-        <tr><td>ホイールボタンをドラッグ</td><td>視点を回す</td></tr>
-        <tr><td><kbd>Shift</kbd>+ホイールボタン</td><td>視点を平行移動</td></tr>
-        <tr><td>ホイール</td><td>ズーム</td></tr>
-        <tr><td><kbd>Numpad 1</kbd> <kbd>3</kbd> <kbd>7</kbd></td><td>前 / 右 / 上から（<kbd>Ctrl</kbd> で反対側）</td></tr>
-        <tr><td><kbd>Numpad 5</kbd></td><td>透視 / 平行投影</td></tr>
-        <tr><td><kbd>Numpad .</kbd> / <kbd>Home</kbd></td><td>選択を表示 / 全体を表示</td></tr>
-        <tr><td>クリック / <kbd>Shift</kbd>+クリック / ドラッグ</td><td>選択 / 追加選択 / ボックス選択</td></tr>
-        <tr><td><kbd>A</kbd> / <kbd>Alt</kbd>+<kbd>A</kbd></td><td>全選択 / 選択解除</td></tr>
-        <tr><td><kbd>G</kbd> <kbd>R</kbd> <kbd>S</kbd></td><td>移動 / 回転 / スケール（<kbd>X</kbd> <kbd>Y</kbd> <kbd>Z</kbd> で軸固定、数値入力可）</td></tr>
-        <tr><td><kbd>Ctrl</kbd> / <kbd>Shift</kbd>（操作中）</td><td>スナップ / 微調整</td></tr>
-        <tr><td>左クリック / <kbd>Enter</kbd></td><td>確定</td></tr>
-        <tr><td>右クリック / <kbd>Esc</kbd></td><td>キャンセル</td></tr>
-        <tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>追加</td></tr>
-        <tr><td><kbd>Shift</kbd>+<kbd>D</kbd></td><td>複製</td></tr>
-        <tr><td><kbd>X</kbd> / <kbd>Delete</kbd></td><td>削除</td></tr>
-        <tr><td><kbd>N</kbd></td><td>サイドバー（位置・回転・スケール）</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>元に戻す / やり直し</td></tr>
-        <tr><td><kbd>Alt</kbd>+<kbd>Z</kbd></td><td>透過表示</td></tr>
-        <tr class="table-group-divider"><th colspan="2">編集モード</th></tr>
-        <tr><td><kbd>Tab</kbd></td><td>編集モードの出入り</td></tr>
-        <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>頂点 / 辺 / 面の選択モード</td></tr>
-        <tr><td><kbd>Alt</kbd>+クリック / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+クリック</td><td>ループ / リング選択</td></tr>
-        <tr><td><kbd>L</kbd> / <kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>つながった部分を選択</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>選択を反転</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>Numpad +</kbd> / <kbd>-</kbd></td><td>選択を広げる / 狭める</td></tr>
-        <tr><td><kbd>E</kbd> / <kbd>I</kbd></td><td>押し出し / 差し込み</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>ループカット（ホイールで本数、右クリックで中央）</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>B</kbd></td><td>ベベル（分割数 1 のみ）</td></tr>
-        <tr><td><kbd>X</kbd></td><td>削除（頂点 / 辺 / 面 / 辺を溶解）</td></tr>
-        <tr><td><kbd>M</kbd> / <kbd>F</kbd> / <kbd>P</kbd></td><td>マージ / 面を張る / 分離</td></tr>
-        <tr><td>上のボタン</td><td>透過・統計・ミラー（X 方向）の表示</td></tr>
-        </tbody>
-        </table>
-        """;
+        TouchGuide("キーボードとマウスが必要なので、スマートフォンでは操作できません。代わりに、手順を画像で見られます。", embed: true,
+        [
+            ("navigation-mouse", "マウスで視点を動かす", "/learn/getting-started/navigation"),
+            ("select", "選択・追加・削除・複製", "/learn/basics/select"),
+            ("transform", "移動・回転・スケール", "/learn/basics/transform"),
+            ("edit-mode", "編集モードの選択", "/learn/modeling/edit-mode"),
+            ("extrude-inset-loopcut", "押し出し・差し込み・ループカット", "/learn/modeling/extrude-inset-loopcut"),
+            ("bevel-merge", "ベベル・マージ・面を張る", "/learn/modeling/bevel-knife-merge"),
+        ]) + PracticeBody + "\n";
 
     public string PracticeUnity() =>
         Fragments.Breadcrumb([("/practice", "操作の練習"), (null, "Unity の練習")]) +
         "<h1>Unity の練習</h1>\n" +
-        "<p class=\"lead\">Unity エディターに似た画面で、アバターに衣装を着せる流れ（Modular Avatar）を試せます。下のお題を順にこなしてください。</p>\n" +
-        "<p class=\"text-body-secondary small\">本物の Unity ではなく、ブラウザで動く練習用の画面です。人形は練習用に作った簡単なもので、VRChat SDK の画面や数値も目安のシミュレーションです。手順を 1 つずつ案内付きで試すなら <a href=\"/learn/unity/modular-avatar-outfit\">Modular Avatar で衣装を着せる</a> へ。</p>\n" +
-        """
-        <div class="card practice-keys">
-        <div class="card-header fw-semibold">使える操作</div>
-        <div class="card-body small">
-        <table class="table table-sm mb-0">
-        <tbody>
-        <tr><td><kbd>Alt</kbd>+左ドラッグ</td><td>視点を回す</td></tr>
-        <tr><td>ホイールボタンでドラッグ</td><td>視点を平行移動</td></tr>
-        <tr><td>ホイール</td><td>ズーム</td></tr>
-        <tr><td>右ドラッグ</td><td>その場で見回す</td></tr>
-        <tr><td><kbd>F</kbd></td><td>選んだものを表示</td></tr>
-        <tr><td><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd></td><td>手 / 移動 / 回転 / 拡大縮小</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>元に戻す</td></tr>
-        <tr><td><kbd>Delete</kbd></td><td>選んだものを削除</td></tr>
-        <tr><td>Hierarchy でドラッグ</td><td>親子を付け替える</td></tr>
-        <tr><td>Hierarchy で右クリック</td><td>Modular Avatar ▸ Setup Outfit</td></tr>
-        <tr><td>Project からドラッグ</td><td>Prefab を置く / マテリアルを設定</td></tr>
-        <tr><td>VRChat SDK メニュー</td><td>Builder（ランク・Build &amp; Test）</td></tr>
-        </tbody>
-        </table>
-        </div>
-        </div>
+        TouchGuide("キーボードとマウスが必要なので、スマートフォンでは操作できません。代わりに、手順を画像で見られます。", embed: true,
+        [
+            ("ma-outfit", "Modular Avatar で衣装を着せる", "/learn/unity/modular-avatar-outfit"),
+            ("unity-basics", "Unity の画面を動かしてみる", "/learn/unity/editor-overview"),
+        ]) + PracticeUnityBody + "\n";
 
-        """;
-
+    /// <summary>部屋に入っていない（?room= が無い）ロビーの状態。部屋の表示（#room-main）は hidden。</summary>
     public string PracticeRoom() =>
         Fragments.Breadcrumb([("/practice", "操作の練習"), (null, "みんなで練習")]) +
         "<h1>みんなで練習</h1>\n" +
-        "<p class=\"lead\">URL を共有すると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>\n" +
-        """
-        <div class="card">
-        <div class="card-header fw-semibold">この部屋について</div>
-        <div class="card-body small">
-        <ul class="mb-0 ps-3">
-        <li>共有されるのは、オブジェクトモードの追加・削除・複製・移動・回転・スケールです</li>
-        <li><strong>編集モード（Tab）の変更は自分の画面だけ</strong>で、ほかの人には共有されません</li>
-        <li>ほかの人が動かしているオブジェクトは、終わるまで動かせません（その人の色の枠が付きます）</li>
-        <li>ほかの人が変更すると、<kbd>Ctrl</kbd>+<kbd>Z</kbd> でそれより前には戻せません</li>
-        <li>「視点に合わせる」で、その人と同じ視点で見られます（自分で視点を動かすと解除）</li>
-        <li>1 部屋 8 人まで、オブジェクトは 200 個まで。最後の変更から 24 時間で部屋の内容は消えます</li>
-        </ul>
-        </div>
-        </div>
-        <p class="small text-body-secondary mt-3">使えるキーは <a href="/practice">操作の練習</a> と同じです。</p>
+        TouchGuide("部屋の 3D ビューはキーボードとマウスで操作します。スマートフォンでは操作できないので、パソコンで開いてください。操作の流れは、次の記事で画像を見られます。", embed: false,
+        [
+            ("select", "選択・追加・削除・複製", "/learn/basics/select"),
+            ("transform", "移動・回転・スケール", "/learn/basics/transform"),
+        ]) + PracticeRoomBody.Replace("{{ICON_ADD}}", Icon("Add")) + "\n";
 
+    /// <summary>スマートフォン・タブレットで練習を開いたときの案内（Web の TouchPracticeGuide.razor と同じ構造。PC では hidden のまま）。</summary>
+    private static string TouchGuide(string message, bool embed, (string Scenario, string Title, string Url)[] items)
+    {
+        var sb = new StringBuilder();
+        sb.Line("<section class=\"touch-practice\" id=\"touch-practice\" aria-labelledby=\"touch-practice-title\" hidden>");
+        sb.Line("<div class=\"touch-practice-note\">");
+        sb.Line($"<h2 class=\"h5\" id=\"touch-practice-title\">{Icon("Keyboard")} この練習はパソコンで開いてください</h2>");
+        sb.Line($"<p class=\"mb-0\">{E(message)}</p>");
+        sb.Line("</div>");
+        if (!embed)
+        {
+            sb.Line("<ul class=\"touch-practice-links list-unstyled\">");
+            foreach (var i in items) sb.Line($"<li><a href=\"{E(i.Url)}\">{E(i.Title)}</a></li>");
+            sb.Line("</ul>");
+        }
+        else
+        {
+            foreach (var i in items)
+            {
+                sb.Line("<details class=\"touch-practice-item\">");
+                sb.Line($"<summary>{E(i.Title)}<span class=\"touch-practice-sum\"> を画像で見る</span></summary>");
+                sb.Line($"<div class=\"practice-embed\" data-scenario=\"{E(i.Scenario)}\"></div>");
+                sb.Line($"<p class=\"small mb-0\"><a href=\"{E(i.Url)}\">記事を開く</a></p>");
+                sb.Line("</details>");
+            }
+        }
+        sb.Line("</section>");
+        return sb.ToString();
+    }
+
+    private const string PracticeBody = """
+        <div class="practice-pc-only">
+        <p class="lead">ブラウザ上の 3D ビューで、Blender と同じキー操作を試せます。下のお題を順にこなしてください。<kbd>Tab</kbd> で編集モードにも入れます。</p>
+        <p class="text-body-secondary small">各記事の「やってみよう」では、同じビューで 1 キーずつ案内付きで操作できます（<a href="/learn/basics/transform">移動・回転・スケール</a> など）。ここは案内なしで自由に試す場所です。何人かで同じビューを操作したいときは <a href="/practice/room">みんなで練習</a> へ。</p>
+        </div>
+
+        <div id="practice" class="row g-4 practice-pc-only">
+            <div class="col-lg-8">
+                        <div class="practice-viewport" id="practice-viewport" tabindex="0" aria-label="3D ビューポート"></div>
+                <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="practice-reset">最初からやり直す</button>
+                    <div class="form-check form-check-inline ms-2 mb-0">
+                        <input class="form-check-input" type="checkbox" id="practice-emulate-numpad" />
+                        <label class="form-check-label small" for="practice-emulate-numpad">テンキーを模倣（数字キーで視点を切り替え）</label>
+                    </div>
+                    <span class="small text-body-secondary ms-auto">ビューポートをクリックしてからキーを押してください</span>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card mb-3 practice-tasks-card">
+                    <div class="card-header fw-semibold">お題</div>
+                    <div class="card-body">
+                        <ol class="practice-tasks mb-2" id="practice-tasks"></ol>
+                        <div id="practice-tasks-done" class="small text-body-secondary" hidden>すべてできました。あとは自由に試してください。</div>
+                    </div>
+                </div>
+                <div class="card practice-keys">
+                    <div class="card-header fw-semibold">使えるキー</div>
+                    <div class="card-body small">
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <tr><td>ホイールボタンをドラッグ</td><td>視点を回す</td></tr>
+                                <tr><td><kbd>Shift</kbd>+ホイールボタン</td><td>視点を平行移動</td></tr>
+                                <tr><td>ホイール</td><td>ズーム</td></tr>
+                                <tr><td><kbd>Numpad 1</kbd> <kbd>3</kbd> <kbd>7</kbd></td><td>前 / 右 / 上から（<kbd>Ctrl</kbd> で反対側）</td></tr>
+                                <tr><td><kbd>Numpad 5</kbd></td><td>透視 / 平行投影</td></tr>
+                                <tr><td><kbd>Numpad .</kbd> / <kbd>Home</kbd></td><td>選択を表示 / 全体を表示</td></tr>
+                                <tr><td>クリック / <kbd>Shift</kbd>+クリック / ドラッグ</td><td>選択 / 追加選択 / ボックス選択</td></tr>
+                                <tr><td><kbd>A</kbd> / <kbd>Alt</kbd>+<kbd>A</kbd></td><td>全選択 / 選択解除</td></tr>
+                                <tr><td><kbd>G</kbd> <kbd>R</kbd> <kbd>S</kbd></td><td>移動 / 回転 / スケール（<kbd>X</kbd> <kbd>Y</kbd> <kbd>Z</kbd> で軸固定、数値入力可）</td></tr>
+                                <tr><td><kbd>Ctrl</kbd> / <kbd>Shift</kbd>（操作中）</td><td>スナップ / 微調整</td></tr>
+                                <tr><td>左クリック / <kbd>Enter</kbd></td><td>確定</td></tr>
+                                <tr><td>右クリック / <kbd>Esc</kbd></td><td>キャンセル</td></tr>
+                                <tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>追加</td></tr>
+                                <tr><td><kbd>Shift</kbd>+<kbd>D</kbd></td><td>複製</td></tr>
+                                <tr><td><kbd>X</kbd> / <kbd>Delete</kbd></td><td>削除</td></tr>
+                                <tr><td><kbd>N</kbd></td><td>サイドバー（位置・回転・スケール）</td></tr>
+                                <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>元に戻す / やり直し</td></tr>
+                                <tr><td><kbd>Alt</kbd>+<kbd>Z</kbd></td><td>透過表示</td></tr>
+                                <tr class="table-group-divider"><th colspan="2">編集モード</th></tr>
+                                <tr><td><kbd>Tab</kbd></td><td>編集モードの出入り</td></tr>
+                                <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>頂点 / 辺 / 面の選択モード</td></tr>
+                                <tr><td><kbd>Alt</kbd>+クリック / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+クリック</td><td>ループ / リング選択</td></tr>
+                                <tr><td><kbd>L</kbd> / <kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>つながった部分を選択</td></tr>
+                                <tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>選択を反転</td></tr>
+                                <tr><td><kbd>Ctrl</kbd>+<kbd>Numpad +</kbd> / <kbd>-</kbd></td><td>選択を広げる / 狭める</td></tr>
+                                <tr><td><kbd>E</kbd> / <kbd>I</kbd></td><td>押し出し / 差し込み</td></tr>
+                                <tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>ループカット（ホイールで本数、右クリックで中央）</td></tr>
+                                <tr><td><kbd>Ctrl</kbd>+<kbd>B</kbd></td><td>ベベル（分割数 1 のみ）</td></tr>
+                                <tr><td><kbd>X</kbd></td><td>削除（頂点 / 辺 / 面 / 辺を溶解）</td></tr>
+                                <tr><td><kbd>M</kbd> / <kbd>F</kbd> / <kbd>P</kbd></td><td>マージ / 面を張る / 分離</td></tr>
+                                <tr><td>上のボタン</td><td>透過・統計・ミラー（X 方向）の表示</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """;
+
+    private const string PracticeUnityBody = """
+        <div class="practice-pc-only">
+        <p class="lead">Unity エディターに似た画面で、アバターに衣装を着せる流れ（Modular Avatar）を試せます。下のお題を順にこなしてください。</p>
+        <p class="text-body-secondary small">本物の Unity ではなく、ブラウザで動く練習用の画面です。人形は練習用に作った簡単なもので、VRChat SDK の画面や数値も目安のシミュレーションです。手順を 1 つずつ案内付きで試すなら <a href="/learn/unity/modular-avatar-outfit">Modular Avatar で衣装を着せる</a> へ。</p>
+        </div>
+
+        <div class="row g-4 practice-pc-only">
+            <div class="col-xl-9">
+                <div id="unity-practice" class="unity-practice-host" tabindex="0" aria-label="Unity エディター（練習）"></div>
+                <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="unity-reset">最初からやり直す</button>
+                    <span class="small text-body-secondary ms-auto">Scene ビューをクリックしてからキーを押してください</span>
+                </div>
+            </div>
+            <div class="col-xl-3">
+                <div class="card mb-3">
+                    <div class="card-header fw-semibold">お題</div>
+                    <div class="card-body">
+                        <ol class="practice-tasks mb-2" id="unity-tasks"></ol>
+                        <div id="unity-tasks-done" class="small text-body-secondary" hidden>すべてできました。あとは自由に試してください。</div>
+                    </div>
+                </div>
+                <div class="card practice-keys">
+                    <div class="card-header fw-semibold">使える操作</div>
+                    <div class="card-body small">
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <tr><td><kbd>Alt</kbd>+左ドラッグ</td><td>視点を回す</td></tr>
+                                <tr><td>ホイールボタンでドラッグ</td><td>視点を平行移動</td></tr>
+                                <tr><td>ホイール</td><td>ズーム</td></tr>
+                                <tr><td>右ドラッグ</td><td>その場で見回す</td></tr>
+                                <tr><td><kbd>F</kbd></td><td>選んだものを表示</td></tr>
+                                <tr><td><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd></td><td>手 / 移動 / 回転 / 拡大縮小</td></tr>
+                                <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>元に戻す</td></tr>
+                                <tr><td><kbd>Delete</kbd></td><td>選んだものを削除</td></tr>
+                                <tr><td>Hierarchy でドラッグ</td><td>親子を付け替える</td></tr>
+                                <tr><td>Hierarchy で右クリック</td><td>Modular Avatar ▸ Setup Outfit</td></tr>
+                                <tr><td>Project からドラッグ</td><td>Prefab を置く / マテリアルを設定</td></tr>
+                                <tr><td>VRChat SDK メニュー</td><td>Builder（ランク・Build &amp; Test）</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """;
+
+    private const string PracticeRoomBody = """
+        <p class="lead practice-pc-only">URL を共有すると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
+
+        <div id="room-lobby" class="card mb-4 practice-pc-only">
+            <div class="card-body">
+                <h2 class="h5">部屋を作る</h2>
+                <p class="mb-3">ログインは不要です。部屋を作ったら、表示される URL を一緒に練習する人に送ってください。</p>
+                <button type="button" class="btn btn-primary" id="room-create">{{ICON_ADD}} 部屋を作る</button>
+            </div>
+        </div>
+
+        <div id="room-main" class="row g-4 practice-pc-only" hidden>
+            <div class="col-lg-8">
+                <div class="practice-viewport" id="room-viewport" tabindex="0" aria-label="3D ビューポート"></div>
+                <div class="d-flex flex-wrap gap-2 align-items-center mt-2 small text-body-secondary">
+                    <span>ビューをクリックしてからキーを押してください。使えるキーは <a href="/practice">操作の練習</a> と同じです。</span>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card mb-3">
+                    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                        <span>部屋</span>
+                        <span class="room-status small" id="room-status" role="status">接続中…</span>
+                    </div>
+                    <div class="card-body">
+                        <label class="form-label small" for="room-url">この URL を送ると、同じ部屋に入れます</label>
+                        <div class="input-group input-group-sm mb-3">
+                            <input type="text" class="form-control" id="room-url" readonly />
+                            <button type="button" class="btn btn-outline-primary" id="room-copy">コピー</button>
+                        </div>
+                        <label class="form-label small" for="room-name">表示名（ほかの人に見えます。20 文字まで）</label>
+                        <input type="text" class="form-control form-control-sm mb-3" id="room-name" maxlength="20" autocomplete="nickname" />
+                        <h3 class="h6">参加している人</h3>
+                        <ul class="room-peers mb-0" id="room-peers"></ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header fw-semibold">この部屋について</div>
+                    <div class="card-body small">
+                        <ul class="mb-0 ps-3">
+                            <li>共有されるのは、オブジェクトモードの追加・削除・複製・移動・回転・スケールです</li>
+                            <li><strong>編集モード（Tab）の変更は自分の画面だけ</strong>で、ほかの人には共有されません</li>
+                            <li>ほかの人が動かしているオブジェクトは、終わるまで動かせません（その人の色の枠が付きます）</li>
+                            <li>ほかの人が変更すると、<kbd>Ctrl</kbd>+<kbd>Z</kbd> でそれより前には戻せません</li>
+                            <li>「視点に合わせる」で、その人と同じ視点で見られます（自分で視点を動かすと解除）</li>
+                            <li>1 部屋 8 人まで、オブジェクトは 200 個まで。最後の変更から 24 時間で部屋の内容は消えます</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <noscript><div class="alert alert-warning">この機能には JavaScript が必要です。</div></noscript>
         """;
 
     public string Search() =>
@@ -690,7 +830,6 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
                 <ul>
                     <li>Cloudflare（サイトの配信・共同練習の部屋・Turnstile）</li>
                     <li>Google Fonts（文字の表示。サイトを開くと、Google にアクセスの情報が送られます）</li>
-                    <li>jsDelivr（練習の 3D 表示の部品。練習のページを開くと、配信元にアクセスの情報が送られます）</li>
                     <li>GitHub（記事の修正の提案の受け付け）</li>
                     <li>Discord（問い合わせの通知）</li>
                 </ul>

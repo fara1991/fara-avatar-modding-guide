@@ -362,11 +362,12 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
   - 既知の差・リスク: 描画の細部の差（KNI は半球光がなく、左面が暗い等）、KNI の Tick のばらつき（原因は未切り分け）、新しいブラウザのコンテキストで描画が始まらなくなる問題（原因は未特定）。
   - 描画層の選定（Phase 3b の最初に決める）: WebGL を自作の薄い層で持つか、KNI を使うか。先に上の未解決の問題を調べてから選ぶ。
 
-**importmap の扱い（既定を決める）**:
-- **既定: importmap は Build が出す静的 HTML のテンプレート（`index.html` の head）に 1 つだけ置く**（全ページ共通。`three` の CDN のみ。`three@0.170.0` のバージョン固定）。CSP は importmap の sha256 を `script-src` に入れる（§4.9）。
+**importmap の扱い（Phase 3 の検証で決定。§12.1）**:
+- **決定: importmap は Build が出す静的 HTML のテンプレート（`index.html` の head、WASM-ONLY の中）に 1 つだけ置く**（全ページ共通）。**three.js は CDN（jsDelivr）ではなく、自分のサイトに同梱する**（`wwwroot/lib/three/three.module.js`。three@0.170.0。ファイルは、以前 SSR 版が jsDelivr で SRI を付けて読んでいたものと同一: sha384 が一致）。importmap は `{"imports":{"three":"/lib/three/three.module.js"}}`。CSP は importmap の sha256 を `script-src` に入れる（§4.9。ハッシュは Build が、テンプレートの importmap の中身から計算する）。
+- 当初の既定（Phase 0 の記述）は「`three` の CDN のみ」だった。同梱に変えた理由は §12.1。
 - 理由: importmap は、その文書で最初の module script が読まれる前に存在している必要がある。Blazor が描画後に挿入した importmap は、後から読む module の解決に効かない可能性が高い【推測。仕様上の性質。試作は練習ページを含まず未検証】。
 - 代案: JS の `import "three"` を CDN の絶対 URL（バージョン固定）に書き換え、importmap を無くす。既存の JS を編集するため、既定にはしない。
-- **検証タスク（Phase 3 の最初）**: 練習ページ 1 つ（`/practice`）で、テンプレートの importmap と CSP のハッシュの組み合わせで three.js が読み込まれ、Blazor の画面遷移のあとも動くことを確認する。動かなければ代案に切り替える。
+- **検証タスク（Phase 3 の最初）→ 完了**: 練習ページ 1 つ（`/practice`）で、テンプレートの importmap と CSP のハッシュの組み合わせで three.js が読み込まれ、Blazor の画面遷移のあとも動くことを確認した（代案には切り替えていない。結果は §12.1）。
 - ページ移動のあとに module を二重に読まない（nav.js の「二重登録しない」の教訓）。
 
 - PC 専用（`practice-pc-only`）: 現行どおり、スマホではガイドだけを出す（`TouchPracticeGuide`）。
@@ -401,7 +402,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 **決定（ユーザー）**: `'wasm-unsafe-eval'` と `style-src 'unsafe-inline'` は許可。`script-src` の `'unsafe-inline'` と `'unsafe-eval'` は**許可しない**。ホストは使うものだけに限定する。
 
 **avatar の CSP（Phase 1 の Build が出す初版）**:
-- `script-src 'self' 'wasm-unsafe-eval' 'sha256-…'（importmap のハッシュ。Build が計算）https://cdn.jsdelivr.net https://challenges.cloudflare.com`（報告の Turnstile）。Cloudflare Web Analytics を使う場合は `https://static.cloudflareinsights.com` を足す（現状の avatar は未確認）。
+- `script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com 'sha256-…'`（報告の Turnstile と、importmap のハッシュ。ハッシュは Build が計算する）。**jsDelivr は許可しない**（three.js は同梱。§12.1）。Cloudflare Web Analytics を使う場合は `https://static.cloudflareinsights.com` を足す（現状の avatar は未確認）。
 - `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`（Bootstrap は廃止するので CDN は外す）。
 - `font-src 'self' https://fonts.gstatic.com`、`img-src 'self' data:`（avatar は外部の画像を使わない）。
 - `connect-src 'self'`（`/api/*`・`/api/rooms/*/ws` は同じオリジン。WebSocket は `wss:` の扱いを確かめる）、`frame-src https://challenges.cloudflare.com`。
@@ -738,11 +739,11 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 ### 11.1 本文の突き合わせの運用(`tools/compare/known-differences.json`)
 - CI は develop の SSR を別に書き出して(`Content/` だけ移行版のものに差し替え)、`tools/compare/compare-text.mjs` で記事 50 件と、そのほかのページを比べる。比べるのは、文字・構造(見出し id・ol/ul・table・li・kbd)・属性(href・src・alt・title・target・rel)。
 - **`/` と `/learn` の既知の差は、「最初の記事の題名とリンク」に依存している**(`known-differences.json` の `new: ["インストールと日本語化"]`、`newAttributes: ["a href=/learn/getting-started/install"]`)。目次の先頭の記事(`Content/learn/categories.yml` の最初のカテゴリの `order` が最小の記事)を変えたり、題名を直したりしたら、CI がこの 2 ページで「差あり」「古くなった記述」を出す。そのときは、この 2 つの値を新しい最初の記事に合わせて直す(移行版の静的 HTML は、何も完了していないときの「次に読む」を最初の記事にしておくため。SSR 版は空のリンクを JavaScript が埋める)。
-- 既知の差を足すときは、理由(`reason`)を必ず書く。書いていない差と、見つからない断片(古くなった記述)は CI の失敗になる。練習 3 ページと `/report` は `skip: true`(Phase 3 まで)。Phase 3 で練習を WebAssembly にしたら、skip を外して、既知の差に置き換える。
+- 既知の差を足すときは、理由(`reason`)を必ず書く。書いていない差と、見つからない断片(古くなった記述)は CI の失敗になる。練習 3 ページと `/report` の `skip: true` は、Phase 3 で外した(理由つきの既知の差に置き換えた。§12)。
 - 比べる SSR は `ref: develop`。develop が進んだら、`migration/wasm` に取り込むまで、新しい SSR の変更は差として出る(`migration/wasm` へのマージを定期的に)。
 
 ### 11.2 Phase 3 の宿題
-- **プライバシーポリシーの jsDelivr の文言と CSP の食い違い**: `/privacy` は「jsDelivr(練習の 3D 表示の部品。練習のページを開くと、配信元にアクセスの情報が送られます)」と書いているが、Phase 1 の CSP(`tools/site.json` の `csp`)は `script-src` に jsdelivr を許可していない(three.js を読むと違反になる)。Phase 3 の最初の検証(importmap の確認。§4.5)で、three.js の読み込み元(jsdelivr か自分のサイトに同梱か)を決めて、CSP(`script-src` のホストと importmap のハッシュ)と `/privacy` の文言を**同時に**揃える。同梱にするなら、文言から jsDelivr を外す(`known-differences.json` の `/privacy` も直す)。
+- **（Phase 3 で解決。§12.1）プライバシーポリシーの jsDelivr の文言と CSP の食い違い**: `/privacy` は「jsDelivr(練習の 3D 表示の部品。練習のページを開くと、配信元にアクセスの情報が送られます)」と書いているが、Phase 1 の CSP(`tools/site.json` の `csp`)は `script-src` に jsdelivr を許可していない(three.js を読むと違反になる)。Phase 3 の最初の検証(importmap の確認。§4.5)で、three.js の読み込み元(jsdelivr か自分のサイトに同梱か)を決めて、CSP(`script-src` のホストと importmap のハッシュ)と `/privacy` の文言を**同時に**揃える。同梱にするなら、文言から jsDelivr を外す(`known-differences.json` の `/privacy` も直す)。
 - 練習の JavaScript(tutorial.js など)は `window.faraProgress.isDone / set` を使う。Phase 2 で `js/storage.js` が C# の `ProgressStore` につないである(目次の完了の印も、すぐ替わる)。
 - 記事内の `::: practice`(`<div class="practice-embed" data-scenario>`)は、Markdown から空の div として出ていて、Blazor は中身を触らない(MarkupString)。tutorial.js が埋めるときは、記事が替わったとき(`ArticlePage` の再利用)に、前の中身が残らないか確かめる。
 - 検索の突き合わせ(`SearchParityTests`)は `wwwroot/js/searchcore.js` を正解にしている。Phase 5 で消す前に、固定の写しを `tests/js/` に置く。
@@ -757,3 +758,32 @@ K0-5（NavMenu 基底・ThemeSwitch）→ P2 の前
 | C. B + 静的な枠を起動後と同じ形にする(サイドバーの骨組みを静的 HTML に入れる) | 本文が動かない | 静的 HTML に、サイドバー(区切り・カテゴリ 10 件・リファレンス・練習)とヘッダーの検索欄の骨組みを足す必要がある。Build の `Wrap` と `app.css` の変更が大きい。MudBlazor の見た目の細部(Mini ドロワーの幅・アイコン)を CSS で写す必要がある |
 
 **推奨**: Phase 4(ちらつきのピクセル差の検証)で C を試し、差が閾値以下になったら B に切り替える。それまでは A のまま。今、B だけを入れると、PC で起動のたびに本文が約 230px 動く(CLS が出る)ので、見た目が悪くなる。
+
+## 12. Phase 3（練習）の記録
+
+### 12.1 three.js の読み込み元の決定（jsDelivr か、自分のサイトに同梱か）
+最初の検証は `/practice` で行った（importmap をテンプレートの head に置き、CSP の `script-src` に importmap の sha256 を入れる組み合わせ。Blazor の画面遷移のあとも動く）。そのうえで、three.js（three@0.170.0。約 1.3 MB）の読み込み元を比べた。
+
+| 案 | CSP | プライバシー | 注意 |
+| --- | --- | --- | --- |
+| A. jsDelivr（SSR 版と同じ） | `script-src` に `https://cdn.jsdelivr.net` を足す（ホスト単位の許可。パッケージ名での絞り込みはできない） | 練習・記事内チュートリアルを開くと jsDelivr にアクセスの情報が送られる。`/privacy` に jsDelivr を残す | importmap の `integrity`（SRI）を付けないと、配信元が書き換わったときに気づけない。SRI 付きの importmap はブラウザの対応に差がある |
+| **B. 自分のサイトに同梱（決定）** | `script-src` は `'self'` と importmap のハッシュだけ。jsDelivr は許可しない | 外部に送らない。`/privacy` から jsDelivr の項目を外す | リポジトリが約 1.3 MB 増える。three.js の版を上げるときは、ファイルを置き換える（importmap の中身は変わらないので、ハッシュは変わらない） |
+
+- **決定: B**。ホスト単位の許可（A）より、CSP が狭くなる。外部への送信が減り、プライバシーの文言が短くなる。同梱のファイルは、SSR 版が jsDelivr で SRI（sha384）を付けて読んでいたものと**同一**（sha384 が一致。`sha384-GY5FqjttLCFRt/McQbyaVdCk2O1IQtOeX8Py6NfD89BIAsIyJFRl4UgSXrk2vXAk`）。ライセンス（MIT）は `wwwroot/lib/three/LICENSE`。
+- importmap は `{"imports":{"three":"/lib/three/three.module.js"}}`。`index.html` の head（WASM-ONLY の中）に 1 つだけ置く。CSP のハッシュは Build（`SiteBuilder.ImportMapHashes`）が、タグの中身から計算して `_headers` に入れる（手で書かない。Build.Tests が、`_headers` のハッシュとテンプレートの中身が一致することを確かめる）。
+- 静的 HTML のページ（WebAssembly を読まないページ）には importmap は不要（練習は全部 WebAssembly のページ）。
+- `/privacy` の文言と CSP は同じ変更で揃えた（Web の `Privacy.razor`・Build の `PageBodies`・`known-differences.json` の `/privacy`）。
+- 配信（`/lib/three/*`）は、Cloudflare の静的アセットで、特別な設定は要らない。キャッシュは既定どおり。
+
+### 12.2 練習の組み込み方（Phase 3 の実装メモ）
+- 3D の本体（`viewport.js`・`editmesh.js`・`unity.js`・`unity-practice.js`・`room.js`・`scenarios.js`・`tutorial.js`・`practice.js`）は SSR 版の JavaScript を**そのまま**移した。Blazor は 3D の中身を知らない。
+- Blazor との橋渡しは `Services/PracticeHost.cs` と `js/practice-entry.js` だけ。ページ（`Practice`・`PracticeUnity`・`PracticeRoom`）と記事（`ArticlePage`。記事が替わったときも）が、始める・解放するを呼ぶ。`practice-entry.js` は同時に 1 つだけ動かし、始めるときに前のものを解放し、解放は「いま動いているものと同じ id」のときだけ効く（前のページの解放が遅れて届いても、次のページを止めない）。
+- 背景の 3D（`bgscene.js`）は 2D の canvas で、`index.html` から全ページで 1 度だけ読む（ページを移っても本文だけが替わるので、そのまま残る。多重に作らない）。スクロール線（SSR 版の `scrollprogress.js`）は、Phase 1 から共通部品（fara-site-kit の `ScrollProgress`・`scroll-progress.js`）で動いていて、Phase 3 で移すものはない（`SiteLayout` が 1 つだけ置き、ページの移動で増えない）。
+- スマホ（hover: none かつ pointer: coarse）は、練習の 3 ページで案内（`TouchPracticeGuide`）を出し、WebGL を使わない。記事内チュートリアルは「画像で見る」のまま。
+- `/practice*` の暫定 noindex は維持（Phase 4 で見直す）。
+
+### 12.3 確認の結果と、確認の注意（Phase 3）
+- 確認は `tools/verify/practice.mjs`（Playwright。PC 1280・スマホ 390。WebGL は SwiftShader）と `tools/room-check/check.mjs`（WebSocket を直接）。SSR 版（develop）と同じ操作をして結果を比べる（`/practice` は位置・回転・スケール・視点・お題の進み、`/practice/unity` は階層・お題）。往復 20 回で、WebGL の context・ResizeObserver・IntersectionObserver・setInterval・WebSocket・window/document のイベント・canvas・背景の描画ループが増えない。
+- **往復の確認で「節（Nodes）が増え続ける」ように見えたのは、確認スクリプトの側の問題だった**: Playwright の `page.waitForSelector()` は要素の参照（ElementHandle）を返し、解放しないと、外れた DOM を保持する。往復の確認では `locator(...).waitFor()`（参照を返さない）を使う。同じ作りで確認を書くときは注意する。
+- `/practice/room` の画面からの確認（二人が入る・追加が届く・退室が消える）は、`?debug=1` を付けると `window.__room` で状態を見られる（`room.js`）。
+- 背景の描画ループ（`bgscene.js`）の回数は、別のタブ（背景のタブ）では減る（ブラウザが間引く）ので、前後の比較は同じタブで測る。

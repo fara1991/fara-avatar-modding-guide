@@ -90,6 +90,7 @@ public static class SiteBuilder
         var content = SiteContentFactory.From(contentService);
         var siteJson = JsonNode.Parse(File.ReadAllText(Path.Combine(repo, "tools", "site.json")))!.AsObject();
         var devOrigin = options.DevOrigin ?? siteJson["devOrigin"]!.GetValue<string>();
+        AddImportMapHashes(siteJson, File.ReadAllText(options.TemplatePath));
         var settings = SiteSettingsLoader.Load(Path.Combine(repo, "appsettings.json"), new Uri(devOrigin).Host);
 
         // --- データ（WebAssembly が起動時に読む）--------------------------------
@@ -144,6 +145,32 @@ public static class SiteBuilder
         // --- WebAssembly を使わないページから、読み込み表示と Blazor のスクリプトを外す -------
         foreach (var page in pages) StripWasm(outDir, page);
         StripWasmFile(Path.Combine(outDir, "404.html"), wasm: true);
+    }
+
+    /// <summary>
+    /// テンプレートの importmap（&lt;script type="importmap"&gt;）の中身の sha256（CSP の script-src に入れる形: 'sha256-…'）。
+    /// ハッシュは、タグの間の文字を、そのまま（空白・改行も含めて）UTF-8 で計算する。コメントの中の記述は数えない。
+    /// importmap は外部ファイルにできない（src が使えない）ので、CSP では 'unsafe-inline' ではなく、このハッシュで許可する（計画書 4.9）。
+    /// </summary>
+    public static IReadOnlyList<string> ImportMapHashes(string html)
+    {
+        var withoutComments = Regex.Replace(html, "<!--.*?-->", string.Empty, RegexOptions.Singleline);
+        return Regex.Matches(withoutComments, @"<script\s+type=""importmap""\s*>(?<body>.*?)</script>", RegexOptions.Singleline | RegexOptions.IgnoreCase)
+            .Select(m => "'sha256-" + Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(m.Groups["body"].Value))) + "'")
+            .Distinct()
+            .ToList();
+    }
+
+    /// <summary>サイト設定の csp.scriptSrc に、テンプレートの importmap のハッシュを足す（csp が無い設定では何もしない）。</summary>
+    private static void AddImportMapHashes(JsonObject siteJson, string templateHtml)
+    {
+        if (siteJson["csp"] is not JsonObject csp) return;
+        var scriptSrc = csp["scriptSrc"] as JsonArray ?? new JsonArray();
+        foreach (var hash in ImportMapHashes(templateHtml))
+        {
+            if (!scriptSrc.Any(n => n?.GetValue<string>() == hash)) scriptSrc.Add(hash);
+        }
+        csp["scriptSrc"] = scriptSrc;
     }
 
     /// <summary>kit が書いたページのファイル名（urlStyle=html: /x/y → x/y.html、/ → index.html）。</summary>

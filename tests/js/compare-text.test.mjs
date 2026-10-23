@@ -31,3 +31,46 @@ test("ol → ul を見つける", () => { const r = run((h) => h.replace("<ol>",
 test("table → div を見つける", () => { const r = run((h) => h.replace("<table><tr><td>x</td></tr></table>", "<div><div>x</div></div>")); assert.equal(r.code, 1); assert.match(r.out, /structure/); });
 test("href の違いを見つける", () => { const r = run((h) => h.replace("/learn/x", "/learn/y")); assert.equal(r.code, 1); assert.match(r.out, /attributes/); });
 test("文字の違いを見つける", () => { const r = run((h) => h.replace("リンク", "リング")); assert.equal(r.code, 1); assert.match(r.out, /text/); });
+
+// ---- 既知の差(known-differences.json)で、同じ種類が並ぶ中の N 番目を指す(li@N)
+const wrapPage = (cls, body) => `<html><head><base href="/"></head><body><article class="${cls}">${body}</article></body></html>`;
+
+/** 記事 50 件(同じ)+ /privacy(SSR は項目が 1 つ多い)を作り、既知の差のファイルを渡して比べる */
+function runKnown(known) {
+    const root = mkdtempSync(join(tmpdir(), "cmp-"));
+    try {
+        for (const side of ["ssr", "new"]) {
+            mkdirSync(join(root, side, "learn", "c"), { recursive: true });
+            for (let i = 0; i < 50; i++) writeFileSync(join(root, side, "learn", "c", `a${i}.html`), page(BASE));
+        }
+        writeFileSync(join(root, "ssr", "privacy.html"), wrapPage("content", "<h2>保存</h2><ul><li>テーマ</li></ul><h2>外部</h2><ul><li>Cloudflare</li><li>jsDelivr</li><li>GitHub</li></ul>"));
+        writeFileSync(join(root, "new", "privacy.html"), wrapPage("fsk-content", "<h2>保存</h2><ul><li>テーマ</li></ul><h2>外部</h2><ul><li>Cloudflare</li><li>GitHub</li></ul>"));
+        const knownFile = join(root, "known.json");
+        writeFileSync(knownFile, JSON.stringify(known));
+        const r = spawnSync("node", [TOOL, join(root, "ssr"), join(root, "new"), "--known", knownFile], { encoding: "utf8" });
+        return { code: r.status, out: r.stdout };
+    } finally { rmSync(root, { recursive: true, force: true }); }
+}
+
+test("既知の差: 'li@3' で、3 番目の li(jsDelivr の項目)だけを SSR から除けば一致する", () => {
+    const r = runKnown({ "/privacy": { reason: "jsDelivr を外した", ssr: ["jsDelivr"], ssrStructure: ["li@3"] } });
+    assert.equal(r.code, 0, r.out);
+});
+
+test("既知の差: 'li'(最初の li)だと、位置が違うので、構造の差として見つかる", () => {
+    const r = runKnown({ "/privacy": { reason: "最初の li は別のもの", ssr: ["jsDelivr"], ssrStructure: ["li"] } });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /page structure/);
+});
+
+test("既知の差: 'li@9'(無い位置)は、古くなった記述として失敗にする", () => {
+    const r = runKnown({ "/privacy": { reason: "ない", ssr: ["jsDelivr"], ssrStructure: ["li@3", "li@9"] } });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /PROBLEM 既知の差が見つからない/);
+});
+
+test("既知の差が無ければ、本文の差(jsDelivr の項目)として失敗する", () => {
+    const r = runKnown({});
+    assert.equal(r.code, 1);
+    assert.match(r.out, /page text/);
+});

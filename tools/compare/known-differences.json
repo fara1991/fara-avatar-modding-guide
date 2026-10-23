@@ -44,12 +44,12 @@
         ]
     },
     "/privacy": {
-        "reason": "Bootstrap と Bootstrap Icons の CDN をやめた(Phase 1)。jsDelivr は、練習の 3D 表示の部品(three.js)だけに使う",
+        "reason": "Bootstrap と Bootstrap Icons の CDN をやめた(Phase 1)。three.js(練習の 3D 表示の部品)は、jsDelivr から読むのをやめて、自分のサイトに同梱した(Phase 3。lib/three/。CSP も jsDelivr を許可しない)ので、外部のサービスの一覧から jsDelivr の項目を外した",
         "ssr": [
             "jsDelivr（画面の部品のCSS・アイコン。サイトを開くと、配信元にアクセスの情報が送られます）"
         ],
-        "new": [
-            "jsDelivr（練習の3D表示の部品。練習のページを開くと、配信元にアクセスの情報が送られます）"
+        "ssrStructure": [
+            "li@6"
         ]
     },
     "/search": {
@@ -63,20 +63,32 @@
             "kbd"
         ]
     },
-    "/report": {
-        "skip": true,
-        "reason": "報告フォームは JavaScript(Turnstile)で描く。SSR 版は Razor のフォーム、移行版の静的 HTML は説明文だけ(フォームは kit の ReportFormView が WebAssembly で描く)"
-    },
     "/practice": {
-        "skip": true,
-        "reason": "フェーズ 3 で WebAssembly 化するまで。SSR 版は PC 専用の案内とお題を含む。移行版の静的 HTML は、説明とキーの一覧(SEO 用)だけ"
-    },
-    "/practice/room": {
-        "skip": true,
-        "reason": "フェーズ 3 で WebAssembly 化するまで(/practice と同じ)"
+        "reason": "スマホ向けの案内(TouchPracticeGuide)の「画像で見る」の項目。SSR 版は <template> に入れて、タッチだけの端末で JavaScript が取り出す(この比較は template の中身を数えない)。移行版は、Blazor が <template> の中身を .content ではなく子として作るので、hidden の案内の中に、そのまま置く(PC では見えない。タッチだけの端末でだけ、tutorial.js が動く)。項目は、タイトル + 「を画像で見る」 + 「記事を開く」",
+        "new": [
+            "マウスで視点を動かすを画像で見る記事を開く",
+            "選択・追加・削除・複製を画像で見る記事を開く",
+            "移動・回転・スケールを画像で見る記事を開く",
+            "編集モードの選択を画像で見る記事を開く",
+            "押し出し・差し込み・ループカットを画像で見る記事を開く",
+            "ベベル・マージ・面を張るを画像で見る記事を開く"
+        ]
     },
     "/practice/unity": {
-        "skip": true,
-        "reason": "フェーズ 3 で WebAssembly 化するまで(/practice と同じ)"
+        "reason": "スマホ向けの案内(TouchPracticeGuide)の「画像で見る」の項目。SSR 版は <template> に入れて、タッチだけの端末で JavaScript が取り出す(この比較は template の中身を数えない)。移行版は、Blazor が <template> の中身を .content ではなく子として作るので、hidden の案内の中に、そのまま置く(PC では見えない。タッチだけの端末でだけ、tutorial.js が動く)。項目は、タイトル + 「を画像で見る」 + 「記事を開く」",
+        "new": [
+            "Modular Avatar で衣装を着せるを画像で見る記事を開く",
+            "Unity の画面を動かしてみるを画像で見る記事を開く"
+        ]
+    },
+    "/report": {
+        "reason": "報告フォームは JavaScript(Turnstile)で描く。SSR 版は Razor のフォーム(種類・内容・連絡先・送信の完了の表示)、移行版の静的 HTML は説明文だけ(フォームは kit の ReportFormView が WebAssembly で描く。起動のあとの画面は、フォームの項目の文言が SSR 版と同じことを、kit のテストが確かめる)",
+        "ssr": [
+            "種類 選んでください 不具合・記事の間違い 要望・提案 その他 内容 （5〜2000 文字。いま 0 文字） 連絡先（任意） ウェブサイト 送信する",
+            "送信しました。ありがとうございます。返信が必要な場合は、書いていただいた連絡先にお返事することがあります。 もう 1 件送る"
+        ],
+        "new": [
+            "送信フォームは、JavaScript を有効にすると使えます。"
+        ]
     }
 }

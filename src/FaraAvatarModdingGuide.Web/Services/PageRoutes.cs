@@ -3,7 +3,7 @@ using FaraAvatarModdingGuide.Models;
 namespace FaraAvatarModdingGuide.Web.Services;
 
 /// <summary>
-/// WebAssembly で動くページ。ここに無いパス(静的 HTML のままのページ。フェーズ 2 では練習の 3 ページ)への移動は、Blazor の移動ではなく、ブラウザの通常の移動(再読み込み)にする。
+/// WebAssembly で動くページ。ここに無いパス(静的 HTML のままのページ。フェーズ 3 で練習の 3 ページも WebAssembly になったので、今は無い。知らない URL だけ)への移動は、Blazor の移動ではなく、ブラウザの通常の移動(再読み込み)にする。
 /// 固定のページは Build の PageCatalog.WasmPaths と同じ一覧にする。記事・カテゴリは content.json にあるものすべて(SiteLookups.IsContentPath。Build の PageCatalog.IsWasm と同じ規則)。
 /// Web.Tests が、Build の全ページ(76 本)・@page のルートと突き合わせる。フェーズが進んで @page を足したら、ここも足す。
 /// </summary>
@@ -12,6 +12,7 @@ public static class PageRoutes
     public static readonly IReadOnlyList<string> Wasm =
     [
         "/", "/learn", "/shortcuts", "/addons", "/glossary", "/howto", "/tips", "/qa", "/links", "/changelog", "/report", "/privacy", "/search",
+        "/practice", "/practice/unity", "/practice/room",
     ];
 
     /// <summary>パス(先頭は /。クエリ・ハッシュは除く)が WebAssembly のページか。末尾の / は無視する。content が無いときは、記事・カテゴリは静的 HTML 扱い。</summary>

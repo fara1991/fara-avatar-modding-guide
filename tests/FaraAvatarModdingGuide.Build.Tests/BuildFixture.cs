@@ -53,6 +53,7 @@ internal static class TestTemplate
             <!-- STATIC-ONLY:END -->
             <!-- WASM-ONLY:START -->
             <style>#boot-indicator { position: fixed; }</style>
+            <script type="importmap">{"imports":{"three":"/lib/three/three.module.js"}}</script>
             <!-- WASM-ONLY:END -->
         </head>
         <body>
@@ -79,6 +80,9 @@ public sealed class BuildFixture : IDisposable
     public bool Available { get; }
     public string Production { get; }
     public string Develop { get; }
+
+    /// <summary>本物のテンプレート（src/FaraAvatarModdingGuide.Web/wwwroot/index.html）で、本番用に書き出したもの。importmap のハッシュなど、実際の記述を通して確かめる。</summary>
+    public string Real { get; }
     public ContentService Content { get; }
 
     public BuildFixture()
@@ -87,6 +91,7 @@ public sealed class BuildFixture : IDisposable
         _root = Path.Combine(Path.GetTempPath(), "avatar-build-tests-" + Guid.NewGuid().ToString("N")[..8]);
         Production = Path.Combine(_root, "production");
         Develop = Path.Combine(_root, "develop");
+        Real = Path.Combine(_root, "real");
         Available = Repo.NodeAvailable() && File.Exists(Path.Combine(Repo.Root, "external", "fara-site-kit", "build", "build-pages.mjs"));
         if (!Available) return;
 
@@ -95,6 +100,7 @@ public sealed class BuildFixture : IDisposable
         File.WriteAllText(template, TestTemplate.Html);
         SiteBuilder.Run(new BuildOptions(Repo.Root, template, Production, "production"));
         SiteBuilder.Run(new BuildOptions(Repo.Root, template, Develop, "develop", DevOrigin: "https://avatar-wasm-dev.fara-labs.com"));
+        SiteBuilder.Run(new BuildOptions(Repo.Root, Path.Combine(Repo.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "index.html"), Real, "production"));
     }
 
     public void Dispose()

@@ -1,5 +1,5 @@
-@* ルーティング。WebAssembly で動くページ（Pages/）だけが Router に載る。記事などの静的 HTML のページは、まだ WebAssembly にしない
-   （MainLayout が、そのページへの移動を、再読み込み（静的 HTML）に切り替える）。見つからない URL は 404.html から来るので、NotFoundView を出す。 *@
+@* ルーティング。WebAssembly で動くページ（Pages/）だけが Router に載る。フェーズ 3 で、全ページ（記事・一覧・練習の 3 ページなど）が載った。
+   載っていない URL への移動は、MainLayout が再読み込みに切り替える（404.html を出す）。見つからない URL は 404.html から来るので、NotFoundView を出す。 *@
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />

@@ -1,0 +1,118 @@
+@page "/practice/room"
+@inject NavigationManager Nav
+@implements IAsyncDisposable
+@inject SiteSettings Settings
+@inject IJSRuntime JS
+
+<PageTitle>みんなで練習 - @Settings.Title</PageTitle>
+
+<Breadcrumb Items="Crumbs" />
+
+<h1>みんなで練習</h1>
+<TouchPracticeGuide Embed="false" Items="TouchItems" Message="部屋の 3D ビューはキーボードとマウスで操作します。スマートフォンでは操作できないので、パソコンで開いてください。操作の流れは、次の記事で画像を見られます。" />
+<p class="lead practice-pc-only">URL を共有すると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
+
+@* 本体は wwwroot/js/room.js（3D ビューは viewport.js）。部屋の同期は worker/index.js の Durable Object(/api/rooms/<ID>/ws。このページが持つのは、部屋に入っているか(?room=<ID>)・ロビーに戻るかだけ)。
+   部屋を作る = ?room=<新しい ID> へ移動(Blazor の移動。再読み込みなし)。部屋が替わる・ロビーに戻るときは、前の部屋を退室して解放してから、次を始める。
+   静的 HTML(Build の PageBodies.PracticeRoom)と同じ構造(?room= の無いロビーの状態) *@
+<div id="room-lobby" class="card mb-4 practice-pc-only" hidden="@inRoom">
+    <div class="card-body">
+        <h2 class="h5">部屋を作る</h2>
+        <p class="mb-3">ログインは不要です。部屋を作ったら、表示される URL を一緒に練習する人に送ってください。</p>
+        <button type="button" class="btn btn-primary" id="room-create" @onclick="CreateRoom"><AvIcon Name="Add" /> 部屋を作る</button>
+    </div>
+</div>
+
+<div id="room-main" class="row g-4 practice-pc-only" hidden="@(!inRoom)">
+    <div class="col-lg-8">
+        <div class="practice-viewport" id="room-viewport" tabindex="0" aria-label="3D ビューポート"></div>
+        <div class="d-flex flex-wrap gap-2 align-items-center mt-2 small text-body-secondary">
+            <span>ビューをクリックしてからキーを押してください。使えるキーは <a href="/practice">操作の練習</a> と同じです。</span>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                <span>部屋</span>
+                <span class="room-status small" id="room-status" role="status">接続中…</span>
+            </div>
+            <div class="card-body">
+                <label class="form-label small" for="room-url">この URL を送ると、同じ部屋に入れます</label>
+                <div class="input-group input-group-sm mb-3">
+                    <input type="text" class="form-control" id="room-url" readonly />
+                    <button type="button" class="btn btn-outline-primary" id="room-copy">コピー</button>
+                </div>
+                <label class="form-label small" for="room-name">表示名（ほかの人に見えます。20 文字まで）</label>
+                <input type="text" class="form-control form-control-sm mb-3" id="room-name" maxlength="20" autocomplete="nickname" />
+                <h3 class="h6">参加している人</h3>
+                <ul class="room-peers mb-0" id="room-peers"></ul>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header fw-semibold">この部屋について</div>
+            <div class="card-body small">
+                <ul class="mb-0 ps-3">
+                    <li>共有されるのは、オブジェクトモードの追加・削除・複製・移動・回転・スケールです</li>
+                    <li><strong>編集モード（Tab）の変更は自分の画面だけ</strong>で、ほかの人には共有されません</li>
+                    <li>ほかの人が動かしているオブジェクトは、終わるまで動かせません（その人の色の枠が付きます）</li>
+                    <li>ほかの人が変更すると、<kbd>Ctrl</kbd>+<kbd>Z</kbd> でそれより前には戻せません</li>
+                    <li>「視点に合わせる」で、その人と同じ視点で見られます（自分で視点を動かすと解除）</li>
+                    <li>1 部屋 8 人まで、オブジェクトは 200 個まで。最後の変更から 24 時間で部屋の内容は消えます</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<noscript><div class="alert alert-warning">この機能には JavaScript が必要です。</div></noscript>
+
+@code {
+    /// <summary>部屋の ID の形(room.js・worker/index.js と同じ。小文字の英数字 6〜32 字)</summary>
+    private static readonly System.Text.RegularExpressions.Regex RoomRe = new("^[a-z0-9]{6,32}$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    private static readonly IReadOnlyList<(string? Href, string Text)> Crumbs = [("/practice", "操作の練習"), (null, "みんなで練習")];
+
+    private static readonly IReadOnlyList<TouchPracticeGuide.Item> TouchItems =
+    [
+        new("select", "選択・追加・削除・複製", "/learn/basics/select"),
+        new("transform", "移動・回転・スケール", "/learn/basics/transform"),
+    ];
+
+    [SupplyParameterFromQuery(Name = "room")] public string? RoomParameter { get; set; }
+
+    private PracticeHost? host;
+    private bool initialized;
+    private string? startedRoom;   // 3D を始めている部屋(null = ロビー。ロビーでも、スマートフォンの案内を出すために、入口(practice-entry.js)は始める)
+    private bool inRoom;
+
+    /// <summary>入っている部屋の ID(小文字にそろえる)。?room= が無い・形が違うときは null(ロビー)。</summary>
+    private string? RoomId => (RoomParameter ?? "").ToLowerInvariant() is { } id && RoomRe.IsMatch(id) ? id : null;
+
+    protected override void OnParametersSet() => inRoom = RoomId is not null;
+
+    /// <summary>最初の描画のあと、そして部屋が替わったとき(ロビー→部屋・部屋→別の部屋・部屋→ロビー)に、前の部屋を退室・解放して、次を始める。</summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var wanted = RoomId;
+        if (initialized && wanted == startedRoom) return;
+        initialized = true;
+        startedRoom = wanted;
+        if (host is not null) await host.DisposeAsync();
+        host = new PracticeHost(JS);
+        await host.StartAsync("room.js", wanted);   // wanted が null(ロビー)のときは、PC の 3D は始めない
+    }
+
+    private void CreateRoom()
+    {
+        var bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(10);
+        var id = new string(bytes.Select(b => "0123456789abcdefghijklmnopqrstuvwxyz"[b % 36]).ToArray());
+        Nav.NavigateTo($"/practice/room?room={id}");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        initialized = false;
+        if (host is not null) await host.DisposeAsync();
+        host = null;
+    }
+}

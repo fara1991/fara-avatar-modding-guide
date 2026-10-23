@@ -44,10 +44,18 @@
     --bs-font-sans-serif: "Zen Kaku Gothic New", "Outfit", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
 }
 
-/* 背景の飾り: Blender の 3D ビューのような、奥へ延びる床の方眼と、回る針金のアバター（js/bgscene.js が canvas に描く）。ここは、地の色だけ */
-body {
+/* 背景の飾り: Blender の 3D ビューのような、奥へ延びる床の方眼と、回る針金のアバター（js/bgscene.js が canvas に描く）。ここは、地の色だけ。
+   地の色は html に塗る（body に塗ると、body の背景が、z-index: -1 の canvas（#site-scene）を覆ってしまう）。
+   index.html の起動中の表示（インラインの style）も html と body に同じ色を塗るので、同じ強さで、あとから読む app.css が勝つようにしてある */
+html,
+html[data-bs-theme="dark"] {
     background: linear-gradient(180deg, #0a0716 0%, #100a26 100%);
     background-attachment: fixed;
+}
+
+html body,
+html[data-bs-theme] body {
+    background: transparent;
 }
 
 /* ライトテーマ（サイドバーの紫は共通） */
@@ -79,7 +87,7 @@ body {
     --bs-code-color: #b02a8f;
 }
 
-[data-bs-theme="light"] body {
+html[data-bs-theme="light"] {
     background: #f7f4fd;
     background-attachment: fixed;
 }
@@ -701,14 +709,13 @@ h1:focus {
     outline-offset: -2px;
 }
 
-/* 地の色。SSR 版と同じグラデーション（ダーク）。背景の 3D（bgscene.js）はフェーズ 3 で足す */
-body {
-    background: linear-gradient(180deg, #0a0716 0%, #100a26 100%);
-    background-attachment: fixed;
-}
-
-[data-bs-theme="light"] body {
-    background: #f7f4fd;
+/* 地の色。SSR 版と同じグラデーション（ダーク） */
+/* 背景の飾り（床の方眼と回る針金のアバター）。js/bgscene.js が、body の先頭に canvas を 1 つだけ置いて描く（見た目だけ。操作には関わらない） */
+#site-scene {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
 }
 
 /* サイトの本文の幅と余白。SSR 版の .content（px-4 = 1.5rem）に合わせる */

@@ -48,6 +48,11 @@
         }
     </style>
     <noscript><style>#boot-indicator { display: none; }</style></noscript>
+    <!-- three.js の importmap(練習・記事内チュートリアルの 3D 表示)。three.js は自分のサイトに同梱している(lib/three/。jsDelivr は使わない)。
+         この文書で最初の module が読まれる前に置く必要がある(Blazor が後から足したものは効かない)ので、テンプレートの head に 1 つだけ置く。
+         CSP は script-src に importmap の sha256 を入れて許可する。ハッシュは Build が、この script の中身(<script> と </script> の間の文字を、そのまま)から計算して _headers に入れる。
+         中身を変える(three.js の版を上げる)と、ハッシュも自動で変わる。手では直さない。 -->
+    <script type="importmap">{"imports":{"three":"/lib/three/three.module.js"}}</script>
     <!-- WASM-ONLY:END -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -59,6 +64,9 @@
     <link href="css/base.css" rel="stylesheet" />
     <!-- 共通部品（fara-site-kit）の CSS。サイトの app.css より前に読む（同じ強さの規則は app.css が勝つ） -->
     <link href="_content/FaraSiteKit.Razor/css/fara-site-kit.css" rel="stylesheet" />
+    <!-- 練習・記事内チュートリアルの見た目(SSR 版の site.css から移した)と、練習の JavaScript が出すアイコン(Bootstrap Icons のうち使うものだけを CSS にした) -->
+    <link href="css/bi-icons.css" rel="stylesheet" />
+    <link href="css/practice.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
     <!-- 描画の前に、保存されたテーマ（ライト／ダーク）と PC のサイドバーを隠す設定を html に反映する（kit の theme-init.js）。
          data-storage-key・data-sidebar-key は、SiteOptions（Services/SiteInfo.cs の StorageKey・SidebarKey）と同じ値にする（違うと、起動の後にコンソールに警告が出る）。
@@ -69,6 +77,8 @@
     <script src="js/theme-default.js"></script>
     <!-- STATIC-ONLY の区切りで囲んだ部分は、WebAssembly を使わないページ（記事など）だけに残す。「更新予定」の帯は、WebAssembly のページでは kit の MaintenanceBanner が出し、
          静的 HTML のページでは、この notice.js が Worker の /api/maintenance を読んで出す -->
+    <!-- 背景の飾り(床の方眼と回る針金のアバター。2D の canvas)。全ページで 1 度だけ動く。ページを移っても、本文だけが替わるので、そのまま残る(多重に作らない) -->
+    <script src="js/bgscene.js" defer></script>
     <!-- STATIC-ONLY:START -->
     <script src="js/notice.js" defer></script>
     <!-- STATIC-ONLY:END -->

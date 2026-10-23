@@ -9,7 +9,7 @@ const SSR = process.env.SSR || "http://127.0.0.1:5000";
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const out = process.argv[2] || "shots";
 const paths = process.argv.slice(3).length ? process.argv.slice(3) : [
-  "/", "/learn", "/learn/basics", "/learn/basics/transform", "/learn/unity/modular-avatar-outfit", "/shortcuts", "/glossary", "/howto", "/tips", "/qa", "/addons", "/links", "/changelog", "/search?q=blender", "/privacy", "/report",
+  "/", "/learn", "/learn/basics", "/learn/basics/transform", "/learn/unity/modular-avatar-outfit", "/shortcuts", "/glossary", "/howto", "/tips", "/qa", "/addons", "/links", "/changelog", "/search?q=blender", "/privacy", "/report", "/practice", "/practice/unity", "/practice/room",
 ];
 mkdirSync(out, { recursive: true });
 const b = await launch();
@@ -24,7 +24,7 @@ for (const [vpName, vp] of [["pc", { width: 1280, height: 800 }], ["sp", { width
         if (kind === "new") await p.waitForSelector(".mud-layout", { timeout: 60000 });
         await p.evaluate(() => document.fonts && document.fonts.ready);
         await p.waitForTimeout(kind === "new" ? 800 : 400);
-        // 背景の 3D(SSR 版の bgscene.js。フェーズ 3 で移す)と、動くものを止めて比べやすくする
+        // 背景の 3D(bgscene.js)・練習の 3D(WebGL の canvas)は、動いていて(アニメーションの位相が違う)比べられないので隠す。動くものも止めて比べやすくする
         await p.addStyleTag({ content: "canvas { display: none !important; } *, *::before, *::after { animation: none !important; transition: none !important; caret-color: transparent !important; }" });
         await p.waitForTimeout(100);
         shots[kind] = await p.screenshot();
