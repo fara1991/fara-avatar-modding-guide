@@ -1,3 +1,4 @@
+using FaraAvatarModdingGuide.Models;
 using System.Text;
 
 namespace FaraAvatarModdingGuide.Build;

@@ -1,3 +1,4 @@
+using FaraAvatarModdingGuide.Models;
 using System.Diagnostics;
 using FaraAvatarModdingGuide.Build;
 using FaraAvatarModdingGuide.Data;

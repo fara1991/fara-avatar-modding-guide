@@ -1,16 +1,15 @@
 using System.Text.Json;
 using FaraAvatarModdingGuide.Data;
+using FaraAvatarModdingGuide.Models;
 
 namespace FaraAvatarModdingGuide.Build;
 
-/// <summary>data/site.json の中身（WebAssembly 側の SiteInfo が読む）。サイト名・バージョン・フッターの SNS など。</summary>
-public sealed record SiteSettings(
-    string Title, string BlenderVersion, string UnityVersion, string RepositoryUrl, int PublishedYear, string PortfolioUrl,
-    string DevelopHost, IReadOnlyList<SocialDto> Socials)
+/// <summary>appsettings.json の "Site" から、data/site.json の中身を作る。</summary>
+public static class SiteSettingsLoader
 {
     /// <summary>
-    /// appsettings.json の "Site" を読む（SSR 版と同じ情報源。SSR を消すフェーズ 5 で、これを tools/ の設定に移す）。
-    /// developHost は、確認用の公開先のホスト名（フッターの作者リンクを確認用に切り替える基準）。
+    /// SSR 版と同じ情報源（appsettings.json の Site）を読む。SSR を消すフェーズ 5 で、これを tools/ の設定に移す。
+    /// developHost は、確認用の公開先のホスト名。
     /// </summary>
     public static SiteSettings Load(string appSettingsPath, string developHost)
     {
@@ -24,5 +23,3 @@ public sealed record SiteSettings(
             site.Socials.Where(s => !string.IsNullOrWhiteSpace(s.Url)).Select(s => new SocialDto(s.Service, s.Label, s.Url)).ToList());
     }
 }
-
-public sealed record SocialDto(string Service, string Label, string Url);

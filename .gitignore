@@ -9,6 +9,9 @@ obj/
 ## 静的サイトの書き出し先 (dotnet run -- --export dist)
 dist/
 
+## 移行先（WebAssembly）の dotnet publish の出力と Build の作業フォルダ
+publish/
+
 ## IDE
 .idea/
 .vs/

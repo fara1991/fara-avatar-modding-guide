@@ -1,0 +1,12 @@
+@* 装飾のアイコン（Material の SVG）。静的 HTML（Build の Fragments.Icon）と同じ <svg class="av-icon ..."> を出す。読み上げには出さない。 *@
+<svg class="@CssClass" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">@((MarkupString)IconMap.Get(Name))</svg>
+
+@code {
+    /// <summary>Material のメンバー名（content.json の icon と同じ。例: MenuBook）。</summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+
+    /// <summary>足す class（例: me-2）。</summary>
+    [Parameter] public string? Class { get; set; }
+
+    private string CssClass => string.IsNullOrEmpty(Class) ? "av-icon" : "av-icon " + Class;
+}
