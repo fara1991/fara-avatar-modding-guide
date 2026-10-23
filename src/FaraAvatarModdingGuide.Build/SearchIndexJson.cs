@@ -1,18 +1,11 @@
 using System.Globalization;
 using System.Text;
 using FaraAvatarModdingGuide.Data;
+using FaraAvatarModdingGuide.Models;
 
 namespace FaraAvatarModdingGuide.Build;
 
-/// <summary>
-/// data/search.json の 1 件。検索の索引は、ビルド時に正規化した文字列（*Norm）を持つ（計画書 4.4）。
-/// ブラウザの WebAssembly では string.Normalize が使えないため。正規化の規則は wwwroot/js/searchcore.js の norm() と同じ
-/// （tests/js/search-norm.test.mjs が、同じ入力で同じ結果になることを確かめる）。
-/// </summary>
-public sealed record SearchRecord(
-    string Type, string Title, string? Subtitle, string Url, string Text, string? Reading,
-    string TitleNorm, string SubtitleNorm, string TextNorm, string ReadingNorm);
-
+/// <summary>検索の索引の正規化（ビルド時。規則は wwwroot/js/searchcore.js の norm() と同じで、tests/js/search-norm.mjs が一致を確かめる）。</summary>
 public static class SearchIndexJson
 {
     /// <summary>NFKC・小文字・全角チルダを〜に・カタカナをひらがなに（searchcore.js の norm() と同じ）。</summary>

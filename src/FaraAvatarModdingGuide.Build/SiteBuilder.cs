@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using FaraAvatarModdingGuide.Data;
+using FaraAvatarModdingGuide.Models;
 using Microsoft.AspNetCore.StaticFiles;
 
 namespace FaraAvatarModdingGuide.Build;
@@ -48,6 +49,9 @@ public static class SiteBuilder
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
+    /// <summary>Web が読む JSON と同じ型情報（ソース生成）で書く。書き方（日本語のエスケープなど）だけ DataJson に合わせる。</summary>
+    private static readonly SiteJsonContext Json = new(DataJson);
+
     private static readonly FileExtensionContentTypeProvider ContentTypes = new();
 
     /// <summary>記事フォルダから配信する画像・動画か（SSR 版の StaticSiteExporter.IsMedia と同じ判定）。</summary>
@@ -79,18 +83,18 @@ public static class SiteBuilder
         if (!File.Exists(kitScript)) throw new FileNotFoundException($"fara-site-kit がありません（git submodule update --init が必要）: {kitScript}");
 
         var contentService = new ContentService(Path.Combine(repo, "Content"));
-        var content = SiteContent.From(contentService);
+        var content = SiteContentFactory.From(contentService);
         var siteJson = JsonNode.Parse(File.ReadAllText(Path.Combine(repo, "tools", "site.json")))!.AsObject();
         var devOrigin = options.DevOrigin ?? siteJson["devOrigin"]!.GetValue<string>();
-        var settings = SiteSettings.Load(Path.Combine(repo, "appsettings.json"), new Uri(devOrigin).Host);
+        var settings = SiteSettingsLoader.Load(Path.Combine(repo, "appsettings.json"), new Uri(devOrigin).Host);
 
         // --- データ（WebAssembly が起動時に読む）--------------------------------
-        WriteJson(Path.Combine(outDir, "data", "content.json"), content);
-        WriteJson(Path.Combine(outDir, "data", "site.json"), settings);
+        WriteJson(Path.Combine(outDir, "data", "content.json"), content, Json.SiteContent);
+        WriteJson(Path.Combine(outDir, "data", "site.json"), settings, Json.SiteSettings);
         var searchEntries = contentService.BuildSearchIndex();
-        WriteJson(Path.Combine(outDir, "data", "search.json"), SearchIndexJson.From(searchEntries));
+        WriteJson(Path.Combine(outDir, "data", "search.json"), SearchIndexJson.From(searchEntries), Json.IReadOnlyListSearchRecord);
         // 現行と同じ URL・同じ形（/search-index.json）。外部からの参照を壊さない
-        WriteJson(Path.Combine(outDir, "search-index.json"), searchEntries);
+        WriteJson(Path.Combine(outDir, "search-index.json"), searchEntries.Select(e => new LegacySearchEntry(e.Type, e.Title, e.Subtitle, e.Url, e.Text, e.Reading)).ToList(), Json.IReadOnlyListLegacySearchEntry);
 
         // --- 画像・動画 -----------------------------------------------------
         CopyDirectory(Path.Combine(repo, "wwwroot", "images"), Path.Combine(outDir, "images"), _ => true);
@@ -129,6 +133,8 @@ public static class SiteBuilder
         File.WriteAllText(siteFile, siteJson.ToJsonString(DataJson), new UTF8Encoding(false));
         File.WriteAllText(pagesFile, new JsonObject { ["pages"] = kitPages, ["redirects"] = kitRedirects }.ToJsonString(DataJson), new UTF8Encoding(false));
         RunKit(options, kitScript, siteFile, pagesFile, templateCopy, outDir);
+
+        DeletePrecompressed(outDir);
 
         // --- WebAssembly を使わないページから、読み込み表示と Blazor のスクリプトを外す -------
         foreach (var page in pages) StripWasm(outDir, page);
@@ -186,10 +192,28 @@ public static class SiteBuilder
         Console.WriteLine(stdout.Result.Trim());
     }
 
-    private static void WriteJson<T>(string path, T value)
+    /// <summary>
+    /// dotnet publish が作った事前圧縮のファイル（x.br / x.gz。元の x があるものだけ）を消す。Cloudflare は配信時に圧縮するので使われず、
+    /// Build が書き換えた index.html などの古い圧縮ファイルが残ると紛らわしいため。
+    /// </summary>
+    public static int DeletePrecompressed(string outDir)
+    {
+        var deleted = 0;
+        foreach (var file in Directory.EnumerateFiles(outDir, "*", SearchOption.AllDirectories).ToList())
+        {
+            var ext = Path.GetExtension(file);
+            if (ext is not (".br" or ".gz")) continue;
+            if (!File.Exists(file[..^ext.Length])) continue;
+            File.Delete(file);
+            deleted++;
+        }
+        return deleted;
+    }
+
+    private static void WriteJson<T>(string path, T value, System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> typeInfo)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        File.WriteAllText(path, JsonSerializer.Serialize(value, DataJson), new UTF8Encoding(false));
+        File.WriteAllText(path, JsonSerializer.Serialize(value, typeInfo), new UTF8Encoding(false));
     }
 
     private static void CopyDirectory(string source, string target, Func<string, bool> include)

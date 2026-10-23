@@ -1,3 +1,4 @@
+using FaraAvatarModdingGuide.Models;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using FaraAvatarModdingGuide.Build;

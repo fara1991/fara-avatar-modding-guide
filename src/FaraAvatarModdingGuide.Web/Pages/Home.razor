@@ -1,0 +1,80 @@
+@page "/"
+@inject ContentStore Store
+@inject SiteSettings Settings
+
+<PageTitle>ホーム - @Settings.Title</PageTitle>
+
+@* サイト名と説明（ポケモン・Bot のサイトと同じ作り。箱で囲まず、グラデーションの文字）。静的 HTML（Build の PageBodies.Home）と同じ構造・class *@
+<div class="home-header">
+    <h1 class="home-title">@Settings.Title</h1>
+    <p class="home-lead mb-3">
+        アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。<br />
+        初めての方は下の目次を上から順に読んでください。
+    </p>
+    <p class="small text-body-secondary mb-3">
+        対象バージョン: Blender @Settings.BlenderVersion / Unity @Settings.UnityVersion（VRChat SDK3）
+        @if (!string.IsNullOrEmpty(Settings.RepositoryUrl))
+        {
+            <span> · </span><a href="@Settings.RepositoryUrl" target="_blank" rel="noopener">GitHub で修正を提案する</a>
+        }
+    </p>
+    <a href="/learn" class="btn btn-primary btn-lg"><AvIcon Name="MenuBook" /> はじめから読む</a>
+</div>
+
+<section class="mb-5">
+    <h2 class="h3 mb-3">目次</h2>
+    @if (Store.Content is { } content)
+    {
+        <Roadmap Content="content" />
+    }
+    else
+    {
+        <p class="text-body-secondary" role="status">目次を読み込めませんでした。ページを再読み込みしてください。</p>
+    }
+</section>
+
+<section class="mb-5">
+    <h2 class="h3 mb-3">困ったときに引く</h2>
+    <div class="row g-4">
+        @foreach (var (href, icon, title, text) in Cards)
+        {
+            <div class="col-md-4">
+                <a href="@href" class="card h-100 text-decoration-none article-card">
+                    <div class="card-body">
+                        <h3 class="h5 card-title"><AvIcon Name="@icon" Class="me-2" />@title</h3>
+                        <p class="card-text text-body-secondary">@text</p>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="mb-4">
+    <h2 class="h3 mb-3">更新履歴</h2>
+    <ul class="changelog-recent list-unstyled mb-2">
+        @foreach (var e in Store.Content?.Changelog.Take(RecentCount) ?? Enumerable.Empty<ChangelogDto>())
+        {
+            <li><span class="changelog-date">@e.Date[5..].Replace('-', '/')</span> @e.Title</li>
+        }
+    </ul>
+    <a href="/changelog" class="btn btn-sm btn-outline-primary">すべて見る</a>
+</section>
+
+@code {
+    /// <summary>ホームに出す更新履歴の件数（細かい内容は /changelog）。Build の PageBodies.RecentChangelogCount と同じ。</summary>
+    internal const int RecentCount = 3;
+
+    /// <summary>「困ったときに引く」（Build の PageBodies.HomeCards と同じ文言。同じことを Web.Tests が確かめる）。</summary>
+    internal static readonly (string Href, string Icon, string Title, string Text)[] Cards =
+    [
+        ("/howto", "HelpOutline", "あの操作、何て名前？", "「頂点をくっつけたい」から、操作の名前・メニュー・キーを引けます。"),
+        ("/tips", "Lightbulb", "TIPS", "Unity でピンクになる、服がついてこないなど、よくあるつまずきと直し方。"),
+        ("/qa", "Chat", "改変 Q&A", "非対応衣装・ウェイト・首すげ替え・色変えなど、改変の相談でよく出た質問と手順。"),
+        ("/glossary", "Article", "用語集", "Blender・Unity・VRChat の言葉を、英語 UI の表記と一緒に。"),
+        ("/shortcuts", "Keyboard", "ショートカット一覧", "キーから機能を逆引きできます。"),
+        ("/addons", "Extension", "アドオン", "作業を楽にするアドオンの紹介。"),
+        ("/links", "Link", "リンク集", "Unity のツール、参考になる記事、話題になった BOOTH のアバター・衣装。"),
+        ("/practice", "SportsEsports", "操作の練習", "ブラウザ上で、Blender と同じキー操作を試せます。"),
+    ];
+}

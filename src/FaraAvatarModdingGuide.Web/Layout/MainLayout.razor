@@ -1,0 +1,45 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject MaintenanceInfo Maintenance
+@inject ContentStore Store
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+@* 共通のレイアウト（fara-site-kit の SiteLayout）: MudBlazor の土台（テーマ・ポップアップ・ダイアログ・通知）・ヘッダー・サイドバー（PC は Mini、スマホは一時的なメニュー）・本文・フッター・お知らせの帯。
+   ここでは、サイトの中身（サイドバーの項目）だけを渡す。サイドバーの開閉・スマホの判定・フッター（画面の下に固定）は SiteLayout が持つ。
+   ヘッダーの検索欄は、フェーズ 2 で足す（サイト内検索を WebAssembly に移すときに）。 *@
+<SiteLayout Body="@Body" Maintenance="Maintenance">
+    <HeaderEnd>
+        @* 右端に寄せる（ヘッダーの検索欄はフェーズ 2。それまでは、名前とスイッチだけ） *@
+        <ThemeSwitch Class="av-header-switch" />
+    </HeaderEnd>
+    <DrawerContent Context="closeOnNavigate">
+        <SiteNavMenu Groups="Groups" />
+        @* ライト／ダークの切り替え（スマホ。PC はヘッダーのスイッチ。.av-drawer-theme は app.css が PC では隠す） *@
+        <div class="av-drawer-theme">
+            <ThemeSwitch AsButton="true" />
+        </div>
+    </DrawerContent>
+</SiteLayout>
+
+@code {
+    private IReadOnlyList<SiteNavGroup> Groups => NavGroups.Build(Store.Content);
+
+    private IDisposable? registration;
+
+    protected override void OnInitialized() => registration = Nav.RegisterLocationChangingHandler(OnLocationChanging);
+
+    /// <summary>
+    /// 静的 HTML のままのページ（記事など）への移動は、Blazor の移動ではなく、ブラウザの通常の移動（location.assign）にする
+    /// （Blazor に任せると、Router に載っていないページとして NotFound になってしまう）。
+    /// NavigateTo(forceLoad) はこの処理をもう一度通って呼び合うので使わない。フラグも持たない（読み込みを止めたあとも、次の移動が正しく動くように）。
+    /// </summary>
+    private async ValueTask OnLocationChanging(LocationChangingContext context)
+    {
+        if (!PageRoutes.ShouldReload(context.TargetLocation, Nav.BaseUri)) return;
+        context.PreventNavigation();
+        await JS.InvokeVoidAsync("location.assign", context.TargetLocation);
+    }
+
+    public void Dispose() => registration?.Dispose();
+}

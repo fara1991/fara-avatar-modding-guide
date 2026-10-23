@@ -1,3 +1,4 @@
+using FaraAvatarModdingGuide.Models;
 using System.Text.RegularExpressions;
 using FaraAvatarModdingGuide.Build;
 using FaraAvatarModdingGuide.Data;
@@ -9,8 +10,8 @@ namespace FaraAvatarModdingGuide.Build.Tests;
 public class PageCatalogTests
 {
     private static readonly ContentService Content = new(Path.Combine(Repo.Root, "Content"));
-    private static readonly SiteContent Site = SiteContent.From(Content);
-    private static readonly SiteSettings Settings = SiteSettings.Load(Path.Combine(Repo.Root, "appsettings.json"), "avatar-dev.fara-labs.com");
+    private static readonly SiteContent Site = SiteContentFactory.From(Content);
+    private static readonly SiteSettings Settings = SiteSettingsLoader.Load(Path.Combine(Repo.Root, "appsettings.json"), "avatar-dev.fara-labs.com");
     private static readonly IReadOnlyList<PagePlan> Pages = PageCatalog.Build(Site, Settings);
 
     [Fact]

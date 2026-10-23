@@ -1,0 +1,32 @@
+@page "/changelog"
+@inject ContentStore Store
+@inject SiteSettings Settings
+
+<PageTitle>更新履歴 - @Settings.Title</PageTitle>
+
+<h1>更新履歴</h1>
+<p class="lead">記事の追加・見た目や機能の変更の記録です（新しい順）。</p>
+
+@if (Store.Content is not { } content)
+{
+    <p class="text-body-secondary" role="status">更新履歴を読み込めませんでした。ページを再読み込みしてください。</p>
+}
+else
+{
+    @foreach (var e in content.Changelog)
+    {
+        <section class="changelog-entry mb-4">
+            <div class="changelog-date">@e.Date.Replace('-', '/')</div>
+            <h2 class="h5">@e.Title</h2>
+            @if (e.Items.Count > 0)
+            {
+                <ul class="small">
+                    @foreach (var item in e.Items)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}

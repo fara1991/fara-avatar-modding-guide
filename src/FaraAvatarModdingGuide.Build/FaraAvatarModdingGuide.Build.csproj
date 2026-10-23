@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FaraAvatarModdingGuide.Content\FaraAvatarModdingGuide.Content.csproj" />
+    <ProjectReference Include="..\FaraAvatarModdingGuide.Shared\FaraAvatarModdingGuide.Shared.csproj" />
     <PackageReference Include="MudBlazor" Version="9.11.0" />
     <!-- 画像・動画の判定（FileExtensionContentTypeProvider）に使う。サーバーは起動しない -->
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -23,6 +24,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="FaraAvatarModdingGuide.Build.Tests" />
+    <InternalsVisibleTo Include="FaraAvatarModdingGuide.Web.Tests" />
   </ItemGroup>
 
 </Project>
