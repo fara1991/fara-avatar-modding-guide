@@ -38,12 +38,17 @@
     private string lastPath = "";
 
     /// <summary>
-    /// 直接 #見出し 付きの URL で開いたとき: 静的 HTML のあいだにブラウザが動かしたスクロールは、WebAssembly が画面を描き直すと失われるので、描いたあとにもう一度、その見出しへ動かす。
+    /// 最初の描画のあと。直接 #見出し 付きの URL で開いたとき: 静的 HTML のあいだにブラウザが動かしたスクロールは、WebAssembly が画面を描き直すと失われるので、描いたあとにもう一度、その見出しへ動かす。
+    /// そうでないときは、起動の前の静的な本文で利用者が動かしたスクロールを、起動の後に引き継ぐ(本文を見えたまま残すので、読んでいる途中で起動しても、位置が飛ばない)。
     /// </summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || new Uri(Nav.Uri).Fragment.Length <= 1) return;
-        try { await JS.InvokeVoidAsync("avatarPage.scrollToHash"); }
+        if (!firstRender) return;
+        try
+        {
+            if (new Uri(Nav.Uri).Fragment.Length > 1) await JS.InvokeVoidAsync("avatarPage.scrollToHash");
+            else await JS.InvokeVoidAsync("avatarPage.restoreBootScroll");   // 起動の前の静的な本文で動かしたスクロールを引き継ぐ
+        }
         catch (JSException) { }
     }
 

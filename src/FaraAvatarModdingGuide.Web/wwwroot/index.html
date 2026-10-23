@@ -16,38 +16,49 @@
         CSP（_headers）でインラインの script は止まるので、script は外部ファイルだけにする。
     -->
     <!-- WASM-ONLY:START -->
-    <!-- 起動までの読み込み表示（画面全体を覆う不透明なオーバーレイ）。最初に当てる（CSS の読み込み前にも本文が見えないように、インラインで書く）。
-         背景色は theme-init.js（kit）が決める data-bs-theme に従う。60 秒の保険は、JS の RELEASE_MS と同じ秒数 -->
+    <!-- 起動までの読み込み表示。静的な本文は、起動の前から見えたまま残す(本文を覆わない)。画面の右下に小さく「読み込み中…」だけを出す(操作は止めない:
+         pointer-events: none。45 秒たっても描かれないときだけ、案内と「再読み込み」のリンクに変わり、リンクだけ押せる)。
+         静的な本文の枠は、起動の後の画面と同じ構造・同じ位置(Build の StaticFrame)。起動すると、Blazor が #app の中身を置き換えて、boot-indicator.js(kit)がこの表示を外す。
+         最初に当てる(CSS の読み込み前にも色が合うように、インラインで書く)。60 秒の保険は、JS の RELEASE_MS と同じ秒数 -->
     <style>
         html, body { background: #f7f4fd; }
         html[data-bs-theme="dark"], html[data-bs-theme="dark"] body { background: #0c0616; }
         #boot-indicator {
-            position: fixed; inset: 0; z-index: 2147483000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.1rem;
-            box-sizing: border-box; padding: 1.5rem;
-            background: #f7f4fd; color: #3b2a5c;
+            position: fixed; right: 1rem; bottom: 3.4rem; z-index: 2147483000;
+            display: flex; align-items: center; gap: 0.6rem;
+            box-sizing: border-box; max-width: calc(100vw - 2rem); padding: 0.45rem 0.95rem;
+            border: 1px solid rgba(200, 170, 255, 0.3); border-radius: 999px;
+            background: rgba(26, 13, 51, 0.92); color: #f3edff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
             font-family: "Zen Kaku Gothic New", "Yu Gothic", system-ui, sans-serif;
+            pointer-events: none;
             animation: boot-indicator-release 0s linear 60s forwards;
         }
         @keyframes boot-indicator-release { to { visibility: hidden; } }
-        html[data-bs-theme="dark"] #boot-indicator { background: #0c0616; color: #e9e3f5; }
         .boot-indicator-spinner {
-            width: 3rem; height: 3rem; box-sizing: border-box;
-            border: 0.3rem solid #7c3aed; border-right-color: transparent; border-radius: 50%;
+            flex: none; width: 1rem; height: 1rem; box-sizing: border-box;
+            border: 0.17rem solid #c084fc; border-right-color: transparent; border-radius: 50%;
             animation: boot-indicator-spin 0.75s linear infinite;
         }
-        html[data-bs-theme="dark"] .boot-indicator-spinner { border-color: #a855f7; border-right-color: transparent; }
-        .boot-indicator-label { font-size: 0.95rem; font-weight: 700; line-height: 1.6; text-align: center; max-width: 24rem; }
+        .boot-indicator-label { font-size: 0.8rem; font-weight: 700; line-height: 1.5; }
         .boot-indicator-label:empty::before { content: "読み込み中…"; }
-        .boot-indicator-label a { color: #7c3aed; font-weight: 700; text-decoration: underline; pointer-events: auto; }
-        html[data-bs-theme="dark"] .boot-indicator-label a { color: #a855f7; }
+        .boot-indicator-label a { color: #e9d5ff; font-weight: 700; text-decoration: underline; pointer-events: auto; }
+        #boot-indicator[data-state="slow"] { pointer-events: auto; }
         #boot-indicator[data-state="slow"] .boot-indicator-spinner { animation: none; }
         @keyframes boot-indicator-spin { to { transform: rotate(360deg); } }
         @media (prefers-reduced-motion: reduce) {
             .boot-indicator-spinner { animation: none; }
         }
     </style>
-    <noscript><style>#boot-indicator { display: none; }</style></noscript>
+    <!-- JavaScript が無い環境: 読み込み表示は出さない。スマホは、サイドバー(ハンバーガーで開く一時的なメニュー。JavaScript が無いと開けない)を、本文とフッターの後ろに並べて出す(ページの移動に使える) -->
+    <noscript><style>
+        #boot-indicator { display: none; }
+        @media (max-width: 767.98px) {
+            .av-static { display: flex; flex-direction: column; }
+            .av-static .mud-main-content { order: 1; }
+            .av-static .fsk-sidebar { order: 2; display: block !important; position: static !important; width: auto !important; height: auto !important; overflow: visible !important; }
+        }
+    </style></noscript>
     <!-- three.js の importmap(練習・記事内チュートリアルの 3D 表示)。three.js は自分のサイトに同梱している(lib/three/。jsDelivr は使わない)。
          この文書で最初の module が読まれる前に置く必要がある(Blazor が後から足したものは効かない)ので、テンプレートの head に 1 つだけ置く。
          CSP は script-src に importmap の sha256 を入れて許可する。ハッシュは Build が、この script の中身(<script> と </script> の間の文字を、そのまま)から計算して _headers に入れる。
@@ -85,8 +96,8 @@
 </head>
 <body>
     <!-- WASM-ONLY:START -->
-    <!-- 起動までの読み込み表示。#app の外に置く（Blazor が #app の中身を置き換えても残るので、boot-indicator.js（kit）が起動後に外す）。
-         静的な本文は、このオーバーレイの下に DOM として残す（検索エンジン・JavaScript が無い環境のため）。文言は CSS（:empty::before）で出す -->
+    <!-- 起動までの読み込み表示（右下の小さな表示）。#app の外に置く（Blazor が #app の中身を置き換えても残るので、boot-indicator.js（kit）が起動後に外す）。
+         静的な本文は、起動の前から見えたまま残す（検索エンジン・JavaScript が無い環境のため）。文言は CSS（:empty::before）で出す -->
     <div id="boot-indicator" class="boot-indicator">
         <div class="boot-indicator-spinner" aria-hidden="true"></div>
         <span class="boot-indicator-label" role="status" aria-live="polite" aria-label="読み込み中"></span>

@@ -1,6 +1,7 @@
 // ページの移動まわりの小さな部品(C# から呼ぶ)。
 //   avatarPage.scrollToId(id)  … その id の要素が見える位置までスクロールする(#id で飛んできたとき)
 //   avatarPage.scrollToHash()  … URL の #id の要素へスクロールする。ページの描画が済むのを待つ(最大 2 秒)。直接開いたとき(静的 HTML で動いたスクロールは、WebAssembly が描き直すと失われる)と、見出し付きの URL へ移動したとき
+//   avatarPage.restoreBootScroll() … 起動の前の静的な本文で動かしたスクロールを、起動の後に引き継ぐ(起動の後の最初の描画のあとに 1 回)
 //   avatarPage.resetScroll()   … 本文のスクロールを一番上に戻す(別のページへ移ったとき。PC は本文の領域 .fsk-content が自分でスクロールするので、Blazor の既定の動き(window)では戻らない)
 (function () {
     "use strict";
@@ -45,6 +46,12 @@ window.addEventListener("popstate", function () {
     })();
 });
 
+// 起動の前(静的 HTML。.av-static がある間)の window のスクロール位置を覚えておく(restoreBootScroll)
+var bootScrollY = 0, bootTracking = true;
+window.addEventListener("scroll", function () {
+    if (bootTracking && document.querySelector(".av-static")) bootScrollY = window.scrollY;
+}, { passive: true });
+
 window.avatarPage = {
         scrollToId: function (id) {
             var el = document.getElementById(id);
@@ -59,6 +66,25 @@ window.avatarPage = {
                 var el = document.getElementById(id);
                 if (el) { el.scrollIntoView({ block: "start", behavior: smooth ? "smooth" : "instant" }); return; }
                 if (++tries < 40) setTimeout(find, 50);
+            })();
+        },
+        // 起動の前の静的な本文で動かしたスクロール(window)を、起動の後に引き継ぐ。起動すると Blazor が #app の中身を置き換え、
+        // PC は本文の領域(.fsk-content)の中がスクロールする画面に替わる(スマホは window のまま)ので、そのままだと一番上に戻ってしまう。
+        // 一番上で見ていたとき・戻る/進むの復元中・#見出しの URL(scrollToHash が動かす)では何もしない
+        restoreBootScroll: function () {
+            bootTracking = false;
+            var y = bootScrollY;
+            if (!y || poppingNow() || location.hash.length > 1) return;
+            var tries = 0;
+            (function apply() {
+                var el = scroller();
+                var max = el ? el.scrollHeight - el.clientHeight : document.documentElement.scrollHeight - window.innerHeight;
+                if (max >= y || tries >= 20) {
+                    if (el) el.scrollTop = Math.min(y, Math.max(0, max)); else window.scrollTo(0, Math.min(y, Math.max(0, max)));
+                    return;
+                }
+                tries++;
+                setTimeout(apply, 50);
             })();
         },
         resetScroll: function () {

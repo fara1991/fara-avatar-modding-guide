@@ -92,26 +92,22 @@ public static class PageCatalog
     public static string NotFoundTitle(SiteSettings settings) => $"ページが見つかりません | {settings.Title}";
 
     /// <summary>
-    /// ページの本文を、ページ全体の静的な枠（ヘッダーの名前とリンク・本文・フッター）で包む。
-    /// 先頭の要素に entry-static を付ける（読み込み表示が、WebAssembly が描くまで操作を止めるため。kit の bodyRootClass）。
+    /// ページの本文を、ページ全体の静的な枠(ヘッダー・サイドバー・本文・フッター)で包む。枠は、WebAssembly が起動したあとの画面と同じ DOM 構造・同じ class にする(StaticFrame。計画書 4.10)。
+    /// 先頭の要素に entry-static を付ける(読み込み表示が、WebAssembly が描くまで操作を止めるため。kit の bodyRootClass)。
+    /// path が null のとき(404.html)は、サイドバーのどの項目も強調しない。
     /// </summary>
-    public static string Wrap(string main, SiteSettings settings, string? path = null)
+    public static string Wrap(string main, SiteSettings settings, SiteContent content, string? path = null)
     {
         var sb = new StringBuilder();
         sb.Line("<div class=\"entry-static av-static\">");
-        sb.Line($"<header class=\"av-static-header\"><a class=\"fsk-brand\" href=\"/\">{Html.E(settings.Title)}</a>");
-        sb.Line("<nav aria-label=\"サイト内\" class=\"av-static-nav\">");
-        foreach (var (href, text) in StaticNav) sb.Line($"<a href=\"{href}\">{text}</a>");
-        sb.Line("</nav></header>");
-        sb.Line("<main id=\"fsk-main\" class=\"av-static-main\" tabindex=\"-1\"><article class=\"fsk-content\">");
+        sb.Append(StaticFrame.Header(settings));
+        sb.Append(StaticFrame.Sidebar(content, path));
+        sb.Line("<div class=\"mud-main-content\">");
+        sb.Line("<main id=\"fsk-main\" tabindex=\"-1\"><article class=\"fsk-content\">");
         sb.Append(main.TrimEnd('\n')).Append('\n');
         sb.Line("</article></main>");
-        sb.Line("<footer class=\"fsk-footer\"><div class=\"fsk-footer-line\">");
-        sb.Line($"<span class=\"fsk-footer-name\">{Html.E(settings.Title)}</span><span class=\"fsk-footer-sep\" aria-hidden=\"true\">|</span>");
-        sb.Line($"<a href=\"{ReportHref(path)}\">問い合わせ</a><span class=\"fsk-footer-sep\" aria-hidden=\"true\">|</span>");
-        sb.Line("<a href=\"/privacy\">プライバシーポリシー</a><span class=\"fsk-footer-sep\" aria-hidden=\"true\">|</span>");
-        sb.Line($"<span>© {settings.PublishedYear} <a href=\"{Html.E(settings.PortfolioUrl)}\">Fara</a></span>");
-        sb.Line("</div></footer>");
+        sb.Append(StaticFrame.Footer(settings, path));
+        sb.Line("</div>");
         sb.Line("</div>");
         return sb.ToString();
     }
@@ -127,10 +123,4 @@ public static class PageCatalog
             ? "/report?from=" + Uri.EscapeDataString(path)
             : "/report";
     }
-
-    private static readonly (string Href, string Text)[] StaticNav =
-    [
-        ("/", "ホーム"), ("/learn", "目次"), ("/shortcuts", "ショートカット"), ("/glossary", "用語集"), ("/howto", "何て名前？"),
-        ("/tips", "TIPS"), ("/qa", "改変 Q&amp;A"), ("/addons", "アドオン"), ("/links", "リンク集"), ("/changelog", "更新履歴"), ("/practice", "練習"),
-    ];
 }
