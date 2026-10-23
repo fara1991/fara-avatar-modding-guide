@@ -5,8 +5,10 @@ using Bunit;
 using FaraAvatarModdingGuide.Build;
 using FaraAvatarModdingGuide.Data;
 using FaraAvatarModdingGuide.Models;
+using FaraAvatarModdingGuide.Web.Search;
 using FaraAvatarModdingGuide.Web.Services;
 using Microsoft.Extensions.DependencyInjection;
+using FaraSiteKit.Razor;
 using Xunit;
 
 // SiteLinks（確認用ホスト）などは静的な設定なので、テストを並列に動かさない
@@ -36,18 +38,34 @@ internal static class TestData
     {
         var text = Regex.Replace(html, "<svg.*?</svg>", "", RegexOptions.Singleline);
         text = Regex.Replace(text, "<!--.*?-->", "", RegexOptions.Singleline);
+        text = Regex.Replace(text, "<noscript>.*?</noscript>", "", RegexOptions.Singleline);
         text = Regex.Replace(text, "<[^>]+>", " ");
         return Regex.Replace(WebUtility.HtmlDecode(text), @"\s+", "");
     }
 }
 
-/// <summary>data/content.json を返すだけの HttpMessageHandler（本物の Content を、Build と同じ型情報で JSON にして返す）。</summary>
+/// <summary>検索語の正規化の、テスト用（C# の NFKC。ブラウザでは JavaScript の normalize。同じ結果になることは SearchParityTests・search-norm-fn.test.mjs が確かめる）。</summary>
+internal sealed class ManagedNormalizer : ISearchNormalizer
+{
+    public string Norm(string text) => SearchIndexJson.Normalize(text);
+
+    public string NormFilter(string text) => SearchIndexJson.NormalizeFilter(text);
+}
+
+/// <summary>data/*.json を返すだけの HttpMessageHandler（本物の Content から、Build と同じ型情報・同じ手順で作る）。</summary>
 internal sealed class FakeDataHandler(SiteContent? content, bool fail = false) : HttpMessageHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         if (fail) return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
-        var json = JsonSerializer.Serialize(content, SiteJsonContext.Default.SiteContent);
+        var path = request.RequestUri!.AbsolutePath;
+        string json;
+        if (path.EndsWith("filter.json", StringComparison.Ordinal))
+            json = JsonSerializer.Serialize(PageCatalog.FilterTexts(TestData.Content, TestData.Settings).ToDictionary(kv => kv.Key, kv => kv.Value), SiteJsonContext.Default.DictionaryStringDictionaryStringString);
+        else if (path.EndsWith("search.json", StringComparison.Ordinal))
+            json = JsonSerializer.Serialize(SearchIndexJson.From(TestData.Service.BuildSearchIndex()), SiteJsonContext.Default.IReadOnlyListSearchRecord);
+        else
+            json = JsonSerializer.Serialize(content, SiteJsonContext.Default.SiteContent);
         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json") });
     }
 }
@@ -59,9 +77,16 @@ public abstract class WebTestContext : BunitContext, IAsyncLifetime
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddSingleton(TestData.Settings);
-        var store = new ContentStore(new HttpClient(new FakeDataHandler(TestData.Content, fail: !contentLoaded)) { BaseAddress = new Uri("http://localhost/") });
+        // SiteOptions・テーマの状態・MudBlazor（AddFaraSiteKit。SiteInfo.Configure は Program.cs と同じ値を入れる）
+        Services.AddFaraSiteKit(o => SiteInfo.Configure(o, TestData.Settings));
+        var http = new HttpClient(new FakeDataHandler(TestData.Content, fail: !contentLoaded)) { BaseAddress = new Uri("http://localhost/") };
+        var store = new ContentStore(http);
         store.LoadAsync().GetAwaiter().GetResult();
         Services.AddSingleton(store);
+        Services.AddSingleton<ISearchNormalizer, ManagedNormalizer>();
+        Services.AddSingleton(sp => new SearchService(http, sp.GetRequiredService<ISearchNormalizer>()));
+        Services.AddSingleton(new FilterTextStore(http));
+        Services.AddSingleton<ProgressStore>();
     }
 
     /// <summary>MudBlazor のサービスは非同期に破棄するため、xUnit からは非同期の破棄（DisposeAsync）を呼ばせる。</summary>

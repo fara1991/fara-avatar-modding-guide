@@ -12,6 +12,7 @@ namespace FaraAvatarModdingGuide.Models;
 [JsonSerializable(typeof(SiteSettings))]
 [JsonSerializable(typeof(IReadOnlyList<SearchRecord>))]
 [JsonSerializable(typeof(IReadOnlyList<LegacySearchEntry>))]
+[JsonSerializable(typeof(Dictionary<string, Dictionary<string, string>>))]
 public sealed partial class SiteJsonContext : JsonSerializerContext
 {
 }

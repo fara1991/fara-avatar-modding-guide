@@ -7,15 +7,23 @@ namespace FaraAvatarModdingGuide.Web.Search;
 /// <summary>検索語の正規化（NFKC・小文字・全角チルダを〜に・カタカナをひらがなに）。ブラウザでは JavaScript の normalize を使う（計画書 D9）。</summary>
 public interface ISearchNormalizer
 {
+    /// <summary>検索の正規化（NFKC・小文字・〜・カタカナ→ひらがな。searchcore.js の norm）。</summary>
     string Norm(string text);
+
+    /// <summary>一覧の絞り込みの正規化（NFKC と小文字だけ。tipsfilter.js の norm）。</summary>
+    string NormFilter(string text);
 }
 
 /// <summary>js/search-norm.js の avatarSearch.norm を呼ぶ。WebAssembly の JS 呼び出しは同期でできるので、検索のたび（入力のたび）に待たずに済む。</summary>
 public sealed class JsSearchNormalizer(IJSRuntime js) : ISearchNormalizer
 {
-    public string Norm(string text) =>
+    public string Norm(string text) => Call("avatarSearch.norm", text);
+
+    public string NormFilter(string text) => Call("avatarSearch.normFilter", text);
+
+    private string Call(string function, string text) =>
         js is IJSInProcessRuntime sync
-            ? sync.Invoke<string>("avatarSearch.norm", text)
+            ? sync.Invoke<string>(function, text)
             : throw new InvalidOperationException("検索語の正規化には、同期の JS 呼び出し（WebAssembly）が要ります");
 }
 

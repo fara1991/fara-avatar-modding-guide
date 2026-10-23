@@ -8,14 +8,26 @@ public sealed record PagePlan(string Path, string Title, string Description, str
 
 /// <summary>
 /// 公開する全ページの一覧（固定ページ 16 + カテゴリ 10 + 記事 50 = 76 本。計画書 1.1）。
-/// Wasm が true のページだけ WebAssembly を読み込む（フェーズ 1 は ホーム・リンク集・更新履歴・問い合わせ・プライバシーポリシー）。
-/// それ以外は静的な HTML のまま（記事は フェーズ 2、練習は フェーズ 3 で WebAssembly 化する）。
+/// Wasm が true のページだけ WebAssembly を読み込む（フェーズ 2 で、練習の 3 ページ以外のすべて: 記事・カテゴリ・目次・検索・一覧・ホーム・リンク集など）。
+/// 練習の 3 ページは、静的な HTML のまま（フェーズ 3 で WebAssembly 化する）。
 /// Web プロジェクトの @page と、この一覧の Wasm が一致することを Web.Tests が確かめる。
 /// </summary>
 public static class PageCatalog
 {
-    /// <summary>WebAssembly 側に @page があるパス。フェーズが進んだらここを増やす。</summary>
-    public static readonly IReadOnlyList<string> WasmPaths = ["/", "/links", "/changelog", "/privacy", "/report"];
+    /// <summary>WebAssembly 側に @page がある固定のパス。フェーズが進んだらここを増やす（記事・カテゴリは content.json にあるものすべて: IsWasm）。</summary>
+    public static readonly IReadOnlyList<string> WasmPaths =
+    [
+        "/", "/learn", "/shortcuts", "/addons", "/glossary", "/howto", "/tips", "/qa", "/links", "/changelog", "/report", "/privacy", "/search",
+    ];
+
+    /// <summary>
+    /// フェーズ 4 までは、検索エンジンに載せないページ。/search は検索の画面（JavaScript が無いと中身が出ない）、練習の 3 ページは 3D の本体が JavaScript で動くので、
+    /// 静的 HTML だけでは中身が薄い。noindex にすると sitemap.xml からも外れる（kit は noindex のページを入れない）。フェーズ 4 で見直す。
+    /// </summary>
+    public static readonly IReadOnlyList<string> ProvisionalNoIndex = ["/search", "/practice", "/practice/room", "/practice/unity"];
+
+    /// <summary>このパスのページは、WebAssembly が引き継ぐか（固定のページ、または content.json にある記事・カテゴリ）。</summary>
+    public static bool IsWasm(string path, SiteContent content) => WasmPaths.Contains(path) || content.IsContentPath(path);
 
     public static IReadOnlyList<PagePlan> Build(SiteContent content, SiteSettings settings)
     {
@@ -24,7 +36,7 @@ public static class PageCatalog
         var pages = new List<PagePlan>();
 
         PagePlan Page(string path, string title, string description, string main, bool noIndex = false) =>
-            new(path, $"{title} - {site}", Html.Describe(description), main, WasmPaths.Contains(path), noIndex);
+            new(path, $"{title} - {site}", Html.Describe(description), main, IsWasm(path, content), noIndex || ProvisionalNoIndex.Contains(path));
 
         pages.Add(new("/", $"ホーム - {site}",
             Html.Describe("アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。"),
@@ -56,6 +68,17 @@ public static class PageCatalog
             pages.Add(Page(article.Url, article.Title, description, bodies.Article(article)));
         }
         return pages;
+    }
+
+    /// <summary>一覧(用語集・何て名前？・TIPS・Q&amp;A)の絞り込み用の文字(data/filter.json の中身)。</summary>
+    public static IReadOnlyDictionary<string, Dictionary<string, string>> FilterTexts(SiteContent content, SiteSettings settings)
+    {
+        var bodies = new PageBodies(content, settings);
+        _ = bodies.Glossary();
+        _ = bodies.Howto();
+        _ = bodies.Tips();
+        _ = bodies.Qa();
+        return bodies.FilterTexts;
     }
 
     /// <summary>404.html の題名（kit の既定の形に合わせる）。</summary>

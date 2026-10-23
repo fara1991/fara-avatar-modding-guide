@@ -95,6 +95,7 @@ public static class SiteBuilder
         // --- データ（WebAssembly が起動時に読む）--------------------------------
         WriteJson(Path.Combine(outDir, "data", "content.json"), content, Json.SiteContent);
         WriteJson(Path.Combine(outDir, "data", "site.json"), settings, Json.SiteSettings);
+        WriteJson(Path.Combine(outDir, "data", "filter.json"), PageCatalog.FilterTexts(content, settings).ToDictionary(kv => kv.Key, kv => kv.Value), Json.DictionaryStringDictionaryStringString);
         var searchEntries = contentService.BuildSearchIndex();
         WriteJson(Path.Combine(outDir, "data", "search.json"), SearchIndexJson.From(searchEntries), Json.IReadOnlyListSearchRecord);
         // 現行と同じ URL・同じ形（/search-index.json）。外部からの参照を壊さない

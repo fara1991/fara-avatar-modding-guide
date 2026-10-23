@@ -50,10 +50,13 @@ public class PageCatalogTests
     }
 
     [Fact]
-    public void Only_the_report_page_is_noindex_and_wasm_pages_are_the_declared_ones()
+    public void Noindex_pages_are_the_report_and_the_provisional_ones_and_wasm_pages_are_all_but_practice()
     {
-        Assert.Equal(["/report"], Pages.Where(p => p.NoIndex).Select(p => p.Path).ToArray());
-        Assert.Equal(PageCatalog.WasmPaths.Order().ToArray(), Pages.Where(p => p.Wasm).Select(p => p.Path).Order().ToArray());
+        // /report と、フェーズ 4 までの暫定(検索の画面・練習の 3 ページ。sitemap にも載せない)
+        Assert.Equal(new[] { "/report" }.Concat(PageCatalog.ProvisionalNoIndex).Order().ToArray(), Pages.Where(p => p.NoIndex).Select(p => p.Path).Order().ToArray());
+        Assert.Equal(PageCatalog.WasmPaths.Concat(Pages.Where(p => p.Path.StartsWith("/learn/", StringComparison.Ordinal)).Select(p => p.Path)).Order().ToArray(),
+            Pages.Where(p => p.Wasm).Select(p => p.Path).Order().ToArray());
+        Assert.Equal(["/practice", "/practice/room", "/practice/unity"], Pages.Where(p => !p.Wasm).Select(p => p.Path).Order().ToArray());
     }
 
     [Fact]

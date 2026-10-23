@@ -1,0 +1,21 @@
+@* パンくず。最後の項目だけリンクにしない。静的 HTML（Build の Fragments.Breadcrumb）と同じ構造 *@
+<nav aria-label="パンくず">
+    <ol class="breadcrumb">
+        @for (var i = 0; i < Items.Count; i++)
+        {
+            var (href, text) = Items[i];
+            @if (i == Items.Count - 1 || href is null)
+            {
+                <li class="breadcrumb-item active" aria-current="page">@text</li>
+            }
+            else
+            {
+                <li class="breadcrumb-item"><a href="@href">@text</a></li>
+            }
+        }
+    </ol>
+</nav>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<(string? Href, string Text)> Items { get; set; }
+}

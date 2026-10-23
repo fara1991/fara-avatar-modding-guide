@@ -18,6 +18,9 @@ public static class SearchIndexJson
         return sb.ToString();
     }
 
+    /// <summary>一覧の絞り込み用: NFKC と小文字だけ(wwwroot/js/tipsfilter.js の norm()。カタカナ→ひらがななどはしない)。</summary>
+    public static string NormalizeFilter(string text) => text.Normalize(NormalizationForm.FormKC).ToLower(CultureInfo.InvariantCulture);
+
     public static IReadOnlyList<SearchRecord> From(IEnumerable<SearchEntry> entries) =>
         entries.Select(e => new SearchRecord(
             e.Type, e.Title, e.Subtitle, e.Url, e.Text, e.Reading,

@@ -1,0 +1,18 @@
+@inherits ProgressAware
+@* カテゴリの進捗（「3/5」）。1 ページも完了していなければ隠す。静的 HTML（Build の Fragments.CategoryProgress）と同じ構造 *@
+@{
+    var done = Progress.CountDone(Ids);
+    var total = Ids.Count;
+}
+<span class="@ClassName(done, total)" hidden="@(done == 0)" title="@(done == 0 ? null : $"{total} ページ中 {done} ページ完了")">@(done == 0 ? "" : $"{done}/{total}")</span>
+
+@code {
+    /// <summary>このカテゴリの記事の id。</summary>
+    [Parameter, EditorRequired] public required IReadOnlyList<string> Ids { get; set; }
+
+    /// <summary>足す class（サイドバーでは ms-auto）。</summary>
+    [Parameter] public string? Class { get; set; }
+
+    private string ClassName(int done, int total) =>
+        "category-progress" + (string.IsNullOrEmpty(Class) ? "" : " " + Class) + (total > 0 && done == total ? " is-complete" : "");
+}

@@ -1,0 +1,44 @@
+@page "/shortcuts"
+@inject ContentStore Store
+@inject SiteSettings Settings
+
+<PageTitle>ショートカット一覧 - @Settings.Title</PageTitle>
+
+@* 静的 HTML（Build の PageBodies.Shortcuts）と同じ構造・class。カテゴリの絞り込みは ?category=（URL で共有できる）。全件を描いて、合わない行を隠す *@
+<h1>ショートカット一覧</h1>
+<p class="lead">Blender でよく使うキーボードショートカットを機能別に整理しました。</p>
+
+@if (Store.Content is not { } content)
+{
+    <p class="text-body-secondary" role="status">ショートカットを読み込めませんでした。ページを再読み込みしてください。</p>
+}
+else
+{
+    var selected = Category ?? "";
+    <div id="shortcut-filters" class="mb-3 d-flex flex-wrap gap-2">
+        <a href="/shortcuts" class="@ButtonClass(selected == "")" data-category="">すべて</a>
+        @foreach (var cat in content.ShortcutCategories())
+        {
+            <a href="/shortcuts?category=@SiteLookups.Q(cat)" class="@ButtonClass(selected == cat)" data-category="@cat">@cat</a>
+        }
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark"><tr><th>ショートカット</th><th>機能</th><th>カテゴリ</th><th>説明</th></tr></thead>
+            <tbody id="shortcut-rows">
+                @foreach (var x in content.Shortcuts)
+                {
+                    <tr data-category="@x.Category" hidden="@(selected != "" && x.Category != selected)"><td><kbd>@x.Key</kbd></td><td>@x.Function</td><td><span class="badge @SiteLookups.ShortcutBadgeClass(x.Category)">@x.Category</span></td><td>@x.Description</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    /// <summary>URL の ?category=（空はすべて）。</summary>
+    [SupplyParameterFromQuery(Name = "category")] public string? Category { get; set; }
+
+    private static string ButtonClass(bool active) => "btn btn-sm " + (active ? "btn-primary" : "btn-outline-primary");
+}

@@ -14,8 +14,6 @@ public class LayoutTests : WebTestContext
     private IRenderedComponent<MainLayout> RenderLayout(MaintenanceInfo maintenance)
     {
         Services.AddSingleton(maintenance);
-        // SiteOptions は AddFaraSiteKit で入れる（SiteInfo.Configure と同じ値）
-        Services.AddFaraSiteKit(o => FaraAvatarModdingGuide.Web.Services.SiteInfo.Configure(o, TestData.Settings));
         return Render<MainLayout>(p => p.Add(x => x.Body, (RenderFragment)(b => b.AddContent(0, "本文のテスト"))));
     }
 

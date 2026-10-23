@@ -1,0 +1,92 @@
+@page "/search"
+@inject SearchService Search
+@inject NavigationManager Nav
+@inject SiteSettings Settings
+
+<PageTitle>検索 - @Settings.Title</PageTitle>
+
+@* 静的 HTML(Build の PageBodies.Search)と同じ構造・class。検索語は URL の ?q=。探す処理と強調は Search/SearchEngine(searchcore.js の移植) *@
+<h1>検索</h1>
+<p class="lead">記事・用語集・「何て名前？」・TIPS・改変 Q&amp;A・ショートカット・アドオン・リンク集をまとめて検索します。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上の検索欄に移動できます。</p>
+
+<form action="/search" method="get" class="mb-4" role="search" @onsubmit="Submit" @onsubmit:preventDefault="true">
+    <div class="input-group input-group-lg">
+        <input name="q" type="search" class="form-control" placeholder="例: 押し出し、Ctrl+R、ウェイト" autocomplete="off" @ref="inputRef" value="@input" @oninput="@(e => input = e.Value?.ToString() ?? "")" />
+        <button type="submit" class="btn btn-primary"><AvIcon Name="Search" /> 検索</button>
+    </div>
+</form>
+
+<div aria-live="polite">
+    @if (query.Length == 0)
+    {
+        <p class="text-body-secondary">キーワードを入力してください。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上の検索欄に移動できます。</p>
+    }
+    else if (failed)
+    {
+        <p class="text-danger">検索インデックスを読み込めませんでした。</p>
+    }
+    else if (!ready)
+    {
+        <p class="text-body-secondary" role="status">探しています…</p>
+    }
+    else if (hits.Count == 0)
+    {
+        <p>「@query」に一致するものは見つかりませんでした。</p>
+    }
+    else
+    {
+        <p class="text-body-secondary">@hits.Count 件</p>
+        @foreach (var hit in hits)
+        {
+            var entry = hit.Entry;
+            var (label, css) = SearchTypes.Of(entry.Type);
+            <a href="@entry.Url" class="search-result">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="@("badge " + css)">@label</span>
+                    <span class="search-result-title">@SearchTypes.Marked(engine!.Highlight(entry.Title, query))</span>
+                    @if (!string.IsNullOrEmpty(entry.Subtitle))
+                    {
+                        <span class="text-body-secondary small">@SearchTypes.Marked(engine!.Highlight(entry.Subtitle, query))</span>
+                    }
+                </div>
+                <div class="search-result-snippet">@SearchTypes.Marked(engine!.Highlight(engine.Snippet(entry.Text, query), query))</div>
+            </a>
+        }
+    }
+</div>
+
+@code {
+    /// <summary>URL の ?q=(検索語)。</summary>
+    [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
+
+    private ElementReference inputRef;
+    private string input = "";
+    private string query = "";
+    private bool ready;
+    private bool failed;
+    private SearchEngine? engine;
+    private IReadOnlyList<SearchHit> hits = [];
+    private int generation;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var mine = ++generation;
+        query = (Q ?? "").Trim();
+        input = query;
+        if (query.Length == 0) { hits = []; ready = true; failed = false; return; }
+        ready = engine is not null;
+        failed = false;
+        engine ??= await Search.GetAsync();
+        if (mine != generation) return;   // 古い検索語の結果
+        ready = true;
+        if (engine is null) { failed = true; hits = []; return; }
+        hits = engine.Search(query);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await inputRef.FocusAsync();   // SSR 版の autofocus
+    }
+
+    private void Submit() => Nav.NavigateTo("/search?q=" + Uri.EscapeDataString(input.Trim()));
+}

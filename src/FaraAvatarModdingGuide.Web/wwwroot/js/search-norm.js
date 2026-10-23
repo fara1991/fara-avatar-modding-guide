@@ -10,5 +10,10 @@
         });
     }
 
-    window.avatarSearch = { norm: norm };
+    // 一覧（用語集・何て名前？・TIPS・Q&A）の絞り込み用。wwwroot/js/tipsfilter.js の norm() と同じ（NFKC と小文字だけ。カタカナ→ひらがななどはしない）
+    function normFilter(s) {
+        return String(s).normalize("NFKC").toLowerCase();
+    }
+
+    window.avatarSearch = { norm: norm, normFilter: normFilter };
 })();

@@ -25,6 +25,7 @@
     <h2 class="h3 mb-3">目次</h2>
     @if (Store.Content is { } content)
     {
+        <ProgressSummary HideWhenEmpty="true" />
         <Roadmap Content="content" />
     }
     else

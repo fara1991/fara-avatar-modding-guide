@@ -718,7 +718,7 @@ body {
 }
 
 .fsk-header .av-header-switch {
-    margin-left: auto;
+    margin-left: 0.75rem;
 }
 
 /* ライト／ダークのボタン（サイドバーの下。スマホだけ。PC はヘッダーのスイッチ） */
@@ -795,6 +795,434 @@ body {
 /* 「更新予定」の帯（notice.js）。静的なページにはヘッダーを固定していないので、画面の上端に貼り付ける */
 .av-static .fsk-notice {
     top: 0;
+}
+
+/* ---------- 完了の記録(ProgressStore。SSR 版の site.css から) ---------- */
+.done-mark {
+    display: none;
+}
+
+.is-done .done-mark,
+.done-mark.is-done {
+    display: inline-flex;
+}
+
+.badge-done {
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1px 8px;
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    border-radius: 999px;
+    background: rgba(74, 222, 128, 0.12);
+    color: #86efac;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.article-card.is-done {
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+.roadmap-articles li.is-done .done-mark {
+    display: inline;
+    margin-left: 0.3rem;
+    color: #4ade80;
+}
+
+.roadmap-articles li.is-done > a {
+    color: var(--bs-secondary-color);
+}
+
+.category-progress {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(168, 85, 247, 0.18);
+    color: var(--bs-body-color);
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+
+/* hidden 属性の display は、上の display: inline-block に負けるので、はっきり隠す */
+.category-progress[hidden],
+.progress-summary[hidden] {
+    display: none;
+}
+
+.category-progress.is-complete {
+    background: rgba(74, 222, 128, 0.22);
+    color: #86efac;
+}
+
+.fsk-sidebar .category-progress {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.fsk-sidebar .category-progress.is-complete {
+    background: rgba(74, 222, 128, 0.3);
+    color: #dcfce7;
+}
+
+.btn-progress {
+    --bs-btn-color: var(--bs-body-color);
+    --bs-btn-border-color: var(--border-strong);
+    --bs-btn-hover-color: var(--bs-body-color);
+    --bs-btn-hover-bg: rgba(74, 222, 128, 0.12);
+    --bs-btn-hover-border-color: #4ade80;
+    --bs-btn-active-bg: rgba(74, 222, 128, 0.2);
+    --bs-btn-active-border-color: #4ade80;
+}
+
+.btn-progress.is-done {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #16a34a;
+    --bs-btn-border-color: #16a34a;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #15803d;
+    --bs-btn-hover-border-color: #15803d;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #166534;
+}
+
+.progress-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+}
+
+.progress-track span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+    transition: width 0.3s ease-out;
+}
+
+[data-bs-theme="light"] .badge-done {
+    border-color: rgba(22, 163, 74, 0.4);
+    background: rgba(22, 163, 74, 0.1);
+    color: #15803d;
+}
+
+[data-bs-theme="light"] .roadmap-articles li.is-done .done-mark {
+    color: #16a34a;
+}
+
+[data-bs-theme="light"] .category-progress {
+    background: #ede9fe;
+}
+
+[data-bs-theme="light"] .category-progress.is-complete {
+    background: rgba(22, 163, 74, 0.15);
+    color: #15803d;
+}
+
+[data-bs-theme="light"] .fsk-sidebar .category-progress {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+/* サイドバーの項目の右端に置く「3/5」 */
+.fsk-sidebar .mud-nav-link-text {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+}
+
+/* ---------- 検索(ヘッダーの検索欄・検索ページ) ---------- */
+.av-search {
+    position: relative;
+}
+
+.av-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    margin-top: -9px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: #b9acd6;
+    pointer-events: none;
+}
+
+.av-search-input {
+    width: 100%;
+    height: 40px;
+    padding: 0 76px 0 38px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font: inherit;
+    font-size: 0.95rem;
+}
+
+.av-search-input::placeholder {
+    color: #b9acd6;
+}
+
+.av-search-input:focus {
+    outline: none;
+    border-color: #c084fc;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.av-search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.av-search-hint {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 4px;
+    pointer-events: none;
+}
+
+.av-search:focus-within .av-search-hint {
+    opacity: 0;
+}
+
+.av-search-hint kbd {
+    padding: 1px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    background: transparent;
+    color: #d8c7f5;
+    font: inherit;
+    font-size: 0.72rem;
+}
+
+.av-search-list {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    min-width: min(560px, 90vw);
+    z-index: 1060;
+    max-height: min(72vh, 600px);
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+[data-bs-theme="light"] .av-search-list {
+    box-shadow: 0 12px 40px rgba(80, 40, 140, 0.18);
+}
+
+.av-search-item,
+.av-search-all {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.av-search-item {
+    align-items: flex-start;
+}
+
+.av-search-item:hover,
+.av-search-item.is-active {
+    background: rgba(168, 85, 247, 0.18);
+    color: inherit;
+}
+
+.av-search-item .badge {
+    flex: 0 0 auto;
+    min-width: 4.8rem;
+}
+
+.av-search-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.av-search-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.av-search-title {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.av-search-sub {
+    margin-left: auto;
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.av-search-snippet {
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.av-search-all {
+    justify-content: flex-end;
+    margin-top: 0.2rem;
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 6px 6px;
+    color: var(--bs-link-color);
+    font-size: 0.85rem;
+}
+
+.av-search-empty {
+    padding: 0.6rem;
+    color: var(--bs-secondary-color);
+}
+
+.av-search-list mark {
+    padding: 0;
+    background: rgba(240, 171, 252, 0.3);
+    color: inherit;
+}
+
+/* スマホの検索欄(ヘッダーの検索ボタンで、ヘッダーの下に開く。欄の枠 #fsk-search-sheet は kit の SiteLayout が出し入れする)。中の検索部品は、枠に position: static で入れ、
+   結果の一覧・× の位置の基準を、枠にする */
+.fsk-search-sheet .av-search-sheet {
+    position: static;
+}
+
+.av-search-close {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-top: -22px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #d8c7f5;
+    cursor: pointer;
+}
+
+.av-search-close svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.av-search-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 767.98px) {
+    html.fsk-search-open .fsk-search-sheet {
+        padding: 8px 56px 8px 12px;
+        background: linear-gradient(90deg, #140a26 0%, #241243 100%);
+        border-bottom: 1px solid rgba(200, 170, 255, 0.14);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .av-search-sheet .av-search-input {
+        height: 44px;
+        padding: 0 12px 0 38px;
+        font-size: 1rem;   /* 16px 未満だと、iOS は入力のとき拡大する */
+    }
+
+    .av-search-sheet .av-search-list {
+        left: 12px;
+        right: 12px;
+        min-width: 0;
+        max-height: calc(100vh - 9.5rem);
+    }
+
+    /* ページ全体(window)がスクロールするので、見出しへのジャンプは、固定のヘッダーの下に止める */
+    html {
+        scroll-padding-top: 4.25rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .fsk-header .av-search {
+        flex: 1 1 220px;
+        min-width: 140px;
+        max-width: 40rem;
+        margin-left: auto;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+    .av-search-hint {
+        display: none;
+    }
+}
+
+.search-result {
+    display: block;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.search-result:hover {
+    background: rgba(168, 85, 247, 0.08);
+    border-color: var(--border-strong);
+}
+
+.search-result-title {
+    font-weight: 600;
+}
+
+.search-result-snippet {
+    font-size: 0.875rem;
+    color: var(--bs-secondary-color);
+    margin-top: 0.25rem;
+}
+
+.search-result mark {
+    padding: 0 0.1em;
+    background: rgba(240, 171, 252, 0.3);
+    color: inherit;
+}
+
+[data-bs-theme="light"] .search-result mark {
+    background: rgba(240, 171, 252, 0.5);
 }
 
 /* 動きを減らす設定 */
