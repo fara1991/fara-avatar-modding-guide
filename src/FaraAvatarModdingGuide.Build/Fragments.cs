@@ -20,8 +20,7 @@ internal static class Fragments
     public static string DifficultyBadge(string? difficulty)
     {
         if (string.IsNullOrEmpty(difficulty)) return "";
-        var css = difficulty switch { "初級" => "bg-success", "中級" => "bg-warning text-dark", "上級" => "bg-danger", _ => "bg-secondary" };
-        return $"<span class=\"badge {css}\">{E(difficulty)}</span>";
+        return $"<span class=\"badge {SiteLookups.DifficultyClass(difficulty)}\">{E(difficulty)}</span>";
     }
 
     /// <summary>パンくず。最後の項目だけリンクにしない。</summary>
@@ -96,21 +95,47 @@ internal static class Fragments
         return sb.ToString();
     }
 
-    /// <summary>TIPS・用語集のタグ（よく使うものから）。ContentService.TipTags と同じ並び。</summary>
-    public static IReadOnlyList<string> TipTags(IEnumerable<IReadOnlyList<string>> tagLists) =>
-        tagLists.SelectMany(t => t).GroupBy(t => t).OrderBy(g => TagOrder(g.Key)).ThenByDescending(g => g.Count()).Select(g => g.Key).ToList();
+    /// <summary>TIPS・用語集のタグ（よく使うものから）。Web の画面と同じ並び（SiteLookups.TipTags）。</summary>
+    public static IReadOnlyList<string> TipTags(IEnumerable<IReadOnlyList<string>> tagLists) => SiteLookups.TipTags(tagLists);
 
-    private static int TagOrder(string tag) => tag switch { "Blender" => 0, "Unity" => 1, "VRChat" => 2, "Modular Avatar" => 3, _ => 10 };
+    /// <summary>本文 HTML の h2 を拾う。2 個以下なら目次は出さない（Web の画面と同じ規則: SiteLookups.Headings）。</summary>
+    public static IReadOnlyList<(string Id, string Text)> ExtractHeadings(string html) => SiteLookups.Headings(html);
 
-    private static readonly Regex H2Pattern = new("<h2 id=\"([^\"]+)\"[^>]*>(.*?)</h2>", RegexOptions.Singleline | RegexOptions.Compiled);
+    /// <summary>
+    /// カテゴリの進捗の印（「3/5」。ブラウザで完了の記録があるときだけ、WebAssembly が中身を入れて見せる）。Web の CategoryProgress.razor と同じ構造。
+    /// </summary>
+    public static string CategoryProgress(string extraClass = "") =>
+        $"<span class=\"category-progress{(extraClass.Length == 0 ? "" : " " + extraClass)}\" hidden></span>";
 
-    /// <summary>本文 HTML の h2（Markdig が id を付けたもの）を拾う。2 個以下なら目次は出さない（SSR 版の ArticlePage と同じ規則）。</summary>
-    public static IReadOnlyList<(string Id, string Text)> ExtractHeadings(string html)
+    /// <summary>目次の記事の横の「完了」のチェック（完了の記録があるときだけ、WebAssembly が見せる）。</summary>
+    public static string DoneMark() => $"<span class=\"done-mark\" title=\"完了\" aria-label=\"完了\" role=\"img\">{Icon("CheckCircle")}</span>";
+
+    /// <summary>「完了」の印（記事の見出しの横・記事カードの右上。完了の記録があるときだけ、WebAssembly が見せる）。</summary>
+    public static string DoneBadge(string extraClass = "") =>
+        $"<span class=\"done-mark badge-done{(extraClass.Length == 0 ? "" : " " + extraClass)}\">{Icon("CheckCircle")} 完了</span>";
+
+    /// <summary>
+    /// 完了したページの件数と「次に読む」リンク（Web の ProgressSummary.razor と同じ構造）。
+    /// まだ 1 ページも完了していなければ表示しない（hideWhenEmpty）ときは hidden を付けておく（WebAssembly が、記録があれば外す）。
+    /// </summary>
+    public static string ProgressSummary(IReadOnlyList<ArticleDto> articles, bool hideWhenEmpty, bool showReset, bool showNote)
     {
-        var list = H2Pattern.Matches(html)
-            .Select(m => (Id: WebUtility.HtmlDecode(m.Groups[1].Value), Text: WebUtility.HtmlDecode(Regex.Replace(m.Groups[2].Value, "<[^>]+>", "")).Trim()))
-            .Where(h => h.Text.Length > 0)
-            .ToList();
-        return list.Count > 2 ? list : [];
+        var sb = new StringBuilder();
+        sb.Line($"<div class=\"progress-summary card mb-4\"{(hideWhenEmpty ? " hidden" : "")}>");
+        sb.Line("<div class=\"card-body d-flex flex-wrap align-items-center gap-3\">");
+        sb.Line("<div class=\"flex-grow-1\">");
+        sb.Line($"<div class=\"fw-semibold\">{Icon("TaskAlt", "me-1")}<span>{articles.Count} ページ中 0 ページ完了</span></div>");
+        sb.Line("<div class=\"progress-track mt-2\" aria-hidden=\"true\"><span style=\"width: 0%\"></span></div>");
+        sb.Line("</div>");
+        // 何も完了していないときの「次に読む」は、最初の記事（完了の記録があれば、WebAssembly が、まだ読んでいない最初の記事に替える）
+        if (articles.Count > 0) sb.Line($"<a class=\"btn btn-primary\" href=\"/learn/{E(articles[0].Id)}\">次に読む: <span>{E(articles[0].Title)}</span> {Icon("ArrowForward")}</a>");
+        if (showReset) sb.Line($"<button type=\"button\" class=\"btn btn-sm btn-outline-secondary\">{Icon("RestartAlt")} 記録を消す</button>");
+        sb.Line("</div>");
+        if (showNote) sb.Line($"<div class=\"card-footer small text-body-secondary\">{ProgressNote}</div>");
+        sb.Line("</div>");
+        return sb.ToString();
     }
+
+    /// <summary>学習の進み具合の説明（/learn の ProgressSummary の下）。</summary>
+    public const string ProgressNote = "各ページの最後にある「このページを完了にする」で記録できます（ページ内の「やってみよう」を最後まで進めても完了になります）。記録はこのブラウザにだけ保存され、ログインは不要です。別のブラウザや端末には引き継がれません。";
 }

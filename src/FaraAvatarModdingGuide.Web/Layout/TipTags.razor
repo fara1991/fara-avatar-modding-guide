@@ -1,0 +1,7 @@
+@* 項目のタグと出どころ。静的 HTML（Build の Fragments.Tags）と同じ構造 *@
+<div class="tip-tags">@foreach (var tag in Tags) {<span class="tip-tag">@tag</span>}@if (Source == "discord") {<span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><AvIcon Name="Forum" /> Discord より</span>}</div>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<string> Tags { get; set; }
+    [Parameter] public string Source { get; set; } = "";
+}

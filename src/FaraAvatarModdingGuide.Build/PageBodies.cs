@@ -14,6 +14,22 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     private static string E(string? text) => Html.E(text);
     private static string Icon(string name, string extra = "") => Fragments.Icon(name, extra);
 
+    /// <summary>
+    /// 一覧(用語集・何て名前？・TIPS・Q&amp;A)の絞り込み用の文字(data/filter.json)。種類 → 項目の id → 文字。
+    /// 項目の表示される文字すべて(折りたたみの中・別名を含む)を NFKC・小文字にしたもの。SSR 版の tipsfilter.js が DOM の textContent から作っていたのと同じ。
+    /// 本文の HTML を作るついでに集める(静的 HTML と同じ文字から作るので、食い違わない)。
+    /// </summary>
+    public Dictionary<string, Dictionary<string, string>> FilterTexts { get; } = new();
+
+    private void FilterText(string kind, string id, string itemHtml, string? aliases)
+    {
+        if (!FilterTexts.TryGetValue(kind, out var map)) FilterTexts[kind] = map = new Dictionary<string, string>();
+        map[id] = SearchIndexJson.NormalizeFilter(TextContent(itemHtml) + " " + (aliases ?? ""));
+    }
+
+    /// <summary>HTML の textContent(タグを外して、文字参照を戻す)。</summary>
+    internal static string TextContent(string html) => System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", ""));
+
     /// <summary>見出し(h1)とリード文。lead は HTML（リンクを含められる）。</summary>
     private static string Heading(string title, string lead) => $"<h1>{E(title)}</h1>\n<p class=\"lead\">{lead}</p>\n";
 
@@ -36,6 +52,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
 
         sb.Line("<section class=\"mb-5\">");
         sb.Line("<h2 class=\"h3 mb-3\">目次</h2>");
+        sb.Append(Fragments.ProgressSummary(c.Articles, hideWhenEmpty: true, showReset: false, showNote: false));
         sb.Append(Roadmap());
         sb.Line("</section>");
 
@@ -104,7 +121,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
                     sb.Line("<li class=\"roadmap-step\">");
                     sb.Line($"<div class=\"roadmap-marker\">{i + 1}</div>");
                     sb.Line("<div class=\"roadmap-body\">");
-                    sb.Line($"<h4 class=\"h5 mb-1\">{Icon(category.Icon, "me-1")}<a href=\"/learn/{E(category.Id)}\" class=\"text-decoration-none\">{E(category.Title)}</a></h4>");
+                    sb.Line($"<h4 class=\"h5 mb-1\">{Icon(category.Icon, "me-1")}<a href=\"/learn/{E(category.Id)}\" class=\"text-decoration-none\">{E(category.Title)}</a>{(articles.Count > 0 ? Fragments.CategoryProgress() : "")}</h4>");
                     sb.Line($"<p class=\"text-body-secondary mb-2\">{E(category.Description)}</p>");
                     if (articles.Count == 0)
                     {
@@ -113,7 +130,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
                     else
                     {
                         sb.Line("<ol class=\"roadmap-articles\">");
-                        foreach (var a in articles) sb.Line($"<li data-article=\"{E(a.Id)}\"><a href=\"{E(a.Url)}\">{E(a.Title)}</a> {Fragments.DifficultyBadge(a.Difficulty)}</li>");
+                        foreach (var a in articles) sb.Line($"<li data-article=\"{E(a.Id)}\"><a href=\"{E(a.Url)}\">{E(a.Title)}</a>{Fragments.DoneMark()} {Fragments.DifficultyBadge(a.Difficulty)}</li>");
                         sb.Line("</ol>");
                     }
                     sb.Line("</div>");
@@ -127,7 +144,8 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     }
 
     public string LearnIndex() =>
-        Heading("目次", "Blender・Unity・VRChat の区切りごとに、上から順に読むと一通り追えます。最後の「通しで作る」では、衣装づくりを最初から最後まで行います。") + Roadmap();
+        Heading("目次", "Blender・Unity・VRChat の区切りごとに、上から順に読むと一通り追えます。最後の「通しで作る」では、衣装づくりを最初から最後まで行います。")
+        + Fragments.ProgressSummary(c.Articles, hideWhenEmpty: false, showReset: true, showNote: true) + Roadmap();
 
     // ------------------------------------------------------------ カテゴリ・記事
 
@@ -138,9 +156,9 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         if (c.SectionOf(category) is { } section) crumbs.Add(($"/learn#section-{section.Id}", section.Title));
         crumbs.Add((null, category.Title));
         sb.Append(Fragments.Breadcrumb(crumbs));
-        sb.Line($"<h1>{Icon(category.Icon, "me-2")}{E(category.Title)}</h1>");
-        sb.Line($"<p class=\"lead\">{E(category.Description)}</p>");
         var articles = c.ArticlesOf(category.Id);
+        sb.Line($"<h1>{Icon(category.Icon, "me-2")}{E(category.Title)}{(articles.Count > 0 ? Fragments.CategoryProgress() : "")}</h1>");
+        sb.Line($"<p class=\"lead\">{E(category.Description)}</p>");
         if (articles.Count == 0)
         {
             sb.Line("<div class=\"alert alert-secondary\">このカテゴリの記事は準備中です。</div>");
@@ -155,7 +173,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
                 sb.Line("<div class=\"card-body\">");
                 sb.Line("<div class=\"d-flex justify-content-between align-items-start gap-2 mb-2\">");
                 sb.Line($"<h5 class=\"card-title mb-0\"><span class=\"badge bg-primary me-2\">{a.Order}</span>{E(a.Title)}</h5>");
-                sb.Line($"<div class=\"d-flex flex-column align-items-end gap-1\">{Fragments.DifficultyBadge(a.Difficulty)}</div>");
+                sb.Line($"<div class=\"d-flex flex-column align-items-end gap-1\">{Fragments.DifficultyBadge(a.Difficulty)}{Fragments.DoneBadge()}</div>");
                 sb.Line("</div>");
                 sb.Line($"<p class=\"card-text text-body-secondary mb-0\">{E(a.Description)}</p>");
                 sb.Line("</div>");
@@ -180,6 +198,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line("<header class=\"article-header mb-4\">");
         sb.Line($"<h1>{E(article.Title)}</h1>");
         sb.Line("<div class=\"d-flex flex-wrap align-items-center gap-2 text-body-secondary small\">");
+        sb.Line(Fragments.DoneBadge());
         sb.Line(Fragments.DifficultyBadge(article.Difficulty));
         // 対象のソフトとバージョン。Unity / VRChat の区切りの記事は Unity のバージョン
         if (category.Section is "unity" or "vrchat") sb.Line($"<span>{Icon("GridView")} Unity {E(s.UnityVersion)}</span>");
@@ -240,9 +259,12 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         }
         sb.Line("</div>");
 
-        var index = c.Articles.ToList().FindIndex(a => a.Url == article.Url);
-        var prev = index > 0 ? c.Articles[index - 1] : null;
-        var next = index >= 0 && index < c.Articles.Count - 1 ? c.Articles[index + 1] : null;
+        sb.Line("<div class=\"article-complete d-flex flex-wrap align-items-center gap-3 mt-5\">");
+        sb.Line($"<button type=\"button\" class=\"btn btn-progress\" aria-pressed=\"false\">{Icon("RadioButtonUnchecked")} このページを完了にする</button>");
+        sb.Line("<span class=\"small text-body-secondary\">完了の記録はこのブラウザにだけ保存されます。</span>");
+        sb.Line("</div>");
+
+        var (prev, next) = c.Neighbors(article);
         sb.Line("<nav class=\"article-nav d-flex justify-content-between gap-3 mt-4 pt-4 border-top\" aria-label=\"前後の記事\">");
         sb.Line(prev is null ? "<span></span>" : $"<a href=\"{E(prev.Url)}\" class=\"btn btn-outline-secondary text-start\"><small class=\"d-block text-body-secondary\">← 前へ</small>{E(prev.Title)}</a>");
         if (next is not null) sb.Line($"<a href=\"{E(next.Url)}\" class=\"btn btn-primary text-end\"><small class=\"d-block\">次へ →</small>{E(next.Title)}</a>");
@@ -254,7 +276,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
 
     public string Shortcuts()
     {
-        var categories = c.Shortcuts.Select(x => x.Category).Distinct().ToList();
+        var categories = c.ShortcutCategories();
         var sb = new StringBuilder();
         sb.Append(Heading("ショートカット一覧", "Blender でよく使うキーボードショートカットを機能別に整理しました。"));
         sb.Line("<div id=\"shortcut-filters\" class=\"mb-3 d-flex flex-wrap gap-2\">");
@@ -267,23 +289,13 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line("<tbody id=\"shortcut-rows\">");
         foreach (var x in c.Shortcuts)
         {
-            sb.Line($"<tr data-category=\"{E(x.Category)}\"><td><kbd>{E(x.Key)}</kbd></td><td>{E(x.Function)}</td><td><span class=\"badge {ShortcutBadge(x.Category)}\">{E(x.Category)}</span></td><td>{E(x.Description)}</td></tr>");
+            sb.Line($"<tr data-category=\"{E(x.Category)}\"><td><kbd>{E(x.Key)}</kbd></td><td>{E(x.Function)}</td><td><span class=\"badge {SiteLookups.ShortcutBadgeClass(x.Category)}\">{E(x.Category)}</span></td><td>{E(x.Description)}</td></tr>");
         }
         sb.Line("</tbody>");
         sb.Line("</table>");
         sb.Line("</div>");
         return sb.ToString();
     }
-
-    public static string ShortcutBadge(string category) => category switch
-    {
-        "一般" => "bg-primary",
-        "モデリング" => "bg-success",
-        "編集" => "bg-warning text-dark",
-        "表示" => "bg-info text-dark",
-        "選択" => "bg-secondary",
-        _ => "bg-dark",
-    };
 
     public string Addons()
     {
@@ -297,7 +309,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
             sb.Line("<div class=\"card-body\">");
             sb.Line("<div class=\"d-flex justify-content-between align-items-start gap-2 mb-2\">");
             sb.Line($"<h5 class=\"card-title mb-0\">{E(a.Name)}</h5>");
-            sb.Line($"<span class=\"badge {AddonBadge(a.Type)}\">{E(a.Type)}</span>");
+            sb.Line($"<span class=\"badge {SiteLookups.AddonBadgeClass(a.Type)}\">{E(a.Type)}</span>");
             sb.Line("</div>");
             if (!string.IsNullOrEmpty(a.Status)) sb.Line($"<span class=\"badge bg-warning text-dark mb-2\">{Icon("Warning")} {E(a.Status)}</span>");
             if (a.Source == "discord") sb.Line($"<div class=\"tip-tags\"><span class=\"tip-tag tip-source-discord\" title=\"Discord での質問・会話で紹介されたもの\">{Icon("Forum")} Discord より</span></div>");
@@ -338,16 +350,6 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
             """);
         return sb.ToString();
     }
-
-    public static string AddonBadge(string type) => type switch
-    {
-        "モデリング" => "bg-success",
-        "アニメーション" => "bg-primary",
-        "レンダリング" => "bg-warning text-dark",
-        "ユーティリティ" => "bg-info text-dark",
-        "ゲーム開発" => "bg-secondary",
-        _ => "bg-dark",
-    };
 
     public string Links()
     {
@@ -413,19 +415,22 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line("<div class=\"row g-3\">");
         foreach (var g in c.Glossary)
         {
-            sb.Line("<div class=\"col-md-6\" data-tip-item>");
-            sb.Line($"<article class=\"tip-card card h-100\" id=\"{E(g.Id)}\" data-tags=\"{E(string.Join('|', g.Tags))}\" data-source=\"{E(g.Source)}\">");
-            sb.Line("<div class=\"card-body\">");
-            sb.Append($"<header class=\"d-flex flex-wrap align-items-baseline gap-2 mb-1\"><h2 class=\"h5 mb-0\"><a href=\"/glossary#{E(g.Id)}\" class=\"tip-anchor\">{E(g.Term)}</a></h2><span class=\"small text-body-secondary\">{E(g.Reading)}</span>");
-            if (!string.IsNullOrEmpty(g.En)) sb.Append($"<span class=\"tip-en\" title=\"英語 UI での表記\">{E(g.En)}</span>");
-            sb.Line("</header>");
-            sb.Line(Fragments.Tags(g.Tags, g.Source));
-            sb.Line($"<p class=\"mb-2\">{g.DescriptionHtml}</p>");
-            sb.Line(Fragments.Body(g.BodyHtml));
-            sb.Line(Fragments.Refs(c, g.Shortcuts, g.Articles, g.Related, g.Keywords));
-            sb.Line("</div>");
-            sb.Line("</article>");
-            sb.Line("</div>");
+            var item = new StringBuilder();
+            item.Line("<div class=\"col-md-6\" data-tip-item>");
+            item.Line($"<article class=\"tip-card card h-100\" id=\"{E(g.Id)}\" data-tags=\"{E(string.Join('|', g.Tags))}\" data-source=\"{E(g.Source)}\">");
+            item.Line("<div class=\"card-body\">");
+            item.Append($"<header class=\"d-flex flex-wrap align-items-baseline gap-2 mb-1\"><h2 class=\"h5 mb-0\"><a href=\"/glossary#{E(g.Id)}\" class=\"tip-anchor\">{E(g.Term)}</a></h2><span class=\"small text-body-secondary\">{E(g.Reading)}</span>");
+            if (!string.IsNullOrEmpty(g.En)) item.Append($"<span class=\"tip-en\" title=\"英語 UI での表記\">{E(g.En)}</span>");
+            item.Line("</header>");
+            item.Line(Fragments.Tags(g.Tags, g.Source));
+            item.Line($"<p class=\"mb-2\">{g.DescriptionHtml}</p>");
+            item.Line(Fragments.Body(g.BodyHtml));
+            item.Line(Fragments.Refs(c, g.Shortcuts, g.Articles, g.Related, g.Keywords));
+            item.Line("</div>");
+            item.Line("</article>");
+            item.Line("</div>");
+            FilterText("glossary", g.Id, item.ToString(), null);
+            sb.Append(item);
         }
         sb.Line("</div>");
         return sb.ToString();
@@ -439,27 +444,30 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line("<div class=\"row g-3\">");
         foreach (var h in c.Howtos)
         {
-            sb.Line("<div class=\"col-lg-6\" data-tip-item>");
-            sb.Line($"<article class=\"tip-card card h-100\" id=\"{E(h.Id)}\" data-tags=\"{E(string.Join('|', h.Tags))}\" data-source=\"{E(h.Source)}\" data-aliases=\"{E(string.Join(' ', h.Aliases))}\">");
-            sb.Line("<div class=\"card-body\">");
-            sb.Line($"<h2 class=\"h5 mb-2\"><a href=\"/howto#{E(h.Id)}\" class=\"tip-anchor\">{E(h.Question)}</a></h2>");
-            sb.Append($"<p class=\"howto-answer mb-2\">{Icon("SubdirectoryArrowRight")} <strong>{E(h.Answer)}</strong>");
-            if (!string.IsNullOrEmpty(h.AnswerEn)) sb.Append($" <span class=\"tip-en\">{E(h.AnswerEn)}</span>");
-            foreach (var key in h.Shortcuts) sb.Append($" <kbd class=\"ms-1\">{E(key)}</kbd>");
-            sb.Line("</p>");
+            var item = new StringBuilder();
+            item.Line("<div class=\"col-lg-6\" data-tip-item>");
+            item.Line($"<article class=\"tip-card card h-100\" id=\"{E(h.Id)}\" data-tags=\"{E(string.Join('|', h.Tags))}\" data-source=\"{E(h.Source)}\" data-aliases=\"{E(string.Join(' ', h.Aliases))}\">");
+            item.Line("<div class=\"card-body\">");
+            item.Line($"<h2 class=\"h5 mb-2\"><a href=\"/howto#{E(h.Id)}\" class=\"tip-anchor\">{E(h.Question)}</a></h2>");
+            item.Append($"<p class=\"howto-answer mb-2\">{Icon("SubdirectoryArrowRight")} <strong>{E(h.Answer)}</strong>");
+            if (!string.IsNullOrEmpty(h.AnswerEn)) item.Append($" <span class=\"tip-en\">{E(h.AnswerEn)}</span>");
+            foreach (var key in h.Shortcuts) item.Append($" <kbd class=\"ms-1\">{E(key)}</kbd>");
+            item.Line("</p>");
             if (!string.IsNullOrEmpty(h.Menu))
             {
-                sb.Append($"<dl class=\"howto-menu small mb-2\"><dt>メニュー</dt><dd>{E(h.Menu)}</dd>");
-                if (!string.IsNullOrEmpty(h.MenuEn)) sb.Append($"<dt>英語 UI</dt><dd>{E(h.MenuEn)}</dd>");
-                sb.Line("</dl>");
+                item.Append($"<dl class=\"howto-menu small mb-2\"><dt>メニュー</dt><dd>{E(h.Menu)}</dd>");
+                if (!string.IsNullOrEmpty(h.MenuEn)) item.Append($"<dt>英語 UI</dt><dd>{E(h.MenuEn)}</dd>");
+                item.Line("</dl>");
             }
-            if (!string.IsNullOrEmpty(h.NoteHtml)) sb.Line($"<p class=\"small mb-2\">{h.NoteHtml}</p>");
-            sb.Line(Fragments.Body(h.BodyHtml));
-            sb.Line(Fragments.Tags(h.Tags, h.Source));
-            sb.Line(Fragments.Refs(c, [], h.Articles, h.Related, h.Keywords));
-            sb.Line("</div>");
-            sb.Line("</article>");
-            sb.Line("</div>");
+            if (!string.IsNullOrEmpty(h.NoteHtml)) item.Line($"<p class=\"small mb-2\">{h.NoteHtml}</p>");
+            item.Line(Fragments.Body(h.BodyHtml));
+            item.Line(Fragments.Tags(h.Tags, h.Source));
+            item.Line(Fragments.Refs(c, [], h.Articles, h.Related, h.Keywords));
+            item.Line("</div>");
+            item.Line("</article>");
+            item.Line("</div>");
+            FilterText("howto", h.Id, item.ToString(), string.Join(' ', h.Aliases));
+            sb.Append(item);
         }
         sb.Line("</div>");
         return sb.ToString();
@@ -473,25 +481,28 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line("<div class=\"row g-3\">");
         foreach (var t in c.Tips)
         {
-            sb.Line("<div class=\"col-lg-6\" data-tip-item>");
-            sb.Line($"<article class=\"tip-card card h-100\" id=\"{E(t.Id)}\" data-tags=\"{E(string.Join('|', t.Tags))}\" data-source=\"{E(t.Source)}\">");
-            sb.Line("<div class=\"card-body\">");
-            sb.Line($"<h2 class=\"h5 mb-2\">{Icon("Lightbulb", "me-1")}<a href=\"/tips#{E(t.Id)}\" class=\"tip-anchor\">{E(t.Title)}</a></h2>");
-            sb.Line(Fragments.Tags(t.Tags, t.Source));
-            if (!string.IsNullOrWhiteSpace(t.SummaryHtml)) sb.Line($"<p class=\"mb-2\">{t.SummaryHtml}</p>");
+            var item = new StringBuilder();
+            item.Line("<div class=\"col-lg-6\" data-tip-item>");
+            item.Line($"<article class=\"tip-card card h-100\" id=\"{E(t.Id)}\" data-tags=\"{E(string.Join('|', t.Tags))}\" data-source=\"{E(t.Source)}\">");
+            item.Line("<div class=\"card-body\">");
+            item.Line($"<h2 class=\"h5 mb-2\">{Icon("Lightbulb", "me-1")}<a href=\"/tips#{E(t.Id)}\" class=\"tip-anchor\">{E(t.Title)}</a></h2>");
+            item.Line(Fragments.Tags(t.Tags, t.Source));
+            if (!string.IsNullOrWhiteSpace(t.SummaryHtml)) item.Line($"<p class=\"mb-2\">{t.SummaryHtml}</p>");
             if (!string.IsNullOrWhiteSpace(t.SymptomHtml) || !string.IsNullOrWhiteSpace(t.CauseHtml) || !string.IsNullOrWhiteSpace(t.FixHtml))
             {
-                sb.Append("<dl class=\"tip-detail mb-2\">");
-                if (!string.IsNullOrWhiteSpace(t.SymptomHtml)) sb.Append($"<dt>症状</dt><dd>{t.SymptomHtml}</dd>");
-                if (!string.IsNullOrWhiteSpace(t.CauseHtml)) sb.Append($"<dt>原因</dt><dd>{t.CauseHtml}</dd>");
-                if (!string.IsNullOrWhiteSpace(t.FixHtml)) sb.Append($"<dt>直し方</dt><dd>{t.FixHtml}</dd>");
-                sb.Line("</dl>");
+                item.Append("<dl class=\"tip-detail mb-2\">");
+                if (!string.IsNullOrWhiteSpace(t.SymptomHtml)) item.Append($"<dt>症状</dt><dd>{t.SymptomHtml}</dd>");
+                if (!string.IsNullOrWhiteSpace(t.CauseHtml)) item.Append($"<dt>原因</dt><dd>{t.CauseHtml}</dd>");
+                if (!string.IsNullOrWhiteSpace(t.FixHtml)) item.Append($"<dt>直し方</dt><dd>{t.FixHtml}</dd>");
+                item.Line("</dl>");
             }
-            sb.Line(Fragments.Body(t.BodyHtml));
-            sb.Line(Fragments.Refs(c, t.Shortcuts, t.Articles, t.Related, t.Keywords));
-            sb.Line("</div>");
-            sb.Line("</article>");
-            sb.Line("</div>");
+            item.Line(Fragments.Body(t.BodyHtml));
+            item.Line(Fragments.Refs(c, t.Shortcuts, t.Articles, t.Related, t.Keywords));
+            item.Line("</div>");
+            item.Line("</article>");
+            item.Line("</div>");
+            FilterText("tip", t.Id, item.ToString(), null);
+            sb.Append(item);
         }
         sb.Line("</div>");
         return sb.ToString();
@@ -506,17 +517,20 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line("<div class=\"row g-3\">");
         foreach (var q in c.Qas)
         {
-            sb.Line("<div class=\"col-lg-6\" data-tip-item>");
-            sb.Line($"<article class=\"tip-card card h-100\" id=\"{E(q.Id)}\" data-tags=\"{E(string.Join('|', q.Tags))}\" data-source=\"{E(q.Source)}\">");
-            sb.Line("<div class=\"card-body\">");
-            sb.Line($"<h2 class=\"h5 mb-2\">{Icon("Chat", "me-1")}<a href=\"/qa#{E(q.Id)}\" class=\"tip-anchor\">{E(q.Question)}</a></h2>");
-            sb.Line(Fragments.Tags(q.Tags, q.Source));
-            sb.Line($"<p class=\"mb-2\">{q.AnswerHtml}</p>");
-            sb.Line(Fragments.Body(q.BodyHtml));
-            sb.Line(Fragments.Refs(c, q.Shortcuts, q.Articles, q.Related, q.Keywords));
-            sb.Line("</div>");
-            sb.Line("</article>");
-            sb.Line("</div>");
+            var item = new StringBuilder();
+            item.Line("<div class=\"col-lg-6\" data-tip-item>");
+            item.Line($"<article class=\"tip-card card h-100\" id=\"{E(q.Id)}\" data-tags=\"{E(string.Join('|', q.Tags))}\" data-source=\"{E(q.Source)}\">");
+            item.Line("<div class=\"card-body\">");
+            item.Line($"<h2 class=\"h5 mb-2\">{Icon("Chat", "me-1")}<a href=\"/qa#{E(q.Id)}\" class=\"tip-anchor\">{E(q.Question)}</a></h2>");
+            item.Line(Fragments.Tags(q.Tags, q.Source));
+            item.Line($"<p class=\"mb-2\">{q.AnswerHtml}</p>");
+            item.Line(Fragments.Body(q.BodyHtml));
+            item.Line(Fragments.Refs(c, q.Shortcuts, q.Articles, q.Related, q.Keywords));
+            item.Line("</div>");
+            item.Line("</article>");
+            item.Line("</div>");
+            FilterText("qa", q.Id, item.ToString(), null);
+            sb.Append(item);
         }
         sb.Line("</div>");
         return sb.ToString();
@@ -622,7 +636,9 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         """;
 
     public string Search() =>
-        Heading("検索", "記事・用語集・「何て名前？」・TIPS・改変 Q&amp;A・ショートカット・アドオン・リンク集をまとめて検索します。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上の検索欄に移動できます。");
+        Heading("検索", "記事・用語集・「何て名前？」・TIPS・改変 Q&amp;A・ショートカット・アドオン・リンク集をまとめて検索します。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上の検索欄に移動できます。")
+        + $"<form action=\"/search\" method=\"get\" class=\"mb-4\" role=\"search\">\n<div class=\"input-group input-group-lg\">\n<input name=\"q\" type=\"search\" class=\"form-control\" placeholder=\"例: 押し出し、Ctrl+R、ウェイト\" autocomplete=\"off\" />\n<button type=\"submit\" class=\"btn btn-primary\">{Icon("Search")} 検索</button>\n</div>\n</form>\n"
+        + "<div aria-live=\"polite\">\n<p class=\"text-body-secondary\">キーワードを入力してください。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上の検索欄に移動できます。</p>\n<noscript><p class=\"text-danger\">検索には JavaScript が必要です。</p></noscript>\n</div>\n";
 
     public string Report() =>
         "<div class=\"fsk-page-column\">\n" +

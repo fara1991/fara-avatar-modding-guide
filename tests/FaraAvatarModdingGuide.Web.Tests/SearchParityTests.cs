@@ -24,12 +24,25 @@ public class SearchParityTests
 
     private static JsonElement[] RunReference()
     {
+        // 稀に Node が起動の途中で落ちる(マシンのメモリが足りないときの V8 の致命的エラー)ので、3 回まで試す。毎回落ちるなら、本当の失敗
+        for (var attempt = 1; ; attempt++)
+        {
+            var (ok, error, result) = RunReferenceOnce();
+            if (ok) return result!;
+            if (attempt == 3) throw new Xunit.Sdk.XunitException(error);
+            Thread.Sleep(500);
+        }
+    }
+
+    private static (bool Ok, string Error, JsonElement[]? Result) RunReferenceOnce()
+    {
         var work = Path.Combine(Path.GetTempPath(), "avatar-search-" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(work);
         try
         {
             var indexFile = Path.Combine(work, "index.json");
             File.WriteAllText(indexFile, JsonSerializer.Serialize(Records, SiteJsonContext.Default.IReadOnlyListSearchRecord), new UTF8Encoding(false));
+            var outFile = Path.Combine(work, "reference.json");
             var info = new ProcessStartInfo("node")
             {
                 RedirectStandardOutput = true,
@@ -38,13 +51,14 @@ public class SearchParityTests
                 StandardOutputEncoding = Encoding.UTF8,
                 StandardErrorEncoding = Encoding.UTF8,
             };
-            foreach (var arg in new[] { Path.Combine(JsDir, "search-reference.mjs"), indexFile, Path.Combine(JsDir, "search-queries.json") }) info.ArgumentList.Add(arg);
+            foreach (var arg in new[] { Path.Combine(JsDir, "search-reference.mjs"), indexFile, Path.Combine(JsDir, "search-queries.json"), outFile }) info.ArgumentList.Add(arg);
             using var process = Process.Start(info) ?? throw new InvalidOperationException("node を起動できません（CI では actions/setup-node が要ります）");
             var stdout = process.StandardOutput.ReadToEndAsync();
             var stderr = process.StandardError.ReadToEndAsync();
             process.WaitForExit();
-            Assert.True(process.ExitCode == 0, "search-reference.mjs が失敗しました:\n" + stderr.Result);
-            return JsonSerializer.Deserialize<JsonElement[]>(stdout.Result)!;
+            if (process.ExitCode != 0)
+                return (false, $"search-reference.mjs が失敗しました（終了コード {process.ExitCode}）:" + Environment.NewLine + stderr.Result + stdout.Result, null);
+            return (true, "", JsonSerializer.Deserialize<JsonElement[]>(File.ReadAllText(outFile, Encoding.UTF8))!);
         }
         finally
         {

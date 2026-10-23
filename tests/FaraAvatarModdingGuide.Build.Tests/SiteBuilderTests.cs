@@ -41,7 +41,7 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
     [NodeFact]
     public void Only_wasm_pages_keep_the_loader_and_the_blazor_script()
     {
-        foreach (var path in PageCatalog.WasmPaths)
+        foreach (var path in PageCatalog.WasmPaths.Concat(new[] { "/learn/basics", "/learn/basics/select" }))
         {
             var html = Read(fx.Production, SiteBuilder.FileFor(path));
             Assert.Contains("id=\"boot-indicator\"", html);
@@ -50,7 +50,7 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
             Assert.DoesNotContain("STATIC-ONLY", html);
             Assert.DoesNotContain("notice.js", html);                    // 帯は kit の MaintenanceBanner が出す（二重にしない）
         }
-        foreach (var file in new[] { "learn.html", "learn/basics/select.html", "shortcuts.html", "practice.html", "glossary.html" })
+        foreach (var file in new[] { "practice.html", "practice/room.html", "practice/unity.html" })
         {
             var html = Read(fx.Production, file);
             Assert.DoesNotContain("boot-indicator", html);

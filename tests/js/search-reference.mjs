@@ -1,12 +1,12 @@
 // 現行の検索（wwwroot/js/searchcore.js）を、同じ索引・同じ検索語で動かして、結果を JSON で出す。C# の SearchEngine（Web.Tests の SearchParityTests）の正解データ。
-//   node tests/js/search-reference.mjs <索引の JSON（data/search.json と同じ形）> <検索語の JSON（文字列の配列）>
+//   node tests/js/search-reference.mjs <索引の JSON（data/search.json と同じ形）> <検索語の JSON（文字列の配列）> <結果を書く JSON>
 // 各検索語について: 正規化した検索語・件数・全件の並び（種類・題名・URL・点数）・上位の題名/小見出しの強調 HTML・本文の抜き出しと強調。
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 
-const [indexFile, queriesFile] = process.argv.slice(2);
-if (!indexFile || !queriesFile) {
-    console.error("usage: node tests/js/search-reference.mjs <index.json> <queries.json>");
+const [indexFile, queriesFile, outFile] = process.argv.slice(2);
+if (!indexFile || !queriesFile || !outFile) {
+    console.error("usage: node tests/js/search-reference.mjs <index.json> <queries.json> <out.json>");
     process.exit(2);
 }
 const source = readFileSync(new URL("../../wwwroot/js/searchcore.js", import.meta.url), "utf8");
@@ -34,4 +34,4 @@ const results = queries.map((query) => {
         })),
     };
 });
-process.stdout.write(JSON.stringify(results));
+writeFileSync(outFile, JSON.stringify(results), "utf8");

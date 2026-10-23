@@ -1,0 +1,50 @@
+@page "/tips"
+@inherits FilterPage
+@inject SiteSettings Settings
+
+<PageTitle>TIPS - @Settings.Title</PageTitle>
+
+@* 静的 HTML（Build の PageBodies.Tips）と同じ構造・class。絞り込みの動きは FilterPage *@
+<h1>TIPS</h1>
+<p class="lead">アバターづくりでよくあるつまずきを、症状・原因・直し方でまとめました。言葉の意味は <a href="/glossary">用語集</a>、操作の名前は <a href="/howto">何て名前？</a>、手順や「どうすれば？」は <a href="/qa">改変 Q&amp;A</a> へ。</p>
+
+@if (Store.Content is not { } content)
+{
+    <p class="text-body-secondary" role="status">TIPS を読み込めませんでした。ページを再読み込みしてください。</p>
+}
+else
+{
+    var shown = content.Tips.Count(t => IsShown(t.Id, t.Tags, t.Source));
+    <TipsFilter Tags="@SiteLookups.TipTags(content.Tips.Select(t => t.Tags))" Placeholder="症状で絞り込む（例: ピンク、黒い、ボーン）"
+                HasDiscord="@content.Tips.Any(t => t.Source == "discord")" Query="@Query" Tag="@Tag" CountText="@CountText(content.Tips.Count, shown)"
+                OnQuery="@(q => SetQuery(q))" OnTag="@(t => SetTag(t))" />
+    <div class="row g-3">
+        @foreach (var t in content.Tips)
+        {
+            <div class="col-lg-6" data-tip-item hidden="@(!IsShown(t.Id, t.Tags, t.Source))">
+                <article class="tip-card card h-100" id="@t.Id" data-tags="@string.Join('|', t.Tags)" data-source="@t.Source">
+                    <div class="card-body">
+                        <h2 class="h5 mb-2"><AvIcon Name="Lightbulb" Class="me-1" /><a href="/tips#@t.Id" class="tip-anchor">@t.Title</a></h2>
+                        <TipTags Tags="@t.Tags" Source="@t.Source" />
+                        @if (!string.IsNullOrWhiteSpace(t.SummaryHtml))
+                        {
+                            <p class="mb-2">@((MarkupString)t.SummaryHtml)</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(t.SymptomHtml) || !string.IsNullOrWhiteSpace(t.CauseHtml) || !string.IsNullOrWhiteSpace(t.FixHtml))
+                        {
+                            <dl class="tip-detail mb-2">@if (!string.IsNullOrWhiteSpace(t.SymptomHtml)) {<dt>症状</dt><dd>@((MarkupString)t.SymptomHtml)</dd>}@if (!string.IsNullOrWhiteSpace(t.CauseHtml)) {<dt>原因</dt><dd>@((MarkupString)t.CauseHtml)</dd>}@if (!string.IsNullOrWhiteSpace(t.FixHtml)) {<dt>直し方</dt><dd>@((MarkupString)t.FixHtml)</dd>}</dl>
+                        }
+                        <TipBody Html="@t.BodyHtml" Open="@(OpenId == t.Id)" />
+                        <TipRefs Shortcuts="@t.Shortcuts" Articles="@t.Articles" Related="@t.Related" Keywords="@t.Keywords" />
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    protected override string Kind => "tip";
+
+    protected override IEnumerable<string> ItemIds => Store.Content?.Tips.Select(t => t.Id) ?? [];
+}

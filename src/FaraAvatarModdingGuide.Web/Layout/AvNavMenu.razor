@@ -1,0 +1,20 @@
+@* サイドバーの項目(MudBlazor の MudNavMenu)。kit の SiteNavMenu と同じ作りで、項目ごとに「いまのページ」の判定(Match)を決め、カテゴリの進捗(3/5)を右に出す。
+   項目は <a href> のまま(OnClick を付けると、MudBlazor が href の無い要素にするため)。スマホでメニューを閉じるのは、SiteLayout が画面の移動で行う。
+   サイドバーの折りたたみ(PC の細い列)は SiteLayout の Mini ドロワーが行う *@
+<MudNavMenu Class="fsk-nav">
+    @foreach (var group in Groups)
+    {
+        @if (!string.IsNullOrEmpty(group.Title))
+        {
+            <div class="fsk-nav-section">@group.Title</div>
+        }
+        @foreach (var item in group.Items)
+        {
+            <MudNavLink Href="@item.Href" Match="@item.Match" Icon="@item.Icon">@item.Label@if (item.ProgressIds is { Count: > 0 }) {<CategoryProgress Ids="@item.ProgressIds" Class="ms-auto" />}</MudNavLink>
+        }
+    }
+</MudNavMenu>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<AvNavGroup> Groups { get; set; } = [];
+}

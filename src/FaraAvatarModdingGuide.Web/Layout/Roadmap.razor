@@ -1,4 +1,6 @@
-@* 目次。区切り（Blender / Unity / VRChat / 通しで作る）ごとに、カテゴリを読む順に並べる。静的 HTML（Build の PageBodies.Roadmap）と同じ構造・class *@
+@inherits ProgressAware
+@* 目次。区切り（Blender / Unity / VRChat / 通しで作る）ごとに、カテゴリを読む順に並べる。静的 HTML（Build の PageBodies.Roadmap）と同じ構造・class。
+   カテゴリの進捗（3/5）と、完了した記事のチェックは、完了の記録（ProgressStore）から *@
 @foreach (var section in Content.Sections)
 {
     var categories = Content.CategoriesIn(section.Id);
@@ -21,7 +23,10 @@
                         <div class="roadmap-marker">@(index + 1)</div>
                         <div class="roadmap-body">
                             <h4 class="h5 mb-1">
-                                <AvIcon Name="@category.Icon" Class="me-1" /><a href="/learn/@category.Id" class="text-decoration-none">@category.Title</a>
+                                <AvIcon Name="@category.Icon" Class="me-1" /><a href="/learn/@category.Id" class="text-decoration-none">@category.Title</a>@if (articles.Count > 0)
+                                {
+                                    <CategoryProgress Ids="@(articles.Select(a => a.Id).ToList())" />
+                                }
                             </h4>
                             <p class="text-body-secondary mb-2">@category.Description</p>
                             @if (articles.Count == 0)
@@ -33,8 +38,8 @@
                                 <ol class="roadmap-articles">
                                     @foreach (var article in articles)
                                     {
-                                        <li data-article="@article.Id">
-                                            <a href="@article.Url">@article.Title</a>
+                                        <li data-article="@article.Id" class="@DoneClass(article.Id)">
+                                            <a href="@article.Url">@article.Title</a><DoneMark />
                                             <DifficultyBadge Difficulty="@article.Difficulty" />
                                         </li>
                                     }

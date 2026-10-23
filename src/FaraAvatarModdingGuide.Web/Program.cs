@@ -38,7 +38,9 @@ builder.Services.AddFaraSiteKit(options => SiteInfo.Configure(options, settings)
 builder.Services.AddSingleton(maintenanceTask.Result);
 builder.Services.AddSingleton(store);
 builder.Services.AddSingleton<ISearchNormalizer, JsSearchNormalizer>();
-builder.Services.AddSingleton<SearchService>();   // 検索の索引は、最初に検索するときに読む
+builder.Services.AddSingleton<SearchService>();
+builder.Services.AddSingleton<FilterTextStore>();   // 一覧(用語集など)の絞り込み用の文字は、その一覧を開いたときに読む
+builder.Services.AddSingleton<ProgressStore>();   // 検索の索引は、最初に検索するときに読む
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");   // 報告・404 の noindex と、ページの題名に必要
