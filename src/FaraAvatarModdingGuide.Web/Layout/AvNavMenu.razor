@@ -1,3 +1,6 @@
+@implements IDisposable
+@inject NavigationManager Nav
+@inject ContentStore Store
 @* サイドバーの項目(MudBlazor の MudNavMenu)。kit の SiteNavMenu と同じ作りで、項目ごとに「いまのページ」の判定(Match)を決め、カテゴリの進捗(3/5)を右に出す。
    項目は <a href> のまま(OnClick を付けると、MudBlazor が href の無い要素にするため)。スマホでメニューを閉じるのは、SiteLayout が画面の移動で行う。
    サイドバーの折りたたみ(PC の細い列)は SiteLayout の Mini ドロワーが行う *@
@@ -10,11 +13,32 @@
         }
         @foreach (var item in group.Items)
         {
-            <MudNavLink Href="@item.Href" Match="@item.Match" Icon="@item.Icon">@item.Label@if (item.ProgressIds is { Count: > 0 }) {<CategoryProgress Ids="@item.ProgressIds" Class="ms-auto" />}</MudNavLink>
+            <MudNavLink Href="@item.Href" Match="@item.Match" Icon="@item.Icon" ActiveClass="@ActiveClass">@item.Label@if (item.ProgressIds is { Count: > 0 }) {<CategoryProgress Ids="@item.ProgressIds" Class="ms-auto" />}</MudNavLink>
         }
     }
 </MudNavMenu>
 
 @code {
+    /// <summary>
+    /// 知らない記事・カテゴリの URL(404 の表示)では、前方一致でカテゴリが強調されないように、強調の class を別の(見た目のない)名前にする。
+    /// 練習のページ(静的 HTML)は、サイトのページとして扱う。
+    /// </summary>
+    private string ActiveClass => KnownPage ? "active" : "av-no-active";
+
+    private bool KnownPage
+    {
+        get
+        {
+            var path = new Uri(Nav.Uri).AbsolutePath;
+            return PageRoutes.IsWasmPage(path, Store.Content) || path.TrimEnd('/') is "/practice" or "/practice/unity" or "/practice/room";
+        }
+    }
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+
     [Parameter, EditorRequired] public IReadOnlyList<AvNavGroup> Groups { get; set; } = [];
 }

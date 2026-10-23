@@ -5,9 +5,9 @@
 // 食い違いが見えない)。develop の SSR を別に取得して、Content/ だけを移行版のものに差し替えて書き出す(CI: .github/workflows/deploy.yml の「Export the SSR site from develop」)。
 //
 // 比べるもの:
-//   ・記事(50 件): .article-body の文字(空白・改行を除く)と、本文の中の属性(href・src・alt・title・target・rel)。href・src は <base href="/"> に従って絶対 URL にしてから比べる
+//   ・記事(50 件): .article-body の文字(空白・改行を除く)と、構造(見出しの id・ol/ul・table・li・kbd などの並び)と、本文の中の属性(href・src・alt・title・target・rel)。href・src は <base href="/"> に従って絶対 URL にしてから比べる
 //   ・そのほかのページ: 本文(article.content / article.fsk-content)の文字と、同じ属性。既知の差(known-differences.json)だけを除いて比べる
-// 既知の差は、ページのパスごとに、SSR 側・移行版側の文字の断片(ssr / new)と属性(ssrAttributes / newAttributes)、理由(reason)を書く。
+// 既知の差は、ページのパスごとに、SSR 側・移行版側の文字の断片(ssr / new)と属性(ssrAttributes / newAttributes)・構造(ssrStructure / newStructure: structureOf のトークン)、理由(reason)を書く。
 // 本文が JavaScript で描かれていて、静的 HTML と作りが違うページ(練習・問い合わせ)は、skip: true(理由つき)で、その移行のフェーズまで比べない。
 // 断片を取り除いたら一致することを確かめ、断片が見つからなければ(古くなった記述)失敗にする。
 // 既知の差に書いていない差、記事が 50 件に満たない、移行版にページが無い、のどれかがあれば、終了コード 1。
@@ -70,6 +70,18 @@ function attributesOf(html, fullHtml, pagePath) {
     return out;
 }
 
+/** 本文の構造: 見出し(id つき)・リスト(ol / ul)・表・コード・引用・折りたたみなどの並び。見出し id の書き換え、ol→ul、table→div などを見つける。 */
+function structureOf(html) {
+    const out = [];
+    const re = /<(h[1-6]|ol|ul|li|table|thead|tbody|tr|th|td|pre|blockquote|details|summary|dl|dt|dd|kbd)(?=[\s/>])([^>]*)>/gi;
+    for (let m; (m = re.exec(html)); ) {
+        const tag = m[1].toLowerCase();
+        const id = /^h[1-6]$/.test(tag) ? /\sid="([^"]*)"/i.exec(m[2])?.[1] : undefined;
+        out.push(id !== undefined ? `${tag}#${decode(id)}` : tag);
+    }
+    return out;
+}
+
 function firstDiff(a, b) {
     let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++;
     return `最初の差: SSR「${a.slice(Math.max(0, i - 10), i + 40)}」 / 移行版「${b.slice(Math.max(0, i - 10), i + 40)}」`;
@@ -115,6 +127,12 @@ for (const file of walk(ssrDir)) {
             const i = aa.findIndex((x, k) => x !== ab[k]);
             console.log(`DIFF article attributes ${rel} (SSR ${aa.length} / 移行版 ${ab.length}) 最初の差: SSR「${aa[i]}」 / 移行版「${ab[i]}」`);
         }
+        const ka = structureOf(sa), kb = structureOf(sb);
+        if (ka.join(" ") !== kb.join(" ")) {
+            failures++;
+            const i = ka.findIndex((x, k) => x !== kb[k]);
+            console.log(`DIFF article structure ${rel} (SSR ${ka.length} / 移行版 ${kb.length}) ${i + 1} 番目: SSR「${ka[i]}」 / 移行版「${kb[i]}」`);
+        }
         if (flags.has("--verbose")) console.log(`ok ${rel} 文字 ${ta.length} 属性 ${aa.length}`);
     } else {
         const sa = innerOf(ssrFull, "article", "content"), sb = innerOf(newFull, "article", "fsk-content");
@@ -126,6 +144,18 @@ for (const file of walk(ssrDir)) {
         const ta = removeKnown(textOf(sa), entry?.ssr, pagePath, "SSR", problems), tb = removeKnown(textOf(sb), entry?.new, pagePath, "移行版", problems);
         if (ta !== tb) { failures++; console.log(`DIFF page text ${rel} (SSR ${ta.length} / 移行版 ${tb.length}) ${firstDiff(ta, tb)}`); }
         const aa = attributesOf(sa, ssrFull, pagePath), ab = attributesOf(sb, newFull, pagePath);
+        const ka = structureOf(sa), kb = structureOf(sb);
+        for (const [list, side, drop] of [[ka, "SSR", entry?.ssrStructure], [kb, "移行版", entry?.newStructure]]) {
+            for (const d of drop ?? []) {
+                const at = list.indexOf(d);
+                if (at < 0) problems.push(`既知の差が見つからない(古くなった記述): ${pagePath} ${side} 構造「${d}」`); else list.splice(at, 1);
+            }
+        }
+        if (ka.join(" ") !== kb.join(" ")) {
+            failures++;
+            const i = ka.findIndex((x, k) => x !== kb[k]);
+            console.log(`DIFF page structure ${rel} (SSR ${ka.length} / 移行版 ${kb.length}) ${i + 1} 番目: SSR「${ka[i]}」 / 移行版「${kb[i]}」`);
+        }
         for (const [list, side, drop] of [[aa, "SSR", entry?.ssrAttributes], [ab, "移行版", entry?.newAttributes]]) {
             for (const d of drop ?? []) {
                 const at = list.indexOf(d);

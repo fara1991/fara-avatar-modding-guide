@@ -86,6 +86,22 @@ public class SearchParityTests
     }
 
     [Fact]
+    public void Romaji_conversion_and_long_vowel_folding_match_searchcore_for_every_query()
+    {
+        var converted = 0;
+        for (var i = 0; i < Queries.Length; i++)
+        {
+            var norm = SearchIndexJson.Normalize(Queries[i]);
+            var expected = Reference.Value[i].GetProperty("romaji");
+            var actual = RomajiKana.ToHiragana(norm);
+            Assert.True(expected.ValueKind == JsonValueKind.Null ? actual is null : expected.GetString() == actual, $"検索語 [{Queries[i]}]: ローマ字変換 searchcore={expected} / C#={actual}");
+            Assert.Equal(Reference.Value[i].GetProperty("loose").GetString(), RomajiKana.Loose(Queries[i]));
+            if (actual is not null) converted++;
+        }
+        Assert.True(converted >= 100, "変換表の全キーを通す語が変換されている: " + converted);
+    }
+
+    [Fact]
     public void Count_and_order_of_every_hit_match_searchcore()
     {
         var engine = Engine();

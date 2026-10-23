@@ -45,6 +45,7 @@ public abstract class FilterPage : ComponentBase, IDisposable
 
     protected override async Task OnInitializedAsync()
     {
+        SyncTag();   // OnParametersSet より先に動く(読み込みが同期で済むと、絞り込みの判定が、URL のタグを見る前になる)
         Nav.LocationChanged += OnLocationChanged;
         // 同じページの中の # のリンク・戻る/進むでは、LocationChanged が起きないので、js/page.js の通知も受ける
         try
@@ -58,7 +59,9 @@ public abstract class FilterPage : ComponentBase, IDisposable
         ApplyHash();
     }
 
-    protected override void OnParametersSet()
+    protected override void OnParametersSet() => SyncTag();
+
+    private void SyncTag()
     {
         // URL の ?tag= が変わったときだけ、選んでいるタグに反映する（#id で絞り込みを外したあとに、同じ値で上書きし直さない）
         if (TagParam != _seenTagParam)
@@ -88,19 +91,22 @@ public abstract class FilterPage : ComponentBase, IDisposable
         if (ApplyHash()) _ = InvokeAsync(StateHasChanged);
     }
 
-    /// <summary>この種類の項目の id の一覧（#id が、この一覧の項目かを調べる）。</summary>
-    protected abstract IEnumerable<string> ItemIds { get; }
+    /// <summary>この種類の項目のタグと出どころ(#id が、この一覧の項目か・いまの絞り込みで隠れているかを調べる)。この一覧に無い id は null。</summary>
+    protected abstract (IReadOnlyList<string> Tags, string Source)? Meta(string id);
 
-    /// <summary>URL の #id が、この一覧の項目なら、絞り込みを外して開く。変わったら true。</summary>
+    /// <summary>URL の #id が、この一覧の項目なら、「詳しく」を開いてそこへ動かす。いまの絞り込みで隠れているときだけ、絞り込みを外す(SSR 版の tipsfilter.js と同じ)。変わったら true。</summary>
     private bool ApplyHash()
     {
         var uri = new Uri(Nav.Uri);
         var id = Uri.UnescapeDataString(uri.Fragment.TrimStart('#'));
-        if (id.Length == 0 || !ItemIds.Contains(id, StringComparer.Ordinal)) return false;
-        Tag = "";
-        _seenTagParam = TagParam;   // URL の ?tag= は残っているが、この絞り込みは外す(OnParametersSet が、同じ値で上書きし直さない)
-        Query = "";
-        _terms = [];
+        if (id.Length == 0 || Meta(id) is not { } meta) return false;
+        if (!IsShown(id, meta.Tags, meta.Source))
+        {
+            Tag = "";
+            _seenTagParam = TagParam;   // URL の ?tag= は残っているが、この絞り込みは外す(OnParametersSet が、同じ値で上書きし直さない)
+            Query = "";
+            _terms = [];
+        }
         OpenId = id;
         _pendingScrollId = id;
         return true;
@@ -127,7 +133,8 @@ public abstract class FilterPage : ComponentBase, IDisposable
         var okTag = Tag.Length == 0 || (Tag == "source:discord" ? source == "discord" : tags.Contains(Tag, StringComparer.Ordinal));
         if (!okTag) return false;
         if (_terms.Length == 0) return true;
-        if (_texts is null || !_texts.TryGetValue(id, out var text)) return false;
+        // 項目の文字(data/filter.json)が読めなかった・この項目が無いときは、文字では絞らない(全件が消えて、何も読めなくなるよりよい)
+        if (_texts is null || !_texts.TryGetValue(id, out var text)) return true;
         return _terms.All(t => text.Contains(t, StringComparison.Ordinal));
     }
 

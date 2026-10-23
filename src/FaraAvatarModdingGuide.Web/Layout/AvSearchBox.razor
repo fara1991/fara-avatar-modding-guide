@@ -49,7 +49,7 @@
                     </span>
                 </a>
             }
-            <a class="av-search-all" href="@AllHref" @onclick="@(e => Go(e, AllHref))" @onclick:preventDefault="true">@(hits.Count > Max ? $"すべての結果（{hits.Count} 件）を見る" : "検索ページで見る") <span aria-hidden="true">→</span></a>
+            <a class="av-search-all" tabindex="-1" href="@AllHref" @onclick="@(e => Go(e, AllHref))" @onclick:preventDefault="true">@(hits.Count > Max ? $"すべての結果（{hits.Count} 件）を見る" : "検索ページで見る") <span aria-hidden="true">→</span></a>
         </div>
     }
 </div>
@@ -152,7 +152,7 @@
         if (Sheet) _ = Done();
         if (e is { CtrlKey: true } or { MetaKey: true } or { ShiftKey: true })
         {
-            _ = JS.InvokeVoidAsync("open", url, "_blank");
+            _ = JS.InvokeVoidAsync("open", url, "_blank", "noopener");
             return;
         }
         Nav.NavigateTo(url);

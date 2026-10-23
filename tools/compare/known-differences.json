@@ -1,24 +1,67 @@
 {
     "/": {
-        "reason": "目次の進捗の「次に読む」リンク。SSR 版は、空の非表示のリンクを JavaScript(progress.js)が埋める。移行版の静的 HTML は、何も完了していないときの最初の記事を最初から入れておく(起動の前後で並びが変わらない)",
-        "new": ["インストールと日本語化"],
-        "ssrAttributes": ["a href=/learn"],
-        "newAttributes": ["a href=/learn/getting-started/install"]
+        "reason": "目次の進捗の「次に読む」リンク。SSR 版は、空の非表示のリンクを JavaScript(progress.js)が埋める。移行版の静的 HTML は、何も完了していないときの最初の記事を最初から入れておく(起動の前後で並びが変わらない)。ホームの「困ったときに引く」のカード 8 枚の見出しは、SSR 版が h5、移行版は h3(class は h5 のまま。見た目は同じで、見出しの階層が正しくなる。Phase 1)",
+        "new": [
+            "インストールと日本語化"
+        ],
+        "ssrAttributes": [
+            "a href=/learn"
+        ],
+        "newAttributes": [
+            "a href=/learn/getting-started/install"
+        ],
+        "ssrStructure": [
+            "h5",
+            "h5",
+            "h5",
+            "h5",
+            "h5",
+            "h5",
+            "h5",
+            "h5"
+        ],
+        "newStructure": [
+            "h3",
+            "h3",
+            "h3",
+            "h3",
+            "h3",
+            "h3",
+            "h3",
+            "h3"
+        ]
     },
     "/learn": {
         "reason": "ホームと同じ(目次の進捗の「次に読む」リンク)",
-        "new": ["インストールと日本語化"],
-        "ssrAttributes": ["a href=/learn"],
-        "newAttributes": ["a href=/learn/getting-started/install"]
+        "new": [
+            "インストールと日本語化"
+        ],
+        "ssrAttributes": [
+            "a href=/learn"
+        ],
+        "newAttributes": [
+            "a href=/learn/getting-started/install"
+        ]
     },
     "/privacy": {
         "reason": "Bootstrap と Bootstrap Icons の CDN をやめた(Phase 1)。jsDelivr は、練習の 3D 表示の部品(three.js)だけに使う",
-        "ssr": ["jsDelivr（画面の部品のCSS・アイコン。サイトを開くと、配信元にアクセスの情報が送られます）"],
-        "new": ["jsDelivr（練習の3D表示の部品。練習のページを開くと、配信元にアクセスの情報が送られます）"]
+        "ssr": [
+            "jsDelivr（画面の部品のCSS・アイコン。サイトを開くと、配信元にアクセスの情報が送られます）"
+        ],
+        "new": [
+            "jsDelivr（練習の3D表示の部品。練習のページを開くと、配信元にアクセスの情報が送られます）"
+        ]
     },
     "/search": {
-        "reason": "SSR 版の本文は、検索語がないときの案内を JavaScript(search.js)が入れる。移行版の静的 HTML は、最初から入れておく(起動の前後で並びが変わらない)",
-        "new": ["キーワードを入力してください。どのページでもCtrl+Kか/で上の検索欄に移動できます。"]
+        "reason": "SSR 版の本文は、検索語がないときの案内を JavaScript(search.js)が入れる。移行版の静的 HTML は、最初から入れておく(起動の前後で並びが変わらない)(案内文の <kbd> 3 つも同じ理由)",
+        "new": [
+            "キーワードを入力してください。どのページでもCtrl+Kか/で上の検索欄に移動できます。"
+        ],
+        "newStructure": [
+            "kbd",
+            "kbd",
+            "kbd"
+        ]
     },
     "/report": {
         "skip": true,

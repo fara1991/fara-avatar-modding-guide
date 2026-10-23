@@ -40,5 +40,6 @@ else
 @code {
     protected override string Kind => "qa";
 
-    protected override IEnumerable<string> ItemIds => Store.Content?.Qas.Select(q => q.Id) ?? [];
+    protected override (IReadOnlyList<string> Tags, string Source)? Meta(string id) =>
+        Store.Content?.Qas.Where(q => q.Id == id).Select(q => ((IReadOnlyList<string> Tags, string Source)?)(q.Tags, q.Source)).FirstOrDefault();
 }

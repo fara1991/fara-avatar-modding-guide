@@ -39,5 +39,6 @@ else
 @code {
     protected override string Kind => "glossary";
 
-    protected override IEnumerable<string> ItemIds => Store.Content?.Glossary.Select(g => g.Id) ?? [];
+    protected override (IReadOnlyList<string> Tags, string Source)? Meta(string id) =>
+        Store.Content?.Glossary.Where(g => g.Id == id).Select(g => ((IReadOnlyList<string> Tags, string Source)?)(g.Tags, g.Source)).FirstOrDefault();
 }

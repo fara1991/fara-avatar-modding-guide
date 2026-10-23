@@ -23,10 +23,11 @@ var contentTask = store.LoadAsync();
 await Task.WhenAll(settingsTask, maintenanceTask, contentTask);
 
 var settings = settingsTask.Result;
-if (settings is null || store.Content is null)
+if (settings is null || SiteContentValidation.Check(settings) is not null || store.Content is null)
 {
     // 設定か記事のデータが読めないときは、アプリを起動しない。静的 HTML（本文入り）のページが、そのまま残って読める。
     // 読み込み表示は、#blazor-error-ui が出ると外れる（kit の boot-indicator.js）ので、60 秒待たせない
+    if (settings is not null && SiteContentValidation.Check(settings) is { } reason) Console.Error.WriteLine($"[avatar] {reason}");
     await using var failed = builder.Build();
     await StartupError.ShowAsync(failed.Services.GetRequiredService<IJSRuntime>());
     return;
