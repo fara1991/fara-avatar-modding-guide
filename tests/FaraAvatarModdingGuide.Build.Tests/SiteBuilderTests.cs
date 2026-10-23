@@ -211,6 +211,19 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
     }
 
     [Fact]
+    public void Run_refuses_output_folders_that_would_overwrite_sources_or_the_parent_tree()
+    {
+        var template = Path.Combine(Path.GetTempPath(), "avatar-out-guard-" + Guid.NewGuid().ToString("N")[..8] + ".html");
+        File.WriteAllText(template, TestTemplate.Html);
+        try
+        {
+            foreach (var bad in new[] { Repo.Root, Path.GetDirectoryName(Repo.Root)!, Path.Combine(Repo.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot"), Path.Combine(Repo.Root, "Content") })
+                Assert.Throws<ArgumentException>(() => SiteBuilder.Run(new BuildOptions(Repo.Root, template, bad, "production")));
+        }
+        finally { File.Delete(template); }
+    }
+
+    [Fact]
     public void FileFor_follows_the_html_url_style()
     {
         Assert.Equal("index.html", SiteBuilder.FileFor("/"));

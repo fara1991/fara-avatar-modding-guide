@@ -71,6 +71,16 @@ public static class SiteBuilder
         var outDir = Path.GetFullPath(options.OutDir);
         if (string.Equals(Path.TrimEndingDirectorySeparator(outDir), Path.TrimEndingDirectorySeparator(repo), StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("--out にリポジトリのルートは指定できません（専用の出力フォルダを指定してください）");
+        // 出力先は、リポジトリのルート・その親・ソース（src / tests / external / Content）の中ではないこと（テンプレートやソースの上書き、親の下の圧縮ファイルの削除を防ぐ）
+        var repoPrefix = Path.TrimEndingDirectorySeparator(repo) + Path.DirectorySeparatorChar;
+        var outPrefix = Path.TrimEndingDirectorySeparator(outDir) + Path.DirectorySeparatorChar;
+        if (repoPrefix.StartsWith(outPrefix, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("--out にリポジトリのルートやその親は指定できません（専用の出力フォルダを指定してください）");
+        foreach (var protectedDir in new[] { "src", "tests", "external", "Content", "worker", ".github" })
+        {
+            if (outPrefix.StartsWith(Path.Combine(repo, protectedDir) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException($"--out にソースのフォルダ（{protectedDir}）の中は指定できません: {outDir}");
+        }
         Directory.CreateDirectory(outDir);
 
         var kitScript = Path.Combine(options.KitPath, "build", "build-pages.mjs");
@@ -104,7 +114,7 @@ public static class SiteBuilder
                 ["path"] = p.Path,
                 ["title"] = p.Title,
                 ["description"] = p.Description,
-                ["bodyHtml"] = PageCatalog.Wrap(p.Main, settings),
+                ["bodyHtml"] = PageCatalog.Wrap(p.Main, settings, p.Path),
             };
             if (p.NoIndex) page["noindex"] = true;
             if (ogImage is not null) page["ogImage"] = ogImage;
@@ -118,7 +128,7 @@ public static class SiteBuilder
             ["bodyHtml"] = PageCatalog.Wrap(PageBodies.NotFound(), settings),
         };
 
-        var work = Path.Combine(repo, "obj", "build-pages");
+        var work = Path.Combine(repo, "obj", "build-pages", Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(work);
         var templateCopy = Path.Combine(work, "index.html");   // 出力先の index.html は kit が上書きするので、テンプレートは先に別の場所へ写す
         File.Copy(options.TemplatePath, templateCopy, overwrite: true);
