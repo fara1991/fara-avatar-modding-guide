@@ -154,6 +154,49 @@ async function practiceOps(browser, base, isNew) {
   return state;
 }
 
+// ---------------------------------------------------------------- 1b. /practice の HUD・キーの preventDefault・フォーカス(両エンジンで同じ)
+// C# 版(?engine=cs。Phase 3b S3)は HUD を Razor で、キーの preventDefault とフォーカスを gl.js・Blazor で作るので、JS 版と同じに振る舞うことを、ここで確かめる
+async function practiceHud(browser, base) {
+  const page = await open(browser, { width: 1280, height: 800 });
+  await page.goto(base + "/practice?debug=1" + ENGINE_QUERY, { waitUntil: "load" });
+  await page.waitForSelector(".mud-layout", { timeout: 90000 });
+  await page.waitForSelector(".practice-viewport canvas", { timeout: 60000 });
+  await page.waitForFunction(() => window.__practice?.objects?.length > 0);
+  const label = ENGINE === "cs" ? "C# 版" : "JS 版";
+  const text = (sel) => page.locator(sel).first().textContent().then((t) => t?.trim());
+  ok((await page.locator(".vp-mode, .vp-view, .vp-status, .vp-numeric, .vp-tools, .practice-npanel").count()) >= 6, `${label}: HUD の主要な要素（.vp-mode・.vp-view・.vp-status・.vp-numeric・.vp-tools・.practice-npanel）がある`);
+  ok((await text(".vp-mode")) === "オブジェクトモード", `${label}: 最初の .vp-mode の文言`, await text(".vp-mode"));
+  ok((await text(".vp-view")) === "ユーザー・透視投影", `${label}: 最初の .vp-view の文言`, await text(".vp-view"));
+  ok((await text(".vp-status")) === "クリックして選択。G / R / S で動かす", `${label}: 最初の .vp-status の文言`, await text(".vp-status"));
+  ok((await text(".vp-numeric")) === "", `${label}: 最初の .vp-numeric は空`, await text(".vp-numeric"));
+  // キーの defaultPrevented(ページの window で、ビューのハンドラーのあとに見る)
+  await page.evaluate(() => { window.__keys = []; window.addEventListener("keydown", (e) => window.__keys.push([e.key, e.defaultPrevented])); });
+  const box = await page.locator("#practice-viewport").boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2 - 12);
+  ok(await page.evaluate(() => document.activeElement?.id === "practice-viewport"), `${label}: ビューをクリックするとフォーカスがビューに来る`);
+  await page.keyboard.press("g"); await sleep(60);
+  await page.keyboard.press("z"); await page.keyboard.press("2"); await sleep(120);
+  ok((await text(".vp-status")).startsWith("移動"), `${label}: G の .vp-status は「移動」`, await text(".vp-status"));
+  ok((await text(".vp-numeric")) === "入力: 2", `${label}: 数値入力の .vp-numeric`, await text(".vp-numeric"));
+  await page.keyboard.press("Escape"); await sleep(60);
+  await page.keyboard.press("Tab"); await sleep(60);
+  ok((await text(".vp-mode")) === "編集モード", `${label}: Tab で .vp-mode が「編集モード」`, await text(".vp-mode"));
+  await page.keyboard.press("Control+z"); await sleep(60);
+  await page.keyboard.press("a"); await sleep(60);
+  const keys = await page.evaluate(() => window.__keys);
+  const prevented = Object.fromEntries(["Tab", "z", "g"].map((k) => [k, keys.filter((x) => x[0].toLowerCase() === k.toLowerCase()).map((x) => x[1])]));
+  ok(JSON.stringify(prevented.Tab) === "[true]", `${label}: Tab は defaultPrevented（フォーカスがビューから出ない）`, JSON.stringify(prevented.Tab));
+  ok(prevented.z.length === 2 && prevented.z[1] === true, `${label}: Ctrl+Z は defaultPrevented（ブラウザの取り消しにしない）`, JSON.stringify(prevented.z));
+  ok(await page.evaluate(() => document.activeElement?.id === "practice-viewport"), `${label}: キー操作のあともフォーカスがビューに残る`);
+  await page.locator('[data-tool="stats"]').click(); await sleep(150);
+  ok(await page.evaluate(() => document.activeElement?.id === "practice-viewport"), `${label}: ボタン（統計）を押したあと、フォーカスがビューに戻る`);
+  await page.locator("#practice-reset").click(); await sleep(250);
+  ok(await page.evaluate(() => document.activeElement?.id === "practice-viewport"), `${label}: 「最初からやり直す」を押したあと、フォーカスがビューに戻る`);
+  ok((await text(".vp-mode")) === "オブジェクトモード", `${label}: やり直しで .vp-mode が戻る`, await text(".vp-mode"));
+  await problems(page, `/practice の HUD（${label}）`);
+  await page.context().close();
+}
+
 // ---------------------------------------------------------------- 2. /practice/unity の操作
 async function unityOps(browser, base, isNew) {
   const page = await open(browser, { width: 1280, height: 900 });
@@ -345,6 +388,7 @@ try {
     const n = await practiceOps(browser, NEW, true);
     console.log("     NEW:", JSON.stringify(n));
     ok(JSON.stringify(n) === JSON.stringify(BASELINE.practice), "/practice: 同じ操作の結果(オブジェクトの位置・回転・スケール・視点・お題の進み)が基準(practice-baseline.json)と一致する", JSON.stringify(BASELINE.practice));
+    await practiceHud(browser, NEW);
     const nu = await unityOps(browser, NEW, true);
     console.log("     NEW:", JSON.stringify(nu));
     ok(nu.hoodie, "/practice/unity: Hoodie を Avatar へドラッグして入れられる");

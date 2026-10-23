@@ -407,5 +407,8 @@ export function loseContext(restoreAfterMs) {
   return true;
 }
 
-globalThis.__glDiag = diag;
-globalThis.__glLose = loseContext;
+/** 確認用: window.__glDiag / __glLose を作る。レンダーラボ（RenderLab）だけが呼ぶ（サイトの /practice では公開しない） */
+export function exposeDebugGlobals() {
+  globalThis.__glDiag = diag;
+  globalThis.__glLose = loseContext;
+}

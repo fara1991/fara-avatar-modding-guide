@@ -40,6 +40,9 @@ internal static partial class Gl
     [JSImport("globalThis.performance.mark")]
     internal static partial void Mark(string name);
 
+    [JSImport("exposeDebugGlobals", "gl")]
+    internal static partial void ExposeDebugGlobals();
+
     [JSImport("getQuery", "gl")]
     internal static partial string GetQuery();
 }

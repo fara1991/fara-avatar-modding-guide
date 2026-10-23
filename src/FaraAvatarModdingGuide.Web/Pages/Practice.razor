@@ -168,11 +168,22 @@
     private bool csMode;
     private bool emulateNumpad;
     private bool csFailed;
+    private bool disposed;
+    private static Task? lazyLoading;
 
     protected override void OnInitialized()
     {
+        // 同じページのまま ?engine= だけが変わる移動（アドレスの書き換え・戻る）は、ページを読み込み直す（エンジンの切り替えは、始め直しが要るため）
+        Nav.LocationChanged += OnLocationChanged;
         // ?engine=cs で、3D を C#(Practice・Render)+ 薄い WebGL 層で動かす(Phase 3b S3。既定は今までの Three.js 版)。?debug=1 で、確認用の状態(window.__practice)を出す
         csMode = Query("engine") == "cs";
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (disposed || !new Uri(e.Location).AbsolutePath.TrimEnd('/').EndsWith("/practice", StringComparison.Ordinal)) return;
+        var wantCs = Query("engine") == "cs";
+        if (wantCs != csMode) Nav.NavigateTo(e.Location, forceLoad: true);
     }
 
     private string? Query(string name)
@@ -204,14 +215,28 @@
         await host.StartAsync("practice.js", "");
     }
 
+    /// <summary>Practice・Render の読み込みは、ページを離れて戻る（読み込み中に別のページが同じ読み込みを始める）ことがあるので、1 回だけ・全員で共有する（同じ wasm を二重に読むと、本文の読み込みが衝突する）。</summary>
+    private Task LoadLazyAssembliesAsync()
+    {
+        lazyLoading ??= Services.GetRequiredService<Microsoft.AspNetCore.Components.WebAssembly.Services.LazyAssemblyLoader>()
+            .LoadAssembliesAsync(["FaraAvatarModdingGuide.Practice.wasm", "FaraAvatarModdingGuide.Render.wasm"]);
+        return lazyLoading;
+    }
+
     private async Task StartCsAsync()
     {
+        IPracticeCs? created = null;
         try
         {
-            // 操作のロジックと描画の命令(Practice・Render)は、?engine=cs のときだけ読み込む(通常のページの読み込みを増やさない)
-            await Services.GetRequiredService<Microsoft.AspNetCore.Components.WebAssembly.Services.LazyAssemblyLoader>().LoadAssembliesAsync(["FaraAvatarModdingGuide.Practice.wasm", "FaraAvatarModdingGuide.Render.wasm"]);
-            cs = await PracticeCsLoader.CreateAsync(() => emulateNumpad, Query("debug") == "1");
+            // 操作のロジックと描画の命令（Practice・Render）は、?engine=cs のときだけ読み込む（通常のページの読み込みを増やさない）
+            try { await LoadLazyAssembliesAsync(); }
+            catch { lazyLoading = null; throw; }   // 失敗したら、次に開いたときにやり直せるように
+            if (disposed) return;                    // 読み込んでいるあいだにページを離れた
+            created = await PracticeCsLoader.CreateAsync(() => emulateNumpad, Query("debug") == "1");
+            if (disposed) return;                    // finally で created を解放する
+            cs = created;
             cs.Changed += OnCsChanged;
+            created = null;
             if (!cs.Start())
             {
                 csFailed = true;
@@ -222,9 +247,13 @@
         catch (Exception e)
         {
             csFailed = true;
-            Console.Error.WriteLine($"[avatar] 練習(C# 版)を始められません: {e.Message}");
+            Console.Error.WriteLine($"[avatar] 練習（C# 版）を始められません: {e.Message}");
         }
-        StateHasChanged();
+        finally
+        {
+            created?.Dispose();
+        }
+        if (!disposed) StateHasChanged();
     }
 
     private void OnCsChanged()
@@ -259,6 +288,8 @@
 
     public async ValueTask DisposeAsync()
     {
+        disposed = true;
+        Nav.LocationChanged -= OnLocationChanged;
         if (cs is not null)
         {
             cs.Changed -= OnCsChanged;

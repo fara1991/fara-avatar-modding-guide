@@ -23,3 +23,4 @@
   - `gl-csp.mjs` … 本番と同じ CSP（`HEADERS=`）で、PC・スマホ幅の描画と CSP 違反 0
   - `gl-context-matrix.mjs`（`gl-probe.*`）… 「新しいコンテキストで描画が始まらない」の切り分け。ブラウザを CDP で直接操作し、隠れた（最小化・覆われた）ウィンドウで rAF が止まることを確かめる
 - Phase 3b S3（`/practice` の C# 版 `?engine=cs`。docs/phase3b-design.md の §13）: `ENGINE=cs node practice.mjs`（`/practice` の操作・往復を C# 版で。基準は JS 版と同じ `practice-baseline.json`）、`practice-compare.mjs`（同じ操作で、Three.js 版と C# 版のビューポート（3D + HUD）の画素を比べる。`NEW=` はサイトの配信（wrangler dev など）、閾値 0.1 % / 60）
+  - `practice-race.mjs` … 低速な読み込み中に「離れて戻る」（`Practice`・`Render` の wasm を 3.5 秒遅らせ、`/practice?engine=cs` → `/learn` → 戻る）。wasm を二重に読まず、エラーが出ないこと

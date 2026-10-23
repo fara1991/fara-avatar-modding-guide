@@ -453,3 +453,13 @@ S0 は `Object.create(Viewport.prototype)` で一部のメソッドを空にし�
 - **確認用の `window.__practice`**: C# 版は `objects`・`mode`・`ortho`・`view.name`・`select(o)` だけ（`practice.mjs` が読む分）。viewport.js のインスタンスの全部ではない。
 - **S4 以降**: 記事内チュートリアル（`tutorial.js`・`scenarios.js`）はまだ Three.js。three.js を外せるのは S7（S3〜S6 が本番で一定期間動いてから）。`Practice`・`Render` の遅れた読み込みは、S4 以降で記事内チュートリアルにも使うときに、「記事を開いたとき」に読む形へ広げる。
 - **Lab.ParseQuery は持ち込まない**（§11.7 の申し送りのとおり）。`gl.js` の `pointercancel` / `lostpointercapture` の対応は、S2 のレビューで入れたものがそのまま効く。
+
+### 13.4 レビュー指摘への対応（head 464fe51 のあと）
+
+- **低速読み込み中の「離れて戻る」**: `StartCsAsync` の各 `await` のあとで破棄済みを確かめ、破棄済みなら作った C# 版を `Dispose` して抜ける。`Practice`・`Render` の遅れた読み込みは `static` の 1 つの `Task` に共有する（同じ wasm を二重に読むと、本文の読み込みが衝突した）。失敗したときは共有を捨てて、次に開いたときにやり直せる。`tools/verify/practice-race.mjs`（`Practice`・`Render` の応答を 3.5 秒遅らせ → `/practice?engine=cs` → 1.2 秒後に `/learn` → 0.5 秒後に戻る）で、wasm が 1 回ずつだけ読まれ・コンソールのエラー/警告 0・canvas 1 つ・HUD が出ることを、3 回続けて確かめた。
+- **`practice.mjs` の検査を追加**（両エンジンで同じ期待）: `.vp-mode`・`.vp-view`・`.vp-status`・`.vp-numeric` の存在と最初の文言、G → Z → 2 のあとの `.vp-status`（「移動…」）・`.vp-numeric`（「入力: 2」）、Tab で「編集モード」、**Tab と Ctrl+Z の `defaultPrevented`**、ビューをクリックしたあと・キー操作のあと・「統計」ボタンのあと・「最初からやり直す」のあとの**フォーカスがビューにあること**。`gl.js` のキーの `preventDefault` を外す変異を入れると、C# 版の Tab・Ctrl+Z・フォーカスの 3 件が落ちる。
+- **`practice-compare.mjs` の閾値**: 正常時の最大差は 49〜55（HUD の文字の端・線の端の画素）で、60 は近すぎた。**主の基準は画素の差の割合 0.1 %**（正常時は 0.001 % 以下）とし、最大差は 90 に余裕を持たせた（最大差だけでは、数画素の端の差で落ちやすく、壊れた描画の検出は割合のほうが強い）。
+- **`ViewportCore` のイベントの一覧**: 入力のたびに `TakeEvents()` で捨てる（C# 版は `EventEmitted` だけを使うので、一覧が増え続けない）。
+- **`?engine=` だけが変わるページ内の移動**（アドレスの書き換え・戻る）: `NavigationManager.LocationChanged` で、`/practice` のまま `engine` の指定が変わったら、ページを読み込み直す（エンジンの切り替えは始め直しが要るため）。
+- **`gl.js` の確認用のグローバル**（`window.__glDiag`・`__glLose`）: サイトの `/practice` では公開しない。`exposeDebugGlobals()` を、レンダーラボ（`Lab.Run`）だけが呼ぶ。`report`・`exposeControl` は `gl.js` に残る（呼ばない限り何も公開しない）。
+- **残課題**: `gl.js` にレンダーラボ専用の関数（`report`・`exposeControl`・`getQuery`・`loseContext` など）が残っている。S4 以降で、サイトに出す `gl.js` からラボ専用の部分を分けたほうがよい。

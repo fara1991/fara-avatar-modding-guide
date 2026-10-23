@@ -217,6 +217,7 @@ public sealed class PracticeCsEngine : IPracticeCs
     private void AfterInput()
     {
         if (core is null || disposed) return;
+        core.TakeEvents();   // ViewportCore がためるイベントの一覧は、ここでは使わない（お題の進みは EventEmitted で見る）ので、捨てる（ためたままにしない）
         var signature = Signature();
         if (signature == lastSignature) return;
         lastSignature = signature;
