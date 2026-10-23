@@ -97,4 +97,15 @@ public class HelperTests
         Assert.Single(core.Objects);
         Assert.Null(core.Op);
     }
+
+    [Fact]
+    public void Zero_size_view_keeps_the_previous_aspect_like_resize_in_viewport_js()
+    {
+        var core = new ViewportCore(new ViewRect(0, 0, 800, 400));
+        core.Resize(new ViewRect(0, 0, 0, 0));
+        Assert.Equal(2, core.View.Aspect);
+        var zero = new ViewportCore(new ViewRect(0, 0, 0, 0));
+        Assert.Equal(1, zero.View.Aspect);   // 既定は 1(viewport.js の aspect || 1)
+        Assert.True(double.IsFinite(zero.View.RayFromNdc(0.3, 0.2).Direction.X));
+    }
 }

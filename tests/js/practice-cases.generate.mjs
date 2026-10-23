@@ -189,6 +189,9 @@ const scenarios = [
     view: { ...DEFAULT_VIEW, theta: -Math.PI / 2, phi: 0.001, name: "上", ortho: true }, objects: scene1, selected: [1],
     steps: [move(center.x, center.y), letter("g"), move(center.x + 100, center.y - 40), enter(), key("Numpad1", "1"), key("Numpad7", "7", false, true), letter("r"), move(center.x - 60, center.y + 70), enter()],
   }),
+  scenario("取り消しの記録の上限(50 件。これを超えると古いものを捨てる)", {
+    selected: [0], steps: [move(center.x + 31, center.y + 17), ...Array.from({ length: 56 }, (_, i) => [letter(i % 3 === 0 ? "g" : i % 3 === 1 ? "r" : "s"), move(center.x + (i % 7) * 20, center.y + (i % 5) * 10), enter()]).flat(), letter("g"), esc(), letter("r"), esc()],
+  }),
   scenario("画面の外・大きな値", {
     objects: scene1, selected: [0],
     steps: [move(-500, -500), letter("g"), move(5000, 3000), move(center.x, center.y), digit(9), digit(9), digit(9), digit(9), digit(9), digit(9), enter(), letter("s"), digit(0), enter(), letter("s"), key("Minus", "-"), digit(2), enter(), ...click(-10, -10), ...click(5000, 5000)],

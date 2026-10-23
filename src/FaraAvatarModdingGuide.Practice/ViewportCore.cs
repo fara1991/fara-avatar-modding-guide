@@ -20,6 +20,9 @@ public readonly record struct ViewRect(double Left, double Top, double Width, do
 /// </summary>
 public sealed class ViewportCore
 {
+    /// <summary>取り消しに積める数(viewport.js の pushUndo の上限)。</summary>
+    public const int MaxUndo = 50;
+
     private enum DragKind { Orbit, Pan, Zoom, Box }
 
     private sealed class Drag
@@ -39,8 +42,7 @@ public sealed class ViewportCore
     {
         Rect = rect;
         EmulateNumpad = emulateNumpad ?? (() => false);
-        View.Aspect = rect.Width / rect.Height;
-        View.HeightPx = rect.Height;
+        ApplySize(rect);
         mouseClientX = rect.Left + rect.Width / 2;
         mouseClientY = rect.Top + rect.Height / 2;
     }
@@ -76,8 +78,17 @@ public sealed class ViewportCore
     public void Resize(ViewRect rect)
     {
         Rect = rect;
-        View.Aspect = rect.Width / rect.Height;
-        View.HeightPx = rect.Height;
+        ApplySize(rect);
+    }
+
+    /// <summary>縦横比と高さ。幅か高さが 0 のときは変えない(viewport.js の resize は早期 return。縦横比は `aspect || 1`)。</summary>
+    private void ApplySize(ViewRect rect)
+    {
+        if (rect.Width > 0 && rect.Height > 0)
+        {
+            View.Aspect = rect.Width / rect.Height;
+            View.HeightPx = rect.Height;
+        }
     }
 
     public void SetSelection(IEnumerable<SceneObject> selected)
@@ -266,7 +277,7 @@ public sealed class ViewportCore
             Emit("opfail", ("kind", name), ("reason", "noselection"));
             return;
         }
-        UndoDepth++;
+        UndoDepth = Math.Min(UndoDepth + 1, MaxUndo);   // pushUndo は 50 件を超えると古いものから捨てる
         var (px, py) = MousePx();
         Op = new TransformOp(kind, Selected, mouseNdcX, mouseNdcY, px, py);
         ApplyOp();
@@ -339,6 +350,7 @@ public sealed class ViewportCore
 
     /// <summary>
     /// キーが押された(KeyboardEvent の code と key)。この段階で扱えるキーなら処理して true。
+    /// 戻り値は「C# が受け持った」で、ブラウザの既定動作を止めるかどうか(preventDefault)ではない(現行は一部のキーで止めない。接続時は JS の onKey の preventDefault に合わせる)。
     /// 扱えないキー(追加・複製・削除・取り消し・編集モードなど)は false を返し、状態は keydown のイベント以外変えない(呼び側が現行の JS に任せる)。
     /// </summary>
     public bool KeyDown(string code, string key, Modifiers m)

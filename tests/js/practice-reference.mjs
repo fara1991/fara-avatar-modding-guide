@@ -90,7 +90,7 @@ function makeViewport(c) {
   vp.orthoCam.up.set(0, 0, 1);
   // 描画・パネル・メニュー・取り消しの記録だけの代用品
   for (const name of ["refreshSelection", "updateTools", "updateStats", "updateNPanel", "updateGuide", "closeMenu", "rebuild", "editChanged"]) vp[name] = () => { };
-  vp.pushUndo = () => { vp.undoStack.push(null); };
+  vp.pushUndo = () => { vp.undoStack.push(null); if (vp.undoStack.length > 50) vp.undoStack.shift(); }; // 本物の pushUndo の記録の数だけ(上限 50)
   // resize() の、サイズからの縦横比だけ
   vp.aspect = rect.width / rect.height;
   vp.persp.aspect = vp.aspect;
