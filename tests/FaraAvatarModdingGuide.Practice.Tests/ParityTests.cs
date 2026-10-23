@@ -121,121 +121,6 @@ public class ParityTests
     }
 
     // ---------------------------------------------------------------- 3D ビューの操作
-    private static ViewportCore Build(JsonElement c)
-    {
-        var root = c.GetProperty("root");
-        var rect = new ViewRect(root.GetProperty("left").GetDouble(), root.GetProperty("top").GetDouble(), root.GetProperty("width").GetDouble(), root.GetProperty("height").GetDouble());
-        var emulate = c.GetProperty("emulate").GetBoolean();
-        var core = new ViewportCore(rect, () => emulate);
-        var view = c.GetProperty("view");
-        core.View.Target = Vec(view.GetProperty("target"));
-        core.View.Dist = view.GetProperty("dist").GetDouble();
-        core.View.Theta = view.GetProperty("theta").GetDouble();
-        core.View.Phi = view.GetProperty("phi").GetDouble();
-        core.View.Ortho = view.GetProperty("ortho").GetBoolean();
-        core.View.Name = view.GetProperty("name").GetString()!;
-        List<SceneObject> objects = [];
-        foreach (var d in c.GetProperty("objects").EnumerateArray())
-        {
-            var o = SceneObject.Create(d.GetProperty("kind").GetString()!, d.GetProperty("name").GetString());
-            if (d.TryGetProperty("p", out var p)) o.Position = Vec(p);
-            if (d.TryGetProperty("r", out var r)) o.SetRotationDegrees(r[0].GetDouble(), r[1].GetDouble(), r[2].GetDouble());
-            if (d.TryGetProperty("s", out var s)) o.Scale = Vec(s);
-            objects.Add(o);
-        }
-        core.Objects.AddRange(objects);
-        core.SetSelection(c.GetProperty("selected").EnumerateArray().Select(i => objects[i.GetInt32()]));
-        return core;
-    }
-
-    private static Vec3 Vec(JsonElement a) => new(a[0].GetDouble(), a[1].GetDouble(), a[2].GetDouble());
-
-    private static Modifiers Mods(JsonElement s) => new(Flag(s, "shift"), Flag(s, "ctrl"), Flag(s, "alt"), Flag(s, "meta"));
-
-    private static bool Flag(JsonElement s, string name) => s.TryGetProperty(name, out var v) && v.GetBoolean();
-
-    private static double Num(JsonElement s, string name) => s.TryGetProperty(name, out var v) ? v.GetDouble() : 0;
-
-    private static void Apply(ViewportCore core, JsonElement step)
-    {
-        switch (step.GetProperty("e").GetString())
-        {
-            case "move": core.PointerMove(Num(step, "x"), Num(step, "y"), Mods(step)); break;
-            case "down": core.PointerDown((int)Num(step, "button"), Num(step, "x"), Num(step, "y"), Mods(step)); break;
-            case "up": core.PointerUp(Num(step, "x"), Num(step, "y")); break;
-            case "wheel": core.Wheel(Num(step, "dy")); break;
-            case "key": core.KeyDown(step.GetProperty("code").GetString()!, step.GetProperty("key").GetString()!, Mods(step)); break;
-            case "keyup": core.KeyUp(Mods(step)); break;
-            default: throw new InvalidOperationException("未知の手順");
-        }
-    }
-
-    private static JsonArray Arr(Vec3 v) => new(v.X, v.Y, v.Z);
-
-    private static JsonNode? EventValue(object? v) => v switch
-    {
-        null => null,
-        string s => JsonValue.Create(s),
-        bool b => JsonValue.Create(b),
-        double d => JsonValue.Create(d),
-        string[] a => new JsonArray(a.Select(x => (JsonNode)JsonValue.Create(x)!).ToArray()),
-        _ => throw new InvalidOperationException(v.GetType().Name),
-    };
-
-    private static JsonObject Snapshot(ViewportCore core)
-    {
-        var view = core.View;
-        var (right, up, _) = view.Basis;
-        var h = view.OrthoHalfHeight;
-        var op = core.Op;
-        return new JsonObject
-        {
-            ["objects"] = new JsonArray(core.Objects.Select(o => (JsonNode)new JsonObject
-            {
-                ["name"] = o.Name, ["p"] = Arr(o.Position), ["q"] = new JsonArray(o.Quaternion.X, o.Quaternion.Y, o.Quaternion.Z, o.Quaternion.W), ["s"] = Arr(o.Scale), ["euler"] = Arr(o.Rotation),
-            }).ToArray()),
-            ["selected"] = new JsonArray(core.Selected.Select(o => (JsonNode)JsonValue.Create(o.Name)!).ToArray()),
-            ["active"] = core.Active?.Name,
-            ["view"] = new JsonObject { ["target"] = Arr(view.Target), ["dist"] = view.Dist, ["theta"] = view.Theta, ["phi"] = view.Phi, ["name"] = view.Name },
-            ["ortho"] = view.Ortho,
-            ["camera"] = new JsonObject
-            {
-                ["position"] = Arr(view.Position), ["up"] = Arr(view.Up), ["right"] = Arr(right), ["camUp"] = Arr(up), ["dir"] = Arr(view.Forward),
-                ["ortho"] = new JsonArray(-h * view.Aspect, h * view.Aspect, h, -h),
-            },
-            ["status"] = core.Status,
-            ["numericHud"] = core.NumericHud,
-            ["viewHud"] = view.Label,
-            ["op"] = op is null ? null : new JsonObject { ["kind"] = op.Kind.ToString(), ["axis"] = op.Axis, ["exclude"] = op.Exclude, ["numeric"] = op.Numeric },
-            ["axisLine"] = core.AxisLine.Visible,
-            ["undoDepth"] = core.UndoDepth,
-            ["events"] = new JsonArray(core.TakeEvents().Select(e =>
-            {
-                var o = new JsonObject { ["type"] = e.Type };
-                foreach (var (k, v) in e.Detail) o[k] = EventValue(v);
-                return (JsonNode)o;
-            }).ToArray()),
-        };
-    }
-
-    private static JsonObject Probe(ViewportCore core, JsonElement p)
-    {
-        var view = core.View;
-        var rect = core.Rect;
-        double x = p.GetProperty("x").GetDouble(), y = p.GetProperty("y").GetDouble();
-        var ndcX = (x - rect.Left) / rect.Width * 2 - 1;
-        var ndcY = -((y - rect.Top) / rect.Height) * 2 + 1;
-        var ray = view.RayFromNdc(ndcX, ndcY);
-        var hit = Picking.Pick(ray, core.Objects);
-        var (sx, sy) = view.ToScreen(Vec(p.GetProperty("world")), rect.Width, rect.Height);
-        return new JsonObject
-        {
-            ["ndc"] = new JsonArray(ndcX, ndcY), ["origin"] = Arr(ray.Origin), ["dir"] = Arr(ray.Direction),
-            ["onPlane"] = Arr(view.UnprojectOnPlane(ndcX, ndcY, Vec(p.GetProperty("pivot")))),
-            ["pick"] = hit?.Name, ["screen"] = new JsonArray(sx, sy), ["wpp"] = view.WorldPerPixel(Vec(p.GetProperty("world"))),
-        };
-    }
-
     [Fact]
     public void Viewport_operations_match_viewport_js_for_every_scenario_and_step()
     {
@@ -243,24 +128,7 @@ public class ParityTests
         var js = Reference.GetProperty("scenarios");
         Assert.True(scenarios.GetArrayLength() >= 80);
         var totalSteps = 0;
-        for (var i = 0; i < scenarios.GetArrayLength(); i++)
-        {
-            var c = scenarios[i];
-            var name = c.GetProperty("name").GetString();
-            var core = Build(c);
-            var expectedSteps = js[i].GetProperty("steps");
-            AssertNoDiff($"{name}: 最初の状態", expectedSteps[0], Snapshot(core));
-            var steps = c.GetProperty("steps");
-            for (var s = 0; s < steps.GetArrayLength(); s++)
-            {
-                Apply(core, steps[s]);
-                AssertNoDiff($"{name}: 手順 {s + 1}/{steps.GetArrayLength()} {steps[s].GetRawText()}", expectedSteps[s + 1], Snapshot(core));
-                totalSteps++;
-            }
-            var probes = c.GetProperty("probes");
-            for (var k = 0; k < probes.GetArrayLength(); k++)
-                AssertNoDiff($"{name}: 確認 {k}(レイ・平面・ピック・投影)", js[i].GetProperty("probes")[k], Probe(core, probes[k]));
-        }
+        for (var i = 0; i < scenarios.GetArrayLength(); i++) totalSteps += ScenarioRunner.Run(scenarios[i], js[i]);
         Assert.True(totalSteps >= 4000, "手順の数: " + totalSteps);
     }
 

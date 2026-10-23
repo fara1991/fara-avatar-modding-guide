@@ -1,8 +1,20 @@
 namespace FaraAvatarModdingGuide.Practice;
 
-/// <summary>メッシュの中身(頂点と面)。面は表から見て反時計回り。編集モードの操作(押し出しなど)は、この上に後の段階で足す。</summary>
+/// <summary>
+/// メッシュの中身(頂点と面)。面は表から見て反時計回り。editmesh.js の toData() / fromData() の形(v・f・e・vs・fs・es)。
+/// 編集モードの操作と取り消し(スナップショット)は <see cref="EditMesh"/> が、この形で出し入れする。
+/// </summary>
 public sealed record MeshData(IReadOnlyList<Vec3> Verts, IReadOnlyList<int[]> Faces)
 {
+    /// <summary>面に属さない辺(頂点の番号の組)。</summary>
+    public IReadOnlyList<int[]> Loose { get; init; } = [];
+    /// <summary>選択している頂点の番号(選んだ順)。</summary>
+    public IReadOnlyList<int> VSel { get; init; } = [];
+    /// <summary>選択している面の番号(選んだ順)。</summary>
+    public IReadOnlyList<int> FSel { get; init; } = [];
+    /// <summary>選択している辺(頂点の番号の組。選んだ順)。</summary>
+    public IReadOnlyList<int[]> ESel { get; init; } = [];
+
     /// <summary>
     /// 表示・レイ判定用の三角形の頂点(3 個ずつ。面ごとに最初の頂点を軸にした扇形。editmesh.js の triangles() と同じ順)。
     /// three.js はこの座標を Float32 の配列で持つので、レイ判定も同じ丸めで行う(float に丸めて double に戻す)。

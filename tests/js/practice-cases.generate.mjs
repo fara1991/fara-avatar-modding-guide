@@ -6,6 +6,7 @@
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { makeRobust } from "./practice-fragile.mjs";
 
 function rng(seed) {
   let a = seed >>> 0;
@@ -142,7 +143,7 @@ const scenarios = [
   }),
   scenario("R の数値(大きい角度・負の角度)と軸", {
     selected: [0, 1], objects: scene1,
-    steps: [move(center.x, center.y), letter("r"), letter("y"), digit(9), digit(0), key("Minus", "-"), enter(), letter("r"), digit(4), digit(0), digit(5), enter(), letter("r"), key("Digit1", "1", false), key("Numpad2", "2"), key("NumpadDecimal", "."), digit(5), enter()],
+    steps: [move(center.x, center.y), letter("r"), letter("y"), digit(8), digit(0), key("Minus", "-"), enter(), letter("r"), digit(4), digit(0), digit(5), enter(), letter("r"), key("Digit1", "1", false), key("Numpad2", "2"), key("NumpadDecimal", "."), digit(5), enter()],
   }),
   scenario("S → 2 → Enter(お題 4)・S のマウス・軸・それ以外", {
     selected: [0],
@@ -264,6 +265,9 @@ function randomScenario(i) {
   return { name: `乱数 ${i}`, root: ROOT, emulate: r() < 0.3, view, objects, selected, probes: [{ ...at(), world: [1, 2, 3], pivot: [0, 0, 1] }, { ...at(), world: [-1, 0, 2], pivot: [1, 1, 1] }], steps };
 }
 for (let i = 0; i < 60; i++) scenarios.push(randomScenario(i));
+
+// 三角関数の 1 ulp の誤差に強い列だけを残す(practice-fragile.mjs)
+makeRobust(scenarios);
 
 const out = path.join(path.dirname(fileURLToPath(import.meta.url)), "practice-cases.json");
 writeFileSync(out, JSON.stringify({ tasks, taskSequences, scenarios }));
