@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    練習ページの 3D の「描画に依存しない純粋な部分」(計画書 Phase 3b。docs/phase3b-design.md)。
+    現行の wwwroot/js/viewport.js・practice.js の判定・変換(G/R/S の軸拘束と数値入力、お題の達成判定、視点の軌道計算、レイ判定の数学)を C# に写したもの。
+    計算は three.js と同じ倍精度(double)で、同じ式・同じ順序。DOM・WebGL・Blazor・MudBlazor には依存しない(Web と Tests のどちらからも参照できる)。
+    現行の JS との一致は tests/FaraAvatarModdingGuide.Practice.Tests が、同じ入力を Node で現行の JS に通した結果と比べて確かめる。
+    この段階では画面の挙動は変えない(Web からはまだ呼ばない)。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FaraAvatarModdingGuide.Practice</RootNamespace>
+  </PropertyGroup>
+
+</Project>

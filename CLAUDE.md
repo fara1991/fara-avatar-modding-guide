@@ -15,6 +15,7 @@ Avatar Modding Guide（https://avatar.fara-labs.com/）。.NET 10 / Blazor WebAs
 
 - 記事・データは `Content/`（Markdown / YAML。書き方は Content/README.md）。サイト名・Blender バージョン・SNS は `appsettings.json` の `Site`（Build とテストが読む。ASP.NET の設定ではない）
 - `src/FaraAvatarModdingGuide.Web`: Blazor WebAssembly のアプリ。`wwwroot/js/` の viewport.js・editmesh.js・unity.js・scenarios.js・bgscene.js は旧 SSR 版から書き換えずに持ってきた練習の 3D の本体
+- `src/FaraAvatarModdingGuide.Practice`: 練習の 3D の純粋なロジック（Phase 3b。設計は docs/phase3b-design.md）。まだ Web から呼んでいない（参照も付けていない。付けると未使用でも配信物が増える）。`tests/FaraAvatarModdingGuide.Practice.Tests` が、同じ入力（`tests/js/practice-cases.json`。`node tests/js/practice-cases.generate.mjs` で作り直す）を現行の JS（`viewport.js`・`practice.js`）に通した結果と比べる。viewport.js・practice.js を直したら、このテストが差を教える（意図した変更なら C# 側も合わせる）
 - `src/FaraAvatarModdingGuide.Build`: 本文入りの静的 HTML・`data/*.json`・robots・sitemap・`_headers`・`_redirects` を、`dotnet publish` の出力に書き足す。本番用（`--env production`）と確認用（`--env develop`）で内容が違う（sitemap・noindex・canonical）
 - `src/FaraAvatarModdingGuide.Content`・`Shared`: 記事を読む部分（ビルド時のみ）と、Build と Web が共有する型
 - ルートの `wwwroot/images/` は画像だけ（Build がコピーする。`tools/tutorial-images` が書く）

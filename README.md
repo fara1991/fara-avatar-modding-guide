@@ -75,7 +75,7 @@ npx wrangler@4.149.0 dev --env dev
 ### テスト
 
 ```bash
-dotnet test -c Release                       # Content.Tests・Build.Tests・Web.Tests（Build.Tests は Node と kit を使う）
+dotnet test -c Release                       # Content.Tests・Build.Tests・Web.Tests・Practice.Tests（Build.Tests・Practice.Tests は Node を使う。Build.Tests は kit も）
 node --test external/fara-site-kit/worker/report.test.mjs external/fara-site-kit/worker/maintenance.test.mjs worker/index.test.mjs
 node --test .github/scripts/require-maintenance.test.mjs .github/scripts/verify-site.test.mjs
 node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/search-norm-fn.test.mjs tests/js/notice.test.mjs tests/js/practice-entry.test.mjs tests/js/head-sync.test.mjs
@@ -101,10 +101,12 @@ fara-avatar-modding-guide/
 │   │   └── wwwroot/          # index.html（Build のテンプレート）・css・js（練習の 3D = viewport.js など）・lib/three
 │   ├── FaraAvatarModdingGuide.Build/    # 公開物の生成: 本文入りの静的 HTML・data/*.json・robots・sitemap・_headers（kit の Node ツールも使う）
 │   ├── FaraAvatarModdingGuide.Content/  # Content/ を読む（Markdown → HTML）。Build が使う
-│   └── FaraAvatarModdingGuide.Shared/   # Build と Web が共有する型・サイドバーの項目
+│   ├── FaraAvatarModdingGuide.Shared/   # Build と Web が共有する型・サイドバーの項目
+│   └── FaraAvatarModdingGuide.Practice/ # 練習の 3D の純粋なロジック（G/R/S・お題の判定・視点・レイ判定。Phase 3b。まだ画面からは呼んでいない。docs/phase3b-design.md）
 ├── wwwroot/images/           # 画像（記事内チュートリアルの手順画像 = tools/tutorial-images で生成）。Build が公開物にコピーする
 ├── tests/
 │   ├── FaraAvatarModdingGuide.Content.Tests / Build.Tests / Web.Tests   # xUnit（Web.Tests は bUnit。公開の設定の検査 = DeployWorkflowTests を含む）
+│   ├── FaraAvatarModdingGuide.Practice.Tests   # xUnit。Practice を、現行の viewport.js・practice.js を Node で動かした結果と突き合わせる（tests/js/practice-*.mjs。Node が要る）
 │   └── js/                   # Node のテスト。fixtures/searchcore.reference.js は検索の正解（旧 SSR 版の写しを固定したもの）
 ├── tools/
 │   ├── site.json             # 公開先の設定（origin・devOrigin・CSP・robots）。Build が kit に渡す
