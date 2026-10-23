@@ -36,6 +36,7 @@ function text(html) {
         .replace(/<template\b[\s\S]*?<\/template>/gi, "").replace(/<noscript\b[\s\S]*?<\/noscript>/gi, "").replace(/<[^>]+>/g, " ")).replace(/\s+/g, "");
 }
 
+const MIN_ARTICLES = 50;
 let articleCount = 0, articleDiff = 0, pageCount = 0, pageDiff = 0;
 for (const file of walk(ssrDir)) {
     if (!file.endsWith(".html")) continue;
@@ -45,7 +46,7 @@ for (const file of walk(ssrDir)) {
     if (flags.has("--articles-only") && !isArticle) continue;
     const a = readFileSync(file, "utf8");
     let b;
-    try { b = readFileSync(join(newDir, rel), "utf8"); } catch { console.log(`MISSING ${rel}`); pageDiff++; continue; }
+    try { b = readFileSync(join(newDir, rel), "utf8"); } catch { console.log(`MISSING ${rel}`); if (isArticle) articleDiff++; else pageDiff++; continue; }
     let ta, tb;
     if (isArticle) {
         ta = inner(a, "div", "article-body"); tb = inner(b, "div", "article-body");
@@ -66,4 +67,6 @@ for (const file of walk(ssrDir)) {
     }
 }
 console.log(`記事 ${articleCount} 件中、差あり ${articleDiff} 件 / その他のページ ${pageCount} 件中、差あり ${pageDiff} 件`);
+// 記事が欠けている・比べた記事が 50 件に満たないときも失敗にする（比べた件数が 0 でも成功してしまわないように）
+if (articleCount < MIN_ARTICLES) { console.log(`比べた記事が ${articleCount} 件（${MIN_ARTICLES} 件以上が必要）`); articleDiff++; }
 process.exitCode = articleDiff > 0 ? 1 : 0;

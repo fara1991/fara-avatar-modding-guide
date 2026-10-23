@@ -65,7 +65,7 @@ public static class PageCatalog
     /// ページの本文を、ページ全体の静的な枠（ヘッダーの名前とリンク・本文・フッター）で包む。
     /// 先頭の要素に entry-static を付ける（読み込み表示が、WebAssembly が描くまで操作を止めるため。kit の bodyRootClass）。
     /// </summary>
-    public static string Wrap(string main, SiteSettings settings)
+    public static string Wrap(string main, SiteSettings settings, string? path = null)
     {
         var sb = new StringBuilder();
         sb.Line("<div class=\"entry-static av-static\">");
@@ -78,12 +78,24 @@ public static class PageCatalog
         sb.Line("</article></main>");
         sb.Line("<footer class=\"fsk-footer\"><div class=\"fsk-footer-line\">");
         sb.Line($"<span class=\"fsk-footer-name\">{Html.E(settings.Title)}</span><span class=\"fsk-footer-sep\" aria-hidden=\"true\">|</span>");
-        sb.Line("<a href=\"/report\">問い合わせ</a><span class=\"fsk-footer-sep\" aria-hidden=\"true\">|</span>");
+        sb.Line($"<a href=\"{ReportHref(path)}\">問い合わせ</a><span class=\"fsk-footer-sep\" aria-hidden=\"true\">|</span>");
         sb.Line("<a href=\"/privacy\">プライバシーポリシー</a><span class=\"fsk-footer-sep\" aria-hidden=\"true\">|</span>");
         sb.Line($"<span>© {settings.PublishedYear} <a href=\"{Html.E(settings.PortfolioUrl)}\">Fara</a></span>");
         sb.Line("</div></footer>");
         sb.Line("</div>");
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// フッターの「問い合わせ」のリンク。見ているページのパスを ?from= に付ける（報告に、どのページの話かが分かるように。kit の SiteFooter・SSR 版の SiteFooterLinks と同じ規則）。
+    /// 問い合わせ・プライバシーのページ、安全でないパス（英数字と - _ / . 以外を含む）、パスが無いとき（404.html）は付けない。
+    /// </summary>
+    public static string ReportHref(string? path)
+    {
+        if (path is null || path is "/report" or "/privacy" || path.Length == 0 || path.Length > 300 || path[0] != '/' || path.StartsWith("//", StringComparison.Ordinal)) return "/report";
+        return path.All(c => char.IsAsciiLetterOrDigit(c) || c is '/' or '-' or '_' or '.')
+            ? "/report?from=" + Uri.EscapeDataString(path)
+            : "/report";
     }
 
     private static readonly (string Href, string Text)[] StaticNav =
