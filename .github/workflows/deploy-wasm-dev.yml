@@ -52,7 +52,7 @@ jobs:
         run: dotnet test -c Release --nologo
 
       - name: Worker and script tests
-        run: node --test external/fara-site-kit/worker/report.test.mjs external/fara-site-kit/worker/maintenance.test.mjs worker/index.test.mjs tests/js/storage-migrate.test.mjs tests/js/notice.test.mjs
+        run: node --test external/fara-site-kit/worker/report.test.mjs external/fara-site-kit/worker/maintenance.test.mjs worker/index.test.mjs tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/notice.test.mjs
 
       # サイトはカスタムドメインのルートで公開するので、<base href="/" /> はそのまま
       - name: Publish web (WebAssembly)

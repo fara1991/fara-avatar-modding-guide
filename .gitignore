@@ -20,3 +20,6 @@ publish/
 
 ## Claude Code
 .claude/
+
+## wrangler dev の作業フォルダ
+.wrangler/
