@@ -111,7 +111,7 @@ public class RenderUnitTests(ITestOutputHelper output)
     public void Native_reference_timings()
     {
         // WebAssembly(AOT なし)の値と比べるための、ネイティブの値。時間は条件にしない(環境で変わる)。何も起きていないことだけ確かめる
-        foreach (var (name, n) in new[] { ("frame-object", 200), ("frame-edit", 200), ("click-object", 100), ("click-vert", 50), ("box-select-all", 10), ("move-all-vertices", 100), ("extrude-start", 5), ("undo", 10) })
+        foreach (var (name, n) in new[] { ("frame-object", 200), ("frame-edit", 200), ("drag-edit-frame", 100), ("click-object", 100), ("click-vert", 50), ("box-select-all", 10), ("move-all-vertices", 100), ("extrude-start", 5), ("undo", 10) })
         {
             var r = RenderBench.Run(name, n);
             output.WriteLine($"{name}: {r.MsPerOp:F3} ms/op ({n} 回)");

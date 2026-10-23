@@ -37,7 +37,10 @@ for (let i = 0; i < COLD; i++) {
   await p.waitForFunction(() => window.__t.firstDraw != null, null, { timeout: 90000 });
   const t = await p.evaluate(() => ({ ...window.__t, nav: performance.getEntriesByType("navigation")[0].domContentLoadedEventEnd }));
   const bytes = await p.evaluate(() => performance.getEntriesByType("resource").reduce((s, r) => s + (r.decodedBodySize || 0), 0));
-  cold.push({ started: Math.round(t.started), firstDraw: Math.round(t.firstDraw), decodedBytes: bytes });
+  const marks = await p.evaluate(() => Object.fromEntries(performance.getEntriesByType("mark").map((m) => [m.name, m.startTime])));
+  const g = (a, b) => (marks[a] != null && marks[b] != null ? +(marks[b] - marks[a]).toFixed(1) : null);
+  cold.push({ started: Math.round(t.started), firstDraw: Math.round(t.firstDraw), decodedBytes: bytes,
+    split: { navToMain: Math.round(marks["lab:main"]), importModule: g("lab:main", "lab:imported"), importToGlStart: g("lab:imported", "gl:start"), initContextAndShader: g("gl:start", "gl:inited"), firstFrameCsAndPaint: g("gl:inited", "gl:firstPaint") } });
   if (i === 0) {
     await p.reload();
     await p.waitForFunction(() => window.__t.firstDraw != null, null, { timeout: 90000 });
@@ -73,11 +76,11 @@ out.cold = cold;
   await p.evaluate(() => window.__labControl("frames", 0));
   const f1 = await report(p, "frames");
   const d1 = JSON.parse(await p.evaluate(() => window.__glDiag()));
-  out.frameEditModeAllSelected = { csFrames: f1.frames - f0.frames, csMsPerFrameCumulative: f1.msPerFrame, rafPerSec: (d1.rafCalls - d0.rafCalls) / 6 };
+  out.frameEditModeAllSelected = { csFrames: f1.frames - f0.frames, csMsPerFrame: (f1.msPerFrame * f1.frames - f0.msPerFrame * f0.frames) / (f1.frames - f0.frames), rafPerSec: (d1.rafCalls - d0.rafCalls) / 6 };
 
   // 3. 重い操作(WASM)
   out.bench = {};
-  for (const [name, n] of [["frame-object", 200], ["frame-edit", 200], ["click-object", 100], ["click-vert", 50], ["box-select-all", 10], ["move-all-vertices", 100], ["extrude-start", 5], ["undo", 10]]) {
+  for (const [name, n] of [["frame-object", 200], ["frame-edit", 200], ["drag-edit-frame", 100], ["click-object", 100], ["click-vert", 50], ["box-select-all", 10], ["move-all-vertices", 100], ["extrude-start", 5], ["undo", 10]]) {
     await p.evaluate(([nm, k]) => window.__labControl("bench:" + nm, k), [name, n]);
     out.bench[name] = await report(p, "bench:" + name);
   }

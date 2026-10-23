@@ -99,6 +99,7 @@ const PRIMITIVES = (gl) => [gl.TRIANGLES, gl.LINES, gl.LINE_STRIP, gl.POINTS];
  * modifiers: 1 = Shift, 2 = Ctrl, 4 = Alt, 8 = Meta。
  */
 export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel, key, keyup, focus) {
+  performance.mark("gl:start");
   dispose();
   const root = document.getElementById(rootId);
   if (!root) throw new Error("#" + rootId + " がありません");
@@ -125,6 +126,7 @@ export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel,
     state = null;
     return false;
   }
+  performance.mark("gl:inited");
 
   const mods = (e) => (e.shiftKey ? 1 : 0) | (e.ctrlKey ? 2 : 0) | (e.altKey ? 4 : 0) | (e.metaKey ? 8 : 0);
   root.addEventListener("contextmenu", (e) => e.preventDefault(), { signal });
@@ -293,6 +295,7 @@ function paint(s, f, n) {
   }
   gl.bindVertexArray(null);
   s.stats.drawn++;
+  if (s.stats.drawn === 1) performance.mark("gl:firstPaint");
   s.stats.lastDrawItems = count;
 }
 

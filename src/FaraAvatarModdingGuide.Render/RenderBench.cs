@@ -18,8 +18,11 @@ public static class RenderBench
 {
     public static readonly IReadOnlyList<string> Names =
     [
-        "frame-object", "frame-edit", "click-object", "click-vert", "box-select-all", "move-all-vertices", "extrude-start", "undo",
+        "frame-object", "frame-edit", "drag-edit-frame", "click-object", "click-vert", "box-select-all", "move-all-vertices", "extrude-start", "undo",
     ];
+
+    /// <summary>直前の drag-edit-frame で、バッファの送り直しが運んだ float の数(1 回あたりの目安を出すため)。</summary>
+    public static long Touched { get; private set; }
 
     private static readonly Modifiers None = new();
     private static readonly Modifiers Ctrl = new(Ctrl: true);
@@ -71,6 +74,32 @@ public static class RenderBench
                         FramePacker.Pack(frame, packed);
                     }
                 });
+                break;
+            }
+            case "drag-edit-frame":
+            {
+                // 編集モードで全頂点を G で動かしながら、マウスの移動のたびに 1 フレーム(Build + 詰める + 変わったバッファのコピー)。形が毎回変わるので、メッシュ・輪郭・点・線・面を毎回作り直す
+                var core = NewCore();
+                Key(core, "Tab");
+                Key(core, "KeyA");
+                Key(core, "KeyG");
+                var renderer = new SceneRenderer(core);
+                var packed = Array.Empty<float>();
+                renderer.Build();
+                long touched = 0;
+                timer.Time(() =>
+                {
+                    for (var i = 0; i < iterations; i++)
+                    {
+                        core.PointerMove(300 + i % 300, 200 + i % 100, None);
+                        var frame = renderer.Build();
+                        if (packed.Length < FramePacker.LengthOf(frame)) packed = new float[FramePacker.LengthOf(frame)];
+                        FramePacker.Pack(frame, packed);
+                        foreach (var u in frame.Uploads) touched += u.Data.Length;   // JS に送る量(float の数)
+                    }
+                });
+                Touched = touched;
+                Key(core, "Escape");
                 break;
             }
             case "click-object":

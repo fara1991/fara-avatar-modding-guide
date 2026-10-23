@@ -36,6 +36,10 @@ internal static partial class Gl
     [JSImport("exposeControl", "gl")]
     internal static partial void ExposeControl([JSMarshalAs<JSType.Function<JSType.String, JSType.Number, JSType.Number>>] Func<string, int, double> control);
 
+    /// <summary>起動の区間を測るための performance.mark(gl.js を読む前でも使える)。</summary>
+    [JSImport("globalThis.performance.mark")]
+    internal static partial void Mark(string name);
+
     [JSImport("getQuery", "gl")]
     internal static partial string GetQuery();
 }
