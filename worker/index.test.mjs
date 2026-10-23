@@ -34,23 +34,30 @@ test("/api/maintenance: 通常は off・空の文、キャッシュさせない"
   assert.deepEqual(await res.json(), { state: "off", message: "" });
 });
 
-test("/api/maintenance: MAINTENANCE=notice で、お知らせの状態と文を返す", async () => {
-  const res = await call("/api/maintenance", { ASSETS: assets(), MAINTENANCE: "notice", MAINTENANCE_MESSAGE: "10月25日20:00ごろ、サイトを更新します" });
+test("/api/maintenance: MAINTENANCE_MODE=notice で、お知らせの状態と文を返す", async () => {
+  const res = await call("/api/maintenance", { ASSETS: assets(), MAINTENANCE_MODE: "notice", MAINTENANCE_MESSAGE: "10月25日20:00ごろ、サイトを更新します" });
   assert.deepEqual(await res.json(), { state: "notice", message: "10月25日20:00ごろ、サイトを更新します" });
 });
 
-test("MAINTENANCE=true: すべてのリクエストが 503（静的ファイルは呼ばない）", async () => {
+test("MAINTENANCE_MODE=true: すべてのリクエストが 503（静的ファイルは呼ばない）", async () => {
   const a = assets();
   for (const path of ["/", "/learn/basics", "/api/maintenance", "/api/report/config"]) {
-    const res = await call(path, { ASSETS: a, MAINTENANCE: "true" });
+    const res = await call(path, { ASSETS: a, MAINTENANCE_MODE: "true" });
     assert.equal(res.status, 503, path);
   }
   assert.deepEqual(a.calls, []);
 });
 
+test("旧名の MAINTENANCE だけが設定されている Worker は、通常動作（読まない。フォールバックなし）", async () => {
+  const a = assets();
+  const res = await call("/learn/basics", { ASSETS: a, MAINTENANCE: "true" });
+  assert.equal(res.status, 200);
+  assert.deepEqual(await (await call("/api/maintenance", { ASSETS: assets(), MAINTENANCE: "notice" })).json(), { state: "off", message: "" });
+});
+
 test("お知らせ（notice）のときも、静的ファイルの HTML は書き換えない（帯は WebAssembly が /api/maintenance を読んで出す）", async () => {
   const a = assets();
-  const res = await call("/learn/basics", { ASSETS: a, MAINTENANCE: "notice", MAINTENANCE_MESSAGE: "更新します" });
+  const res = await call("/learn/basics", { ASSETS: a, MAINTENANCE_MODE: "notice", MAINTENANCE_MESSAGE: "更新します" });
   assert.equal(res.status, 200);
   const html = await res.text();
   assert.ok(!html.includes("maintenance-notice") && !html.includes("fsk-notice") && !html.includes("更新します"));

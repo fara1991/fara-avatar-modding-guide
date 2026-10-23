@@ -13,7 +13,7 @@
 name = "fara-avatar"
 main = "worker/index.js"
 compatibility_date = "2026-10-01"
-# ダッシュボードで足した変数（MAINTENANCE・MAINTENANCE_MESSAGE など）を、公開（wrangler deploy）のたびに消さない
+# ダッシュボードで足した変数（MAINTENANCE_MODE・MAINTENANCE_MESSAGE など）を、公開（wrangler deploy）のたびに消さない
 keep_vars = true
 # workers.dev と preview の URL は使わない（WAF のメンテナンス画面や、確認用の Cloudflare Access をすり抜けないように）
 workers_dev = false
@@ -81,7 +81,7 @@ class_name = "Room"
 # 移行（Blazor WebAssembly + MudBlazor。docs/wasm-migration-plan.md）の確認用。長期ブランチ migration/wasm への push で公開する
 #   wasm-dev: migration/wasm ブランチ → avatar-wasm-dev.fara-labs.com （npx wrangler deploy --env wasm-dev。.github/workflows/deploy-wasm-dev.yml）
 #   Worker 名は fara-avatar-wasm-dev。Worker とカスタムドメインは、最初の公開で自動で作られる（Cloudflare Access で、ユーザーだけが見られるようにする）。
-#   本番・develop（avatar-dev）とは別の Worker なので、共同練習の部屋（Durable Object）も別々。MAINTENANCE は付けない（公開してもメンテナンス画面にならない）。
+#   本番・develop（avatar-dev）とは別の Worker なので、共同練習の部屋（Durable Object）も別々。MAINTENANCE_MODE は付けない（公開してもメンテナンス画面にならない）。
 #   静的ファイルは dotnet publish の出力（publish/wwwroot）に、Build が本文入りの HTML などを書き足したもの。
 #   html_handling・not_found_handling は他の環境と同じ（/learn/basics → learn/basics.html、存在しないパスは 404.html を 404 で返す）。
 # ---------------------------------------------------------------------------

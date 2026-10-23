@@ -83,7 +83,7 @@
 | 15 | 背景の 3D | `wwwroot/js/bgscene.js`（three.js、全ページ） | JS モジュールを Layout から interop で起動・停止。ページ移動では止めない（破棄しない） | ✕ |
 | 16 | スクロール進捗線（画面上部） | `scrollprogress.js`・CSS `.scroll-progress` | 小さな JS interop、または CSS（scroll-driven）。読み上げには出さない（aria-hidden） | ✕ |
 | 17 | お知らせ帯（更新予定） | Worker `withNotice`（HTML に注入。`worker/maintenance.js`） | **決定（§0・§4.8）**: WASM が起動時に `GET /api/maintenance` を読み、表示する（Phase 1） | ◎ pokemon `Services/MaintenanceInfo.cs`（起動時に `GET api/maintenance`、2 秒で打ち切り、読めなければ通常）・`Shared/MaintenanceBanner.razor`（Notice のときだけ出す）・Worker の `/api/maintenance`（pokemon `worker/index.js` に同じ形。確認済み） |
-| 18 | メンテナンス画面（503） | Worker（`getMaintenance` → `maintenanceResponse`。`MAINTENANCE=on`） | Worker のまま（全リクエストを 503 にする）。WASM 側の画面は不要 | △（`MaintenanceScreen.razor` は WASM 内の表示。avatar は Worker で止めるので原則不要） |
+| 18 | メンテナンス画面（503） | Worker（`getMaintenance` → `maintenanceResponse`。`MAINTENANCE_MODE=on`） | Worker のまま（全リクエストを 503 にする）。WASM 側の画面は不要 | △（`MaintenanceScreen.razor` は WASM 内の表示。avatar は Worker で止めるので原則不要） |
 | 19 | 問い合わせ・報告（`/report`） | `Report.razor`・`report.js`（Turnstile）・`worker/report.js`（Discord 転送、`/api/report`、`/api/report/config`） | Blazor のフォームで `/api/report` に POST。Turnstile は JS（`challenges.cloudflare.com`）を interop で描画しトークンを受け取る。Worker は変えない | ◎ pokemon `Services/ReportForm.cs`（入力の検査。サーバーと同じ上限）・`Components/Pages/Report.razor`（HttpClient と JS で Turnstile）・`wwwroot/js/report.js`・`worker/report.js`（同じ API 形）。いずれも確認済み |
 | 20 | プライバシーポリシー | `Privacy.razor` | Razor（本文は移す） | ○ |
 | 21 | 更新履歴 | `Changelog.razor`・`changelog.yml`・`ChangelogTests` | Razor（ContentService の ParseChangelog を流用） | ○ `Services/Changelog.cs`（考え方） |
@@ -333,7 +333,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 2. `dotnet publish src/FaraAvatarModdingGuide.Web -c Release`（WebAssembly）。
 3. `dotnet run --project src/FaraAvatarModdingGuide.Build -- --content Content --template <publish の index.html> --out dist`（静的 HTML・JSON・404.html・_redirects・_headers・画像・sitemap・robots。sitemap と robots は kit の Node ツールを呼ぶ）。
 4. 確認用は `_headers` に `X-Robots-Tag: noindex, nofollow` を追記（現行と同じ。deploy.yml の `cat >>`。Build の出力は末尾改行を必ず付ける）。
-5. 本番（master）の MAINTENANCE=notice の確認（`require-maintenance.mjs`）は現行のまま。
+5. 本番（master）の MAINTENANCE_MODE=notice の確認（`require-maintenance.mjs`）は現行のまま。
 6. Node テスト（report・maintenance・require-maintenance）は残す。nav.test.mjs は削除。
 7. `actions/checkout@v4` の build・deploy 両ジョブに `submodules: true`（kit を使うため。§8）。
 
@@ -392,7 +392,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 - **お知らせ帯（決定・§0）**: WASM が起動時に `GET /api/maintenance` を読み、`state` が `notice` のときだけ帯を出す（ポケモンの `Services/MaintenanceInfo.cs` と同じ作り。2 秒で打ち切り、読めなければ通常）。Worker の `/api/maintenance` は、ポケモンの `worker/index.js`（origin/develop）と同じ形（`{state, message}`）を返す。avatar の `worker/maintenance.js` の `getMaintenance` は既に `state` と `message` を返すので、ルートを一つ足すだけで済む。**実施は Phase 1**。
   - 代償: 起動の前（数秒）は帯が出ない。JS が無い環境では出ない。
   - 削除するもの（Phase 1）: `worker/index.js` の `withNotice` による HTML 注入、`worker/maintenance.js` の `noticeHtml`・`rewriteWithHtmlRewriter`、それらのテスト（`worker/maintenance.test.mjs` の該当部分）。
-  - 残すもの: 503（`MAINTENANCE=on`）の処理と画面（`getMaintenance`・`maintenanceResponse`）。
+  - 残すもの: 503（`MAINTENANCE_MODE=on`）の処理と画面（`getMaintenance`・`maintenanceResponse`）。
 - `_headers` は Build が出す（CSP は §4.9）。
 
 ### 4.9 CSP（ポケモンの `_headers` を基準。ユーザー決定）

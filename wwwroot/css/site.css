@@ -3289,7 +3289,7 @@ main:focus {
 .report-done[hidden], .report-form[hidden] { display: none; }
 .report-done { max-width: 42rem; margin-top: 20px; }
 
-/* メンテナンスのお知らせ（MAINTENANCE=notice。worker/maintenance.js が <main> の先頭に足す）。
+/* メンテナンスのお知らせ（MAINTENANCE_MODE=notice。worker/maintenance.js が <main> の先頭に足す）。
    スクロールしても消えないよう、画面の上に貼り付ける。スマホは画面の最上部、PC は固定ヘッダーの真下（641px 以上で下の指定）。
    1 行目に見出し（「【お知らせ】」）、2 行目以降に本文。PC の目次・見出しへのジャンプは、この 2 行ぶんの高さ（--notice-band）に合わせてある */
 .maintenance-notice {

@@ -4,7 +4,7 @@ using Xunit;
 namespace FaraAvatarModdingGuide.Tests;
 
 /// <summary>
-/// メンテナンス表示（Worker の変数 MAINTENANCE / MAINTENANCE_MESSAGE。worker/maintenance.js）の、設定とつなぎ込み。
+/// メンテナンス表示（Worker の変数 MAINTENANCE_MODE / MAINTENANCE_MESSAGE。kit の worker/maintenance.js）の、設定とつなぎ込み。
 /// worker/index.js は Cloudflare の部品を読み込むので、Node のテストでは動かせない。そのぶん、ここで、つなぎ込みの要点を確かめる。
 /// </summary>
 public class MaintenanceConfigTests
@@ -22,7 +22,7 @@ public class MaintenanceConfigTests
     [Fact]
     public void Wrangler_keeps_dashboard_variables_at_the_top_level()
     {
-        // 公開（wrangler deploy）のたびに、ダッシュボードの MAINTENANCE が消えないように。keep_vars はトップレベルだけが有効
+        // 公開（wrangler deploy）のたびに、ダッシュボードの MAINTENANCE_MODE が消えないように。keep_vars はトップレベルだけが有効
         // （[env.*] の中に書くと、wrangler が「知らない項目」と警告する。本番・確認用の両方に、トップレベルの値が効く）
         var toml = File.ReadAllText(RepoFile("wrangler.toml"));
         var lines = Regex.Matches(toml, @"^keep_vars = true$", RegexOptions.Multiline);
@@ -132,20 +132,172 @@ public class MaintenanceConfigTests
     }
 
     [Fact]
-    public void Production_deploy_requires_MAINTENANCE_notice_and_turns_maintenance_on()
+    public void Production_deploy_requires_MAINTENANCE_MODE_notice_unless_a_mode_is_given()
     {
         var yml = File.ReadAllText(RepoFile(".github/workflows/deploy.yml"));
-        // 本番（master）の公開の前に、Cloudflare の MAINTENANCE が notice かを確かめる（確認用の develop は確かめない）
+        // 本番（master）の公開の前に、Cloudflare の MAINTENANCE_MODE が notice かを確かめる（確認用の develop は確かめない）。
+        // mode を true / notice / false で指定した手動実行（maintenance-cli の set）は、確認を飛ばす
         Assert.Contains("node .github/scripts/require-maintenance.mjs fara-avatar", yml);
-        var gate = yml.IndexOf("Require MAINTENANCE=notice (production)", StringComparison.Ordinal);
+        var gate = yml.IndexOf("- name: Require MAINTENANCE_MODE=notice (production)", StringComparison.Ordinal);
         Assert.True(gate > 0);
-        Assert.Contains("if: github.ref_name == 'master'", yml[gate..(gate + 200)]);
-        // 確認は公開より前。公開と同時に MAINTENANCE=true にする（確認を飛ばしたときは、メンテナンス画面にしない）
-        Assert.True(gate < yml.IndexOf("cloudflare/wrangler-action@v3", StringComparison.Ordinal));
-        Assert.Contains("--var MAINTENANCE:true", yml);
-        Assert.Contains("!inputs.skip_maintenance_check", yml);
-        Assert.Contains("skip_maintenance_check:", yml);
+        Assert.Contains("if: github.ref_name == 'master' && !contains(fromJSON('[\"true\",\"notice\",\"false\"]'), inputs.maintenance_mode)", yml[gate..(gate + 300)]);
+        // 確認は公開より前
+        var deploy = yml.IndexOf("- name: Deploy to Cloudflare Workers", StringComparison.Ordinal);
+        Assert.True(gate < deploy);
         Assert.Contains("SKIP_MAINTENANCE_CHECK: ${{ inputs.skip_maintenance_check }}", yml);
+        Assert.Contains("skip_maintenance_check:", yml);
+        // 旧名は使わない
+        Assert.DoesNotContain("MAINTENANCE:", yml.Replace("MAINTENANCE_MODE:", "").Replace("MAINTENANCE_MESSAGE:", ""));
+        // --env の式は、master = production・それ以外 = dev
+        Assert.Contains("DEPLOY_ENV: ${{ github.ref_name == 'master' && 'production' || 'dev' }}", yml);
+    }
+
+    [Fact]
+    public void Workflows_take_maintenance_inputs_and_write_a_summary()
+    {
+        foreach (var file in new[] { ".github/workflows/deploy.yml", ".github/workflows/deploy-wasm-dev.yml" })
+        {
+            var yml = File.ReadAllText(RepoFile(file));
+            Assert.Contains("      maintenance_mode:\n", yml.Replace("\r\n", "\n"));
+            Assert.Contains("options: [\"\", \"true\", \"notice\", \"false\"]", yml);
+            Assert.Contains("      maintenance_message:\n", yml.Replace("\r\n", "\n"));
+            Assert.Contains("MAINTENANCE_MODE_INPUT: ${{ inputs.maintenance_mode }}", yml);
+            Assert.Contains("MAINTENANCE_MESSAGE_INPUT: ${{ inputs.maintenance_message }}", yml);
+            // 入力はシェルに直接埋め込まない（run の中に ${{ を書かない）
+            foreach (var run in RunBlocks(yml)) Assert.DoesNotContain("${{", run);
+            var summary = yml.IndexOf("- name: Summary (maintenance)", StringComparison.Ordinal);
+            Assert.True(summary > 0);
+            Assert.Contains("$GITHUB_STEP_SUMMARY", yml[summary..]);
+            Assert.Contains("MAINTENANCE_MODE", yml[summary..]);
+            Assert.Contains("if: ${{ always() }}", yml[summary..(summary + 120)]);
+        }
+    }
+
+    [Fact]
+    public void Deploy_workflows_keep_their_branch_guards_and_worker_names()
+    {
+        var prod = File.ReadAllText(RepoFile(".github/workflows/deploy.yml"));
+        Assert.Contains("github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'", prod);
+        Assert.Contains("WORKER_NAME: ${{ github.ref_name == 'master' && 'fara-avatar' || 'fara-avatar-dev' }}", prod);
+        var wasm = File.ReadAllText(RepoFile(".github/workflows/deploy-wasm-dev.yml"));
+        Assert.Contains("if: github.ref == 'refs/heads/migration/wasm'", wasm);
+        Assert.Contains("WORKER_NAME: fara-avatar-wasm-dev", wasm);
+    }
+
+    // ---- 公開のステップの run を、実際に bash で動かして、wrangler（npx）に渡る引数を確かめる ----
+
+    private static IEnumerable<string> RunBlocks(string yml)
+    {
+        var lines = yml.Replace("\r\n", "\n").Split('\n');
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var m = Regex.Match(lines[i], @"^(\s*)run: \|\s*$");
+            if (!m.Success) continue;
+            var indent = m.Groups[1].Length + 2;
+            var body = new List<string>();
+            for (i++; i < lines.Length && (lines[i].Length == 0 || lines[i].StartsWith(new string(' ', indent))); i++)
+                body.Add(lines[i].Length >= indent ? lines[i][indent..] : "");
+            i--;
+            yield return string.Join("\n", body);
+        }
+    }
+
+    private static string DeployRun(string file, string stepName)
+    {
+        var yml = File.ReadAllText(RepoFile(file)).Replace("\r\n", "\n");
+        var start = yml.IndexOf($"- name: {stepName}\n", StringComparison.Ordinal);
+        Assert.True(start >= 0, stepName);
+        var next = yml.IndexOf("\n      - ", start + 1, StringComparison.Ordinal);
+        return RunBlocks(yml[start..(next > 0 ? next : yml.Length)]).Single();
+    }
+
+    private static string? FindBash()
+    {
+        foreach (var candidate in new[] { "/bin/bash", "/usr/bin/bash", @"C:\Program Files\Git\bin\bash.exe", @"C:\Program Files\Git\usr\bin\bash.exe" })
+            if (File.Exists(candidate)) return candidate;
+        return null;
+    }
+
+    /// <summary>run を bash で実行し、npx に渡った引数を返す。bash が無い環境（CI の ubuntu には有る）では null。</summary>
+    private static List<string>? RunDeploy(string script, Dictionary<string, string> env)
+    {
+        var bash = FindBash();
+        if (bash is null) return null;
+        var dir = Path.Combine(AppContext.BaseDirectory, "fake-npx-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var fake = Path.Combine(dir, "npx");
+            File.WriteAllText(fake, "#!/bin/bash\nfor a in \"$@\"; do printf '%s\\n' \"$a\"; done > \"$ARGS_OUT\"\n");
+            var scriptPath = Path.Combine(dir, "run.sh");
+            File.WriteAllText(scriptPath, script.Replace("\r\n", "\n") + "\n");
+            if (!OperatingSystem.IsWindows())
+                File.SetUnixFileMode(fake, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            var argsOut = Path.Combine(dir, "args.txt");
+            var psi = new System.Diagnostics.ProcessStartInfo(bash) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
+            psi.ArgumentList.Add("-eo");
+            psi.ArgumentList.Add("pipefail");
+            psi.ArgumentList.Add(scriptPath);
+            psi.Environment["PATH"] = dir + Path.PathSeparator + Environment.GetEnvironmentVariable("PATH");
+            psi.Environment["ARGS_OUT"] = argsOut;
+            foreach (var (k, v) in env) psi.Environment[k] = v;
+            using var proc = System.Diagnostics.Process.Start(psi)!;
+            var stderr = proc.StandardError.ReadToEnd();
+            proc.StandardOutput.ReadToEnd();
+            proc.WaitForExit();
+            Assert.True(proc.ExitCode == 0, stderr);
+            return File.ReadAllLines(argsOut).ToList();
+        }
+        finally { Directory.Delete(dir, true); }
+    }
+
+    private static Dictionary<string, string> Inputs(string env, string mode = "", string message = "", string skip = "") => new()
+    {
+        ["DEPLOY_ENV"] = env, ["MAINTENANCE_MODE_INPUT"] = mode, ["MAINTENANCE_MESSAGE_INPUT"] = message, ["SKIP_MAINTENANCE_CHECK"] = skip,
+    };
+
+    private static string[] Expected(string env, params string[] vars) => new[] { "--yes", "wrangler@4.149.0", "deploy", "--env", env }.Concat(vars).ToArray();
+
+    [Fact]
+    public void Production_deploy_step_passes_the_right_vars_for_each_trigger()
+    {
+        var script = DeployRun(".github/workflows/deploy.yml", "Deploy to Cloudflare Workers");
+        if (RunDeploy(script, Inputs("production")) is not { } push) return;   // bash が無い環境では飛ばす
+        // push（入力なし）: 従来どおり、公開と同時にメンテナンス画面
+        Assert.Equal(Expected("production", "--var", "MAINTENANCE_MODE:true"), push);
+        // 確認を飛ばしたとき（skip_maintenance_check）: メンテナンス画面にしない（--var なし）
+        Assert.Equal(Expected("production"), RunDeploy(script, Inputs("production", skip: "true")));
+        // mode を指定: 指定した値（skip でも指定が優先）
+        Assert.Equal(Expected("production", "--var", "MAINTENANCE_MODE:notice"), RunDeploy(script, Inputs("production", mode: "notice")));
+        Assert.Equal(Expected("production", "--var", "MAINTENANCE_MODE:false"), RunDeploy(script, Inputs("production", mode: "false", skip: "true")));
+        // mode と message
+        Assert.Equal(Expected("production", "--var", "MAINTENANCE_MODE:notice", "--var", "MAINTENANCE_MESSAGE:20:00 ごろ"), RunDeploy(script, Inputs("production", mode: "notice", message: "20:00 ごろ")));
+        // message だけ: mode は変えない（勝手にメンテナンス画面にしない）
+        Assert.Equal(Expected("production", "--var", "MAINTENANCE_MESSAGE:更新します"), RunDeploy(script, Inputs("production", message: "更新します")));
+        // 記号を含む文面も、そのまま 1 つの引数で渡る（シェルに解釈されない）
+        var tricky = "a `b` $(c) \"d\" 'e' ; f & g";
+        Assert.Equal(Expected("production", "--var", "MAINTENANCE_MESSAGE:" + tricky), RunDeploy(script, Inputs("production", message: tricky)));
+    }
+
+    [Fact]
+    public void Develop_deploy_step_adds_vars_only_when_inputs_are_given()
+    {
+        var script = DeployRun(".github/workflows/deploy.yml", "Deploy to Cloudflare Workers");
+        if (RunDeploy(script, Inputs("dev")) is not { } push) return;
+        Assert.Equal(Expected("dev"), push);                                          // push: 何も付けない（keep_vars で現在の値が残る）
+        Assert.Equal(Expected("dev"), RunDeploy(script, Inputs("dev", skip: "true")));
+        Assert.Equal(Expected("dev", "--var", "MAINTENANCE_MODE:true"), RunDeploy(script, Inputs("dev", mode: "true")));
+        Assert.Equal(Expected("dev", "--var", "MAINTENANCE_MESSAGE:x"), RunDeploy(script, Inputs("dev", message: "x")));
+    }
+
+    [Fact]
+    public void Wasm_dev_deploy_step_adds_vars_only_when_inputs_are_given()
+    {
+        var script = DeployRun(".github/workflows/deploy-wasm-dev.yml", "Deploy to Cloudflare Workers (wasm-dev)");
+        if (RunDeploy(script, Inputs("")) is not { } push) return;
+        Assert.Equal(Expected("wasm-dev"), push);
+        Assert.Equal(Expected("wasm-dev", "--var", "MAINTENANCE_MODE:notice", "--var", "MAINTENANCE_MESSAGE:m"), RunDeploy(script, Inputs("", mode: "notice", message: "m")));
+        Assert.Equal(Expected("wasm-dev", "--var", "MAINTENANCE_MODE:false"), RunDeploy(script, Inputs("", mode: "false")));
     }
 
     [Fact]

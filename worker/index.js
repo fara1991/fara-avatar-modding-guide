@@ -42,10 +42,10 @@ const OBJ_ID = /^[a-z0-9]{1,24}$/;
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    // メンテナンス（Worker の変数 MAINTENANCE。external/fara-site-kit/worker/maintenance.js）。true の間は、すべて 503 のメンテナンス画面
+    // メンテナンス（Worker の変数 MAINTENANCE_MODE。external/fara-site-kit/worker/maintenance.js）。true の間は、すべて 503 のメンテナンス画面
     const maintenance = getMaintenance(env);
     if (maintenance.state === "on") return maintenanceResponse(request, maintenance, "Avatar Modding Guide");
-    // メンテナンスの状態。アプリ（WebAssembly）が起動時に 1 回読む。キャッシュさせない（MAINTENANCE を変えたら、すぐ反映するため）
+    // メンテナンスの状態。アプリ（WebAssembly）が起動時に 1 回読む。キャッシュさせない（MAINTENANCE_MODE を変えたら、すぐ反映するため）
     if (url.pathname === "/api/maintenance") {
       return new Response(JSON.stringify({ state: maintenance.state, message: maintenance.message }), {
         headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
@@ -70,7 +70,7 @@ export default {
       }
     }
     if (url.pathname.startsWith("/api/")) return new Response("not found", { status: 404 });
-    // 静的ファイル。お知らせ（MAINTENANCE=notice）の帯は、アプリ側が /api/maintenance を読んで出す（HTML の書き換えはしない）
+    // 静的ファイル。お知らせ（MAINTENANCE_MODE=notice）の帯は、アプリ側が /api/maintenance を読んで出す（HTML の書き換えはしない）
     return env.ASSETS.fetch(request);
   },
 };
