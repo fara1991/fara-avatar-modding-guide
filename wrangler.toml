@@ -76,3 +76,35 @@ run_worker_first = true
 [[env.dev.durable_objects.bindings]]
 name = "ROOMS"
 class_name = "Room"
+
+# ---------------------------------------------------------------------------
+# 移行（Blazor WebAssembly + MudBlazor。docs/wasm-migration-plan.md）の確認用。長期ブランチ migration/wasm への push で公開する
+#   wasm-dev: migration/wasm ブランチ → avatar-wasm-dev.fara-labs.com （npx wrangler deploy --env wasm-dev。.github/workflows/deploy-wasm-dev.yml）
+#   Worker 名は fara-avatar-wasm-dev。Worker とカスタムドメインは、最初の公開で自動で作られる（Cloudflare Access で、ユーザーだけが見られるようにする）。
+#   本番・develop（avatar-dev）とは別の Worker なので、共同練習の部屋（Durable Object）も別々。MAINTENANCE は付けない（公開してもメンテナンス画面にならない）。
+#   静的ファイルは dotnet publish の出力（publish/wwwroot）に、Build が本文入りの HTML などを書き足したもの。
+#   html_handling・not_found_handling は他の環境と同じ（/learn/basics → learn/basics.html、存在しないパスは 404.html を 404 で返す）。
+# ---------------------------------------------------------------------------
+[env.wasm-dev]
+name = "fara-avatar-wasm-dev"
+workers_dev = false
+preview_urls = false
+routes = [
+  { pattern = "avatar-wasm-dev.fara-labs.com", custom_domain = true },
+]
+
+[env.wasm-dev.assets]
+directory = "./publish/wwwroot"
+binding = "ASSETS"
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"
+run_worker_first = true
+
+[[env.wasm-dev.durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+# Durable Object（共同練習の部屋）は、新しい Worker では、このマイグレーションで作られる
+[[env.wasm-dev.migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
