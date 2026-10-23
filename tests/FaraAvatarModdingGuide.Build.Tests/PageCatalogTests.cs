@@ -80,7 +80,7 @@ public class PageCatalogTests
     {
         foreach (var page in Pages)
         {
-            var html = PageCatalog.Wrap(page.Main, Settings);
+            var html = PageCatalog.Wrap(page.Main, Settings, Site, page.Path);
             Assert.DoesNotContain("class=\"bi ", html);
             Assert.DoesNotContain("bi-", Regex.Replace(html, "<svg.*?</svg>", "", RegexOptions.Singleline), StringComparison.Ordinal);   // アイコンの名前の取りこぼし
         }
@@ -97,13 +97,13 @@ public class PageCatalogTests
     public void Footer_report_link_carries_the_current_page(string? path, string expected)
     {
         Assert.Equal(expected, PageCatalog.ReportHref(path));
-        Assert.Contains($"<a href=\"{expected}\">問い合わせ</a>", PageCatalog.Wrap("<p>x</p>", Settings, path));
+        Assert.Contains($"<a href=\"{expected}\">問い合わせ</a>", PageCatalog.Wrap("<p>x</p>", Settings, Site, path));
     }
 
     [Fact]
     public void Wrapped_page_starts_with_the_entry_static_root_that_kit_requires()
     {
-        var html = PageCatalog.Wrap("<p>x</p>", Settings);
+        var html = PageCatalog.Wrap("<p>x</p>", Settings, Site);
         Assert.StartsWith("<div class=\"entry-static", html);
         Assert.Contains("<main id=\"fsk-main\"", html);
         Assert.Contains("<footer class=\"fsk-footer\">", html);

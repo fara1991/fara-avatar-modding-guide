@@ -11,3 +11,5 @@
 - `hash-links.mjs` … 見出し付き URL(直接・アプリ内・同じページの目次)で見出しに止まる(PC・スマホ)
 - `shots.mjs` … SSR(`SSR=` 現行の develop をローカルで動かしたもの)との見た目の比較(PC 1280・スマホ 390・ダーク/ライトの 3 枚組と差の割合)。コンソールエラー・CSP 違反も出す
 - `practice.mjs` … 練習(Phase 3): `/practice`・`/practice/unity` の操作が SSR(`SSR=`)と同じ結果になる・記事内チュートリアル(画像で見る・別の記事へ移ると前の 3D が解放される)・スマホ(390)は案内だけで WebGL を使わない・共有ルームに二人が入って追加が届く(画面から)・ページ往復(`ROUNDS=` 回。既定 20)で WebGL の context・ResizeObserver・IntersectionObserver・setInterval・WebSocket・window/document のイベント・DOM・背景の 3D(`#site-scene` が 1 つ・描画のループ)が増えない。CSP 違反 0・コンソールのエラーと警告 0
+- `boot-diff.mjs` … 起動の前後の見た目の差(Phase 4。計画書 4.10): 前 = WebAssembly を止めた静的 HTML、後 = 起動後。7 ページ(記事 5・ホーム・検索)× PC 1280 / スマホ 390 × ダーク / ライトで、ピクセル差の割合・本文(見出し・パンくず・段落)の位置の差・起動の瞬間の見出しの移動・CLS・読み込み表示が覆う割合を出し、閾値(既定: ピクセル差 0.5%・位置 1px・覆う 2%)を超えたら終了コード 1。`SIDEBAR_HIDDEN=1` で PC のサイドバーを隠した設定。3 枚組(前 | 後 | 差)の画像を出力フォルダに書く
+- `boot-scroll.mjs` … 起動の前の静的な本文でスクロールしてから起動しても、読んでいる位置が飛ばない(PC・スマホ)

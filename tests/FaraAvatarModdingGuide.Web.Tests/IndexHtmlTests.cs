@@ -118,4 +118,18 @@ public class IndexHtmlTests
         Assert.DoesNotContain(wasmOnly.Concat(staticOnly), part => part.Contains("bgscene.js", StringComparison.Ordinal));
         Assert.True(html.IndexOf("css/practice.css", StringComparison.Ordinal) < html.IndexOf("css/app.css", StringComparison.Ordinal));   // サイトの app.css が勝つ
     }
+
+    [Fact]
+    public void Boot_indicator_is_a_small_corner_badge_that_does_not_cover_or_block_the_static_body()
+    {
+        // 起動までの表示は、静的な本文を覆わない(画面全体の不透明なオーバーレイをやめた。計画書 4.10・11.3)。右下の小さな表示で、操作は止めない
+        var style = Regex.Match(NoComments(Html), @"#boot-indicator \{(?<body>[^}]*)\}").Groups["body"].Value;
+        Assert.Contains("position: fixed", style);
+        Assert.Contains("pointer-events: none", style);
+        Assert.DoesNotContain("inset: 0", style);
+        Assert.DoesNotContain("100vw", style.Replace("calc(100vw - 2rem)", ""));
+        Assert.DoesNotContain("100vh", style);
+        Assert.Contains("right:", style);
+        Assert.Contains("bottom:", style);
+    }
 }

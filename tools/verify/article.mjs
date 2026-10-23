@@ -54,11 +54,11 @@ const boot = async (p, path) => { await p.goto(B + path, { waitUntil: "load" });
   const th = await p.title();
   ok(/Avatar Modding Guide$/.test(th) && !th.startsWith("移動"), "nav: title updated: " + th);
   ok((await p.locator("a.mud-nav-link.active").count()) === 1, "sidebar: still one active after navigation");
-  // 練習へ → 再読み込み
+  // 練習へ → アプリ内の移動(Phase 3 で練習も WebAssembly のページ。再読み込みしない)
   await p.locator(".fsk-sidebar a[href='practice']").click();
   await p.waitForLoadState("load");
   await p.waitForTimeout(500);
-  ok(p.url().endsWith("/practice") && (await p.evaluate(() => window.__marker)) === undefined, "nav: practice is a full page load");
+  ok(p.url().endsWith("/practice") && (await p.evaluate(() => window.__marker)) !== undefined, "nav: practice is an in-app navigation (Phase 3 で WebAssembly のページになった)");
   await p.context().close();
 }
 console.log(fails ? `${fails} FAILED` : "all ok");

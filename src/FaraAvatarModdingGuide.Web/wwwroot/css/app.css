@@ -739,58 +739,54 @@ h1:focus {
     }
 }
 
-/* ---------- 静的 HTML（Build が書く。WebAssembly が起動するまでの表示。起動すると SiteLayout に置き換わる）---------- */
-
+/* ---------- 静的 HTML(Build が書く。WebAssembly が起動するまでの表示。起動すると SiteLayout に置き換わる)---------- */
+/* 起動の後の画面(ヘッダー + 左のサイドバー + 本文 + フッター)と同じ DOM 構造・同じ class で書いてある(Build の StaticFrame)ので、本文が起動の前後で動かない。
+   MudBlazor の CSS の変数(--mud-*)は、起動の後に MudThemeProvider が入れるものなので、起動の前は無い。ここで同じ値を持つ(値は kit の SiteTheme と同じ。Web.Tests が確かめる)。 */
 .av-static {
+    --mud-appbar-height: 56px;
+    --mud-drawer-width-left: 230px;
+    --mud-drawer-width-mini-left: 56px;
+    --mud-zindex-drawer: 1100;
+    --mud-zindex-appbar: 1300;
+    --mud-elevation-0: none;
+    --mud-default-borderradius: 6px;
+    --mud-typography-default-family: 'Zen Kaku Gothic New', system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic UI', Meiryo, sans-serif;
+    --mud-typography-default-size: .875rem;
+    --mud-typography-default-weight: 400;
+    --mud-typography-default-lineheight: 1.43;
+    --mud-typography-default-letterspacing: normal;
+    --mud-typography-default-text-transform: none;
+    --mud-typography-body2-family: 'Zen Kaku Gothic New', system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic UI', Meiryo, sans-serif;
+    --mud-typography-body2-size: .875rem;
+    --mud-typography-body2-weight: 400;
+    --mud-typography-body2-lineheight: 1.43;
+    --mud-typography-body2-letterspacing: .01071em;
+    --mud-typography-body2-text-transform: none;
     min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* ページ全体(window)がスクロールする。起動の後の PC は本文の領域(.fsk-content)の中がスクロールするが、起動の前は、
+   スクロールを window にしておく(静的な本文は inert で、本文の領域の中のスクロールがホイールで操作できない。ヘッダー・サイドバー・フッターは固定のまま、一番上では起動の後と同じ位置になる) */
+.av-static .mud-main-content {
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
 }
 
-.av-static-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.25rem 1rem;
-    padding: 0.5rem 1rem;
-    background: var(--fsk-header-bg);
-    color: #fff;
-}
-
-.av-static-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.1rem 0.25rem;
-}
-
-.av-static-nav a {
-    padding: 0.2rem 0.55rem;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 0.9rem;
-    text-decoration: none;
-}
-
-.av-static-nav a:hover {
-    background: rgba(255, 255, 255, 0.14);
-}
-
-.av-static-main {
+.av-static .mud-main-content > main {
     flex: 1 0 auto;
-    width: 100%;
-    max-width: 80rem;
-    margin: 0 auto;
+    min-width: 0;
 }
 
-/* 静的 HTML では、ページ全体（body）がスクロールする。.fsk-content の中のスクロール（kit のレイアウトの前提）は使わない */
 .av-static .fsk-content {
     display: block;
     overflow: visible;
-    padding-top: 1.1rem;
-    padding-bottom: 2rem;
+    padding-bottom: 1rem;
 }
 
-/* フッターは、WebAssembly のページと同じく画面の下に固定する（ページ全体がスクロールするので、貼り付ける） */
+/* フッターは、PC は画面の下に貼り付ける(起動の後と同じ位置)。スマホは、起動の後も本文の最後に出る */
 .av-static .fsk-footer {
     margin-top: auto;
     position: sticky;
@@ -799,9 +795,118 @@ h1:focus {
     background: var(--fsk-body-bg);
 }
 
-/* 「更新予定」の帯（notice.js）。静的なページにはヘッダーを固定していないので、画面の上端に貼り付ける */
-.av-static .fsk-notice {
-    top: 0;
+.av-static .av-sp {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    /* PC: 左のサイドバーの分だけ、本文を右に寄せる(隠している設定のときは、細い列の分) */
+    .av-static .mud-main-content {
+        margin-left: var(--mud-drawer-width-left);
+    }
+
+    html.fsk-sidebar-hidden .av-static .mud-main-content {
+        margin-left: var(--mud-drawer-width-mini-left);
+    }
+
+    html.fsk-sidebar-hidden .av-static .fsk-sidebar {
+        width: var(--mud-drawer-width-mini-left) !important;
+    }
+
+    html.fsk-sidebar-hidden .av-static .fsk-nav-section {
+        opacity: 0;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* スマホ: サイドバーは出さず(起動の後も、閉じた一時的なメニュー)、ヘッダーは検索ボタン、ページ全体がスクロールし、フッターは貼り付けない */
+    .av-static .fsk-sidebar,
+    .av-static .av-pc {
+        display: none;
+    }
+
+    .av-static .av-sp {
+        display: flex;
+    }
+
+    .av-static .mud-main-content {
+        display: block;
+        min-height: 0;
+    }
+
+    .av-static .fsk-content {
+        padding-bottom: 0;
+    }
+
+    .av-static .fsk-footer {
+        position: static;
+    }
+}
+
+/* ライト／ダークのスイッチ(MudSwitch の見た目。PC のヘッダー)。起動の前は MudBlazor の色の変数が無いので、色はここで決める(起動の後の見た目と同じ値) */
+.av-sw {
+    position: relative;
+    flex: none;
+    width: 58px;
+    height: 38px;
+    margin-left: 0.75rem;
+}
+
+.av-sw-track {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 34px;
+    height: 14px;
+    border-radius: 7px;
+    background: #a855f7;
+    opacity: 0.5;
+}
+
+.av-sw-thumb {
+    position: absolute;
+    left: 29px;
+    top: 9px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #a855f7;
+    box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+}
+
+.av-sw-thumb svg {
+    width: 20px;
+    height: 20px;
+    padding: 2px;
+    box-sizing: border-box;
+    fill: currentColor;
+}
+
+.av-sw-moon {
+    color: #fff;
+}
+
+.av-sw-sun {
+    display: none;
+    color: #ffa800;
+}
+
+[data-bs-theme="light"] .av-sw-track {
+    background: #000;
+    opacity: 0.48;
+}
+
+[data-bs-theme="light"] .av-sw-thumb {
+    left: 9px;
+    background: #fafafa;
+}
+
+[data-bs-theme="light"] .av-sw-moon {
+    display: none;
+}
+
+[data-bs-theme="light"] .av-sw-sun {
+    display: block;
 }
 
 /* ---------- 完了の記録(ProgressStore。SSR 版の site.css から) ---------- */
@@ -1241,4 +1346,15 @@ h1:focus {
     .article-card {
         transition: none;
     }
+}
+
+/* 静的 HTML のサイドバーの「いまのページ」の強調。起動の後は MudBlazor が色の変数(--mud-palette-*)から決める色を、同じ値で直接書く(ダーク／ライト) */
+.av-static .fsk-sidebar .mud-nav-link.active {
+    color: #a855f7;
+    background-color: rgba(173, 173, 177, 0.06);
+}
+
+[data-bs-theme="light"] .av-static .fsk-sidebar .mud-nav-link.active {
+    color: #7c3aed;
+    background-color: rgba(0, 0, 0, 0.06);
 }

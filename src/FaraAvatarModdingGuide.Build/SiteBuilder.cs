@@ -116,7 +116,7 @@ public static class SiteBuilder
                 ["path"] = p.Path,
                 ["title"] = p.Title,
                 ["description"] = p.Description,
-                ["bodyHtml"] = PageCatalog.Wrap(p.Main, settings, p.Path),
+                ["bodyHtml"] = PageCatalog.Wrap(p.Main, settings, content, p.Path),
             };
             if (p.NoIndex) page["noindex"] = true;
             if (ogImage is not null) page["ogImage"] = ogImage;
@@ -127,7 +127,7 @@ public static class SiteBuilder
         siteJson["notFoundPage"] = new JsonObject
         {
             ["title"] = PageCatalog.NotFoundTitle(settings),
-            ["bodyHtml"] = PageCatalog.Wrap(PageBodies.NotFound(), settings),
+            ["bodyHtml"] = PageCatalog.Wrap(PageBodies.NotFound(), settings, content),
         };
 
         var work = Path.Combine(repo, "obj", "build-pages", Guid.NewGuid().ToString("N")[..8]);
