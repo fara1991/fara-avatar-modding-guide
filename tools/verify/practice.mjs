@@ -14,6 +14,9 @@ import { launch, newPage, csp } from "./lib.mjs";
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const BASELINE = JSON.parse(readFileSync(new URL("./practice-baseline.json", import.meta.url), "utf8"));
 const ROUNDS = Number(process.env.ROUNDS || 20);
+// ENGINE=cs: /practice を C# 版(?engine=cs。Phase 3b S3)で動かす。操作の結果は同じ基準(practice-baseline.json)と一致するはず。既定は Three.js 版
+const ENGINE = process.env.ENGINE === "cs" ? "cs" : "js";
+const ENGINE_QUERY = ENGINE === "cs" ? "&engine=cs" : "";
 const ARTICLE = "/learn/basics/transform";   // 記事内チュートリアル(::: practice transform)がある記事
 const ARTICLE2 = "/learn/basics/select";
 
@@ -111,7 +114,7 @@ async function problems(page, label) {
 // ---------------------------------------------------------------- 1. /practice の操作(基準と同じ結果)
 async function practiceOps(browser, base, isNew) {
   const page = await open(browser, { width: 1280, height: 800 });
-  await page.goto(base + "/practice?debug=1", { waitUntil: "load" });
+  await page.goto(base + "/practice?debug=1" + ENGINE_QUERY, { waitUntil: "load" });
   if (isNew) await page.waitForSelector(".mud-layout", { timeout: 90000 });
   await page.waitForSelector(".practice-viewport canvas", { timeout: 60000 });
   await page.waitForFunction(() => window.__practice?.objects?.length > 0);
@@ -197,7 +200,7 @@ async function roundTrips(browser) {
   const rafRate = async () => { const a = await page.evaluate(() => window.__live.raf); await sleep(2000); return (await page.evaluate(() => window.__live.raf)) - a; };
   const rafStart = await rafRate();   // 往復の前の、/learn での描画のループの回数(2 秒)。背景の 3D だけが回っている
   // waitForSelector は要素の参照(ElementHandle)を返し、解放しないと外した DOM を保持して「節が増える」ように見える
-  const visit = async (href, waitFor) => { await go(page, href); await page.locator(waitFor).first().waitFor({ timeout: 60000 }); await sleep(300); };
+  const visit = async (href, waitFor) => { if (ENGINE === "cs" && href === "/practice") await page.evaluate(() => window.Blazor.navigateTo("/practice?engine=cs")); else await go(page, href); await page.locator(waitFor).first().waitFor({ timeout: 60000 }); await sleep(300); };
   for (let i = 1; i <= ROUNDS; i++) {
     await visit("/practice", ".practice-viewport canvas");
     await visit("/learn", "h1");

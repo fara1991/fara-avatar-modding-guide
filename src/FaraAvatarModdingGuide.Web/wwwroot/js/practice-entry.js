@@ -11,6 +11,9 @@
 // dispose(id) は、いま動いているものが同じ id のときだけ解放する(前のページの解放が、次のページの開始より遅れて届いても、次のページを止めない)
 const touchOnly = () => matchMedia("(hover: none) and (pointer: coarse)").matches;
 
+/** タッチだけの端末か(C# 版 ?engine=cs は PC 用。タッチの端末では、これまでの案内の画面にする) */
+export function isTouchOnly() { return touchOnly(); }
+
 let current = null;
 
 export async function start(id, pcScript, options) {

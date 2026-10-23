@@ -98,16 +98,18 @@ const PRIMITIVES = (gl) => [gl.TRIANGLES, gl.LINES, gl.LINE_STRIP, gl.POINTS];
  *   wheel(deltaY) → preventDefault するか       key(code, key, modifiers) → preventDefault するか   keyup(modifiers)   focus(boolean)
  * modifiers: 1 = Shift, 2 = Ctrl, 4 = Alt, 8 = Meta。
  */
-export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel, key, keyup, focus) {
+export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel, key, keyup, focus, canvasHostId) {
   performance.mark("gl:start");
   dispose();
   const root = document.getElementById(rootId);
   if (!root) throw new Error("#" + rootId + " がありません");
+  // canvas を入れる要素。Blazor が中身を描く要素(HUD などを子に持つ)に外から canvas を足すと、Blazor の子の数え方が狂うので、中身が空の別の要素を指定できる
+  const host = (canvasHostId && document.getElementById(canvasHostId)) || root;
   const abort = new AbortController();
   const { signal } = abort;
   const canvas = document.createElement("canvas");
   canvas.style.cssText = "display:block;width:100%;height:100%";
-  root.insertBefore(canvas, root.firstChild);
+  host.insertBefore(canvas, host.firstChild);
   const prevTabIndex = root.getAttribute("tabindex");
   root.tabIndex = 0;
   const s = {
@@ -141,7 +143,10 @@ export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel,
   // 押している間(down から up まで)の印。pointerup が来ないまま終わる場合(pointercancel・lostpointercapture)も、C# にドラッグの終わりを伝える
   let down = false, lastX = 0, lastY = 0;
   const finish = (x, y) => { if (!down) return; down = false; pointerUp(x, y); };
+  // サイドバーの入力欄・ボタン・メニューの上の操作は、ビューの操作にしない
+  const onUi = (e) => !!e.target.closest?.("input, button");
   root.addEventListener("pointerdown", (e) => {
+    if (onUi(e)) return;
     root.focus({ preventScroll: true });
     root.setPointerCapture(e.pointerId);
     const [x, y] = at(e);
@@ -158,7 +163,7 @@ export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel,
   root.addEventListener("lostpointercapture", () => finish(lastX, lastY), { signal });
   // ホイールは passive: false にしないと preventDefault できず、ページがスクロールしてしまう(試作ではここで失敗した)
   root.addEventListener("wheel", (e) => { if (wheel(e.deltaY)) e.preventDefault(); }, { passive: false, signal });
-  root.addEventListener("keydown", (e) => { if (key(e.code, e.key, mods(e))) e.preventDefault(); }, { signal });
+  root.addEventListener("keydown", (e) => { if (onUi(e)) return; if (key(e.code, e.key, mods(e))) e.preventDefault(); }, { signal });
   root.addEventListener("keyup", (e) => { keyup(mods(e)); }, { signal });
   root.addEventListener("focus", () => focus(true), { signal });
   root.addEventListener("blur", () => focus(false), { signal });
