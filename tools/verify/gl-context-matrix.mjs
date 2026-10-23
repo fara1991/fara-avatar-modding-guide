@@ -18,6 +18,12 @@ const BROWSERS = {
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** レンダーラボの状態を、probe の観測値と同じ形にする */
+async function labRead(ev) {
+  const d = JSON.parse((await ev("window.__glDiag ? window.__glDiag() : '{}'")) || "{}");
+  return { engine: "lab", visibilityState: d.visibilityState, hasFocus: d.hasFocus, rafCalls: d.rafCalls ?? 0, ctx: d.started ? "ok" : "none", renderer: d.renderer, lost: d.lost, canvas: d.canvas, drawn: d.drawn, events: [] };
+}
+
 class Cdp {
   constructor(url) { this.url = url; this.id = 0; this.pending = new Map(); this.handlers = []; }
   async open() {
@@ -83,9 +89,6 @@ async function measure(b, { newContext, engine, bringToFront, emulateFocus, hide
   });
   await S("Page.enable"); await S("Runtime.enable");
   if (emulateFocus) await S("Emulation.setFocusEmulationEnabled", { enabled: true });
-  await S("Page.navigate", { url: `${ORIGIN}/probe.html?engine=${engine}${query}` });
-  await sleep(1500);
-  if (bringToFront) await S("Page.bringToFront");
   const ev = async (expr) => (await S("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true })).result.value;
   const windowOf = async (tid) => (await b.cdp.send("Browser.getWindowForTarget", { targetId: tid })).windowId;
   let cover;
@@ -97,18 +100,22 @@ async function measure(b, { newContext, engine, bringToFront, emulateFocus, hide
     await b.cdp.send("Browser.setWindowBounds", { windowId: await windowOf(cover), bounds: { windowState: "maximized" } });
   }
   if (hide) await sleep(1500);
+  await S("Page.navigate", { url: engine === "lab" ? `${ORIGIN}/lab/` : `${ORIGIN}/probe.html?engine=${engine}${query}` });
+  await sleep(engine === "lab" ? 4000 : 1500);
+  if (bringToFront) await S("Page.bringToFront");
   const before = hide ? await ev("document.visibilityState") : null;
-  await ev("window.__probeStart()");
-  await sleep(3000);
-  const r = await ev("window.__probeRead()");
+  if (engine !== "lab") await ev("window.__probeStart()");
+  await sleep(engine === "lab" ? 0 : 3000);
+  const read = async () => (engine === "lab" ? (() => null)() : null);
+  const r = engine === "lab" ? await labRead(ev) : await ev("window.__probeRead()");
   r.visibilityBeforeStart = before;
   if (hide && reveal) {
     if (hide === "minimize") await b.cdp.send("Browser.setWindowBounds", { windowId: await windowOf(targetId), bounds: { windowState: "normal" } });
     if (reveal === "bringToFront" || hide === "occlude") await S("Page.bringToFront");
     if (reveal === "activate") await b.cdp.send("Target.activateTarget", { targetId });
     await sleep(2500);
-    r.afterReveal = await ev("window.__probeRead()");
-    r.afterReveal.events = r.afterReveal.events.slice(-4);
+    r.afterReveal = engine === "lab" ? await labRead(ev) : await ev("window.__probeRead()");
+    r.afterReveal.events = (r.afterReveal.events ?? []).slice(-4);
   }
   if (cover) { try { await b.cdp.send("Target.closeTarget", { targetId: cover }); } catch {} }
   r.console = consoleMsgs;
@@ -129,6 +136,7 @@ for (const [b, headless, noSw] of [["chromium", true, false], ["edge", false, tr
 for (const hide of ["minimize", "occlude"]) {
   for (const [label, extra, reveal] of [["plain", [], "bringToFront"], ["no-occlusion-calc", ["--disable-features=CalculateNativeWinOcclusion"], "bringToFront"], ["no-backgrounding", ["--disable-renderer-backgrounding", "--disable-background-timer-throttling", "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion"], "bringToFront"]]) {
     CELLS.push([`edge-headed-gpu/new/raw/hide-${hide}/${label}`, "edge", false, extra, { newContext: true, engine: "raw", noSw: true, hide, reveal }]);
+    CELLS.push([`edge-headed-gpu/new/lab/hide-${hide}/${label}`, "edge", false, extra, { newContext: true, engine: "lab", noSw: true, hide, reveal }]);
   }
 }
 const only = process.env.CELLS;
@@ -140,7 +148,7 @@ for (const [name, browser, headless, extra, opts] of CELLS) {
     b = await launch(browser, { headless, extra, sw: !opts.noSw });
     const r = await measure(b, opts);
     results.push({ name, ...r });
-    console.log(`${name}: ${r.visibilityBeforeStart !== undefined && r.visibilityBeforeStart !== null ? "visBefore=" + r.visibilityBeforeStart + " " : ""}vis=${r.visibilityState} focus=${r.hasFocus} raf=${r.rafCalls} ctx=${r.ctx} lost=${r.lost} canvas=${JSON.stringify(r.canvas)} renderer=${r.renderer}${r.console.length ? " console=" + JSON.stringify(r.console) : ""}${r.afterReveal ? " AFTER-REVEAL vis=" + r.afterReveal.visibilityState + " raf=" + r.afterReveal.rafCalls + " ctx=" + r.afterReveal.ctx : ""}${r.events.length ? " events=" + JSON.stringify(r.events.map((e) => e.type + ":" + e.detail)) : ""}`);
+    console.log(`${name}: drawn=${r.drawn} ${r.visibilityBeforeStart !== undefined && r.visibilityBeforeStart !== null ? "visBefore=" + r.visibilityBeforeStart + " " : ""}vis=${r.visibilityState} focus=${r.hasFocus} raf=${r.rafCalls} ctx=${r.ctx} lost=${r.lost} canvas=${JSON.stringify(r.canvas)} renderer=${r.renderer}${r.console.length ? " console=" + JSON.stringify(r.console) : ""}${r.afterReveal ? " AFTER-REVEAL drawn=" + r.afterReveal.drawn + " vis=" + r.afterReveal.visibilityState + " raf=" + r.afterReveal.rafCalls + " ctx=" + r.afterReveal.ctx : ""}${r.events.length ? " events=" + JSON.stringify(r.events.map((e) => e.type + ":" + e.detail)) : ""}`);
   } catch (e) {
     console.log(`${name}: ERROR ${e.message}`);
     results.push({ name, error: e.message });
