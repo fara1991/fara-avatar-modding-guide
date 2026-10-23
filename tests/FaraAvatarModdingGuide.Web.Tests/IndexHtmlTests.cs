@@ -21,6 +21,7 @@ public class IndexHtmlTests
         // #app の直下に SEO-BODY（kit の決まり）
         Assert.Matches(@"<div id=""app"">\s*<!-- SEO-BODY:START -->\s*<!-- SEO-BODY:END -->\s*</div>", Html);
         SiteBuilder.RemoveWasmOnly(Html, keep: true);    // 数が合わなければ例外
+        SiteBuilder.RemoveStaticOnly(Html, keep: true);
     }
 
     [Fact]
@@ -56,7 +57,7 @@ public class IndexHtmlTests
     [Fact]
     public void Static_only_pages_lose_the_loader_and_blazor_but_keep_theme_and_css()
     {
-        var stripped = NoComments(SiteBuilder.RemoveWasmOnly(Html, keep: false));
+        var stripped = NoComments(SiteBuilder.RemoveStaticOnly(SiteBuilder.RemoveWasmOnly(Html, keep: false), keep: true));
         Assert.DoesNotContain("boot-indicator", stripped);
         Assert.DoesNotContain("blazor", stripped, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("MudBlazor", stripped);
@@ -65,12 +66,15 @@ public class IndexHtmlTests
         Assert.Contains("fara-site-kit.css", stripped);
         Assert.Contains("theme-init.js", stripped);
         Assert.Contains("fonts.googleapis.com", stripped);
+        Assert.Contains("js/notice.js", stripped);                  // 静的なページは、notice.js が「更新予定」の帯を出す
+        Assert.DoesNotContain("STATIC-ONLY", stripped);
 
-        var kept = NoComments(SiteBuilder.RemoveWasmOnly(Html, keep: true));
+        var kept = NoComments(SiteBuilder.RemoveStaticOnly(SiteBuilder.RemoveWasmOnly(Html, keep: true), keep: false));
         Assert.Contains("id=\"boot-indicator\"", kept);
         Assert.Contains("_framework/blazor.webassembly.js", kept);
         Assert.Contains("_content/MudBlazor/MudBlazor.min.js", kept);
         Assert.DoesNotContain("WASM-ONLY", kept);
+        Assert.DoesNotContain("notice.js", kept);                   // WebAssembly のページの帯は、kit の MaintenanceBanner
     }
 
     [Fact]

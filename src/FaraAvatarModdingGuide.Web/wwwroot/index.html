@@ -12,6 +12,7 @@
         この index.html は、dotnet publish の出力としてテンプレートになる。Build（src/FaraAvatarModdingGuide.Build）が、
         SEO-HEAD / SEO-BODY の区切りの間に、ページごとの head と本文を差し込んで、ページごとの HTML を書き出す。
         WASM-ONLY の区切りで囲んだ部分（読み込み表示・Blazor のスクリプトなど）は、WebAssembly を使うページだけに残し、それ以外のページ（記事など）からは外す。
+        STATIC-ONLY の区切りで囲んだ部分は、その逆（WebAssembly を使わないページだけに残す）。
         CSP（_headers）でインラインの script は止まるので、script は外部ファイルだけにする。
     -->
     <!-- WASM-ONLY:START -->
@@ -64,6 +65,11 @@
          storage-migrate.js は、SSR 版が保存していた形（文字列の light / dark）を、kit が読む形（JSON）に直す。theme-init.js より前に読む -->
     <script src="js/storage-migrate.js"></script>
     <script src="_content/FaraSiteKit.Razor/js/theme-init.js" data-storage-key="avatar-modding-guide.theme" data-sidebar-key="avatar-modding-guide.sidebar-hidden"></script>
+    <!-- STATIC-ONLY の区切りで囲んだ部分は、WebAssembly を使わないページ（記事など）だけに残す。「更新予定」の帯は、WebAssembly のページでは kit の MaintenanceBanner が出し、
+         静的 HTML のページでは、この notice.js が Worker の /api/maintenance を読んで出す -->
+    <!-- STATIC-ONLY:START -->
+    <script src="js/notice.js" defer></script>
+    <!-- STATIC-ONLY:END -->
 </head>
 <body>
     <!-- WASM-ONLY:START -->

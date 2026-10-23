@@ -31,26 +31,33 @@ public class MaintenanceConfigTests
     }
 
     [Fact]
-    public void Worker_checks_maintenance_before_anything_else_and_adds_the_notice_to_pages()
+    public void Worker_checks_maintenance_first_and_serves_the_state_api_without_rewriting_html()
     {
         var js = File.ReadAllText(RepoFile("worker/index.js"));
-        Assert.Contains("import { getMaintenance, maintenanceResponse, withNotice } from \"./maintenance.js\";", js);
+        // 共通部品（fara-site-kit）のファイルを使う。メンテナンスの判定・報告の受け口は、各サイトにコピーを持たない
+        Assert.Contains("import { getMaintenance, maintenanceResponse } from \"../external/fara-site-kit/worker/maintenance.js\";", js);
+        Assert.Contains("import { handleReport } from \"../external/fara-site-kit/worker/report.js\";", js);
         var fetchStart = js.IndexOf("async fetch(request, env)", StringComparison.Ordinal);
         var maintenance = js.IndexOf("maintenanceResponse(request, maintenance", StringComparison.Ordinal);
         var rooms = js.IndexOf("/api\\/rooms", StringComparison.Ordinal);
         Assert.True(fetchStart >= 0 && maintenance > fetchStart, "fetch の中でメンテナンスを確認している");
         Assert.True(maintenance < rooms, "共同練習の部屋（WebSocket）よりも先に、メンテナンスを確認する");
-        Assert.Contains("withNotice(await env.ASSETS.fetch(request), maintenance)", js);
+        // お知らせの帯は、アプリが /api/maintenance を読んで出す。HTML への注入（withNotice）は使わない
+        Assert.Contains("url.pathname === \"/api/maintenance\"", js);
+        Assert.DoesNotContain("withNotice", js);
+        Assert.Contains("return env.ASSETS.fetch(request);", js);
     }
 
     [Fact]
-    public void Shared_worker_files_are_the_same_as_the_other_sites()
+    public void Worker_has_no_copies_of_the_shared_kit_files()
     {
-        // 3 サイト共通のファイル。必要な書き出しがそろっている（中身の同一性は、各サイトのテストと、レビューで確かめる）
-        var module = File.ReadAllText(RepoFile("worker/maintenance.js"));
-        foreach (var name in new[] { "getMaintenance", "maintenanceResponse", "maintenancePageHtml", "noticeHtml", "withNotice", "escapeHtml" })
-            Assert.Contains($"export function {name}", module.Replace("export const escapeHtml", "export function escapeHtml"));
+        Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(RepoFile("worker/index.js"))!, "maintenance.js")), "worker/maintenance.js は kit にある");
+        Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(RepoFile("worker/index.js"))!, "report.js")), "worker/report.js は kit にある");
+        var module = File.ReadAllText(RepoFile("external/fara-site-kit/worker/maintenance.js"));
+        foreach (var name in new[] { "getMaintenance", "maintenanceResponse" })
+            Assert.Contains($"export function {name}", module);
         Assert.Contains("twitter.com/game_fara", module);
+        Assert.Contains("export async function handleReport", File.ReadAllText(RepoFile("external/fara-site-kit/worker/report.js")));
     }
 
     [Fact]
@@ -62,12 +69,9 @@ public class MaintenanceConfigTests
     }
 
     [Fact]
-    public void Notice_banner_puts_the_heading_and_the_text_on_their_own_lines_in_bold()
+    public void Ssr_notice_banner_puts_the_heading_and_the_text_on_their_own_lines_in_bold()
     {
-        // 1 行目に見出し「【お知らせ】」、本文は次の行（worker/maintenance.js の noticeHtml の class と合わせる）
-        var js = File.ReadAllText(RepoFile("worker/maintenance.js"));
-        Assert.Contains("<strong class=\"maintenance-notice-title\">【お知らせ】</strong><span class=\"maintenance-notice-text\">", js);
-
+        // SSR 版（フェーズ 5 で消す）の CSS。WebAssembly 版の帯は kit の MaintenanceBanner（Web.Tests の MaintenanceTests が確かめる）
         var css = File.ReadAllText(RepoFile("wwwroot/css/site.css"));
         Assert.Matches(@"\.maintenance-notice-title,\s*\.maintenance-notice-text\s*\{\s*display:\s*block;\s*\}", css);
         // 太字は、帯（.maintenance-notice）の font-weight: 700 のまま
@@ -170,6 +174,7 @@ public class MaintenanceConfigTests
     public void Ci_runs_the_maintenance_tests()
     {
         var yml = File.ReadAllText(RepoFile(".github/workflows/deploy.yml"));
-        Assert.Contains("worker/maintenance.test.mjs", yml);
+        Assert.Contains("external/fara-site-kit/worker/maintenance.test.mjs", yml);
+        Assert.Contains("worker/index.test.mjs", yml);
     }
 }

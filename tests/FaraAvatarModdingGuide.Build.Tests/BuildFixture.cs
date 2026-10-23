@@ -48,6 +48,9 @@ internal static class TestTemplate
             <!-- SEO-HEAD:END -->
             <base href="/" />
             <script src="_content/FaraSiteKit.Razor/js/theme-init.js" data-storage-key="avatar-modding-guide.theme" data-sidebar-key="avatar-modding-guide.sidebar-hidden"></script>
+            <!-- STATIC-ONLY:START -->
+            <script src="js/notice.js" defer></script>
+            <!-- STATIC-ONLY:END -->
             <!-- WASM-ONLY:START -->
             <style>#boot-indicator { position: fixed; }</style>
             <!-- WASM-ONLY:END -->
