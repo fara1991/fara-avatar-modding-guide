@@ -38,6 +38,8 @@ public class DeployConfigTests
         Assert.Contains("--env develop --dev-origin https://avatar-wasm-dev.fara-labs.com", yml);
         Assert.Contains("--template publish/wwwroot/index.html --out publish/wwwroot", yml);
         // 公開の前にテスト。公開は、Web の publish と Build の後
+        Assert.DoesNotContain("\"**.md\"", yml);                                      // 記事（Content/learn/**/*.md）の変更も公開する
+        Assert.Contains("compare-text.mjs dist publish/wwwroot --articles-only", yml);   // 本文の一致を確かめてから公開
         var test = yml.IndexOf("dotnet test", StringComparison.Ordinal);
         var publish = yml.IndexOf("dotnet publish src/FaraAvatarModdingGuide.Web", StringComparison.Ordinal);
         var build = yml.IndexOf("src/FaraAvatarModdingGuide.Build", StringComparison.Ordinal);
