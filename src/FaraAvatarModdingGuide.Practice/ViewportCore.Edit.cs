@@ -6,16 +6,21 @@ public sealed partial class ViewportCore
 {
     // ---------------------------------------------------------------- 見えるか・ピック
     /// <summary>p(ワールド座標)が手前の面に隠れていなければ true。透過表示中は常に true。</summary>
-    private bool IsVisible(Vec3 p, EmFace? faceHint = null)
+    private bool IsVisible(Vec3 p, EmFace? faceHint = null, IReadOnlyList<Picking.Prepared>? prepared = null, Picking.PickIndex? index = null)
     {
         if (Xray) return true;
         var (nx, ny) = View.ProjectToNdc(p);
         var ray = View.RayFromNdc(nx, ny);
-        var hits = Picking.Raycast(ray, Objects);
-        if (hits.Count == 0) return true;
+        prepared ??= Picking.Prepare(Objects);
         var d = ray.Origin.DistanceTo(p);
-        if (faceHint is not null && hits[0].Object == EditObj && EditObj!.TriFace[hits[0].FaceIndex] == faceHint) return true;
-        return hits[0].Distance >= d - Math.Max(0.002, d * 0.002);
+        var threshold = d - Math.Max(0.002, d * 0.002);
+        var candidates = index?.At(nx, ny);
+        // 手前の面に隠れていなければ true。いちばん近い当たり(Raycast の先頭)の距離が、p までの距離から許容を引いた値以上なら見える。
+        // 面を指定されていないときは、それより近い当たりが 1 つでも見つかれば隠れているので、そこで止める
+        var hit = Picking.Nearest(ray, prepared, faceHint is null ? threshold : null, candidates);
+        if (hit is null) return true;
+        if (faceHint is not null && hit.Value.Object == EditObj && EditObj!.TriFace[hit.Value.FaceIndex] == faceHint) return true;
+        return hit.Value.Distance >= threshold;
     }
 
     private EmVert? PickVert(double pxX, double pxY, double radius = 14)
@@ -23,12 +28,13 @@ public sealed partial class ViewportCore
         var obj = EditObj!;
         EmVert? best = null;
         var bestD = radius;
+        var prepared = Picking.Prepare(Objects);   // 隠れ判定のたびに、オブジェクトの行列・逆行列を作り直さない
         foreach (var v in obj.Em.Verts)
         {
             var w = WorldOf(v, obj);
             var s = ToScreen(w);
             var d = Dist2(s.X, s.Y, pxX, pxY);
-            if (d < bestD && IsVisible(w)) { best = v; bestD = d; }
+            if (d < bestD && IsVisible(w, null, prepared)) { best = v; bestD = d; }
         }
         return best;
     }
@@ -38,6 +44,7 @@ public sealed partial class ViewportCore
         var obj = EditObj!;
         EmEdge? best = null;
         var bestD = radius;
+        var prepared = Picking.Prepare(Objects);
         foreach (var e in obj.Em.Edges())
         {
             var wa = WorldOf(e.A, obj);
@@ -48,7 +55,7 @@ public sealed partial class ViewportCore
             var len2 = abx * abx + aby * aby;
             var t = len2 != 0 ? Math.Max(0, Math.Min(1, ((pxX - sa.X) * abx + (pxY - sa.Y) * aby) / len2)) : 0;
             var d = Dist2(sa.X + abx * t, sa.Y + aby * t, pxX, pxY);
-            if (d < bestD && IsVisible(wa.Lerp(wb, Math.Max(0.1, Math.Min(0.9, t))))) { best = e; bestD = d; }
+            if (d < bestD && IsVisible(wa.Lerp(wb, Math.Max(0.1, Math.Min(0.9, t))), null, prepared)) { best = e; bestD = d; }
         }
         return best;
     }
@@ -97,12 +104,21 @@ public sealed partial class ViewportCore
             return s.X >= x0 && s.X <= x1 && s.Y >= y0 && s.Y <= y1;
         }
         if (!extend) em.SelectAll(SelectMode, false);
+        // 隠れ判定は選択の候補ごとに 1 回ずつ走るので、三角形を画面に投影した格子を 1 回作って使い回す(視点はこの間変わらない)
+        var prepared = Picking.Prepare(Objects);
+        Picking.PickIndex? index = null;
+        bool Visible(Vec3 w, EmFace? hint = null)
+        {
+            if (Xray) return true;
+            index ??= new Picking.PickIndex(prepared, View);
+            return IsVisible(w, hint, prepared, index);
+        }
         if (SelectMode == "vert")
         {
             foreach (var v in em.Verts)
             {
                 var w = WorldOf(v, obj);
-                if (Inside(w) && IsVisible(w)) em.Vsel.Add(v);
+                if (Inside(w) && Visible(w)) em.Vsel.Add(v);
             }
         }
         else if (SelectMode == "edge")
@@ -111,7 +127,7 @@ public sealed partial class ViewportCore
             {
                 var wa = WorldOf(e.A, obj);
                 var wb = WorldOf(e.B, obj);
-                if (Inside(wa) && Inside(wb) && IsVisible(wa.Lerp(wb, 0.5))) em.Esel.Add(e.Key);
+                if (Inside(wa) && Inside(wb) && Visible(wa.Lerp(wb, 0.5))) em.Esel.Add(e.Key);
             }
         }
         else
@@ -119,7 +135,7 @@ public sealed partial class ViewportCore
             foreach (var f in em.Faces)
             {
                 var w = obj.MatrixWorld.ApplyToPoint(EditMesh.FaceCenter(f));
-                if (Inside(w) && IsVisible(w, f)) em.Fsel.Add(f);
+                if (Inside(w) && Visible(w, f)) em.Fsel.Add(f);
             }
         }
         em.Flush(SelectMode);

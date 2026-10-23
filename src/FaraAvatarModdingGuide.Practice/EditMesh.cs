@@ -118,11 +118,14 @@ public sealed class EditMesh
         var index = new Dictionary<EmVert, int>();
         for (var i = 0; i < Verts.Count; i++) index[Verts[i]] = i;
         var byKey = EdgeMap();
+        // 面の添字は辞書で引く(List.IndexOf を選んだ面の数だけ繰り返すと、面の数の 2 乗になる)。同じ面が 2 回入ることは無いので、最初の位置 = 唯一の位置
+        var faceIndex = new Dictionary<EmFace, int>();
+        for (var i = 0; i < Faces.Count; i++) faceIndex.TryAdd(Faces[i], i);
         return new MeshData([.. Verts.Select(v => v.Co)], [.. Faces.Select(f => f.V.Select(v => index[v]).ToArray())])
         {
             Loose = [.. Loose.Select(e => new[] { index[e.A], index[e.B] })],
             VSel = [.. Vsel.Select(v => index.TryGetValue(v, out var i) ? i : -1)],
-            FSel = [.. Fsel.Select(f => Faces.IndexOf(f)).Where(i => i >= 0)],
+            FSel = [.. Fsel.Select(f => faceIndex.TryGetValue(f, out var i) ? i : -1).Where(i => i >= 0)],
             ESel = [.. Esel.Select(k => byKey.TryGetValue(k, out var e) ? e : null).Where(e => e is not null).Select(e => new[] { index[e!.A], index[e.B] })],
         };
     }
@@ -265,7 +268,8 @@ public sealed class EditMesh
         }
         else
         {
-            Fsel = new OrderedSet<EmFace>(Fsel.Where(f => Faces.Contains(f)));
+            var faceSet = new HashSet<EmFace>(Faces);   // List.Contains を選んだ面の数だけ繰り返すと 2 乗になる
+            Fsel = new OrderedSet<EmFace>(Fsel.Where(faceSet.Contains));
             Vsel = new OrderedSet<EmVert>();
             Esel = new OrderedSet<EdgeKey>();
             foreach (var f in Fsel)
@@ -275,7 +279,8 @@ public sealed class EditMesh
                     Esel.Add(EdgeKey.Of(f.V[i], f.V[(i + 1) % f.V.Count]));
                 }
         }
-        Vsel = new OrderedSet<EmVert>(Vsel.Where(v => Verts.Contains(v)));
+        var vertSet = new HashSet<EmVert>(Verts);
+        Vsel = new OrderedSet<EmVert>(Vsel.Where(vertSet.Contains));
     }
 
     public (int Verts, int Edges, int Faces) Counts() => (Vsel.Count, Esel.Count, Fsel.Count);

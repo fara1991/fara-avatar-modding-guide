@@ -52,21 +52,44 @@ public sealed class SceneObject
     /// </summary>
     public void Rebuild()
     {
-        var (pos, triFace) = Em.Triangles();
-        Triangles = [.. pos.Select(Round32)];
-        TriFace = [.. triFace];
-        TriNormals = [.. triFace.Select(f => Round32(EditMesh.FaceNormal(f)))];
-        Version++;
-        BoundsMin = new Vec3(double.PositiveInfinity, double.PositiveInfinity, double.PositiveInfinity);
-        BoundsMax = -BoundsMin;
-        foreach (var p in Triangles)
+        // EditMesh.Triangles() と同じ並び(面ごとに最初の頂点を軸にした扇形)を、LINQ を使わず 1 回の走査で作る。法線は面ごとに 1 回(四角形の 2 つの三角形で同じ)
+        var count = 0;
+        foreach (var f in Em.Faces) count += Math.Max(0, f.V.Count - 2);
+        var tri = new Vec3[count * 3];
+        var triFace = new EmFace[count];
+        var normals = new Vec3[count];
+        var k = 0;
+        foreach (var f in Em.Faces)
         {
-            BoundsMin = new Vec3(Math.Min(BoundsMin.X, p.X), Math.Min(BoundsMin.Y, p.Y), Math.Min(BoundsMin.Z, p.Z));
-            BoundsMax = new Vec3(Math.Max(BoundsMax.X, p.X), Math.Max(BoundsMax.Y, p.Y), Math.Max(BoundsMax.Z, p.Z));
+            if (f.V.Count < 3) continue;
+            var n = Round32(EditMesh.FaceNormal(f));
+            var v0 = Round32(f.V[0].Co);
+            for (var i = 1; i < f.V.Count - 1; i++)
+            {
+                tri[k * 3] = v0;
+                tri[k * 3 + 1] = Round32(f.V[i].Co);
+                tri[k * 3 + 2] = Round32(f.V[i + 1].Co);
+                triFace[k] = f;
+                normals[k] = n;
+                k++;
+            }
         }
-        SphereCenter = Triangles.Length == 0 ? Vec3.Zero : (BoundsMin + BoundsMax) * 0.5;
+        Triangles = tri;
+        TriFace = triFace;
+        TriNormals = normals;
+        Version++;
+        double minX = double.PositiveInfinity, minY = minX, minZ = minX, maxX = double.NegativeInfinity, maxY = maxX, maxZ = maxX;
+        foreach (var p in tri)
+        {
+            if (p.X < minX) minX = p.X; if (p.X > maxX) maxX = p.X;
+            if (p.Y < minY) minY = p.Y; if (p.Y > maxY) maxY = p.Y;
+            if (p.Z < minZ) minZ = p.Z; if (p.Z > maxZ) maxZ = p.Z;
+        }
+        BoundsMin = new Vec3(minX, minY, minZ);
+        BoundsMax = new Vec3(maxX, maxY, maxZ);
+        SphereCenter = tri.Length == 0 ? Vec3.Zero : (BoundsMin + BoundsMax) * 0.5;
         var maxRadiusSq = 0.0;
-        foreach (var p in Triangles)
+        foreach (var p in tri)
         {
             double dx = SphereCenter.X - p.X, dy = SphereCenter.Y - p.Y, dz = SphereCenter.Z - p.Z;
             maxRadiusSq = Math.Max(maxRadiusSq, dx * dx + dy * dy + dz * dz);
