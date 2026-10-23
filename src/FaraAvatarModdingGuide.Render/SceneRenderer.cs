@@ -18,6 +18,8 @@ public sealed class OverlayBuffers
 public sealed class ObjectBuffers
 {
     public int Version { get; set; } = -1;
+    /// <summary>輪郭を作った時点の <see cref="SceneObject.Version"/>。輪郭は、描くとき(選択中で、編集中でない)にだけ作る。</summary>
+    public int OutlineVersion { get; set; } = -1;
     public GpuBuffer Mesh { get; } = new(BufferLayout.PositionNormal);
     /// <summary>輪郭(EdgesGeometry(g, 20))。</summary>
     public GpuBuffer Outline { get; } = new(BufferLayout.Position);
@@ -77,7 +79,12 @@ public sealed class SceneRenderer : IDisposable
     }
 
     /// <summary>オブジェクトの描画データ(なければ作る)。</summary>
-    public ObjectBuffers BuffersOf(SceneObject obj) => Ensure(obj);
+    public ObjectBuffers BuffersOf(SceneObject obj)
+    {
+        var b = Ensure(obj);
+        EnsureOutline(obj, b);
+        return b;
+    }
 
     /// <summary>バッファを送り直したことにしない(WebGL のコンテキストを作り直したあとなど、全部を送り直したいとき)。</summary>
     public void InvalidateUploads() => uploaded.Clear();
@@ -94,9 +101,19 @@ public sealed class SceneRenderer : IDisposable
         {
             b.Version = obj.Version;
             b.Mesh.Set(MeshData(obj));
-            b.Outline.Set(EdgesGeometry.Build(obj.Triangles, 20));
         }
         return b;
+    }
+
+    /// <summary>
+    /// 輪郭(EdgesGeometry。三角形ごとの法線の比較と辺の照合なので、メッシュの大きさに比例して重い)を、形が変わっていれば作り直す。
+    /// 輪郭を描くのは「選択中で、編集中でない」オブジェクトだけなので、編集モードで頂点を動かし続けている間は作らない(動かし終わって描くときに 1 回)。
+    /// </summary>
+    private static void EnsureOutline(SceneObject obj, ObjectBuffers b)
+    {
+        if (b.OutlineVersion == obj.Version) return;
+        b.OutlineVersion = obj.Version;
+        b.Outline.Set(EdgesGeometry.Build(obj.Triangles, 20));
     }
 
     /// <summary>位置+法線の並び(三角形ごとに、3 頂点とも面の法線)。</summary>
@@ -129,11 +146,12 @@ public sealed class SceneRenderer : IDisposable
         foreach (var e in edges)
         {
             var c = em.Esel.Contains(e.Key) ? sel : edge;
-            foreach (var p in new[] { e.A.Co, e.B.Co })
-            {
-                lines[i++] = (float)p.X; lines[i++] = (float)p.Y; lines[i++] = (float)p.Z;
-                lines[i++] = c.R; lines[i++] = c.G; lines[i++] = c.B;
-            }
+            var a = e.A.Co;
+            var bb = e.B.Co;
+            lines[i++] = (float)a.X; lines[i++] = (float)a.Y; lines[i++] = (float)a.Z;
+            lines[i++] = c.R; lines[i++] = c.G; lines[i++] = c.B;
+            lines[i++] = (float)bb.X; lines[i++] = (float)bb.Y; lines[i++] = (float)bb.Z;
+            lines[i++] = c.R; lines[i++] = c.G; lines[i++] = c.B;
         }
         var points = new float[em.Verts.Count * 6];
         i = 0;
@@ -229,6 +247,7 @@ public sealed class SceneRenderer : IDisposable
                 Add(new DrawItem(b.Mesh, Primitive.Triangles, Shading.Lit, world, mr, mg, mb, xray ? XrayOpacity : 1,
                     meshFlags | (world.Determinant() < 0 ? DrawFlags.FrontFaceCw : 0), 1, 1, 0, 0, xray, obj.Name), center);
             }
+            if (core.OutlineVisible(obj)) EnsureOutline(obj, b);
             if (core.OutlineVisible(obj) && b.Outline.VertexCount > 0)
             {
                 var (r, g, bl) = Rgb.FromHex(core.OutlineIsActive(obj) ? OutlineActiveColor : OutlineColor);

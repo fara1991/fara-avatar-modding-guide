@@ -79,6 +79,28 @@ out.cold = cold;
   const d1 = JSON.parse(await p.evaluate(() => window.__glDiag()));
   out.frameEditModeAllSelected = { csFrames: f1.frames - f0.frames, csMsPerFrame: (f1.msPerFrame * f1.frames - f0.msPerFrame * f0.frames) / (f1.frames - f0.frames), rafPerSec: (d1.rafCalls - d0.rafCalls) / 6 };
 
+  // 2b. 編集モードで全頂点を G ドラッグ中のページ内のフレーム(C# の Build + 送信 + draw の呼び出しまで = GL の命令の発行を含む。GPU の実行時間は含まない)
+  {
+    await p.evaluate(() => window.__labControl("start", 0));
+    await p.waitForFunction(() => window.__glDiag && JSON.parse(window.__glDiag()).drawn > 0);
+    await p.click("#viewport", { position: { x: 480, y: 270 } });
+    await p.keyboard.press("Tab");
+    await p.keyboard.press("KeyA");
+    await p.keyboard.press("KeyG");
+    await sleep(300);
+    await p.evaluate(() => window.__labControl("frames", 0));
+    const a = await report(p, "frames");
+    const box = await p.locator("#viewport").boundingBox();
+    const N = 240;
+    for (let i = 0; i < N; i++) { await p.mouse.move(box.x + 300 + ((i * 7) % 300), box.y + 200 + ((i * 5) % 100)); await sleep(12); }
+    await p.evaluate(() => window.__labControl("frames", 0));
+    const b = await report(p, "frames");
+    const frameMs = b.msPerFrame * b.frames - a.msPerFrame * a.frames, moves = b.pointerEvents - a.pointerEvents, moveMs = b.pointerMs - a.pointerMs;
+    // 1 回のマウス移動あたり = ポインターのハンドラー(操作・形の作り直し)+ そのあとのフレーム(Build・送信・draw の呼び出し)。フレームの平均は移動のないフレームも含む
+    out.dragFramePage = { frames: b.frames - a.frames, moves, pointerMsPerMove: moveMs / moves, frameMsPerFrame: frameMs / (b.frames - a.frames), perMoveTotalMs: moveMs / moves + frameMs / moves };
+    await p.keyboard.press("Escape");
+  }
+
   // 3. 重い操作(WASM)
   out.bench = {};
   for (const [name, n] of [["frame-object", 200], ["frame-edit", 200], ["drag-edit-frame", 100], ["click-object", 100], ["click-vert", 50], ["box-select-all", 10], ["move-all-vertices", 100], ["extrude-start", 5], ["undo", 10]]) {
