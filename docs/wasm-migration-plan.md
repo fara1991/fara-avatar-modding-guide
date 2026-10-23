@@ -827,10 +827,10 @@ SRI の値（§12.1 の sha384）は、SSR 版が jsDelivr で読んでいた r1
 - §4.10 の「ポケモンの `MaintenanceScreen` 方式は採らない」は変わらない。
 
 ### 13.4 CSP の違反ゼロの確認
-`tools/verify/csp-check.mjs`: `_headers` の CSP が効く配信（wrangler dev）で、主要 23 ページ × PC 1280・スマホ 390 を開き、スクロール・テーマ切り替え・検索（Ctrl+K）・練習の 3D（クリックとキー）・チュートリアル・共有ルームの WebSocket を操作して、`securitypolicyviolation`・コンソールのエラー/警告・失敗したリクエスト・ページのエラーを集める。自己ホストの three.js（`/lib/three/three.module.js`）と importmap のハッシュ（`script-src` の `'sha256-…'`）を含む。結果は #96 以降の最新の構成で **違反 0**（実行結果は PR 本文）。
+`tools/verify/csp-check.mjs`: `_headers` の CSP が効く配信（wrangler dev）で、主要 23 ページ × PC 1280・スマホ 390 を開き、スクロール・テーマ切り替え・検索（Ctrl+K）・練習の 3D（クリックとキー）・チュートリアル・共有ルームの WebSocket を操作して、`securitypolicyviolation`・コンソールのエラー/警告・失敗したリクエスト・ページのエラーを集める。自己ホストの three.js（`/lib/three/three.module.js`）と importmap のハッシュ（`script-src` の `'sha256-…'`）を含む。結果（#96 の構成）: **46 画面（23 ページ × PC・スマホ）で CSP 違反 0・コンソールのエラー/警告 0**。練習 3 ページの WebGL・共有ルームの WebSocket・記事内チュートリアルを含む。違反を検出できることは、インラインの script を足して確認済み（`script-src-elem inline` が拾われる）。
 
 ### 13.5 `/practice/unity` の静的 HTML と Blazor の DOM の差（#91 のレビュー指摘）
-- **静的 HTML と Blazor の DOM（起動後）は同じ**: `tools/verify/dom-diff.mjs` で、練習 3 ページを含む全 76 ページの本文（`#fsk-main` の中）を、Blazor のコメント・空白・JavaScript が中身を入れる枠（3D・お題の一覧・チュートリアル・進捗の印）を除いて比べて、差なし（`Web.Tests` の `PageDomParityTests` も同じ内容を bUnit で確認）。差が出るのは、JavaScript が起動後に入れる部分だけ（`#unity-practice` に Unity 風の画面・`.unity-editor` の class、`#unity-tasks` にお題の `li`、`practice-embed` の `data-engine`）で、これは SSR 版でも同じ。
+- **静的 HTML と Blazor の DOM（起動後）は同じ**: `tools/verify/dom-diff.mjs` で、練習 3 ページを含む全 76 ページの本文（`#fsk-main` の中）を、Blazor のコメント・空白・JavaScript が中身を入れる枠（3D・お題の一覧・チュートリアル・進捗の印）を除いてで比べた結果、**74 ページは差なし**（練習 3 ページを含む）。差があるのは `/report`（静的 HTML は題名と説明だけの枠、フォームは kit の `ReportFormView` が WebAssembly で描く）と `/search`（静的 HTML の案内文の構造。known-differences に理由つき）の 2 ページで、設計どおり。`Web.Tests` の `PageDomParityTests` も同じ内容を bUnit で確認している。差が出るのは、JavaScript が起動後に入れる部分だけ（`#unity-practice` に Unity 風の画面・`.unity-editor` の class、`#unity-tasks` にお題の `li`、`practice-embed` の `data-engine`）で、これは SSR 版でも同じ。
 - **SSR 版（develop）との差**は `tools/compare/known-differences.json` にある（`/practice`・`/practice/unity`）: スマホ向けの案内（`TouchPracticeGuide`）の「画像で見る」の項目。SSR 版は `<template>` に入れて、タッチ端末の JavaScript が `.content` から取り出す。Razor は `<template>` の中身を `.content` ではなく子として作るので、Blazor 版は `hidden` の案内の中にそのまま置く（PC では見えない。タッチ端末では `practice-entry.js` が `hidden` を外す）。解消はしない（解消するには、JavaScript 側が両方の形を扱う必要があり、利点が無い）。理由つきの既知の差として維持。
 
 ### 13.6 そのほかの修正（この PR）
@@ -840,7 +840,10 @@ SRI の値（§12.1 の sha384）は、SSR 版が jsDelivr で読んでいた r1
 - §1.2 の 15 と §4.7 の背景の 3D の記述を、実装（2D の canvas。three.js は使わない）に合わせた。
 - `Deploy (wasm-dev)` の Summary の手順の bash の構文エラー（#94）。
 
-### 13.7 残っている宿題
+### 13.7 JavaScript が無い環境
+静的な枠のスマホは、起動後の画面に合わせて上部ナビをやめた（サイドバーはハンバーガーで開く一時的なメニューで、JavaScript が無いと開けない）。JavaScript が無いときだけ（`noscript` の style）、サイドバーを本文とフッターの後ろに並べて出し、ページの移動に使えるようにした（#96）。PC は左のサイドバーがそのまま出る。
+
+### 13.8 残っている宿題
 - OGP 画像（ユーザーが決める。`wwwroot/images/og-image.png`。計画書 4.12）。
 - kit: 起動中の静的な本文の inert を解く設定（本文を読みながらリンクを押せるように）。
 - 実機（PC・スマホ・ライト/ダーク）の目視（§8）。
