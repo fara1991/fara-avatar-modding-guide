@@ -94,7 +94,7 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
             Assert.Equal(page.OgType, Meta(head, @"<meta property=""og:type"" content=""([^""]+)"""));
             Assert.Equal("ja_JP", Meta(head, @"<meta property=""og:locale"" content=""([^""]+)"""));
             // OGP 画像は全ページに 1 つ。カードは summary_large_image
-            Assert.Equal(Origin + "/images/" + SiteBuilder.OgImageFile, Meta(head, @"<meta property=""og:image"" content=""([^""]+)"""));
+            Assert.Equal(Origin + "/" + SiteBuilder.OgImageFile + "?v=" + SiteBuilder.OgImageVersion, Meta(head, @"<meta property=""og:image"" content=""([^""]+)"""));
             Assert.True(Count(head, @"<meta property=""og:image""") == 1, page.Path + " の og:image");
             Assert.Equal("summary_large_image", Meta(head, @"<meta name=""twitter:card"" content=""([^""]+)"""));
             // noindex は /report と /search だけ（meta は 1 つ）
@@ -149,12 +149,12 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
     [NodeFact]
     public void The_og_image_is_a_1200_by_630_png_and_the_real_template_adds_its_size_alt_and_favicons()
     {
-        // 画像の中身（PNG の IHDR）。SNS のカードは 1200×630。ファイル名の版（og-v1）を変えるときは SiteBuilder.OgImageFile と合わせる
-        var png = File.ReadAllBytes(Path.Combine(Repo.Root, "wwwroot", "images", SiteBuilder.OgImageFile));
+        // 画像の中身（PNG の IHDR）。SNS のカードは 1200×630。版は URL の ?v=（SiteBuilder.OgImageVersion）
+        var png = File.ReadAllBytes(Path.Combine(Repo.Root, "wwwroot", SiteBuilder.OgImageFile));
         Assert.Equal(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, png[..8]);
         Assert.Equal(1200, System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(png.AsSpan(16, 4)));
         Assert.Equal(630, System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(png.AsSpan(20, 4)));
-        Assert.True(File.Exists(Path.Combine(fx.Production, "images", SiteBuilder.OgImageFile)), "Build が画像を出力にコピーする");
+        Assert.True(File.Exists(Path.Combine(fx.Production, SiteBuilder.OgImageFile)), "Build が画像を出力にコピーする");
 
         // 本物のテンプレートで、全ページに og:image の「後ろ」へ、大きさ・説明・ファビコンが付く
         foreach (var page in Pages)
@@ -165,12 +165,14 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
             Assert.True(html.IndexOf("<meta property=\"og:image:width\" content=\"1200\"", StringComparison.Ordinal) > image, page.Path);
             Assert.True(html.IndexOf("<meta property=\"og:image:height\" content=\"630\"", StringComparison.Ordinal) > image, page.Path);
             Assert.True(html.IndexOf("<meta property=\"og:image:alt\" content=\"", StringComparison.Ordinal) > image, page.Path);
-            Assert.Contains("<link rel=\"icon\" href=\"/favicon.ico\" sizes=\"48x48\" />", html);
-            Assert.Contains("<link rel=\"icon\" type=\"image/svg+xml\" href=\"/favicon.svg\" />", html);
-            Assert.Contains("<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" />", html);
+            Assert.Contains("<link rel=\"icon\" href=\"/favicon.ico?v=2\" sizes=\"48x48\" />", html);
+            Assert.Contains("<link rel=\"icon\" type=\"image/svg+xml\" href=\"/favicon.svg?v=2\" />", html);
+            Assert.Contains("<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png?v=2\" />", html);
+            Assert.Contains("<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png?v=2\" />", html);
+            Assert.Contains("<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png?v=2\" />", html);
         }
         // /favicon.ico は必ず実在させる(無いと not_found_handling の 404 ページが返る)
-        foreach (var file in new[] { "favicon.ico", "favicon.svg", "apple-touch-icon.png" })
+        foreach (var file in new[] { "favicon.ico", "favicon.svg", "favicon-16x16.png", "favicon-32x32.png", "apple-touch-icon.png" })
             Assert.True(File.Exists(Path.Combine(Repo.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", file)), file);
     }
 }

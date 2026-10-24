@@ -115,7 +115,7 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
         Assert.Contains("<meta name=\"description\"", home);
         Assert.Contains("<meta property=\"og:title\"", home);
         Assert.Contains("<meta property=\"og:url\" content=\"https://avatar.fara-labs.com/\"", home);
-        Assert.Contains("<meta property=\"og:image\" content=\"https://avatar.fara-labs.com/images/og-v1.png\"", home);
+        Assert.Contains("<meta property=\"og:image\" content=\"https://avatar.fara-labs.com/og.png?v=1\"", home);
         Assert.Contains("avatar.fara-labs.com", Read(fx.Production, "learn/basics/select.html"));
     }
 

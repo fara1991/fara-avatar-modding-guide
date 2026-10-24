@@ -24,10 +24,10 @@ public class RepoLayoutTests
     [Fact]
     public void What_the_build_and_the_tests_still_read_is_kept()
     {
-        // Build が画像をここからコピーする(SiteBuilder)。tools/tutorial-images がここへ書く。ルート直下の wwwroot は images だけ
+        // Build が画像をここからコピーする(SiteBuilder)。tools/tutorial-images がここへ書く。ルート直下の wwwroot は images と og.png(OGP。Build が出力のルートへコピーする)だけ
         Assert.True(Directory.Exists(Path_("wwwroot/images/tutorials")));
         Assert.Equal("images", Path.GetFileName(Assert.Single(Directory.GetDirectories(Path_("wwwroot")))));
-        Assert.Empty(Directory.GetFiles(Path_("wwwroot")));
+        Assert.Equal("og.png", Path.GetFileName(Assert.Single(Directory.GetFiles(Path_("wwwroot")))));
         // サイトの設定(名前・バージョン・SNS)。Build とテストが読む
         Assert.True(File.Exists(Path_("appsettings.json")));
         Assert.True(File.Exists(Path_("tools/site.json")));
