@@ -1,4 +1,6 @@
-// 背景の飾り（見た目だけ）: Blender の 3D ビューのような、奥へ延びる床の方眼と、床の上でゆっくり回る基本オブジェクト（立方体・球・アイコ球・円錐・円柱・トーラス）。
+// 背景の飾り（見た目だけ）: Blender の 3D ビューのような、奥へ延びる床の方眼と、宙に散らばってゆっくり回る基本オブジェクト（立方体・球・アイコ球・円錐・円柱・トーラス）。
+// - 図形の配置は固定の乱数（シード付き）で決めるので、読み込みのたびに変わらない。画面の中で高さ・奥行きがばらつき、互いに重ならない
+// - 回る軸・向き（正逆）・速さ、ゆるやかに漂う向き・幅・周期は、図形ごとにばらばら
 // 画面の後ろ（z-index: -1）に置いた canvas に描く。操作には関わらない。
 // - 動きを減らす設定（prefers-reduced-motion）のときは、止めた 1 枚だけを描く
 // - タブが裏に回ったら止める。負荷を抑えるため、描くのは 30fps まで、解像度の倍率は最大 1.5
@@ -28,15 +30,24 @@
 
   // ---- 3D（カメラは、床の少し上から、奥を見る） ----
   var cam = { x: 0, y: 1.3, z: 6, pitch: 0.05 };
-  function project(p) {
+  var HORIZON = 0.38;   // 画面の高さのうち、地平線の位置（上から）
+  function focal(w, h) { return Math.max(w, h * 0.6) * 0.95; }
+  function projectWH(p, w, h) {
     var x = p[0] - cam.x, y = p[1] - cam.y, z = p[2] - cam.z;
     var cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
     var y2 = y * cp + z * sp, z2 = -y * sp + z * cp;
     var d = -z2;
     if (d < 0.2) return null;
     // 縦長の画面（スマホ）では、高さではなく幅に合わせる（高さに合わせると、右のオブジェクトが画面の外に出て、端しか見えない）
-    var f = Math.max(W, H * 0.6) * 0.95;
-    return [W * 0.5 + (x * f) / d, H * 0.38 - (y2 * f) / d, d];
+    var f = focal(w, h);
+    return [w * 0.5 + (x * f) / d, h * HORIZON - (y2 * f) / d, d];
+  }
+  function project(p) { return projectWH(p, W, H); }
+  // 画面の位置（u, v は 0〜1）と、カメラからの奥行き d から、世界の座標へ戻す（project の逆）
+  function unproject(u, v, d, w, h) {
+    var f = focal(w, h), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+    var y2 = (h * HORIZON - v * h) * d / f;
+    return [cam.x + (u * w - w * 0.5) * d / f, cam.y + y2 * cp + d * sp, cam.z + y2 * sp - d * cp];
   }
 
   function line(a, b, alpha) {
@@ -64,11 +75,13 @@
     }
     return { v: v, f: f };
   }
+  // 面の向き（巻き順）を逆にする。裏向きの面は描かないので、外向きになっていないと、手前の面が抜けて向こう側の内側が見える
+  function flip(m) { m.f = m.f.map(function (t) { return [t[0], t[2], t[1]]; }); return m; }
   function uvSphere(r, seg, rings) {
-    return grid(seg, rings, function (i, j) {
+    return flip(grid(seg, rings, function (i, j) {
       var th = (i / seg) * Math.PI * 2, ph = (j / rings) * Math.PI;
       return [r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)];
-    });
+    }));
   }
   function icosphere(r) {
     var t = (1 + Math.sqrt(5)) / 2, n = Math.sqrt(1 + t * t);
@@ -79,13 +92,13 @@
   function cone(r, h, seg) {
     var m = grid(seg, 1, function (i, j) { var th = (i / seg) * Math.PI * 2; return j === 0 ? [r * Math.cos(th), -h / 2, r * Math.sin(th)] : [0, h / 2, 0]; });
     var c = m.v.length; m.v.push([0, -h / 2, 0]);
-    for (var i = 0; i < seg; i++) m.f.push([c, i + 1, i]);
+    for (var i = 0; i < seg; i++) m.f.push([c, i, i + 1]);
     return m;
   }
   function cylinder(r, h, seg) {
     var m = grid(seg, 1, function (i, j) { var th = (i / seg) * Math.PI * 2; return [r * Math.cos(th), j === 0 ? -h / 2 : h / 2, r * Math.sin(th)]; });
     var bot = m.v.length; m.v.push([0, -h / 2, 0]); var top = m.v.length; m.v.push([0, h / 2, 0]);
-    for (var i = 0; i < seg; i++) { m.f.push([bot, i + 1, i]); m.f.push([top, seg + 1 + i, seg + 2 + i]); }
+    for (var i = 0; i < seg; i++) { m.f.push([bot, i, i + 1]); m.f.push([top, seg + 2 + i, seg + 1 + i]); }
     return m;
   }
   function torus(R, r, seg, tube) {
@@ -95,36 +108,112 @@
     });
   }
 
-  // 置く物（x, z は床の上の位置。spin は回る速さ、tilt は傾き）。奥のものほど、画面の上に見える
-  var OBJECTS = [
-    { m: cone(0.5, 1.1, 16), x: 1.7, z: -4.4, y: 0.45, spin: 0.9, tilt: 0.12, hue: [168, 85, 247] },
-    { m: icosphere(0.62), x: 3.3, z: -6.4, y: 0.5, spin: 0.5, tilt: 0.3, hue: [196, 181, 253] },
-    { m: cube(), x: 2.7, z: -3.2, y: 0.42, spin: 0.7, tilt: 0.35, hue: [124, 58, 237] },
-    { m: torus(0.5, 0.2, 18, 10), x: 4.6, z: -4.8, y: 0.6, spin: 0.6, tilt: 0.9, hue: [192, 132, 252] },
-    { m: uvSphere(0.5, 14, 9), x: 0.9, z: -6.0, y: 0.42, spin: 0.35, tilt: 0.1, hue: [147, 114, 255] },
-    { m: cylinder(0.38, 1.0, 16), x: 5.6, z: -3.6, y: 0.42, spin: 0.8, tilt: 0.2, hue: [168, 85, 247] },
-    // 左側にも（右だけに偏らないよう、左右で釣り合わせる。PC は左のサイドバーの右側から見える）
-    { m: cube(), x: -2.6, z: -3.8, y: 0.42, spin: 0.55, tilt: 0.28, hue: [147, 114, 255] },
-    { m: icosphere(0.58), x: -4.5, z: -6.2, y: 0.5, spin: 0.45, tilt: 0.25, hue: [196, 181, 253] },
-    { m: cone(0.45, 1.0, 16), x: -1.4, z: -6.6, y: 0.4, spin: 0.85, tilt: 0.15, hue: [192, 132, 252] },
-    { m: torus(0.5, 0.2, 18, 10), x: -6.0, z: -4.6, y: 0.6, spin: 0.5, tilt: 0.8, hue: [168, 85, 247] },
+  // 置く物の形と色。br は、形をすっぽり包む球の半径（重ならない距離を測るのに使う）。配置・回り方・漂い方は、下の layout が決める
+  var SHAPES = [
+    { m: cone(0.5, 1.1, 16), br: 0.62, hue: [168, 85, 247] },
+    { m: icosphere(0.62), br: 0.62, hue: [196, 181, 253] },
+    { m: cube(), br: 0.87, hue: [124, 58, 237] },
+    { m: torus(0.5, 0.2, 18, 10), br: 0.7, hue: [192, 132, 252] },
+    { m: uvSphere(0.5, 14, 9), br: 0.5, hue: [147, 114, 255] },
+    { m: cylinder(0.38, 1.0, 16), br: 0.55, hue: [168, 85, 247] },
+    { m: cube(), br: 0.87, hue: [147, 114, 255] },
+    { m: icosphere(0.58), br: 0.58, hue: [196, 181, 253] },
+    { m: cone(0.45, 1.0, 16), br: 0.56, hue: [192, 132, 252] },
+    { m: torus(0.5, 0.2, 18, 10), br: 0.7, hue: [168, 85, 247] },
   ];
-  var OBJ_SCALE = 0.8;
+  // 広い画面（PC）と縦長の画面（スマホ）で、図形の大きさと、配置を決めるときの基準の画面の大きさ（配置は 0〜1 の画面の位置で持つので、実際の大きさが違っても崩れない）
+  var MODES = {
+    wide: { ref: [1440, 900], hMax: 1440, scale: 0.8, count: 10 },
+    tall: { ref: [390, 844], hMax: 844, scale: 1.25, count: 8 },
+  };
+  var SEED = 20240611;
   var LIGHT = (function () { var l = [-0.45, 0.8, 0.4], n = Math.hypot(l[0], l[1], l[2]); return [l[0] / n, l[1] / n, l[2] / n]; })();
 
-  function drawObjects(t, k) {
-    var tris = [];
-    OBJECTS.forEach(function (o, idx) {
-      var ay = t * 0.001 * o.spin * 0.6 + idx, ax = o.tilt + Math.sin(t * 0.0004 + idx) * 0.15;
-      var cy = Math.cos(ay), sy = Math.sin(ay), cx = Math.cos(ax), sx = Math.sin(ax);
-      var bob = Math.sin(t * 0.0008 + idx * 1.7) * 0.06;
-      function tf(p) {
-        var px = p[0] * OBJ_SCALE, py = p[1] * OBJ_SCALE, pz = p[2] * OBJ_SCALE;
-        var x = px * cy + pz * sy, z = -px * sy + pz * cy, y = py;
-        var y2 = y * cx - z * sx, z2 = y * sx + z * cx;
-        return [x, y2, z2];
+  // 固定のシードの乱数（mulberry32）。同じシードなら、いつも同じ並びになる
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function randAxis(r) {
+    var z = r() * 2 - 1, th = r() * Math.PI * 2, s = Math.sqrt(1 - z * z);
+    return [s * Math.cos(th), z, s * Math.sin(th)];
+  }
+  // 軸 a のまわりに ang だけ回す 3×3 の行列（ロドリゲスの公式。行優先）
+  function axisAngle(a, ang) {
+    var c = Math.cos(ang), s = Math.sin(ang), k = 1 - c, x = a[0], y = a[1], z = a[2];
+    return [c + x * x * k, x * y * k - z * s, x * z * k + y * s,
+            x * y * k + z * s, c + y * y * k, y * z * k - x * s,
+            x * z * k - y * s, y * z * k + x * s, c + z * z * k];
+  }
+  function mul(A, B) {
+    var R = [];
+    for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++) R.push(A[i * 3] * B[j] + A[i * 3 + 1] * B[3 + j] + A[i * 3 + 2] * B[6 + j]);
+    return R;
+  }
+
+  // 図形ごとの配置・回り方・漂い方を、固定のシードで決める。
+  // 配置: 画面の位置（u, v）・奥行き d をばらして候補を作り、漂う幅の分も含めて、互いに重ならない候補（画面の上で、大きさの和より離れているもの）のうち、縦の離れを重く見て一番離れたものを選ぶ（横一列になりにくい）
+  // 動き: 回る軸（向きは図形ごとにばらばら）・正逆・速さ、漂う向き・幅・周期も、図形ごとにばらばら
+  function layout(mode) {
+    var cfg = MODES[mode], w = cfg.ref[0], h = cfg.ref[1], f = focal(w, h), r = rng(SEED + (mode === "tall" ? 7919 : 0));
+    var placed = [], bands = [];
+    // 高さが揃わないよう、画面の高さを図形の数に等分し、図形ごとに別の帯をあてがう（帯の順はシードで混ぜる）
+    for (var b = 0; b < cfg.count; b++) bands.push(b);
+    for (var b2 = bands.length - 1; b2 > 0; b2--) { var sw = Math.floor(r() * (b2 + 1)), tmp = bands[b2]; bands[b2] = bands[sw]; bands[sw] = tmp; }
+    for (var i = 0; i < cfg.count; i++) {
+      var sh = SHAPES[i % SHAPES.length];
+      var amp = [0.12 + 0.22 * r(), 0.08 + 0.14 * r(), 0.1 + 0.2 * r()];   // 漂う幅（世界の x, y, z）
+      var best = null;
+      for (var k = 0; k < 300; k++) {
+        var u = 0.08 + 0.84 * r(), d = 5.2 + 6.8 * r(), v = 0.07 + 0.55 * (bands[i] + 0.5 + (r() - 0.5) * 1.6) / cfg.count;
+        var cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+        // この位置の、世界の高さ。画面の縦横比が変わっても（hMax まで）床にめり込まないようにする
+        var yw = cam.y + (HORIZON - v) * (v > HORIZON ? cfg.hMax : h) * d / f * cp + d * sp;
+        if (yw < 0.45 + amp[1]) continue;
+        var pr = sh.br * 0.9 * cfg.scale * f / d, reserve = Math.max(amp[0], amp[1], amp[2]) * f / d;   // 画面の上での半径と、漂う幅
+        var sx = u * w, sy = v * h, edge = pr / 0.9 + reserve;
+        if (sx < edge || sx > w - edge || sy < edge * 0.9) continue;   // 画面の端で欠けない
+        var gap = 1e9, spread = 1e9;   // gap: 実際の画面の上の隙間（10px 以上が必須）。spread: 縦を重く見た隙間（大きいほど、縦にもばらける）
+        for (var j = 0; j < placed.length; j++) {
+          var o = placed[j], sum = pr + reserve + o.pr + o.reserve;
+          gap = Math.min(gap, Math.hypot(sx - o.sx, sy - o.sy) - sum);
+          spread = Math.min(spread, Math.hypot((sx - o.sx) * 0.75, (sy - o.sy) * 1.3) - sum);
+        }
+        var score = gap >= 10 ? 1e6 + spread : gap;
+        if (!best || score > best.score) best = { score: score, gap: gap, u: u, v: v, d: d, yw: yw, sx: sx, sy: sy, pr: pr, reserve: reserve };
       }
-      var wv = o.m.v.map(function (p) { var q = tf(p); return [o.x + q[0], o.y + bob + q[1], o.z + q[2]]; });
+      if (!best || best.gap < 10) continue;   // 重ならずに置ける場所がなければ、その図形は置かない
+      var dirs = [r() < 0.5 ? -1 : 1, r() < 0.5 ? -1 : 1, r() < 0.5 ? -1 : 1];
+      placed.push({
+        m: sh.m, hue: sh.hue, br: sh.br, u: best.u, v: best.v, d: best.d, sx: best.sx, sy: best.sy, pr: best.pr, reserve: best.reserve, gap: best.gap,
+        base: axisAngle(randAxis(r), r() * Math.PI * 2),   // 最初の向き
+        axis: randAxis(r), spin: (r() < 0.5 ? -1 : 1) * (0.12 + 0.4 * r()), phase: r() * Math.PI * 2,   // 回る軸・向き・速さ（rad/秒）
+        amp: amp, drift: [0, 1, 2].map(function (n) { return { w: dirs[n] * Math.PI * 2 / (16 + 34 * r()), p: r() * Math.PI * 2 }; }),   // 漂う向き（符号）・周期（16〜50 秒）・位相
+      });
+    }
+    return placed;
+  }
+  var layouts = {};
+  function mode() { return W >= H ? "wide" : "tall"; }
+  function objects() { var m = mode(); return layouts[m] || (layouts[m] = layout(m)); }
+
+  function drawObjects(t, k) {
+    var tris = [], sec = t * 0.001, s = MODES[mode()].scale;
+    objects().forEach(function (o) {
+      var R = mul(axisAngle(o.axis, o.phase + o.spin * sec), o.base);
+      var c = unproject(o.u, o.v, o.d, W, H);
+      var cx = c[0] + o.amp[0] * Math.sin(o.drift[0].w * sec + o.drift[0].p),
+          cy = c[1] + o.amp[1] * Math.sin(o.drift[1].w * sec + o.drift[1].p),
+          cz = c[2] + o.amp[2] * Math.sin(o.drift[2].w * sec + o.drift[2].p);
+      var wv = o.m.v.map(function (p) {
+        var px = p[0] * s, py = p[1] * s, pz = p[2] * s;
+        return [cx + R[0] * px + R[1] * py + R[2] * pz, cy + R[3] * px + R[4] * py + R[5] * pz, cz + R[6] * px + R[7] * py + R[8] * pz];
+      });
       o.m.f.forEach(function (tri) {
         var A = wv[tri[0]], B = wv[tri[1]], C = wv[tri[2]];
         var ux = B[0] - A[0], uy = B[1] - A[1], uz = B[2] - A[2], vx = C[0] - A[0], vy = C[1] - A[1], vz = C[2] - A[2];
@@ -177,7 +266,7 @@
     line([-18, 0, 0], [18, 0, 0], 0.4 * k);
     line([0, 0, -34], [0, 0, 5], 0.4 * k);
 
-    // Blender の基本オブジェクトを、床の上に置いて、ゆっくり回す
+    // Blender の基本オブジェクトを、宙に散らして、ゆっくり回す・漂わせる
     drawObjects(t, k);
     ctx.globalAlpha = 1;
   }
