@@ -61,7 +61,23 @@ for (const path of pages) {
   if (/<script(?![^>]*\bsrc=)(?![^>]*importmap)[^>]*>/.test(body.replace(/<!--[\s\S]*?-->/g, ""))) fail(`${label}: インラインの script がある`);
 }
 const ogImage = [...htmlByPath.values()].filter((h) => /og:image/.test(headOf(h))).length;
-console.log(`  og:image が付いているページ: ${ogImage} / ${pages.length}(画像が未決定のあいだは 0 が正しい)`);
+console.log(`  og:image が付いているページ: ${ogImage} / ${pages.length}`);
+if (ogImage !== pages.length) fail(`og:image が全ページに付いていない(${ogImage} / ${pages.length})`);
+for (const [label, h] of htmlByPath) {
+  const head = headOf(h);
+  const at = head.indexOf('<meta property="og:image"');
+  for (const [key, want] of [["width", '1200'], ["height", '630']]) {
+    const i = head.indexOf(`<meta property="og:image:${key}" content="${want}"`);
+    if (at < 0 || i < at) fail(`${label}: og:image:${key}=${want} が og:image の後ろに無い`);
+  }
+  if (head.indexOf('<meta property="og:image:alt"') < at) fail(`${label}: og:image:alt が og:image の後ろに無い`);
+  if (!/<meta name="twitter:card" content="summary_large_image"/.test(head)) fail(`${label}: twitter:card が summary_large_image でない`);
+}
+for (const [path, type] of [["/favicon.ico", /image\/(x-icon|vnd\.microsoft\.icon)/], ["/favicon.svg", /image\/svg\+xml/], ["/apple-touch-icon.png", /image\/png/], ["/images/og-v1.png", /image\/png/]]) {
+  const r = await get(path);
+  const bytes = (await r.arrayBuffer()).byteLength;
+  if (r.status !== 200 || !type.test(r.headers.get("content-type") || "") || bytes < 100) fail(`${path}: ${r.status} ${r.headers.get("content-type")} ${bytes}B`); else ok(`${path} は 200(${r.headers.get("content-type")}、${bytes}B)`);
+}
 {
   const { r, body } = await text("/definitely-not-a-page");
   if (r.status !== 404) fail(`知らない URL が ${r.status}`); else ok("知らない URL は 404");

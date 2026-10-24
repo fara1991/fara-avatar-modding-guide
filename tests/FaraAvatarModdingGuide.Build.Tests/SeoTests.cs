@@ -72,11 +72,10 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
         Assert.DoesNotContain("Sitemap:", Read(fx.Develop, "robots.txt"));
         Assert.Matches(@"(?m)^  X-Robots-Tag: noindex$", Read(fx.Develop, "_headers"));
         Assert.DoesNotContain("X-Robots-Tag", Read(fx.Production, "_headers"));
-        Assert.DoesNotContain("X-Robots-Tag", Read(fx.WithOgImage, "_headers"));
     }
 
     [NodeFact]
-    public void Every_page_has_one_title_description_and_canonical_and_complete_open_graph_without_an_image()
+    public void Every_page_has_one_title_description_and_canonical_and_complete_open_graph_with_one_image()
     {
         Assert.Equal(76, Pages.Count);
         foreach (var page in Pages)
@@ -94,10 +93,10 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
             Assert.Equal(Meta(head, @"<meta name=""description"" content=""([^""]*)"""), Meta(head, @"<meta property=""og:description"" content=""([^""]*)"""));
             Assert.Equal(page.OgType, Meta(head, @"<meta property=""og:type"" content=""([^""]+)"""));
             Assert.Equal("ja_JP", Meta(head, @"<meta property=""og:locale"" content=""([^""]+)"""));
-            // 画像は未決定のあいだ付けない。カードは summary
-            Assert.DoesNotContain("og:image", head);
-            Assert.DoesNotContain("twitter:image", head);
-            Assert.Equal("summary", Meta(head, @"<meta name=""twitter:card"" content=""([^""]+)"""));
+            // OGP 画像は全ページに 1 つ。カードは summary_large_image
+            Assert.Equal(Origin + "/images/" + SiteBuilder.OgImageFile, Meta(head, @"<meta property=""og:image"" content=""([^""]+)"""));
+            Assert.True(Count(head, @"<meta property=""og:image""") == 1, page.Path + " の og:image");
+            Assert.Equal("summary_large_image", Meta(head, @"<meta name=""twitter:card"" content=""([^""]+)"""));
             // noindex は /report と /search だけ（meta は 1 つ）
             Assert.Equal(page.NoIndex ? 1 : 0, Count(head, @"<meta name=""robots"""));
             // hreflang・JSON-LD は使わない（単一言語。構造化データは、必要になるまで入れない）
@@ -148,16 +147,30 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
     }
 
     [NodeFact]
-    public void An_og_image_placed_in_the_output_is_added_to_every_page_automatically()
+    public void The_og_image_is_a_1200_by_630_png_and_the_real_template_adds_its_size_alt_and_favicons()
     {
-        // 仮の PNG はテストの出力先にだけ置く。リポジトリの wwwroot/images/og-image.png（ユーザーが決めたあとに置く）は、まだ無い
-        Assert.False(File.Exists(Path.Combine(Repo.Root, "wwwroot", "images", "og-image.png")), "OGP 画像が置かれたら、画像なしの検査（上の 1 つ）を、画像ありに切り替える");
+        // 画像の中身（PNG の IHDR）。SNS のカードは 1200×630。ファイル名の版（og-v1）を変えるときは SiteBuilder.OgImageFile と合わせる
+        var png = File.ReadAllBytes(Path.Combine(Repo.Root, "wwwroot", "images", SiteBuilder.OgImageFile));
+        Assert.Equal(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, png[..8]);
+        Assert.Equal(1200, System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(png.AsSpan(16, 4)));
+        Assert.Equal(630, System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(png.AsSpan(20, 4)));
+        Assert.True(File.Exists(Path.Combine(fx.Production, "images", SiteBuilder.OgImageFile)), "Build が画像を出力にコピーする");
+
+        // 本物のテンプレートで、全ページに og:image の「後ろ」へ、大きさ・説明・ファビコンが付く
         foreach (var page in Pages)
         {
-            var head = Head(fx.WithOgImage, page.Path);
-            Assert.Equal(Origin + "/images/og-image.png", Meta(head, @"<meta property=""og:image"" content=""([^""]+)"""));
-            Assert.True(Count(head, @"<meta property=""og:image""") == 1, page.Path);
-            Assert.Equal("summary_large_image", Meta(head, @"<meta name=""twitter:card"" content=""([^""]+)"""));
+            var html = Read(fx.Real, SiteBuilder.FileFor(page.Path));
+            var image = html.IndexOf("<meta property=\"og:image\"", StringComparison.Ordinal);
+            Assert.True(image >= 0, page.Path);
+            Assert.True(html.IndexOf("<meta property=\"og:image:width\" content=\"1200\"", StringComparison.Ordinal) > image, page.Path);
+            Assert.True(html.IndexOf("<meta property=\"og:image:height\" content=\"630\"", StringComparison.Ordinal) > image, page.Path);
+            Assert.True(html.IndexOf("<meta property=\"og:image:alt\" content=\"", StringComparison.Ordinal) > image, page.Path);
+            Assert.Contains("<link rel=\"icon\" href=\"/favicon.ico\" sizes=\"48x48\" />", html);
+            Assert.Contains("<link rel=\"icon\" type=\"image/svg+xml\" href=\"/favicon.svg\" />", html);
+            Assert.Contains("<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" />", html);
         }
+        // /favicon.ico は必ず実在させる(無いと not_found_handling の 404 ページが返る)
+        foreach (var file in new[] { "favicon.ico", "favicon.svg", "apple-touch-icon.png" })
+            Assert.True(File.Exists(Path.Combine(Repo.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", file)), file);
     }
 }
