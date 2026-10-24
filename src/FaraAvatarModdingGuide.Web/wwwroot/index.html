@@ -6,8 +6,18 @@
     <!-- SEO-HEAD:START -->
     <title>Avatar Modding Guide</title>
     <!-- SEO-HEAD:END -->
+    <!-- OGP 画像の大きさと説明。画像（og:image）そのものは SEO-HEAD の中に、Build が全ページに入れる(SiteBuilder の OgImageFile)。kit は width・height・alt を出さないので、全ページ共通の値をここに置く。
+         og:image の「後ろ」に並ぶ位置にする(SNS のクローラーは、直前の og:image に紐づけて読む)。画像を差し替えたら、ファイル名の版と、ここの大きさ・説明を合わせる -->
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="紫色の方眼の床の上に、ワイヤーフレームの立体(立方体・円錐・球・トーラスなど)が浮かぶ絵" />
     <base href="/" />
-    <link rel="icon" type="image/svg+xml" href="images/site-icon.svg" />
+    <!-- ファビコン。/favicon.ico は、ブラウザーがページの指定とは別に決まって取りに行く(無いと、存在しないパスなので 404 ページになる)。SVG は対応するブラウザーで ico より優先して使われ、
+         apple-touch-icon は iOS のホーム画面用(不透明な背景つき)。ヘッダーのロゴとは別物(ロゴは画像を使わない) -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <!--
         この index.html は、dotnet publish の出力としてテンプレートになる。Build（src/FaraAvatarModdingGuide.Build）が、
         SEO-HEAD / SEO-BODY の区切りの間に、ページごとの head と本文を差し込んで、ページごとの HTML を書き出す。

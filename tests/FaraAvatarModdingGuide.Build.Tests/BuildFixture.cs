@@ -84,8 +84,6 @@ public sealed class BuildFixture : IDisposable
     /// <summary>本物のテンプレート（src/FaraAvatarModdingGuide.Web/wwwroot/index.html）で、本番用に書き出したもの。importmap のハッシュなど、実際の記述を通して確かめる。</summary>
     public string Real { get; }
 
-    /// <summary>OGP 画像（images/og-image.png）が置かれているときの本番用の書き出し。画像は出力先に先に置いた仮のファイルで、リポジトリには何も置かない。</summary>
-    public string WithOgImage { get; }
     public ContentService Content { get; }
 
     public BuildFixture()
@@ -95,7 +93,6 @@ public sealed class BuildFixture : IDisposable
         Production = Path.Combine(_root, "production");
         Develop = Path.Combine(_root, "develop");
         Real = Path.Combine(_root, "real");
-        WithOgImage = Path.Combine(_root, "with-og-image");
         Available = Repo.NodeAvailable() && File.Exists(Path.Combine(Repo.Root, "external", "fara-site-kit", "build", "build-pages.mjs"));
         if (!Available) return;
 
@@ -105,9 +102,6 @@ public sealed class BuildFixture : IDisposable
         SiteBuilder.Run(new BuildOptions(Repo.Root, template, Production, "production"));
         SiteBuilder.Run(new BuildOptions(Repo.Root, template, Develop, "develop", DevOrigin: "https://avatar-preview.fara-labs.com"));
         SiteBuilder.Run(new BuildOptions(Repo.Root, Path.Combine(Repo.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "index.html"), Real, "production"));
-        Directory.CreateDirectory(Path.Combine(WithOgImage, "images"));
-        File.WriteAllBytes(Path.Combine(WithOgImage, "images", "og-image.png"), [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);   // 仮の PNG（先頭の印だけ）
-        SiteBuilder.Run(new BuildOptions(Repo.Root, template, WithOgImage, "production"));
     }
 
     public void Dispose()
