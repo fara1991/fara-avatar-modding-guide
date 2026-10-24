@@ -4,6 +4,7 @@
 @inject ContentStore Store
 @inject SiteSettings Settings
 @inject IJSRuntime JS
+@inject NavigationManager Nav
 
 @* 静的 HTML（Build の PageBodies.Article）と同じ構造・class。本文（article.Html）は Build が Markdig で HTML にしたもの。
    目次の「今読んでいる見出し」は js/toc.js が見つけて、このページに知らせる（SetCurrentHeading）。完了の記録は ProgressStore（localStorage）。
@@ -177,7 +178,7 @@ else
         tutorials = null;
         if (url is null) return;
         tutorials = new PracticeHost(JS);
-        await tutorials.StartArticleAsync(".article-body");
+        await tutorials.StartArticleAsync(".article-body", cs: Nav.Uri.Contains("engine=cs", StringComparison.Ordinal));   // ?engine=cs: C# 版(Phase 3b S4)
     }
 
     private async Task SyncTocAsync()

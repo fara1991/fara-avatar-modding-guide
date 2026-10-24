@@ -29,14 +29,14 @@ public sealed class PracticeHost(IJSRuntime js) : IAsyncDisposable
     }
 
     /// <summary>記事の本文(selector)の中の記事内チュートリアル(.practice-embed)を始める。PC は 3D ビュー、タッチだけの端末は「画像で見る」。</summary>
-    public Task StartArticleAsync(string selector) => starting = StartCoreAsync(null, selector);
+    public Task StartArticleAsync(string selector, bool cs = false) => starting = StartCoreAsync(null, selector, cs);
 
-    private async Task StartCoreAsync(string? pcScript, object? options)
+    private async Task StartCoreAsync(string? pcScript, object? options, bool cs = false)
     {
         try
         {
             module ??= await js.InvokeAsync<IJSObjectReference>("import", "./js/practice-entry.js");
-            if (pcScript is null) await module.InvokeVoidAsync("startArticle", id, options);
+            if (pcScript is null) await module.InvokeVoidAsync("startArticle", id, options, cs);
             else await module.InvokeVoidAsync("start", id, pcScript, options);
         }
         catch (JSException e)

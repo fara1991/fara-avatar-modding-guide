@@ -54,7 +54,7 @@ public sealed class SceneRenderer : IDisposable
     private readonly Dictionary<int, int> uploaded = [];
 
     private readonly GpuBuffer grid = new(BufferLayout.PositionColor);
-    private readonly GpuBuffer axisX = new(BufferLayout.Position), axisY = new(BufferLayout.Position), axisLine = new(BufferLayout.Position);
+    private readonly GpuBuffer axisX = new(BufferLayout.Position), axisY = new(BufferLayout.Position), axisLine = new(BufferLayout.Position), guideLine = new(BufferLayout.Position);
     private readonly GpuBuffer ring = new(BufferLayout.Position);
     private readonly Mat4 gridWorld = Mat4.Compose(Vec3.Zero, Quat.FromEulerXYZ(Math.PI / 2, 0, 0), Vec3.One);
     private readonly Mat4 axisWorld = Mat4.Compose(new Vec3(0, 0, 0.002), Quat.Identity, Vec3.One);
@@ -66,8 +66,9 @@ public sealed class SceneRenderer : IDisposable
         axisX.Set(StaticGeometry.LongLine(20, Vec3.UnitX));
         axisY.Set(StaticGeometry.LongLine(20, Vec3.UnitY));
         axisLine.Set(StaticGeometry.LongLine(40, Vec3.UnitX));
+        guideLine.Set(StaticGeometry.LongLine(40, Vec3.UnitX));
         ring.Set(StaticGeometry.Ring(0.12, 0.17, 24));
-        known.AddRange([grid, axisX, axisY, axisLine, ring]);
+        known.AddRange([grid, axisX, axisY, axisLine, guideLine, ring]);
         core.OverlayRebuilt += OnOverlayRebuilt;
         core.OverlayRemoved += OnOverlayRemoved;
     }
@@ -201,7 +202,7 @@ public sealed class SceneRenderer : IDisposable
     private sealed record Entry(DrawItem Item, double Z, int Sequence);
 
     /// <summary>いまの状態の描画の命令を作る。縦横比は <see cref="ViewportCore.Resize"/> で決めたもの。</summary>
-    public Frame Build()
+    public Frame Build(double timeMs = 0)
     {
         // 消えたオブジェクトのバッファを捨てる
         foreach (var gone in objects.Keys.Where(o => !core.Objects.Contains(o)).ToList())
@@ -241,7 +242,7 @@ public sealed class SceneRenderer : IDisposable
             var center = obj.SphereCenter;
             var xray = obj.XrayApplied;
             // 透過表示の面は、半透明で深度を書かない
-            var meshFlags = DrawFlags.DepthTest | DrawFlags.PolygonOffset | (xray ? DrawFlags.Blend : DrawFlags.DepthWrite);
+            var meshFlags = DrawFlags.DepthTest | DrawFlags.PolygonOffset | (xray ? DrawFlags.Blend | DrawFlags.TwoPass : DrawFlags.DepthWrite);
             if (b.Mesh.VertexCount > 0)
             {
                 Add(new DrawItem(b.Mesh, Primitive.Triangles, Shading.Lit, world, mr, mg, mb, xray ? XrayOpacity : 1,
@@ -271,7 +272,7 @@ public sealed class SceneRenderer : IDisposable
                 if (o.Faces.VertexCount > 0)
                 {
                     var (fr, fg, fb) = Rgb.FromHex(OverlayFace);
-                    Add(new DrawItem(o.Faces, Primitive.Triangles, Shading.Flat, world, fr, fg, fb, OverlayFaceOpacity, test | DrawFlags.Blend | DrawFlags.PolygonOffset, -1, -1, 0, 0, true, obj.Name + ":edit-faces"), BoxCenter(o.Faces.Data));
+                    Add(new DrawItem(o.Faces, Primitive.Triangles, Shading.Flat, world, fr, fg, fb, OverlayFaceOpacity, test | DrawFlags.Blend | DrawFlags.PolygonOffset | DrawFlags.TwoPass, -1, -1, 0, 0, true, obj.Name + ":edit-faces"), BoxCenter(o.Faces.Data));
                 }
             }
             // ループカットのプレビュー(黄色。手前の面に隠れない)
@@ -298,6 +299,15 @@ public sealed class SceneRenderer : IDisposable
             Add(new DrawItem(axisLine, Primitive.LineStrip, Shading.Flat, Mat4.Compose(op.Pivot, q, Vec3.One), ar, ag, ab, 1, depth, 0, 0, 0, 0, false, "axis-line"));
         }
 
+        // 案内の軸の点線(チュートリアル。点滅する半透明。手前の面に隠れない)
+        if (core.GuideLine is { } guide)
+        {
+            var axisVector = guide.Axis switch { "x" => Vec3.UnitX, "y" => Vec3.UnitY, _ => Vec3.UnitZ };
+            var (gr, gg, gb) = Rgb.FromHex(TransformOp.AxisColor(guide.Axis));
+            var opacity = (float)(0.55 + 0.35 * Math.Sin(timeMs / 250));
+            Add(new DrawItem(guideLine, Primitive.LineStrip, Shading.Dashed, Mat4.Compose(guide.Position, StaticGeometry.FromUnitVectors(Vec3.UnitX, axisVector), Vec3.One), gr, gg, gb, opacity, DrawFlags.Blend | DrawFlags.DepthWrite, 0, 0, 0, 9, true, "guide-line"));
+        }
+
         // 描く順: 不透明は renderOrder → 足した順。透明は renderOrder → 奥(z が大きい)から
         var opaque = entries.Where(e => !e.Item.Transparent).OrderBy(e => e.Item.RenderOrder).ThenBy(e => e.Sequence).Select(e => e.Item);
         var transparent = entries.Where(e => e.Item.Transparent).OrderBy(e => e.Item.RenderOrder).ThenByDescending(e => e.Z).ThenBy(e => e.Sequence).Select(e => e.Item);
@@ -313,6 +323,8 @@ public sealed class SceneRenderer : IDisposable
         return new Frame
         {
             ViewProjection = ToFloats(viewProjection),
+            Projection = ToFloats(projection),
+            View = view,
             CameraPosition = new Vec3(e[12], e[13], e[14]),
             Items = items,
             Uploads = uploads,

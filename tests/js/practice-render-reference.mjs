@@ -75,6 +75,7 @@ function shot(h, step) {
         overlay: ov,
       };
     }),
+    guideLine: { visible: vp.guideLine.visible, world: mat(vp.guideLine.matrixWorld), color: vp.guideLine.material.color.getHex(), props: props(vp.guideLine, vp.guideLine.material) },
     axisLine: { props: props(vp.axisLine, vp.axisLine.material), visible: vp.axisLine.visible, world: mat(vp.axisLine.matrixWorld), color: vp.axisLine.material.color.getHex() },
     loopPreview: vp.loopcut?.preview ? attr(vp.loopcut.preview.geometry, "position") : null,
     loopPreviewWorld: vp.loopcut?.preview ? mat(vp.loopcut.preview.matrixWorld) : null,

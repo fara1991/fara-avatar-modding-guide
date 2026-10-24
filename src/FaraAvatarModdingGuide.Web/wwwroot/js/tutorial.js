@@ -520,7 +520,7 @@ export function mount(container = document) {
     }
   }, { rootMargin: "200px 0px" });
 
-  for (const el of container.querySelectorAll(".practice-embed[data-scenario]")) {
+  for (const el of container.querySelectorAll(".practice-embed[data-scenario]:not([data-cs])")) {
     if (tutorials.has(el)) continue;
     const t = new Tutorial(el);
     tutorials.set(el, t);

@@ -23,68 +23,8 @@
         <div class="practice-viewport" id="practice-viewport" tabindex="0" aria-label="3D ビューポート">
             @if (csMode)
             {
-                @* C# 版(?engine=cs)。canvas は、中身が空の #practice-gl に gl.js が入れる(Blazor が描く HUD の兄弟に外から足さない)。HUD は viewport.js の HUD_HTML と同じ構造・クラス名 *@
-                <div id="practice-gl" class="practice-gl"></div>
-                @if (csFailed)
-                {
-                    <div class="practice-hud" style="top:50%">3D ビューを表示できません。WebGL が有効なブラウザで開いてください。</div>
-                }
-                <div class="practice-hud">
-                    <div class="vp-mode">@hud.ModeLabel</div>
-                    <div class="vp-view">@hud.ViewLabel</div>
-                    <div class="vp-stats" hidden="@hud.StatsHidden">
-                        @foreach (var line in hud.StatsLines)
-                        {
-                            @line<br />
-                        }
-                    </div>
-                </div>
-                <div class="vp-tools" role="toolbar" aria-label="表示と選択モード">
-                    <span class="vp-tools-edit" hidden="@hud.ToolsEditHidden">
-                        @foreach (var t in hud.Tools.Where(t => t.Key is "vert" or "edge" or "face"))
-                        {
-                            <button type="button" data-tool="@t.Key" title="@ToolTitle(t.Key)" class="@(t.On ? "is-on" : null)" aria-pressed="@(t.On ? "true" : "false")" disabled="@t.Disabled" @onclick="() => ClickTool(t.Key)">@ToolLabel(t.Key)</button>
-                        }
-                    </span>
-                    @foreach (var t in hud.Tools.Where(t => t.Key is "xray" or "stats" or "mirror"))
-                    {
-                        <button type="button" data-tool="@t.Key" title="@ToolTitle(t.Key)" class="@(t.On ? "is-on" : null)" aria-pressed="@(t.On ? "true" : "false")" disabled="@t.Disabled" @onclick="() => ClickTool(t.Key)">@ToolLabel(t.Key)</button>
-                    }
-                </div>
-                <div class="practice-npanel" hidden="@hud.NPanelHidden">
-                    <h6>アイテム</h6>
-                    <div class="vp-npanel-name mb-1">@hud.NPanelName</div>
-                    @foreach (var (prop, label) in new[] { ("position", "位置"), ("rotation", "回転（°）"), ("scale", "スケール") })
-                    {
-                        <h6>@label</h6>
-                        <div class="row-3">
-                            @foreach (var r in hud.NPanelRows.Where(r => r.Prop == prop))
-                            {
-                                <span>@r.Axis.ToUpperInvariant()</span>
-                                <input type="number" step="@(prop == "rotation" ? "1" : "0.1")" data-prop="@r.Prop" data-axis="@r.Axis" value="@r.Value" disabled="@r.Disabled" @onchange="e => ChangeNPanel(r.Prop, r.Axis, e.Value?.ToString() ?? string.Empty)" />
-                            }
-                        </div>
-                    }
-                </div>
-                <div class="practice-status">
-                    <span class="vp-status">@hud.Status</span>
-                    <span class="vp-numeric">@hud.Numeric</span>
-                </div>
-                @if (hud.Menu is { } menu)
-                {
-                    <div class="practice-menu" style="@MenuStyle(menu)">
-                        <div class="title">@menu.Title</div>
-                        @for (var i = 0; i < menu.Items.Count; i++)
-                        {
-                            var index = i;
-                            <button type="button" @onclick="() => ChooseMenu(index)">@menu.Items[i]</button>
-                        }
-                    </div>
-                }
-                @if (hud.Box is { } box)
-                {
-                    <div class="practice-box" style="@BoxStyle(box)"></div>
-                }
+                @* C# 版(?engine=cs)。HUD は viewport.js の HUD_HTML と同じ構造・クラス名(PracticeHudView) *@
+                <PracticeHudView Hud="hud" GlHostId="practice-gl" RootId="practice-viewport" Failed="csFailed" OnTool="ClickTool" OnMenu="ChooseMenu" OnNPanel="OnNPanel" />
             }
         </div>
         <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
@@ -169,7 +109,6 @@
     private bool emulateNumpad;
     private bool csFailed;
     private bool disposed;
-    private static Task? lazyLoading;
 
     protected override void OnInitialized()
     {
@@ -215,22 +154,13 @@
         await host.StartAsync("practice.js", "");
     }
 
-    /// <summary>Practice・Render の読み込みは、ページを離れて戻る（読み込み中に別のページが同じ読み込みを始める）ことがあるので、1 回だけ・全員で共有する（同じ wasm を二重に読むと、本文の読み込みが衝突する）。</summary>
-    private Task LoadLazyAssembliesAsync()
-    {
-        lazyLoading ??= Services.GetRequiredService<Microsoft.AspNetCore.Components.WebAssembly.Services.LazyAssemblyLoader>()
-            .LoadAssembliesAsync(["FaraAvatarModdingGuide.Practice.wasm", "FaraAvatarModdingGuide.Render.wasm"]);
-        return lazyLoading;
-    }
-
     private async Task StartCsAsync()
     {
         IPracticeCs? created = null;
         try
         {
             // 操作のロジックと描画の命令（Practice・Render）は、?engine=cs のときだけ読み込む（通常のページの読み込みを増やさない）
-            try { await LoadLazyAssembliesAsync(); }
-            catch { lazyLoading = null; throw; }   // 失敗したら、次に開いたときにやり直せるように
+            await PracticeCsAssemblies.LoadAsync(Services);
             if (disposed) return;                    // 読み込んでいるあいだにページを離れた
             created = await PracticeCsLoader.CreateAsync(() => emulateNumpad, Query("debug") == "1");
             if (disposed) return;                    // finally で created を解放する
@@ -271,20 +201,7 @@
 
     private void ChangeNPanel(string prop, string axis, string value) => cs?.ChangeNPanel(prop, axis, value);
 
-    private static string ToolLabel(string key) => key switch { "vert" => "頂点", "edge" => "辺", "face" => "面", "xray" => "透過", "stats" => "統計", _ => "ミラー" };
-
-    private static string ToolTitle(string key) => key switch
-    {
-        "vert" => "頂点選択（1）", "edge" => "辺選択（2）", "face" => "面選択（3）", "xray" => "透過表示（Alt+Z）", "stats" => "オーバーレイ > 統計", _ => "ミラー モディファイアー（X 方向）",
-    };
-
-    private static string Px(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "px";
-
-    /// <summary>ビューからはみ出さないように(viewport.js の showMenu の補正。メニューの大きさは項目の数からの見積もり)。</summary>
-    private static string MenuStyle(HudMenu m) =>
-        $"left:max(0px, min({Px(m.X)}, calc(100% - 184px)));top:max(0px, min({Px(m.Y)}, calc(100% - {Px(30 + 26 * (m.Items.Count + 1))})))";
-
-    private static string BoxStyle(HudBox b) => $"left:{Px(b.X)};top:{Px(b.Y)};width:{Px(b.Width)};height:{Px(b.Height)}";
+    private void OnNPanel((string Prop, string Axis, string Value) a) => ChangeNPanel(a.Prop, a.Axis, a.Value);
 
     public async ValueTask DisposeAsync()
     {

@@ -255,8 +255,11 @@ async function roundTrips(browser) {
     await page.waitForFunction(() => document.querySelector("#room-status")?.textContent.includes("接続しました"), null, { timeout: 30000 });
     await visit("/learn", "h1");
     // 記事内チュートリアル(::: practice)。記事を開いて、埋め込みを画面に入れて 3D を始める
-    await go(page, "/learn/basics");
-    await page.locator(`.fsk-content a[href="${ARTICLE}"]`).first().click();
+    if (ENGINE === "cs") await page.evaluate((url) => window.Blazor.navigateTo(url), ARTICLE + "?engine=cs");   // 記事のリンクは ?engine を引き継がない
+    else {
+      await go(page, "/learn/basics");
+      await page.locator(`.fsk-content a[href="${ARTICLE}"]`).first().click();
+    }
     await page.locator(".practice-embed.is-ready").first().waitFor({ timeout: 30000 });
     await page.locator(".practice-embed").first().scrollIntoViewIfNeeded();
     await page.locator(".practice-embed canvas").first().waitFor({ timeout: 60000 });
@@ -269,7 +272,11 @@ async function roundTrips(browser) {
   console.log("     counts:");
   for (const s of series) console.log("       " + JSON.stringify(s));
   // 練習のページにいないとき(/learn)の数が、始めに対して増えていない
-  for (const k of ["gl", "ro", "io", "intervals", "ws", "listeners", "canvases", "sceneCanvases"]) ok(end[k] <= base[k], `往復 ${ROUNDS} 回のあと、${k} が増えていない`, `start=${base[k]} end=${end[k]}`);
+  for (const k of ["gl", "ro", "io", "intervals", "ws", "canvases", "sceneCanvases"]) ok(end[k] <= base[k], `往復 ${ROUNDS} 回のあと、${k} が増えていない`, `start=${base[k]} end=${end[k]}`);
+  // イベントリスナーは、最初の 1 往復で、遅れて読み込むもの(C# 版の Blazor の入口など)が数個足されて、そのあとは増えない(往復ごとに増えていたら漏れ)
+  const first = series.find((x) => x.label === "round 1") ?? series[1];
+  ok(end.listeners <= first.listeners, `往復 ${ROUNDS} 回のあと、listeners が最初の 1 往復のあとから増えていない`, `round1=${first.listeners} end=${end.listeners}`);
+  ok(end.listeners <= base.listeners + 4, `往復 ${ROUNDS} 回のあと、listeners が始めから数個より増えていない`, `start=${base.listeners} end=${end.listeners}`);
   ok(end.sceneCanvases === 1, "背景の 3D(#site-scene)は 1 つだけ");
   ok(end.gl === 0, "練習のページを離れたあと、動いている WebGL の context は 0", String(end.gl));
   ok(end.nodes <= base.nodes * 1.25, "DOM の節(Nodes)が増え続けていない", `start=${base.nodes} end=${end.nodes}`);
@@ -286,7 +293,7 @@ async function roundTrips(browser) {
 // ---------------------------------------------------------------- 4. 記事内チュートリアル
 async function tutorial(browser) {
   const page = await open(browser, { width: 1280, height: 800 });
-  await boot(page, ARTICLE + "?debug=1");
+  await boot(page, ARTICLE + "?debug=1" + ENGINE_QUERY);   // ENGINE=cs: 記事内チュートリアルも C# 版(Components/TutorialEmbed.razor)
   await page.waitForSelector(".practice-embed.is-ready", { timeout: 30000 });
   ok(await page.locator("[data-progress-page]").getAttribute("data-progress-page") === "basics/transform", "記事の見出しに data-progress-page(完了の記録の印)がある");
   await page.locator(".practice-embed").first().scrollIntoViewIfNeeded();
@@ -307,7 +314,8 @@ async function tutorial(browser) {
   ok((await page.evaluate(() => window.__counts().gl)) === 1, "3D ビューに戻すと、WebGL の context は 1 つ");
   // 別の記事(チュートリアルあり)へ: 前の記事の 3D は解放される
   await go(page, "/learn/basics");
-  await page.locator(`.fsk-content a[href="${ARTICLE2}"]`).first().click();
+  if (ENGINE === "cs") await page.evaluate((url) => window.Blazor.navigateTo(url), ARTICLE2 + "?engine=cs");   // サイドバー・記事内のリンクは ?engine を引き継がない
+  else await page.locator(`.fsk-content a[href="${ARTICLE2}"]`).first().click();
   await page.waitForSelector(".practice-embed.is-ready", { timeout: 30000 });
   await page.locator(".practice-embed").first().scrollIntoViewIfNeeded();
   await page.waitForSelector(".practice-embed canvas", { timeout: 60000 });

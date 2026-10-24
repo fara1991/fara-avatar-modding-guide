@@ -36,6 +36,8 @@ public sealed partial class ViewportCore
         Options = options ?? new ViewportOptions();
         NewId = Options.NewId ?? RandomId;
         Rect = rect;
+        ClientWidth = Math.Round(rect.Width);
+        ClientHeight = Math.Round(rect.Height);
         ApplySize(rect);
         mouseClientX = rect.Left + rect.Width / 2;
         mouseClientY = rect.Top + rect.Height / 2;
@@ -68,19 +70,32 @@ public sealed partial class ViewportCore
     }
 
     /// <summary>ビューの大きさが変わったとき(resize())。</summary>
-    public void Resize(ViewRect rect)
+    public void Resize(ViewRect rect) => Resize(rect, Math.Round(rect.Width), Math.Round(rect.Height));
+
+    /// <summary>ビューの大きさが変わったとき。rect は getBoundingClientRect(枠を含む小数)、clientWidth / clientHeight は枠を除いた整数(縦横比などに使う)。</summary>
+    public void Resize(ViewRect rect, double clientWidth, double clientHeight)
     {
         Rect = rect;
+        ClientWidth = clientWidth;
+        ClientHeight = clientHeight;
         ApplySize(rect);
     }
+
+    private bool mouseMoved;
+
+    /// <summary>要素の clientWidth / clientHeight(枠を除いた内側のレイアウトの整数)。viewport.js の resize()・mousePx・worldPerPixel が使う。座標の変換(ndc・toScreen)は、枠を含む getBoundingClientRect の小数の <see cref="Rect"/>。</summary>
+    private double ClientWidth { get; set; }
+
+    private double ClientHeight { get; set; }
 
     /// <summary>縦横比と高さ。幅か高さが 0 のときは変えない(viewport.js の resize は早期 return。縦横比は `aspect || 1`)。</summary>
     private void ApplySize(ViewRect rect)
     {
-        if (rect.Width > 0 && rect.Height > 0)
+        if (ClientWidth > 0 && ClientHeight > 0)
         {
-            View.Aspect = rect.Width / rect.Height;
-            View.HeightPx = rect.Height;
+            // viewport.js の resize() は、要素の clientWidth / clientHeight(整数)で縦横比を決める
+            View.Aspect = ClientWidth / ClientHeight;
+            View.HeightPx = ClientHeight;
         }
     }
 
@@ -107,9 +122,12 @@ public sealed partial class ViewportCore
     /// <summary>最後にマウスがあった位置(ビューポート内のピクセル)。まだ入っていなければ中央。</summary>
     private (double X, double Y) MousePx()
     {
+        // まだマウスが入っていないとき: viewport.js は、作ったときの中央をクライアント座標で覚えているが、ページをスクロールしたあとはビューの外になり、
+        // 中央(clientWidth / 2, clientHeight / 2)に戻る。チュートリアルは、最初のクリックまで上に覆いが乗るのでマウスが入らず、スクロールして来るのが普通なので、中央にする
+        if (!mouseMoved) return (ClientWidth / 2, ClientHeight / 2);
         var (x, y) = Pixel(mouseClientX, mouseClientY);
-        var inside = double.IsFinite(x) && double.IsFinite(y) && x >= 0 && y >= 0 && x <= Rect.Width && y <= Rect.Height;
-        return inside ? (x, y) : (Rect.Width / 2, Rect.Height / 2);
+        var inside = double.IsFinite(x) && double.IsFinite(y) && x >= 0 && y >= 0 && x <= ClientWidth && y <= ClientHeight;
+        return inside ? (x, y) : (ClientWidth / 2, ClientHeight / 2);
     }
 
     private (double X, double Y) ToScreen(Vec3 world) => View.ToScreen(world, Rect.Width, Rect.Height);
@@ -152,6 +170,7 @@ public sealed partial class ViewportCore
     {
         var (nx, ny) = Ndc(clientX, clientY);
         mouseNdcX = nx; mouseNdcY = ny; mouseClientX = clientX; mouseClientY = clientY;
+        mouseMoved = true;
         keyShift = m.Shift; keyCtrl = m.Ctrl;
         if (LoopCut is not null) { UpdateLoopPreview(); return; }
         if (Op is not null) { ApplyOp(); return; }

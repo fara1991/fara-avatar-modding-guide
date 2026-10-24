@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using FaraAvatarModdingGuide.Models;
 using FaraAvatarModdingGuide.Web;
+using FaraAvatarModdingGuide.Web.Components;
 using FaraAvatarModdingGuide.Web.Search;
 using FaraAvatarModdingGuide.Web.Services;
 using FaraSiteKit.Core;
@@ -44,6 +45,8 @@ builder.Services.AddSingleton<FilterTextStore>();   // 一覧(用語集など)�
 builder.Services.AddSingleton<ProgressStore>();   // 検索の索引は、最初に検索するときに読む
 
 builder.RootComponents.Add<App>("#app");
+// 記事内チュートリアルの C# 版(?engine=cs)。記事の本文(MarkupString)の中の .practice-embed に、JavaScript(js/practice-cs.js の mount)が置く
+builder.RootComponents.RegisterForJavaScript<TutorialEmbed>("tutorial-embed");
 builder.RootComponents.Add<HeadOutlet>("head::after");   // 報告・404 の noindex と、ページの題名に必要
 
 var host = builder.Build();

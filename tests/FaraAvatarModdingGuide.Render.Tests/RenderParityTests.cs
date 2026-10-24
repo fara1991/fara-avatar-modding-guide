@@ -35,6 +35,12 @@ public class RenderParityTests
     [MemberData(nameof(EditIndexes))]
     public void Edit_scenes_match_threejs(int index) => Check(JsReference.Edit.Cases, RenderReference.Edit.Output, index);
 
+    public static IEnumerable<object[]> TutorialIndexes() => Indexes(JsReference.Tutorial.Cases);
+
+    [Theory]
+    [MemberData(nameof(TutorialIndexes))]
+    public void Tutorial_guide_lines_match_threejs(int index) => Check(JsReference.Tutorial.Cases, RenderReference.Tutorial.Output, index);
+
     [Fact]
     public void The_scenarios_cover_every_part_of_the_scene()
     {
@@ -230,6 +236,17 @@ public class RenderParityTests
             if (HexOf(axisItem) != axis.GetProperty("color").GetInt32()) errors.Add($"axisLine.color: JS={axis.GetProperty("color").GetInt32():x6} C#={HexOf(axisItem):x6}");
         }
 
+        // 案内の軸の点線(チュートリアル。点滅する不透明度は時刻で決まるので比べない)
+        var guide = shot.GetProperty("guideLine");
+        var guideItem = byLabel.GetValueOrDefault("guide-line");
+        if (guide.GetProperty("visible").GetBoolean() != (guideItem is not null)) errors.Add($"guideLine: JS={guide.GetProperty("visible").GetBoolean()} C#={guideItem is not null}");
+        else if (guideItem is not null)
+        {
+            CompareMatrix(errors, "guideLine.world", guide.GetProperty("world"), guideItem.World);
+            CompareProps(errors, "guideLine", guideItem, guide.GetProperty("props"), skipOpacity: true);
+            if (guideItem.Shading != Shading.Dashed) errors.Add("guideLine: 点線");
+        }
+
         // ループカットの線(編集中のオブジェクトの子)
         var loop = shot.GetProperty("loopPreview");
         var loopItem = byLabel.Values.FirstOrDefault(i => i.Label.EndsWith(":loopcut", StringComparison.Ordinal));
@@ -244,12 +261,14 @@ public class RenderParityTests
 
 
     /// <summary>three.js の材質・オブジェクトの設定(色・不透明度・透明・深度・polygonOffset・renderOrder・点の大きさ・頂点色)と、描画 1 つの設定を比べる。</summary>
-    private static void CompareProps(List<string> errors, string what, DrawItem item, JsonElement j, JsonElement? world = null)
+    private static void CompareProps(List<string> errors, string what, DrawItem item, JsonElement j, JsonElement? world = null, bool skipOpacity = false)
     {
         var opacity = j.GetProperty("opacity").GetDouble();
-        if (Math.Abs(opacity - item.Opacity) > 1e-6) errors.Add($"{what}.opacity: JS={opacity} C#={item.Opacity}");
+        if (!skipOpacity && Math.Abs(opacity - item.Opacity) > 1e-6) errors.Add($"{what}.opacity: JS={opacity} C#={item.Opacity}");
         void Flag(string name, DrawFlags flag, bool js) { if (item.Flags.HasFlag(flag) != js) errors.Add($"{what}.{name}: JS={js} C#={item.Flags.HasFlag(flag)}"); }
         Flag("transparent(Blend)", DrawFlags.Blend, j.GetProperty("transparent").GetBoolean());
+        // three.js は、透明で両面の材質を、裏 → 表の 2 回に分けて描く
+        Flag("twoPass(transparent && 両面)", DrawFlags.TwoPass, j.GetProperty("transparent").GetBoolean() && j.GetProperty("side").GetInt32() == 2 && item.Primitive == Primitive.Triangles);
         Flag("depthTest", DrawFlags.DepthTest, j.GetProperty("depthTest").GetBoolean());
         Flag("depthWrite", DrawFlags.DepthWrite, j.GetProperty("depthWrite").GetBoolean());
         var po = j.GetProperty("polygonOffset").GetBoolean();

@@ -108,7 +108,7 @@ public class RenderUnitTests(ITestOutputHelper output)
         Assert.Contains(frame.Items, i => i.Label.EndsWith(":mirror", StringComparison.Ordinal));
         var data = FramePacker.Pack(frame);
         Assert.Equal(FramePacker.LengthOf(frame), data.Length);
-        for (var i = 0; i < 16; i++) Assert.Equal(frame.ViewProjection[i], data[i]);
+        for (var i = 0; i < 16; i++) Assert.Equal(frame.Projection[i], data[i]);
         Assert.Equal((float)frame.CameraPosition.X, data[16]);
         Assert.Equal((float)frame.CameraPosition.Y, data[17]);
         Assert.Equal((float)frame.CameraPosition.Z, data[18]);
@@ -130,6 +130,8 @@ public class RenderUnitTests(ITestOutputHelper output)
             Assert.Equal(item.B, data[o + 10]);
             Assert.Equal(0, data[o + 11]);
             for (var k = 0; k < 16; k++) Assert.Equal((float)item.World.E[k], data[o + 12 + k]);
+            var modelView = Mat4.Multiply(frame.View, item.World);
+            for (var k = 0; k < 16; k++) Assert.Equal((float)modelView.E[k], data[o + 28 + k]);
             o += FramePacker.ItemFloats;
         }
         Assert.Equal(data.Length, o);

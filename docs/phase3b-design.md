@@ -111,7 +111,7 @@
 | **S1** ロジックの完成（**済**。§9） | 編集モード（`editmesh.js`: 選択モード・選択の伝播・押し出し・差し込み・ループカット・ベベル・結合・面張り・分離・削除）、追加（Shift+A）・複製・削除・取り消し/やり直し・ミラー・X 線・N パネルの値、共同練習の口（`roomState`・`applyRemote`・`canTransform`・`getView/setView`）、`wheelNeedsFocus`。**チュートリアル用の補助**（`selectLoopWhere`・`editSelectWhere`・`findEdge`・`previewLoopCut`・`loopCutWhere`・`selectByName`・`setHighlight`）と、ほかの参加者の表示（`setRemotePeers`）は、使う側の段階（S4・S6）で移す | S0 と同じ突き合わせを、編集モードを含む操作列（乱数 + 練習 1 の 18 件のお題を全部こなす手順）に広げて一致。`practice-baseline.json` 相当の最終状態が一致 | 済（行数は S0 の約 2.3 倍。§9.5）。当初の見積もり 10〜15 |
 | **S2**（**済**。§11）描画層の試作と判断の関門 | 薄い WebGL 層（`gl.js` + C#）。練習 1 のシーン（方眼・軸線・オブジェクト・輪郭・3D カーソル・編集モードの点線面）を描く。画像比較（SwiftShader。3 面の明るさ・縁・線の太さ）。新しいコンテキストの問題と AOT なしの負荷の測定。§3 の判断基準で (A) を確定 | §3 の 3 条件。結果をこの文書に追記（ADR）。ユーザーの確認 | 8〜12 |
 | **S3**（**済**。§13）`/practice` を C# で（フラグ付き） | ページ（Razor）+ HUD + お題の一覧を Razor で。`?engine=cs` で C# 版。`tools/verify/practice.mjs` を両エンジンで通す（`practice-baseline.json` と一致）。往復 20 回でリスナー・コンテキストが増えない。画像比較の結果を PR に載せる | Phase 3 と同じ操作（キー・マウス）ができる。**描画の差はユーザーが受け入れる**（画像で提示）。既定は JS のまま | 6〜9 |
-| **S4** 記事内チュートリアル | `scenarios.js`（11 シナリオ）と `tutorial.js` を C# に。シナリオは C# のデータ + 述語（イベント → 達成）。「画像で見る」とタッチ端末の扱いは維持 | 全 11 シナリオを JS 版と C# 版で同じイベント列に通して、達成する手順の番号が一致するテスト（突き合わせ）。記事 2 本以上を画面で確認 | 8〜12 |
+| **S4**（**済**。§14）記事内チュートリアル | `scenarios.js` の Blender 9 本と `tutorial.js` を C# に（`?engine=cs`。フラグ付き）。シナリオは C# のデータ + 述語（イベント → 達成）。「画像で見る」とタッチ端末の扱いは維持。Unity 2 本は S5（`unity.js` の画面に載っているため）。`guideLine`（案内の点線）の描画も S4 | 9 本を JS 版と C# 版で同じイベント列に通して、手順の定義・再生後の状態・案内・達成/失敗/ヒントの答えが一致するテスト。記事を画面で確認し、**Three.js 版と C# 版の画素・文字・DOM の差を 0 にする**（§14.3） | 8〜12 |
 | **S5** Unity 風 | `unity.js` を Razor（Hierarchy・Inspector・Project・メニュー・SDK パネル）+ Scene ビュー（②の描画層）に。`unity-practice.js` のお題 7 件。ツリー操作・Setup Outfit・タグ・マテリアルのロジックは①に | `practice.mjs` の `unity` の基準と一致。階層・お題の状態をイベント列で JS と突き合わせ | 12〜18 |
 | **S6** 共有ルーム | `room.js` を C#（`ClientWebSocket`）に。差分の送受信・ロック・カーソル・選択・視点の共有。`tools/room-check` と画面からの二人の確認 | 二人が入れる・追加/移動が届く・退室が消える。プロトコルは変えない | 5〜8 |
 | **S7** three.js を外す | 既定を C# に。JS の `viewport.js`・`editmesh.js`・`unity.js`・`room.js`・`tutorial.js`・`scenarios.js`・`practice*.js`、`lib/three`、importmap、CSP のハッシュ、README/プライバシーの記述を消す | 全ページで違反ゼロ（CSP）。配信量の前後比較。ユーザーの承認（戻せない変更） | 2〜3 |
@@ -377,7 +377,7 @@ S0 は `Object.create(Viewport.prototype)` で一部のメソッドを空にし�
 ### 11.7 判断基準 (§3) の結果と、確証が持てない点
 
 - (a) 面の明るさ ±3 以内 → **差 0**。(b) 新しいコンテキストで描画が始まる → **20/20**（原因は非表示の rAF。§11.2）。(c) 毎フレームの CPU が予算内 → 止まった画面・視点の操作は **0.24 ms**（満たす）。**編集モードで 960 三角形の全頂点を G ドラッグ中は 8.1 ms で、5 ms の予算を超える（16 ms のフレームには収まる）**ので、(c) は「通常の操作では満たす。密なメッシュのドラッグは超える」。基準は §3 のとおり「重い部分だけを小さくする」で対処する対象（輪郭 `EdgesGeometry` を形が変わるたびに作り直さない・法線を変わった面だけ更新する・AOT）で、**描画層 (A) の選択を変える結果ではない**（KNI でも同じ C# のロジックが走る）。(a)(b) は満たしたので **(A) を確定**（KNI は採らない）。
-- 確証が持てない点: ① 試作の「描画が始まらない」の当時の状態は再現していない（原因の特定は、隠れたウィンドウで rAF が止まることの実測と、試作の計測の仕方からの推定）。② 計測は SwiftShader（ソフトウェア描画）の Chromium で、GPU・Firefox・Safari は未確認（WebGL 2 の標準 API だけを使っている）。③ 透過表示の画素の差（最大 9）の原因は推定。④ 軸固定の点線ガイド（`guideLine`。チュートリアル用）・ほかの参加者の枠（`remote-sel`）は S4・S6 で足す。⑤ 初回の実行で `Failed to load resource: 404` が 1 回出たが、URL を記録して 3 回やり直した結果は 0 件（一過性と見られる）。
+- 確証が持てない点: ① 試作の「描画が始まらない」の当時の状態は再現していない（原因の特定は、隠れたウィンドウで rAF が止まることの実測と、試作の計測の仕方からの推定）。② 計測は SwiftShader（ソフトウェア描画）の Chromium で、GPU・Firefox・Safari は未確認（WebGL 2 の標準 API だけを使っている）。③ 透過表示の画素の差（最大 9）の原因は推定（**S4 で特定して直した**: 透明で両面の材質を裏 → 表の 2 回に分けて描く。§14.3 ⑧）。④ 軸固定の点線ガイド（`guideLine`。チュートリアル用）・ほかの参加者の枠（`remote-sel`）は S4・S6 で足す。⑤ 初回の実行で `Failed to load resource: 404` が 1 回出たが、URL を記録して 3 回やり直した結果は 0 件（一過性と見られる）。
 - S3 の前提: `gl.js`・`Lab.cs` の入力の橋渡しを `/practice` のページ（Razor）に移し、HUD・お題を Razor で作る。**`Lab.ParseQuery`（`?scene=`・`?view=`・`?angles=`・`window.__labControl`・ベンチの口）はレンダーラボの確認用で、S3 には持ち込まない**（`/practice` の最初のシーンは `Practice.razor` が決める。`?engine=cs` のフラグは §4.1）。`SceneRenderer` は `ViewportCore` を作ったあと、操作の前に作る（`OverlayRebuilt` の通知を取りこぼさないため。クラスの契約に書いた）。
 
 ## 12. AOT なしの軽量化の記録（S2 の計測 §11.6 のあと。ユーザー判断 2026-10-24）
@@ -448,7 +448,7 @@ S0 は `Object.create(Viewport.prototype)` で一部のメソッドを空にし�
 
 ### 13.3 確証が持てない点・S4 以降への申し送り
 
-- **レイアウトの小さな差**: メニューの位置の補正は、メニューの大きさを項目の数からの見積もりで決める（viewport.js は実測）。画像比較の 9 シーンでは差が出ていないが、細かい位置は未確認。
+- **レイアウトの小さな差**: メニューの位置の補正は、メニューの大きさを項目の数からの見積もりで決める（viewport.js は実測）。画像比較の 9 シーンでは差が出ていないが、細かい位置は未確認。（**S4 で対応**: 描いたあとに JS が実測して位置を直す。`practice-details.mjs` で値を比べて一致。§14）
 - **HUD の更新のタイミング**: Razor の描き直しは、入力のあとの次の描画の機会になる（JS 版は DOM を同期で書き換える）。`practice.mjs` では差が出ていない。
 - **確認用の `window.__practice`**: C# 版は `objects`・`mode`・`ortho`・`view.name`・`select(o)` だけ（`practice.mjs` が読む分）。viewport.js のインスタンスの全部ではない。
 - **S4 以降**: 記事内チュートリアル（`tutorial.js`・`scenarios.js`）はまだ Three.js。three.js を外せるのは S7（S3〜S6 が本番で一定期間動いてから）。`Practice`・`Render` の遅れた読み込みは、S4 以降で記事内チュートリアルにも使うときに、「記事を開いたとき」に読む形へ広げる。
@@ -463,3 +463,75 @@ S0 は `Object.create(Viewport.prototype)` で一部のメソッドを空にし�
 - **`?engine=` だけが変わるページ内の移動**（アドレスの書き換え・戻る）: `NavigationManager.LocationChanged` で、`/practice` のまま `engine` の指定が変わったら、ページを読み込み直す（エンジンの切り替えは始め直しが要るため）。
 - **`gl.js` の確認用のグローバル**（`window.__glDiag`・`__glLose`）: サイトの `/practice` では公開しない。`exposeDebugGlobals()` を、レンダーラボ（`Lab.Run`）だけが呼ぶ。`report`・`exposeControl` は `gl.js` に残る（呼ばない限り何も公開しない）。
 - **残課題**: `gl.js` にレンダーラボ専用の関数（`report`・`exposeControl`・`getQuery`・`loseContext` など）が残っている。S4 以降で、サイトに出す `gl.js` からラボ専用の部分を分けたほうがよい。
+
+## 14. S4（記事内チュートリアルを C# で。`?engine=cs`）の記録
+
+印: **[実測]** はこの作業で測った値。既定は今までの Three.js 版のまま（フラグなしの記事は変わらない）。
+
+### 14.1 作ったもの
+
+- **`Practice`（純粋）**: `Tutorial.cs`（手順・シナリオのモデル）、`TutorialScenarios.cs`（Blender の 9 本。`scenarios.js` の述語を移した）、`TutorialSession.cs`（手順の進行: 達成・失敗・ヒント・再生 = `ResetScene` + 手順ごとの `Skip`・グループの先頭に戻す）、`ViewportCore.Tutorial.cs`（チュートリアル用の補助: `selectLoopWhere`・`editSelectWhere`・`findEdge`・`previewLoopCut`・`loopCutWhere`・`selectByName`・`setHighlight`・案内の矢印と点線・`Silent`）。`viewport.js` と同じに、枠のある要素の大きさを 2 通りに分けて持つ（`clientWidth` の整数 = 縦横比・マウスの範囲判定、`getBoundingClientRect` の小数 = 座標の変換。§14.3 ①）。
+- **`Render`**: `guideLine`（案内の軸の点線。点滅する半透明。`Shading.Dashed`。S2 で残していたもの）。`SceneRenderer.Build(timeMs)`。透明で両面の面は**裏 → 表の 2 回**に分けて描く（`DrawFlags.TwoPass`。three.js と同じ。§14.3 ⑧）。頂点は three.js と同じ「射影 × (ModelView × 位置)」で変換する（ModelView = ビュー × ワールドを double で掛ける。`FramePacker` の並びは、1 描画あたり 28 → 44 float。§14.3 ⑦）。
+- **Razor**: `Components/TutorialEmbed.razor`（記事内の埋め込み 1 つ: 題・進み・吹き出し・ビュー・キー表示・ボタン・画像で見る・完了）、`Components/PracticeHudView.razor`（S3 の HUD を `/practice` と共有）。`Blazor.rootComponents.add` で、記事の Markdown から出た `.practice-embed[data-scenario]` に置く（`RegisterForJavaScript<TutorialEmbed>("tutorial-embed")`）。記事を離れる・替わるときは `dispose()`。
+- **`Services/TutorialController.cs`**（`tutorial.js` の `Tutorial` クラスに当たる）、`CsViewEngine.cs`（`/practice` のエンジンと共通の基底）。WebGL を使うのはページ内で 1 つだけ（別の埋め込みが始まったら手放す）。ホイールはフォーカス中だけ効く。
+- **遅れて読み込む**: `Practice`・`Render` は S3 と同じ `BlazorWebAssemblyLazyLoad`。記事を `?engine=cs` で開いたときだけ読む（`PracticeCsAssemblies`。同じ wasm を二重に読まない）。`tutorial.js` は C# 版にあるシナリオを飛ばす（`:not([data-cs])`）。ほか（Unity の 2 本）は今までの `tutorial.js`。
+- **確認の道具**: `tools/verify/tutorial-compare.mjs`（9 本を「次へ（スキップ）」で 1 手順ずつ進めながら、毎回、Three.js 版と C# 版の埋め込み全体の画素と文字を比べる）、`tutorial-dom.mjs`（DOM の骨格の比較）、`practice-details.mjs`（`/practice` の細部: カーソル・フォーカス・枠・ボックス選択の枠・メニューの位置・HUD の文字・ツールの点灯を、25 の場面で値で比べる）。`practice.mjs` の `ENGINE=cs` は、記事内チュートリアルと往復も C# 版で動かす。
+- **突き合わせ**: `tests/js/tutorial-reference.mjs`（本物の `scenarios.js` を Node で動かす）と `TutorialParityTests`（手順の定義・再生後の状態・案内・イベントの一覧に対する達成/失敗/ヒントの答え）、`ViewGeometryTests`、`practice-cs.js` の `CS_SCENARIOS` と移したシナリオの一致。
+
+### 14.2 受け入れ（§4.2 の S4）の結果
+
+| 基準 | 結果 [実測] |
+| --- | --- |
+| 同じイベント列で、達成する手順が一致 | `TutorialParityTests`（`Practice.Tests` は全体で 239 件）が全部通る。本物の `scenarios.js` との違いを、変異（距離の閾値・手順の判定・ヒントの文言）で入れると落ちることを確かめた。突き合わせで、`scenarios.js` の「始まりました」のメッセージが `undefined` になる穴（G/R/S 以外の操作）を見つけ、両方「別の操作」に直した |
+| 記事を画面で確認 | 9 本すべて（記事 7 本）を、`tutorial-compare.mjs` で全手順（129 手順 + 最初の画面）、Three.js 版と並べて比べた。§14.3 |
+| タッチ端末・「画像で見る」 | `practice.mjs`（`ENGINE=cs`）で、「画像で見る」の画像がすべて読める・3D に戻すと context は 1 つ・別の記事へ移ると前の分は解放される。タッチだけの端末は、今までの案内（`isTouchOnly`） |
+| 往復 | `ENGINE=cs` の往復 20 回（記事は `?engine=cs`）で、context・ResizeObserver・IntersectionObserver・setInterval・WebSocket・canvas・DOM の節・Documents・rAF が増えない。リスナーは、最初の 1 往復で 1 個増え（遅れて読む入口）、そのあとは増えない |
+| CSP | `csp-check.mjs`（46 画面）違反 0・エラー/警告 0 |
+
+### 14.3 見た目・操作の細かい差の洗い出しと、直した原因
+
+S3 の `?engine=cs` と Three.js 版の差を、(a) 画素（`practice-compare.mjs`・`tutorial-compare.mjs`・`gl-compare.mjs`）、(b) 文字・DOM（`tutorial-dom.mjs`）、(c) 細部の値（`practice-details.mjs`）で洗い出し、**閾値で隠さずに原因を直した**。S4 の初版の `tutorial-compare` では、`transform` の 17 手順すべてが不合格だった（差が 8 を超える画素 0.29〜1.36 %・最大 50〜190。方眼・軸・立方体の縁の 1 画素のずれ、マーカーの 2 px のずれ）。
+
+| # | 差（見え方） | 原因 | 直し方 |
+| --- | --- | --- | --- |
+| ① | 方眼・軸・立方体の縁が 1 画素ずれる（0.3〜1.4 %） | 記事のビューには 1 px の枠があり、`viewport.js` は縦横比・`worldPerPixel`・`mousePx` に **`clientWidth/Height`（枠を除いた整数）**、座標の変換（`ndc`・`toScreen`）に **`getBoundingClientRect`（枠を含む小数）** を使う。C# は 1 つの矩形（丸め）で両方を計算していた | `ViewportCore.Resize(rect, clientW, clientH)`。`gl.js` は `frame(rectW, rectH, clientW * 65536 + clientH)`（コールバックの引数は 3 個まで）。`ViewGeometryTests` |
+| ② | マーカー（「クリック」）の位置が 2 px ずれる。0.01 px の違いで枠の画素が変わる | ①の矩形の違い + Razor の `Px()` が小数 2 桁に丸めていた | ①と、`Px()` を JS の `${v}px` と同じ最短の桁に |
+| ③ | 進みバーの幅の文字（`43.4783%` と `43.48%`） | 同上の丸め | 同じ桁に |
+| ④ | メニューを（再生で）開く位置が違う | `ViewportCore` を作るときの仮の大きさ（960 x 540）の中央を、最後のマウス位置に使っていた。`viewport.js` はクライアント座標で覚えるので、ページをスクロールしたあとはビューの外になり、`clientWidth / 2` に戻る（チュートリアルは、覆いのあいだマウスが届かないので、これが普通の経路） | マウスが一度も入っていなければ `(ClientWidth / 2, ClientHeight / 2)`。`ViewGeometryTests` |
+| ⑤ | 「または右クリック」の吹き出しが 1/64 px ずれ、アイコンの 2 画素が違う | Razor が文字を 2 つの文字ノード（`" "` と値）に分けて出し、レイアウトの丸めが変わる | 1 つの文字列にする |
+| ⑥ | 同じ記事に 2 本あるとき、見えているほうに 3D が出ない（C# 版だけ） | 埋め込みごとの観察（IntersectionObserver）の通知は、「入った」が「出た」より先に届くことがあり、入った側は「ほかのビューが見えている」と思って待つだけで、あとで始め直さなかった | 持っていたものが画面から出たとき、見えて待っているものが始める。`practice.mjs` の記事の往復・`tutorial-compare` で確認 |
+| ⑦ | 押し出し 0 のときなど、同じ平面に重なる面・線のちらつき方が違う | 頂点の変換の式の順が違い、深度の丸めが three.js とずれた（three.js は `projectionMatrix * (modelViewMatrix * 位置)`。ModelView は double で掛けてから float） | `FramePacker` が `ModelView = View × World` を double で作り、`gl.js` は同じ式 |
+| ⑧ | 透過表示の球の面の明るさ（最大 9。§11.7 ③「原因は推定」だったもの） | three.js は、透明で両面の材質を**裏 → 表**の 2 回に分けて描く。C# は 1 回で、三角形の並び順に重なった | `DrawFlags.TwoPass`（`gl.js` は `cullFace(FRONT)` → `cullFace(BACK)`）。`RenderParityTests` に、three.js の材質（transparent && 両面）との一致を追加（外すと 36 件が落ちる） |
+| ⑨ | DOM の違い（`data-act`・`data-engine`・画像表示の前へ/次へ・件数の初期値） | Razor の作りの違い | 同じにした（`tutorial-dom.mjs` の 3 本 × 5 状態が一致） |
+| ⑩ | （描画の差ではなかった）画像比較が時々 0.27 % 落ちる | ページの背景の 3D（`#site-scene`。動く）が、枠の半透明の下に透けていた。マーカーの CSS アニメーションは、始まった時刻で位相が決まる | 比較スクリプトで背景を隠し、アニメーションを止める（`prefers-reduced-motion`。CSS は両方で同じ） |
+
+前後の数値（差が 8 を超える画素の割合 / 最大差）:
+
+| 比較 | 直す前 | 直したあと |
+| --- | --- | --- |
+| 記事内チュートリアル 9 本・129 手順 + 最初の画面（`tutorial-compare.mjs`） | `transform` は全手順が不合格（0.29〜1.36 % / 50〜190）。そのほかも手順ごとに不合格 | **全手順 0.000 % / 最大 1**（閾値は 0 % / 8 に厳しくした） |
+| `/practice` 9 場面（`practice-compare.mjs`） | 0.000 % / 最大 3〜55（背景の動きで時々 0.27 %） | 0.000 % / 最大 3（閾値は 0.1 % / 90 から 0.001 % / 8 へ） |
+| レンダーラボ 12 場面（`gl-compare.mjs`。S2） | 0.000〜0.081 % / 最大 25 | **0.000 % / 最大 1**（閾値は 0.15 % / 40 から 0.001 % / 8 へ） |
+| DOM（記事の 3 本 × 5 状態） | `data-act` などの違い | 一致 |
+| `/practice` の細部 25 場面（カーソル・フォーカス・枠・メニュー位置・HUD の文字…。`practice-details.mjs`） | — | 一致 |
+
+直せていない・意図して違える点:
+
+- **マウスの最後の位置（メニュー）**: `viewport.js` は、最後のマウス位置をクライアント座標で覚えるので、マウスが一度もビューに入っていないとき、メニューの位置がページのスクロール位置で変わる（1 px 程度のずれ、ビューの外なら中央）。C# は常に中央にする（意図した差。再現できる動きにするため）。マウスが入ったあとは同じ。
+- **Unity の 2 本**は C# にしていない（S5。`unity.js` の画面に載っている）。`window.__practice`（確認用）は、`practice.mjs` が読む分だけ（S3 のまま）。
+
+### 14.4 計測 [実測]
+
+SwiftShader の Chromium・AOT なし・localhost（wrangler dev）。
+
+- **配信物の大きさ（IL の dll。brotli 圧縮）**: `Web` 258,048 → 305,152 バイト（brotli 80.0 → 94.4 KB、**+14.4 KB。全ページが読む**。`TutorialEmbed`・`PracticeHudView` を主のアセンブリに置いたため。ルートコンポーネントは、遅れて読むアセンブリには置けない）、`Practice` 219,136 → 294,912（brotli 75.8 → 96.2 KB、+20.5 KB。遅れて読む）、`Render` 50,176 → 51,200（+0.4 KB。遅れて読む）。JS: `gl.js` 20.1 → 21.5 KB、`practice-cs.js` 1.5 → 9.6 KB（`?engine=cs` のときだけ）。
+- **記事（`/learn/basics/transform`）を開いて、3D の canvas が出るまで**（3 回）: Three.js 版 2.00 / 2.56 / 2.56 秒、C# 版 2.73 / 2.76 / 2.64 秒。ページの転送量（ブラウザが測った encodedBodySize の合計）は、Three.js 版 4,889 KB、C# 版 4,745 KB（three.js の 260 KB を読まず、`Practice` 116 KB・`Render` 22 KB・`gl.js` 8 KB・`practice-cs.js` 4 KB を読む）。通常の記事（フラグなし）が `Practice`・`Render`・`gl.js`・`practice-cs.js` を読まないことは、S3 のとおり。
+- **「次へ（スキップ）」1 回（再生）**（`bevel-merge` の 22 回。クリック → 表示の更新まで。3 回）: Three.js 版 中央値 0.7〜0.9 ms・最大 24〜28 ms・合計 78〜81 ms、C# 版 中央値 7.2〜7.5 ms・最大 46〜64 ms・合計 274〜279 ms（Razor の描き直しを含む）。
+- テスト件数: `Practice.Tests` 239・`Render.Tests` 220・`Build.Tests` 47・`Web.Tests` 196・node 120。
+
+### 14.5 確証が持てない点・S5 以降への申し送り
+
+- 実機の GPU・Firefox・Safari は未確認（SwiftShader の Chromium のみ）。**dev サイトでの確認**（実ブラウザ。特にタッチ端末の「画像で見る」と、Windows・Mac の Chrome での操作）が要る。
+- Razor の描き直しは、イベントのあとの次の描画の機会（JS 版は DOM を同期で書き換える）。画像比較・`practice-details` では差が出ていない。
+- 同じ記事に 2 本あるとき、「別のビューが見えているあいだは奪わない」の挙動は JS 版と同じ（クリックで切り替え）。通知の順の入れ替わり（§14.3 ⑥）への対応は、ブラウザの通知の順に依存するので、実機で見たほうがよい。
+- `gl.js` のレンダーラボ専用の関数を分ける課題（§13.4）は残っている。three.js を外せるのは S7（S3〜S6 が本番で一定期間動いてから）。Web の主のアセンブリが 14 KB（brotli）増えた件は、S7 で `tutorial.js` などを消すときに、全体の収支で見る。
