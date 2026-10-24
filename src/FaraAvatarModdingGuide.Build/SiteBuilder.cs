@@ -32,6 +32,9 @@ public sealed record BuildOptions(
 public static class SiteBuilder
 {
     /// <summary>テンプレート（index.html）の中の、WebAssembly を使うページにだけ要るもの（読み込み表示・Blazor のスクリプト）を囲む印。</summary>
+    /// <summary>全ページの og:image にする画像（wwwroot/images/ の中）。版つきの名前にして、SNS・ブラウザーのキャッシュに古い画像が残らないようにする。</summary>
+    public const string OgImageFile = "og-v1.png";
+
     public const string WasmStart = "<!-- WASM-ONLY:START -->";
     public const string WasmEnd = "<!-- WASM-ONLY:END -->";
 
@@ -108,7 +111,8 @@ public static class SiteBuilder
 
         // --- 静的 HTML・robots・sitemap・_headers・_redirects（kit）------------------
         var pages = PageCatalog.Build(content, settings);
-        var ogImage = File.Exists(Path.Combine(outDir, "images", "og-image.png")) ? "/images/og-image.png" : null;   // 承認された OGP 画像が置かれたら自動で付く
+        // OGP 画像（1200×630 の PNG）。全ページの og:image と twitter:card=summary_large_image になる。作り直したら版を上げる（og-v2.png…）。SNS 側が古い画像を覚えているので、同じ名前で差し替えない。大きさ・説明は index.html の og:image:width / height / alt
+        var ogImage = File.Exists(Path.Combine(outDir, "images", OgImageFile)) ? "/images/" + OgImageFile : null;
         // アプリ内の移動のあとに、head（description・canonical・OGP・robots）を移った先のページに合わせるための表（js/head-sync.js が読む）
         WritePageMeta(Path.Combine(outDir, "data", "pages.json"), pages);
         var kitPages = new JsonArray(pages.Select(p =>
