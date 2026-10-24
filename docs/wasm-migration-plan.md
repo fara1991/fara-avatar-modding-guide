@@ -428,7 +428,7 @@ FaraAvatarModdingGuide.csproj（既存 SSR）… Phase 5 で削除
 
 ### 4.12 画像・OGP 画像（D5）
 - **Build の画像工程**: `wwwroot/**`（SVG・WebP 145 枚を含む）を `dist/` へそのままコピー。`Content/learn/**/images/**` の画像（PNG 51 枚）と動画を `dist/learn/...` へコピー（`IsMedia` と同じ判定）。
-- **OGP 画像（D5 の決定 (a)）**: 1200×630 の PNG を `wwwroot/images/og-v1.png` に置く。**作成は Phase 1**（デザインは avatar のサイトの色とフォントに合わせ、**ユーザーが承認**）。Phase 4 で og:image を全ページに入れ、SNS の表示を確認する。サイズの目安は 300 KB 以下（推測）。
+- **OGP 画像（D5 の決定 (a)）**: 1200×630 の PNG を `wwwroot/og.png` に置く（4 サイト共通の名前。版は URL の `?v=N`）。**作成は Phase 1**（デザインは avatar のサイトの色とフォントに合わせ、**ユーザーが承認**）。Phase 4 で og:image を全ページに入れ、SNS の表示を確認する。サイズの目安は 300 KB 以下（推測）。
 
 ---
 
@@ -802,7 +802,7 @@ Phase 4 は 4 つの PR に分けた: SEO（#95）・起動の前後のちらつ
 - **sitemap.xml（本番のみ）は 74 URL**: 固定ページ 16 から問い合わせ（`/report`）と検索（`/search`）を除いた 14 + カテゴリ 10 + 記事 50。`/privacy` と練習の 3 ページを含む。除外: `/report`・`/search`・旧 URL 3 件・404・`/search-index.json`。確認用は sitemap.xml を出さず、全 URL に `X-Robots-Tag: noindex`、robots.txt は `Allow: /`（禁止すると X-Robots-Tag を読ませられない）。
 - **robots.txt（本番）**: `Disallow: /api/`・`Disallow: /practice/room?room=`（共有ルームの URL。クローラーが開いて Durable Object の部屋を作らない）・`Sitemap:`。noindex のページ（`/report`・`/search`）は禁止しない（禁止すると noindex の meta が読まれず効かない）。
 - **暫定 noindex の見直し**: `/search` は noindex を維持（検索結果の画面。検索語ごとに中身が変わり、静的 HTML は枠だけで薄い）。**練習の 3 ページ（`/practice`・`/practice/unity`・`/practice/room`）は index 可にした**。理由: 現行の SSR 版（develop）は `/report` 以外に noindex を付けておらず、noindex にすると切り替えで検索結果から消える後退になる / 静的 HTML に操作の説明が 650〜1,200 字あり、JavaScript が無くても読める / 共有ルームの `?room=` 付き URL は canonical が `/practice/room`、robots でも読ませない。戻すときは `PageCatalog.NoIndexPaths` に足す。
-- **OGP**: `og:image` は `wwwroot/images/og-v1.png` が出力にあれば全ページに自動で付き、`twitter:card` は `summary_large_image` になる（画像なしは `summary` で `og:image` を出さない）。画像は決定済み（og-v1.png。2026-10-24）。`og:type` は記事 50 件だけ `article`、ほかは `website`。
+- **OGP**: `og:image`（`/og.png?v=1`）は `wwwroot/og.png` が出力にあれば全ページに自動で付き、`twitter:card` は `summary_large_image` になる（画像なしは `summary` で `og:image` を出さない）。画像は決定済み（og.png。2026-10-24。4 サイト統一でファイル名の版をやめ、?v=N に変更）。`og:type` は記事 50 件だけ `article`、ほかは `website`。
 - **hreflang・JSON-LD は入れない**（単一言語。構造化データは、必要になるまで入れない。テストで「無いこと」を固定）。
 - **アプリ内の移動のあとの head**: title は `PageTitle` が替えるが、description・canonical・OGP・robots は最初のページの値のまま残る問題があった。`data/pages.json`（Build が書く）と `js/head-sync.js` で、別のページへ移ったとき既存のタグを書き換える（タグは増やさない）。kit の `ReportFormView`・`NotFoundView` の `HeadContent`（noindex）は、静的 HTML の meta と重なるので `NoIndex="false"` にした。
 - 検査: `SeoTests`（Build.Tests）・`tools/verify/seo.mjs`（全 76 ページ + 404 の head・内部リンク全件・旧 URL・X-Robots-Tag・起動後と移動後の head）。
@@ -851,7 +851,7 @@ SRI の値（§12.1 の sha384）は、SSR 版が jsDelivr で読んでいた r1
 - **`/report` のタブの題名**: kit の `ReportFormView` の `PageTitle` は「問い合わせ | サイト名」で、上書きできない（呼び出し側の `PageTitle` を前後どちらに置いても、kit のほうが使われる）。静的 HTML の title・og:title も `/report` だけ区切りを「 | 」にして、起動の前後でタブの題名が替わらないようにした（ほかのページは「 - 」。404 は kit の形で「 | 」）。`seo.mjs` が、全ページで起動後の `document.title` が静的 HTML の title と同じであることを確かめる。区切りを全ページで揃えるのは kit の変更が要るので、既知の差として残す。
 
 ### 13.9 残っている宿題
-- OGP 画像（2026-10-24 に決定・配置済み: 立体と方眼のダーク版、版つきの名前。作り直したら og-v2.png…にして SiteBuilder.OgImageFile を変える。`wwwroot/images/og-v1.png`。計画書 4.12）。
+- OGP 画像（2026-10-24 に決定・配置済み: 立体と方眼のダーク版、4 サイト共通の `/og.png`、版は `?v=N`。作り直したら SiteBuilder.OgImageVersion を上げる。`wwwroot/og.png`。計画書 4.12）。
 - kit: 起動中の静的な本文の inert を解く設定（本文を読みながらリンクを押せるように）。
 - 実機（PC・スマホ・ライト/ダーク）の目視（§8）。
 - Phase 5（切り替え）。
