@@ -32,8 +32,11 @@ public sealed record BuildOptions(
 public static class SiteBuilder
 {
     /// <summary>テンプレート（index.html）の中の、WebAssembly を使うページにだけ要るもの（読み込み表示・Blazor のスクリプト）を囲む印。</summary>
-    /// <summary>全ページの og:image にする画像（wwwroot/images/ の中）。版つきの名前にして、SNS・ブラウザーのキャッシュに古い画像が残らないようにする。</summary>
-    public const string OgImageFile = "og-v1.png";
+    /// <summary>全ページの og:image にする画像（wwwroot/images/ の中）。4 サイト共通の名前 /og.png。版はファイル名でなく URL のクエリ（OgImageVersion）で管理する。</summary>
+    public const string OgImageFile = "og.png";
+
+    /// <summary>og:image / twitter:image の URL に付ける版（?v=N）。画像を作り直したら上げる。SNS・ブラウザーのキャッシュが古い画像を覚えているため。</summary>
+    public const int OgImageVersion = 1;
 
     public const string WasmStart = "<!-- WASM-ONLY:START -->";
     public const string WasmEnd = "<!-- WASM-ONLY:END -->";
@@ -107,12 +110,14 @@ public static class SiteBuilder
 
         // --- 画像・動画 -----------------------------------------------------
         CopyDirectory(Path.Combine(repo, "wwwroot", "images"), Path.Combine(outDir, "images"), _ => true);
+        var ogSource = Path.Combine(repo, "wwwroot", OgImageFile);
+        if (File.Exists(ogSource)) File.Copy(ogSource, Path.Combine(outDir, OgImageFile), overwrite: true);
         CopyDirectory(Path.Combine(repo, "Content", "learn"), Path.Combine(outDir, "learn"), IsMedia);
 
         // --- 静的 HTML・robots・sitemap・_headers・_redirects（kit）------------------
         var pages = PageCatalog.Build(content, settings);
-        // OGP 画像（1200×630 の PNG）。全ページの og:image と twitter:card=summary_large_image になる。作り直したら版を上げる（og-v2.png…）。SNS 側が古い画像を覚えているので、同じ名前で差し替えない。大きさ・説明は index.html の og:image:width / height / alt
-        var ogImage = File.Exists(Path.Combine(outDir, "images", OgImageFile)) ? "/images/" + OgImageFile : null;
+        // OGP 画像（1200×630 の PNG）。全ページの og:image と twitter:card=summary_large_image になる。作り直したら OgImageVersion を上げる（/og.png?v=2…）。SNS 側が古い画像を覚えているので、URL の ?v= を変える。大きさ・説明は index.html の og:image:width / height / alt
+        var ogImage = File.Exists(Path.Combine(outDir, OgImageFile)) ? $"/{OgImageFile}?v={OgImageVersion}" : null;
         // アプリ内の移動のあとに、head（description・canonical・OGP・robots）を移った先のページに合わせるための表（js/head-sync.js が読む）
         WritePageMeta(Path.Combine(outDir, "data", "pages.json"), pages);
         var kitPages = new JsonArray(pages.Select(p =>
