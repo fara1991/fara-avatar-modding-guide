@@ -73,7 +73,7 @@ for (const [label, h] of htmlByPath) {
   if (head.indexOf('<meta property="og:image:alt"') < at) fail(`${label}: og:image:alt が og:image の後ろに無い`);
   if (!/<meta name="twitter:card" content="summary_large_image"/.test(head)) fail(`${label}: twitter:card が summary_large_image でない`);
 }
-for (const [path, type] of [["/favicon.ico", /image\/(x-icon|vnd\.microsoft\.icon)/], ["/favicon.svg", /image\/svg\+xml/], ["/apple-touch-icon.png", /image\/png/], ["/images/og-v1.png", /image\/png/]]) {
+for (const [path, type] of [["/favicon.ico", /image\/(x-icon|vnd\.microsoft\.icon)/], ["/favicon.svg", /image\/svg\+xml/], ["/favicon-16x16.png", /image\/png/], ["/favicon-32x32.png", /image\/png/], ["/apple-touch-icon.png", /image\/png/], ["/og.png?v=1", /image\/png/]]) {
   const r = await get(path);
   const bytes = (await r.arrayBuffer()).byteLength;
   if (r.status !== 200 || !type.test(r.headers.get("content-type") || "") || bytes < 100) fail(`${path}: ${r.status} ${r.headers.get("content-type")} ${bytes}B`); else ok(`${path} は 200(${r.headers.get("content-type")}、${bytes}B)`);
