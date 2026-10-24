@@ -47,15 +47,17 @@ export async function start(id, pcScript, options) {
  * 記事の本文(selector)の中の記事内チュートリアル(::: practice が出す空の .practice-embed[data-scenario])に、tutorial.js を始める(ArticlePage から)。
  * PC は 3D ビュー(画面に入ったときに three.js を読む)、タッチだけの端末は「画像で見る」。
  */
-export async function startArticle(id, selector) {
+export async function startArticle(id, selector, cs = false) {
   disposeCurrent();
   const mine = { id, dispose() { } };
   current = mine;
   const container = document.querySelector(selector);
   if (!container) return;
+  // ?engine=cs: C# 版にあるチュートリアルは Blazor のコンポーネント(practice-cs.js)。ほか(Unity)は今までの tutorial.js
+  const csHandle = cs ? await (await import("./practice-cs.js")).mount(container) : null;
   const handle = (await import("./tutorial.js")).mount(container);
-  if (current !== mine) { handle.dispose(); return; }
-  mine.dispose = () => handle.dispose();
+  if (current !== mine) { handle.dispose(); csHandle?.dispose(); return; }
+  mine.dispose = () => { handle.dispose(); csHandle?.dispose(); };
 }
 
 export function dispose(id) {

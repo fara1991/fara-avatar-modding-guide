@@ -1,0 +1,380 @@
+@* 記事内チュートリアル(::: practice <名前>)の C# 版(?engine=cs。Phase 3b S4)。tutorial.js の build() が作っていた画面と同じ構造・クラス名(既存の CSS をそのまま使う)を、Razor で描く。
+   .practice-embed の要素に、JavaScript(wwwroot/js/practice-cs.js の mount)が Blazor のルートコンポーネントとして置く。
+   手順の進行・メッセージ・ビューの始め/手放しは TutorialController、WebGL・HUD は CsViewEngine。要素の外側(.practice-embed 自身)のクラスは、practice-cs.js の setHostClass で付け替える。 *@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject IServiceProvider Services
+
+@if (error is not null)
+{
+    <div class="tut-error">@error</div>
+}
+else if (ctrl is not null)
+{
+    var s = ctrl.State;
+    var info = ctrl.Info;
+    <div class="tut-head">
+        <span class="tut-label"><i class="bi bi-controller" aria-hidden="true"></i> やってみよう</span>
+        <span class="tut-title">@info.Title</span>
+        <span class="tut-count">@CountText(s)</span>
+    </div>
+    <div class="tut-progress" aria-hidden="true"><span style="width:@(ProgressPercent(s))%"></span></div>
+    @if (!string.IsNullOrEmpty(Intro))
+    {
+        <div class="tut-intro">@((MarkupString)Intro)</div>
+    }
+    <div class="tut-steps" hidden="@(!imageMode)">
+        <div class="tut-steps-track" tabindex="0" aria-label="手順の画像（横にスワイプ）">
+            @for (var i = 0; i < info.Steps.Count; i++)
+            {
+                var step = info.Steps[i];
+                var n = i;
+                <figure class="tut-step-card" data-i="@i" aria-roledescription="手順" aria-label="@(i + 1) / @info.Steps.Count">
+                    @if (imageFailed.Contains(i))
+                    {
+                        <div class="tut-step-noimg">画像は準備中です</div>
+                    }
+                    else
+                    {
+                        <img src="@ImageUrl(i)" alt="@PlainText(step.Text)" loading="lazy" width="1100" height="619" />
+                    }
+                    <figcaption>
+                        <div class="tut-text"><span class="tut-step-no">@(i + 1)</span><span>@((MarkupString)step.Text)</span></div>
+                        @if (step.Keys.Count > 0 || step.Mouse is not null)
+                        {
+                            <div class="tut-step-keys">
+                                @for (var k = 0; k < step.Keys.Count; k++)
+                                {
+                                    @KeyCombo(step.Keys[k], false)
+                                    @(k < step.Keys.Count - 1 ? " " : "")
+                                }
+                                @if (step.Mouse is not null)
+                                {
+                                    <span class="tut-mouse-inline"><i class="bi bi-mouse" aria-hidden="true"></i>@($" {step.Mouse}")</span>
+                                }
+                            </div>
+                        }
+                    </figcaption>
+                </figure>
+            }
+        </div>
+        <div class="tut-steps-nav">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-act="prev" aria-label="前の手順" disabled="@(imageEver && card == 0)" @onclick="() => GoCard(card - 1)"><i class="bi bi-chevron-left" aria-hidden="true"></i> 前へ</button>
+            <span class="tut-steps-count small">@(imageEver ? $"{card + 1} / {info.Steps.Count}" : "")</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-act="next" aria-label="次の手順" disabled="@(imageEver && card == info.Steps.Count - 1)" @onclick="() => GoCard(card + 1)">次へ <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+        </div>
+        <p class="tut-steps-note small text-body-secondary mb-0">@(touch ? "スマートフォン・タブレットでは、手順を画像で表示しています（3D ビューの操作にはキーボードとマウスが必要です）。" : "各画像は、その手順を終えたあとの画面です。")</p>
+    </div>
+    <div class="tut-bubble" aria-live="polite">
+        <div class="tut-text">
+            @if (s.Finished)
+            {
+                <span class="tut-step-no"><i class="bi bi-check-lg"></i></span><span>「@info.Title」の手順はすべて終わりです。</span>
+            }
+            else
+            {
+                <span class="tut-step-no">@(s.Index + 1)</span><span>@((MarkupString)s.StepText)</span>
+            }
+        </div>
+    </div>
+    <div class="tut-stage" @onfocusin="OnFocusIn" @onfocusout="OnFocusOut">
+        <div class="@(s.Message is null ? "tut-msg" : $"tut-msg is-{s.MessageKind}")" hidden="@(s.Message is null)" role="status">@((MarkupString)(s.Message ?? ""))</div>
+        <div class="tut-vp practice-viewport" id="@RootId" tabindex="0" aria-label="3D ビューポート">
+            <PracticeHudView Hud="ctrl.Hud" GlHostId="@GlHostId" RootId="@RootId" ShowHud="s.HasView" Failed="s.ViewFailed" OnTool="OnTool" OnMenu="OnMenu" OnNPanel="OnNPanel" />
+        </div>
+        <div class="tut-keys" aria-hidden="true" hidden="@(s.Finished || (s.Keys.Count == 0 && s.Mouse is null))">
+            @for (var k = 0; k < s.Keys.Count; k++)
+            {
+                @KeyCombo(s.Keys[k], true)
+                @(k < s.Keys.Count - 1 ? " " : "")
+            }
+            @if (s.Mouse is not null)
+            {
+                <span class="tut-mouse"><i class="bi bi-mouse" aria-hidden="true"></i>@($" {s.Mouse}")</span>
+            }
+        </div>
+        <div class="tut-ok" aria-hidden="true"><i class="bi bi-check-lg"></i></div>
+        <button type="button" class="@(s.HasView ? "tut-overlay is-light" : "tut-overlay")" hidden="@(!ShowOverlay(s))" @onpointerdown:preventDefault="true" @onclick="FocusViewportAsync"><span><i class="bi bi-play-fill" aria-hidden="true"></i> <span class="tut-overlay-text">@OverlayText(s)</span></span></button>
+        <div class="tut-complete" hidden="@(!s.Finished)">
+            <div class="tut-complete-title"><i class="bi bi-trophy" aria-hidden="true"></i> すべてできました</div>
+            <div class="tut-complete-text">@s.CompleteText</div>
+            <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                <button type="button" class="btn btn-sm btn-light" data-act="restart" @onclick="() => DoAsync(ctrl.Restart)"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> もう一度</button>
+                <a class="btn btn-sm btn-outline-light" href="/practice"><i class="bi bi-controller" aria-hidden="true"></i> 自由に試す</a>
+            </div>
+        </div>
+    </div>
+    <div class="tut-toolbar">
+        <button type="button" class="btn btn-sm btn-outline-secondary tut-mode-btn" data-act="images" aria-pressed="@(imageMode ? "true" : "false")" @onclick="() => SetImageMode(!imageMode)">
+            @if (imageMode)
+            {
+                <i class="bi bi-badge-3d" aria-hidden="true"></i><text> 3D ビューで操作する@(touch ? "（キーボードとマウスが必要）" : "")</text>
+            }
+            else
+            {
+                <i class="bi bi-images" aria-hidden="true"></i><text> 画像で見る</text>
+            }
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-primary" data-act="retry" @onclick="() => DoAsync(ctrl.Retry)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> やり直す</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-act="skip" @onclick="() => DoAsync(ctrl.Skip)">次へ（スキップ）<i class="bi bi-skip-forward-fill ms-1" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-sm btn-link" data-act="restart" @onclick="() => DoAsync(ctrl.Restart)">最初から</button>
+        @if (info.Numpad)
+        {
+            <div class="form-check form-check-inline mb-0 ms-1">
+                <input class="form-check-input" type="checkbox" data-act="numpad" id="tut-numpad-@info.Name" checked="@ctrl.Numpad" @onchange="OnNumpad" />
+                <label class="form-check-label small" for="tut-numpad-@info.Name">テンキーを模倣（数字キーで視点を切り替え）</label>
+            </div>
+        }
+        <span class="tut-tip small text-body-secondary ms-auto">ビューをクリックしてからキーを押します</span>
+    </div>
+}
+
+@code {
+    private static TutorialEmbed? current;
+    private static readonly List<TutorialEmbed> all = [];
+
+    private ITutorialCs? ctrl;
+    private string? error;
+    private DotNetObjectReference<TutorialEmbed>? self;
+    private IJSObjectReference? module;
+    private bool imageMode;
+    private bool touch;
+    private bool visible;
+    /// <summary>画像で見る表示にしたことがあるか(tutorial.js は、そのとき初めて、前へ・次へ・何枚目かを書く。それまでは空)。</summary>
+    private bool imageEver;
+    private bool focused;
+    private int focusToken;
+
+    private void OnFocusIn() { focusToken++; focused = true; }
+
+    /// <summary>フォーカスが外れたとき。tutorial.js と同じに、1 フレーム待って、そのあいだにまた入っていなければ外す(ビューの中のボタンを押すと、focusout のすぐあとに focusin が来る。すぐ外すと、覆いが一瞬出る)。</summary>
+    private async Task OnFocusOut()
+    {
+        var token = ++focusToken;
+        await PracticeCsJsTutorial.DelayAsync(20);
+        if (token != focusToken || disposed) return;
+        focused = false;
+        StateHasChanged();
+    }
+    private bool disposed;
+    private int card;
+    private readonly HashSet<int> imageFailed = [];
+    private bool lastImages, lastFocusedView, hostReady;
+    private int lastOkFlash;
+
+    [Parameter, EditorRequired] public string Scenario { get; set; } = "";
+    [Parameter] public string Intro { get; set; } = "";
+    [Parameter, EditorRequired] public string HostId { get; set; } = "";
+    [Parameter] public bool Debug { get; set; }
+
+    private string RootId => $"tut-vp-{HostId}";
+    private string GlHostId => $"tut-gl-{HostId}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // 操作のロジック・手順・描画の命令(Practice・Render)は、C# 版を使うときだけ、1 回だけ読み込む
+            await PracticeCsAssemblies.LoadAsync(Services);
+            if (disposed) return;
+            var created = await TutorialCsLoader.CreateAsync(Scenario, RootId, GlHostId, "/images/tutorials");
+            if (disposed) { created?.Dispose(); return; }   // 読み込み中に記事を離れた: 登録も module の読み込みもしない
+            ctrl = created;
+            if (ctrl is null) { error = $"チュートリアル「{Scenario}」が見つかりません（C# 版）。"; return; }
+            ctrl.Changed += OnChanged;
+            all.Add(this);
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/practice-cs.js");
+            if (disposed) { await module.DisposeAsync(); module = null; return; }
+            touch = await module.InvokeAsync<bool>("isTouchOnly");
+            imageMode = touch;
+            imageEver = touch;
+        }
+        catch (Exception e)
+        {
+            error = "チュートリアルを始められません。ページを再読み込みしてください。";
+            Console.Error.WriteLine($"[avatar] チュートリアル(C# 版)を始められません: {e.Message}");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (disposed || module is null || ctrl is null) return;
+        if (!hostReady)
+        {
+            hostReady = true;
+            self = DotNetObjectReference.Create(this);
+            await module.InvokeVoidAsync("setHostClass", HostId, "is-ready", true);
+            await module.InvokeVoidAsync("registerEmbed", HostId, self, Variants());
+            if (imageMode) { lastImages = true; await module.InvokeVoidAsync("setHostClass", HostId, "is-images", true); }
+        }
+        var s = ctrl.State;
+        if (lastImages != imageMode)
+        {
+            lastImages = imageMode;
+            await module.InvokeVoidAsync("setHostClass", HostId, "is-images", imageMode);
+            if (!imageMode) await module.InvokeVoidAsync("fitBubble", HostId, Variants());
+        }
+        var focusedView = s.HasView && focused;
+        if (lastFocusedView != focusedView)
+        {
+            lastFocusedView = focusedView;
+            await module.InvokeVoidAsync("setHostClass", HostId, "is-focused", focusedView);
+        }
+        if (s.OkFlash != lastOkFlash)
+        {
+            lastOkFlash = s.OkFlash;
+            await module.InvokeVoidAsync("restartClass", ".tut-ok", HostId, "is-on");
+            await module.InvokeVoidAsync("restartClass", ".tut-bubble", HostId, "is-ok");
+        }
+    }
+
+    private string[] Variants()
+    {
+        var info = ctrl!.Info;
+        string No(object n, string html) => $"<span class=\"tut-step-no\">{n}</span><span>{html}</span>";
+        return [.. info.Steps.Select((st, i) => No(i + 1, st.Text)), No("✓", $"「{System.Net.WebUtility.HtmlEncode(info.Title)}」の手順はすべて終わりです。")];
+    }
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    // ---------------------------------------------------------------- JavaScript から
+    [JSInvokable]
+    public async Task OnVisible(bool isVisible)
+    {
+        visible = isVisible;
+        // 画面に入ったら始める。ほかのビューが見えているあいだは奪わない(クリックで切り替え)。画像で見ているときは始めない
+        if (isVisible && CanStart()) await ActivateAsync();
+        // ビューを持っていたものが画面から出たとき、すでに画面に入っていて待っていたものがあれば、そちらが始める
+        // (観察の通知は埋め込みごとに別々に届くので、「入った」が「出た」より先に来ることがある。そのときは、入った側は奪えずに待つだけになる)
+        else if (!isVisible && current == this)
+        {
+            var waiting = all.FirstOrDefault(e => e != this && e.visible && e.CanStart());
+            if (waiting is not null) await waiting.ActivateAsync();
+        }
+    }
+
+    private bool CanStart() => ctrl is { State.HasView: false } && !imageMode && !disposed && (current is null || current == this || !current.visible);
+
+    [JSInvokable]
+    public void OnImageError(int i)
+    {
+        imageFailed.Add(i);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnCardScrolled(int i)
+    {
+        if (i == card) return;
+        card = i;
+        StateHasChanged();
+    }
+
+    // ---------------------------------------------------------------- 操作
+    private async Task ActivateAsync()
+    {
+        if (ctrl is null || disposed) return;
+        current = this;
+        await ctrl.ActivateAsync();
+    }
+
+    private async Task FocusViewportAsync()
+    {
+        if (ctrl is null) return;
+        if (!ctrl.State.HasView) await ActivateAsync();
+        if (ctrl.State.HasView && module is not null) await module.InvokeVoidAsync("focusRoot", RootId);
+    }
+
+    private async Task DoAsync(Action action)
+    {
+        action();
+        await FocusViewportAsync();
+    }
+
+    private async Task SetImageMode(bool on)
+    {
+        imageMode = on;
+        if (on) imageEver = true;
+        if (on) ctrl?.Suspend();
+        else await ActivateAsync();
+        StateHasChanged();
+    }
+
+    private async Task GoCard(int i)
+    {
+        var n = ctrl!.Info.Steps.Count;
+        card = Math.Max(0, Math.Min(n - 1, i));
+        if (module is not null) await module.InvokeVoidAsync("scrollToCard", HostId, card, true);
+    }
+
+    private async Task OnNumpad(ChangeEventArgs e)
+    {
+        if (ctrl is null) return;
+        ctrl.Numpad = e.Value is true;
+        await FocusViewportAsync();
+    }
+
+    private void OnTool(string tool) => ctrl?.ClickTool(tool);
+
+    private void OnMenu(int index) => ctrl?.ChooseMenu(index);
+
+    private void OnNPanel((string Prop, string Axis, string Value) a) => ctrl?.ChangeNPanel(a.Prop, a.Axis, a.Value);
+
+    // ---------------------------------------------------------------- 表示
+    private string CountText(TutorialUiState s) =>
+        imageMode ? $"{card + 1} / {s.Count}" : s.Finished ? "完了" : $"{Math.Min(s.Index + 1, s.Count)} / {s.Count}";
+
+    private string ProgressPercent(TutorialUiState s)
+    {
+        var v = imageMode ? (card + 1) / (double)s.Count * 100 : s.Finished ? 100 : s.Index / (double)s.Count * 100;
+        return v.ToString(System.Globalization.CultureInfo.InvariantCulture);   // JS の `${...}` と同じ桁(往復できる最短)
+    }
+
+    private bool ShowOverlay(TutorialUiState s) => !s.Finished && (!s.HasView || !focused);
+
+    private static string OverlayText(TutorialUiState s) => s.Loading ? "読み込み中…" : !s.HasView ? (s.Started ? "クリックして再開" : "クリックして始める") : "クリックして操作する";
+
+    private string ImageUrl(int i) => $"/images/tutorials/{Scenario}/{i + 1:00}.webp";
+
+    private static string PlainText(string html) => System.Text.RegularExpressions.Regex.Replace(System.Net.WebUtility.HtmlDecode(html), "<[^>]*>", "");
+
+    /// <summary>"Shift+A" → &lt;kbd&gt;Shift&lt;/kbd&gt;+&lt;kbd&gt;A&lt;/kbd&gt;。pressed のときは、押されたキーを光らせる(画面下のキー表示)。</summary>
+    private RenderFragment KeyCombo(string combo, bool pressedClass) => builder =>
+    {
+        var parts = combo.Split('+');
+        var pressed = ctrl?.State.PressedKeys ?? [];
+        for (var i = 0; i < parts.Length; i++)
+        {
+            if (i > 0) builder.AddContent(0, "+");
+            builder.OpenElement(1, "kbd");
+            builder.AddAttribute(2, "data-key", parts[i]);
+            if (pressedClass && pressed.Contains(parts[i])) builder.AddAttribute(3, "class", "is-pressed");
+            builder.AddContent(4, parts[i]);
+            builder.CloseElement();
+        }
+    };
+
+    public async ValueTask DisposeAsync()
+    {
+        disposed = true;
+        all.Remove(this);
+        if (current == this) current = null;
+        if (ctrl is not null)
+        {
+            ctrl.Changed -= OnChanged;
+            ctrl.Dispose();
+        }
+        if (module is not null)
+        {
+            try
+            {
+                await module.InvokeVoidAsync("unregisterEmbed", HostId);
+                await module.InvokeVoidAsync("setHostClass", HostId, "is-focused", false);
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException) { }
+            catch (JSException) { }
+        }
+        self?.Dispose();
+    }
+}

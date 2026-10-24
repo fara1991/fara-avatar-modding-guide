@@ -88,14 +88,14 @@ test("touch-only devices with embeds mount the tutorials in the guide, and dispo
     await entry.start("a", FAKE, "opt");
     assert.equal(host.hidden, false);
     assert.deepEqual(log, []);
-    assert.deepEqual(queried, [["host", ".practice-embed[data-scenario]"]]);   // 案内の中の埋め込みに、tutorial.js を始めた
+    assert.deepEqual(queried, [["host", ".practice-embed[data-scenario]:not([data-cs])"]]);   // 案内の中の埋め込みに、tutorial.js を始めた
     entry.dispose("a");
 });
 
 test("startArticle mounts the tutorials of the article body and disposes by id", async () => {
     reset();
     await entry.startArticle("a", ".article-body");
-    assert.deepEqual(queried, [["article", ".practice-embed[data-scenario]"]]);
+    assert.deepEqual(queried, [["article", ".practice-embed[data-scenario]:not([data-cs])"]]);
     entry.dispose("b");   // 別の id では解放されない
     entry.dispose("a");
     entry.dispose("a");   // 2 回目は何もしない(例外にならない)

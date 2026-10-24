@@ -102,7 +102,7 @@ fara-avatar-modding-guide/
 │   ├── FaraAvatarModdingGuide.Build/    # 公開物の生成: 本文入りの静的 HTML・data/*.json・robots・sitemap・_headers（kit の Node ツールも使う）
 │   ├── FaraAvatarModdingGuide.Content/  # Content/ を読む（Markdown → HTML）。Build が使う
 │   ├── FaraAvatarModdingGuide.Shared/   # Build と Web が共有する型・サイドバーの項目
-│   └── FaraAvatarModdingGuide.Practice/ # 練習の 3D の純粋なロジック（G/R/S・お題の判定・視点・レイ判定。Phase 3b。まだ画面からは呼んでいない。docs/phase3b-design.md）
+│   └── FaraAvatarModdingGuide.Practice/ # 練習の 3D の純粋なロジック（G/R/S・お題の判定・視点・レイ判定。Phase 3b。`/practice?engine=cs`・記事内チュートリアル（`?engine=cs`）から呼ぶ。docs/phase3b-design.md）
 ├── wwwroot/images/           # 画像（記事内チュートリアルの手順画像 = tools/tutorial-images で生成）。Build が公開物にコピーする
 ├── tests/
 │   ├── FaraAvatarModdingGuide.Content.Tests / Build.Tests / Web.Tests   # xUnit（Web.Tests は bUnit。公開の設定の検査 = DeployWorkflowTests を含む）

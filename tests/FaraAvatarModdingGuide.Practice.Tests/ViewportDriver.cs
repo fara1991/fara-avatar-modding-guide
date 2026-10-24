@@ -138,6 +138,13 @@ internal static class ViewportDriver
                 core.SetView(new ViewState(Doubles(v.GetProperty("target")), v.GetProperty("dist").GetDouble(), v.GetProperty("theta").GetDouble(), v.GetProperty("phi").GetDouble(), v.GetProperty("ortho").GetBoolean(), v.GetProperty("name").GetString()!));
                 return false;
             }
+            case "highlight":
+            {
+                var h = step.TryGetProperty("h", out var hh) ? hh : default;
+                string? S(string k) => h.ValueKind == JsonValueKind.Object && h.TryGetProperty(k, out var v) ? v.GetString() : null;
+                core.SetHighlight(new TutorialHighlight(S("object"), S("label"), S("axis"), S("hud"), h.ValueKind == JsonValueKind.Object && h.TryGetProperty("at", out var at) ? Doubles(at) : null, S("tool")));
+                return false;
+            }
             case "orbit": core.OrbitBy(step.GetProperty("dTheta").GetDouble(), step.TryGetProperty("dPhi", out var dp) ? dp.GetDouble() : 0); return false;
             default: throw new InvalidOperationException("未知の手順: " + step.GetProperty("e").GetString());
         }

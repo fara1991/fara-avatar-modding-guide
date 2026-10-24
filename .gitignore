@@ -26,3 +26,6 @@ site-develop/
 
 ## wrangler dev の作業フォルダ
 .wrangler/
+
+## 画像比較の出力（tools/verify。画像は作業用）
+*-compare-out/

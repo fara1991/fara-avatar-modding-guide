@@ -191,6 +191,7 @@ export function applyStep(h, s) {
     case "roomload": vp.loadRoomScene(s.objects); break;
     case "setview": vp.setView(s.view); break;
     case "orbit": vp.orbitBy(s.dTheta, s.dPhi ?? 0); break;
+    case "highlight": vp.setHighlight(s.h ?? {}); break;
     default: throw new Error("unknown step " + s.e);
   }
   return !!e.defaultPrevented;

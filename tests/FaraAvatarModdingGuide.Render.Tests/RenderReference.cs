@@ -15,11 +15,13 @@ internal sealed class RenderReferenceRun
     public const int Every = 40;
 
     private readonly string casesFile;
+    private readonly int every;
     private readonly Lazy<JsonElement> output;
 
-    public RenderReferenceRun(string casesFileName)
+    public RenderReferenceRun(string casesFileName, int every = Every)
     {
         casesFile = Path.Combine(JsReference.JsDir, casesFileName);
+        this.every = every;
         output = new Lazy<JsonElement>(Run);
     }
 
@@ -50,7 +52,7 @@ internal sealed class RenderReferenceRun
                 StandardOutputEncoding = Encoding.UTF8, StandardErrorEncoding = Encoding.UTF8,
             };
             info.ArgumentList.Add("--max-old-space-size=4096");
-            foreach (var arg in new[] { Path.Combine(JsReference.JsDir, "practice-render-reference.mjs"), casesFile, outFile, Every.ToString() }) info.ArgumentList.Add(arg);
+            foreach (var arg in new[] { Path.Combine(JsReference.JsDir, "practice-render-reference.mjs"), casesFile, outFile, every.ToString() }) info.ArgumentList.Add(arg);
             using var process = Process.Start(info) ?? throw new InvalidOperationException("node を起動できません(CI では actions/setup-node が要ります)");
             var stdout = process.StandardOutput.ReadToEndAsync();
             var stderr = process.StandardError.ReadToEndAsync();
@@ -70,4 +72,6 @@ internal static class RenderReference
 {
     public static readonly RenderReferenceRun Basic = new("practice-cases.json");
     public static readonly RenderReferenceRun Edit = new("practice-edit-cases.json");
+    /// <summary>S4: 案内の軸の点線。全手順で比べる。</summary>
+    public static readonly RenderReferenceRun Tutorial = new("practice-tutorial-render-cases.json", 1);
 }

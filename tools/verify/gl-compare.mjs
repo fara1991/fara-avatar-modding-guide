@@ -11,8 +11,8 @@ const ORIGIN = process.env.ORIGIN || "http://127.0.0.1:8790";
 const OUT = process.env.OUT || "./gl-compare-out";
 const WIDTH = Number(process.env.WIDTH || 960);
 const HEIGHT = Math.round((WIDTH * 9) / 16);
-const MAX_OVER_PCT = Number(process.env.MAX_OVER_PCT || 0.15);
-const MAX_DIFF = Number(process.env.MAX_DIFF || 40);
+const MAX_OVER_PCT = Number(process.env.MAX_OVER_PCT || 0.001);
+const MAX_DIFF = Number(process.env.MAX_DIFF || 8);
 const FACE_TOLERANCE = Number(process.env.FACE_TOLERANCE || 3);
 mkdirSync(OUT, { recursive: true });
 

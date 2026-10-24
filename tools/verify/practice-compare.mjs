@@ -1,5 +1,5 @@
 // /practice の Three.js 版と C# 版(?engine=cs)を、同じ操作で並べて、ビューポート(3D + HUD)の画素を比べる(Phase 3b S3)。  node practice-compare.mjs
-//   NEW=http://127.0.0.1:8787(wrangler dev など、サイトの配信)  OUT=<画像の出力先>  WIDTH=1280  MAX_OVER_PCT=0.1  MAX_DIFF=90
+//   NEW=http://127.0.0.1:8787(wrangler dev など、サイトの配信)  OUT=<画像の出力先>  WIDTH=1280  MAX_OVER_PCT=0.001  MAX_DIFF=8
 // 比べるのは、ビューポートの要素のスクリーンショット(3D の描画 + HUD の文字・ボタン)。3 枚組(three.js | C# | 差)を書く。画素の差(>8 の割合・最大)に閾値を付けて合否に含める。
 import { mkdirSync, writeFileSync } from "node:fs";
 import { PNG } from "pngjs";
@@ -7,8 +7,8 @@ import { launch } from "./lib.mjs";
 
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const OUT = process.env.OUT || "./practice-compare-out";
-const MAX_OVER_PCT = Number(process.env.MAX_OVER_PCT || 0.1);
-const MAX_DIFF = Number(process.env.MAX_DIFF || 90);
+const MAX_OVER_PCT = Number(process.env.MAX_OVER_PCT || 0.001);
+const MAX_DIFF = Number(process.env.MAX_DIFF || 8);
 mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -32,6 +32,8 @@ async function open(browser, url) {
   page.on("pageerror", (e) => page.problems.push("pageerror " + e.message.slice(0, 200)));
   await page.goto(NEW + url);
   await page.waitForSelector(".practice-viewport canvas", { timeout: 90000 });
+  // ビューの縁(半透明の枠・影)の下に、ページの背景(#site-scene。動く)が透けて見えるので、隠す(画素の差が、描画ではなく背景の動きになる)
+  await page.addStyleTag({ content: "#site-scene{display:none !important}" });
   await sleep(800);
   return { ctx, page };
 }

@@ -20,6 +20,9 @@ internal static class JsReference
     /// <summary>S1: 編集モードを含む操作列・取り消し・メニュー・N パネル・共同練習の口・お題の通し。</summary>
     public static readonly ReferenceRun Edit = new("practice-edit-cases.json");
 
+    /// <summary>S4: チュートリアルの案内(setHighlight の軸の点線)を含む操作列。描画の突き合わせ(Render.Tests)が使う。</summary>
+    public static readonly ReferenceRun Tutorial = new("practice-tutorial-render-cases.json");
+
     public static JsonElement Cases => Basic.Cases;
 
     /// <summary>practice-reference.mjs の出力(shapes・taskTexts・tasks・taskSequences・scenarios)。</summary>

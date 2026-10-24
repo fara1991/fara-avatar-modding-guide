@@ -7,26 +7,30 @@
 // dispose() で WebGL のコンテキスト・リスナー・rAF・observer を全部解放する。コンテキストを失ったら(webglcontextlost)、復帰したとき(webglcontextrestored)に作り直して送り直す。
 
 const HEADER = 24;      // FramePacker.HeaderFloats
-const STRIDE = 28;      // FramePacker.ItemFloats
+const STRIDE = 44;      // FramePacker.ItemFloats
 const LAYOUT_STRIDE = [3, 6, 6];   // BufferLayout.Position / PositionNormal / PositionColor の 1 頂点あたりの float
 const BACKGROUND = [0x3d / 255, 0x3d / 255, 0x3d / 255];   // scene.background = 0x3d3d3d(sRGB の値のまま出力する)
 
 const VERTEX = `#version 300 es
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aAttr;
-uniform mat4 uViewProj;
+uniform mat4 uProj;
+uniform mat4 uModelView;
 uniform mat4 uWorld;
 uniform float uPointSize;
 out vec3 vNormal;
 out vec3 vWorldPos;
 out vec3 vColor;
+out float vDist;
 void main() {
   vec4 wp = uWorld * vec4(aPos, 1.0);
-  gl_Position = uViewProj * wp;
+  vec4 mvPosition = uModelView * vec4(aPos, 1.0);   // three.js の project_vertex と同じ順(ModelView を先に掛けてから射影)。順が違うと、同じ平面の面・線の深度の丸めがずれて、重なった所のちらつき方が変わる
+  gl_Position = uProj * mvPosition;
   vWorldPos = wp.xyz;
   // 法線は上 3x3 の逆行列の転置で変換する(G/R/S の軸固定で不均一なスケールになっても向きが合う。three.js の normalMatrix と同じ)
   vNormal = transpose(inverse(mat3(uWorld))) * aAttr;
   vColor = aAttr;
+  vDist = aPos.x + 40.0;   // 点線(shading 3)の位置。X 方向に -40〜40 を 1 刻みで作った線なので、three.js の lineDistance(積算の長さ)と同じ
   gl_PointSize = uPointSize;
 }`;
 
@@ -35,7 +39,8 @@ precision highp float;
 in vec3 vNormal;
 in vec3 vWorldPos;
 in vec3 vColor;
-uniform int uShading;      // 0 = 陰影(MeshStandardMaterial)  1 = 1 色  2 = 頂点の色
+in float vDist;
+uniform int uShading;      // 0 = 陰影(MeshStandardMaterial)  1 = 1 色  2 = 頂点の色  3 = 1 色の点線(0.3 描いて 0.2 空ける)
 uniform vec4 uColor;       // 色(sRGB)と不透明度
 uniform vec3 uCamera;
 out vec4 outColor;
@@ -81,6 +86,9 @@ void main() {
     if (!gl_FrontFacing) n = -n;   // DoubleSide: 裏から見た面は法線を反転する
     vec3 v = normalize(uCamera - vWorldPos);
     outColor = vec4(toSrgb(lit(uColor.rgb, n, v)), uColor.a);
+  } else if (uShading == 3) {
+    if (mod(vDist, 0.5) > 0.3) discard;
+    outColor = uColor;
   } else if (uShading == 1) {
     outColor = uColor;
   } else {
@@ -93,7 +101,7 @@ const PRIMITIVES = (gl) => [gl.TRIANGLES, gl.LINES, gl.LINE_STRIP, gl.POINTS];
 /**
  * 始める。root の中に canvas を作り、ポインター・ホイール・キーを C# に渡す。戻り値は WebGL 2 が使えたか。座標は root の左上を原点にして渡す(C# の ViewRect は (0, 0, 幅, 高さ)。
  * source-generated な [JSImport] は配列を引数にした関数を渡せないので、イベントの種類ごとに数値の引数だけの関数にしてある。
- *   frame(cssWidth, cssHeight)                 描くとき(C# が uploadBuffer / releaseBuffer / draw を呼ぶ)
+ *   frame(cssWidth, cssHeight, clientW * 65536 + clientH)               描くとき(C# が uploadBuffer / releaseBuffer / draw を呼ぶ)
  *   pointerDown(button | modifiers << 4, x, y) → preventDefault するか     pointerMove(x, y, modifiers)     pointerUp(x, y)
  *   wheel(deltaY) → preventDefault するか       key(code, key, modifiers) → preventDefault するか   keyup(modifiers)   focus(boolean)
  * modifiers: 1 = Shift, 2 = Ctrl, 4 = Alt, 8 = Meta。
@@ -227,7 +235,7 @@ function init(s) {
   gl.linkProgram(program);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
   s.program = program;
-  s.loc = Object.fromEntries(["uViewProj", "uWorld", "uPointSize", "uShading", "uColor", "uCamera"].map((n) => [n, gl.getUniformLocation(program, n)]));
+  s.loc = Object.fromEntries(["uProj", "uModelView", "uWorld", "uPointSize", "uShading", "uColor", "uCamera"].map((n) => [n, gl.getUniformLocation(program, n)]));
   s.buffers = new Map();
   gl.useProgram(program);
   gl.disable(gl.CULL_FACE);
@@ -309,7 +317,7 @@ function paint(s, f, n) {
   gl.disable(gl.SCISSOR_TEST);
   gl.clearColor(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2], 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.uniformMatrix4fv(s.loc.uViewProj, false, f.subarray(0, 16));
+  gl.uniformMatrix4fv(s.loc.uProj, false, f.subarray(0, 16));
   gl.uniform3f(s.loc.uCamera, f[16], f[17], f[18]);
   let lastVao = null;
   for (let i = 0; i < count; i++) {
@@ -324,10 +332,21 @@ function paint(s, f, n) {
     if (flags & 16) { gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(f[o + 4], f[o + 5]); } else gl.disable(gl.POLYGON_OFFSET_FILL);
     gl.frontFace((flags & 8) ? gl.CW : gl.CCW);
     gl.uniformMatrix4fv(s.loc.uWorld, false, f.subarray(o + 12, o + 28));
+    gl.uniformMatrix4fv(s.loc.uModelView, false, f.subarray(o + 28, o + 44));
     gl.uniform1i(s.loc.uShading, f[o + 2]);
     gl.uniform4f(s.loc.uColor, f[o + 8], f[o + 9], f[o + 10], f[o + 6]);
     gl.uniform1f(s.loc.uPointSize, f[o + 7] * dpr);
-    gl.drawArrays(modes[f[o + 1]], 0, b.count);
+    if (flags & 32) {
+      // 透明で両面: 裏の面 → 表の面の 2 回(three.js と同じ。frontFace を先に決めてあるので、鏡映でも「裏」は裏)
+      gl.enable(gl.CULL_FACE);
+      gl.cullFace(gl.FRONT);
+      gl.drawArrays(modes[f[o + 1]], 0, b.count);
+      gl.cullFace(gl.BACK);
+      gl.drawArrays(modes[f[o + 1]], 0, b.count);
+      gl.disable(gl.CULL_FACE);
+    } else {
+      gl.drawArrays(modes[f[o + 1]], 0, b.count);
+    }
   }
   gl.bindVertexArray(null);
   s.stats.drawn++;
@@ -347,7 +366,9 @@ function render(s, t) {
   if (canvas.height !== ch) canvas.height = ch;
   const t0 = performance.now();
   s.stats.frames++;
-  s.frame(w, h);
+  // 座標の変換は getBoundingClientRect の小数の幅・高さ(viewport.js の ndc / toScreen と同じ)。C# が、縦横比には丸めた整数を使う(resize() は clientWidth / clientHeight)
+  const r = root.getBoundingClientRect();
+  s.frame(r.width, r.height, w * 65536 + h);
   s.stats.callbackMs += performance.now() - t0;
 }
 

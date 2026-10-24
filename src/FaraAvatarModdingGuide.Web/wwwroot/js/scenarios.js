@@ -39,7 +39,7 @@ function opSteps({ key, axis = null, value, target = "Cube", group, first }) {
     group, keys: [key], highlight: hl(),
     text: first ?? `<kbd>${key}</kbd> を押して${name}を始めてください。`,
     done: e => e.type === "opstart" && e.kind === key,
-    hint: e => e.type === "opstart" ? `${OP_NAME[e.kind]}が始まりました。<kbd>Esc</kbd> でキャンセルしてから <kbd>${key}</kbd> を押してください。` : undefined,
+    hint: e => e.type === "opstart" ? `${OP_NAME[e.kind] ?? "別の操作"}が始まりました。<kbd>Esc</kbd> でキャンセルしてから <kbd>${key}</kbd> を押してください。` : undefined,
     skip: vp => vp.startOp(key),
   }];
   if (axis) steps.push({
