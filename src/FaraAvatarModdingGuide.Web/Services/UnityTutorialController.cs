@@ -9,8 +9,6 @@ namespace FaraAvatarModdingGuide.Web.Services;
 /// </summary>
 internal sealed class UnityTutorialController : ITutorialCs
 {
-    private static UnityTutorialController? active;
-
     private readonly UnityTutorialScenario scenario;
     private readonly string rootId;
     private readonly string canvasHostId;
@@ -89,8 +87,7 @@ internal sealed class UnityTutorialController : ITutorialCs
     public async Task ActivateAsync()
     {
         if (engine is not null || loading || disposed) return;
-        if (active is not null && active != this) active.Suspend();
-        active = this;
+        ActiveGlView.Claim(this);
         loading = true;
         viewFailed = false;
         Publish();
@@ -98,9 +95,9 @@ internal sealed class UnityTutorialController : ITutorialCs
         {
             // 画面の更新(overlay の「読み込み中…」)を先に見せてから始める
             await Task.Yield();
-            if (active != this || disposed) { loading = false; return; }
+            if (!ActiveGlView.IsCurrent(this) || disposed) { loading = false; return; }
             var created = (UnityCsEngine)await UnityCsLoader.CreateAsync(rootId, sceneViewId, canvasHostId, true, [.. scenario.Instances], Debug);
-            if (active != this || disposed) { created.Dispose(); loading = false; return; }
+            if (!ActiveGlView.IsCurrent(this) || disposed) { created.Dispose(); loading = false; return; }
             engine = created;
             created.Changed += OnEngineChanged;
             created.EventEmitted += OnEvent;
@@ -147,7 +144,7 @@ internal sealed class UnityTutorialController : ITutorialCs
         engine.Dispose();
         engine = null;
         session.Ed = null;
-        if (active == this) active = null;
+        ActiveGlView.Release(this);
     }
 
     /// <summary>別のチュートリアルにビューを譲る(進み具合は残す)。</summary>
@@ -165,6 +162,7 @@ internal sealed class UnityTutorialController : ITutorialCs
     {
         if (disposed) return;
         Suspend();
+        ActiveGlView.Release(this);
         disposed = true;
         failToken++;
         msgToken++;

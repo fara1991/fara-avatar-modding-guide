@@ -37,8 +37,6 @@ internal sealed class TutorialViewEngine : CsViewEngine
 /// </summary>
 internal sealed class TutorialController : ITutorialCs
 {
-    private static TutorialController? active;
-
     private readonly TutorialScenario scenario;
     private readonly string rootId;
     private readonly string canvasHostId;
@@ -118,15 +116,14 @@ internal sealed class TutorialController : ITutorialCs
     public async Task ActivateAsync()
     {
         if (engine is not null || loading || disposed) return;
-        if (active is not null && active != this) active.Suspend();
-        active = this;
+        ActiveGlView.Claim(this);
         loading = true;
         Publish();
         try
         {
             // 画面の更新(overlay の「読み込み中…」)を先に見せてから始める
             await Task.Yield();
-            if (active != this || disposed) return;
+            if (!ActiveGlView.IsCurrent(this) || disposed) return;
             var e = new TutorialViewEngine(rootId, canvasHostId, () => Numpad, Debug, scenario, OnEvent);
             if (!e.Start())
             {
@@ -164,7 +161,7 @@ internal sealed class TutorialController : ITutorialCs
         engine.Dispose();
         engine = null;
         session.Vp = null;
-        if (active == this) active = null;
+        ActiveGlView.Release(this);
         Publish();
     }
 
@@ -174,6 +171,7 @@ internal sealed class TutorialController : ITutorialCs
     {
         if (disposed) return;
         Suspend();
+        ActiveGlView.Release(this);
         disposed = true;
         failToken++;
         msgToken++;

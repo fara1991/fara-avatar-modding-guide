@@ -497,9 +497,11 @@ public sealed partial class UnityEditorCore
         var n = Get(id);
         var comp = n?.Smr;
         if (n is null || comp is null || UnityData.Asset(material)?.Type != "material") return;
+        // 番号は 0..枚数(枚数ちょうどは末尾に足す。JavaScript の配列への代入と同じ)。それより外は無視する。
+        // unity.js は範囲外の番号でも配列を広げる(穴ができる)が、画面(Inspector の欄)からは起こせない。大きな数(1e9 など)で固まらないための上限
+        if (slot < 0 || slot > comp.Materials!.Count) return;
         PushUndo();
-        // JavaScript の配列は、範囲の外の番号に代入すると広がる(unity.js のとおり)
-        while (comp.Materials!.Count <= slot) comp.Materials.Add("");
+        if (slot == comp.Materials.Count) comp.Materials.Add("");
         comp.Materials[slot] = material;
         Rebuild();
         Render();

@@ -23,7 +23,7 @@ export const UNITY = ["unity-basics", "ma-outfit"];
 
 export async function open(browser, name, cs) {
   const page = await newPage(browser, { width: 1280, height: 900 });
-  await page.emulateMedia({ reducedMotion: "reduce" });   // CSS のアニメーション(マーカーの上下など)は、始まった時刻で位相が決まるので止める(同じ CSS なので、止めても比べる意味は変わらない)
+  if (process.env.MOTION !== "1") await page.emulateMedia({ reducedMotion: "reduce" });   // MOTION=1: 動きを減らす設定にしない(.ue-hl の枠のアニメーション付きで比べる)。CSS のアニメーション(マーカーの上下など)は、始まった時刻で位相が決まるので止める(同じ CSS なので、止めても比べる意味は変わらない)
   await page.context().addInitScript(() => { performance.now = () => 1000; });   // 点線の点滅を止める
   await page.addInitScript(() => { const st = document.createElement("style"); st.textContent = "#site-scene{display:none !important}"; document.addEventListener("DOMContentLoaded", () => document.head.appendChild(st)); });   // 背景の 3D(動く)が、半透明の部分に透けるので隠す
   // Unity 風の画面は、?debug=1 で状態(JS 版は window.__unity、C# 版は window.__unityCs)を読める(実入力の比較が、ギズモの位置・状態の比べに使う)
@@ -62,19 +62,34 @@ export async function shot(page, embed) {
   return page.screenshot({ clip: { x: box.x + inset, y: box.y + inset, width: box.width - inset * 2, height: box.height - inset * 2 } });
 }
 
-export function pixelDiff(a, b) {
+/** 画素の差。ignore は無視する長方形(画像の座標)。GPU_TOLERANT=1 のとき、案内の枠(.ue-hl)の中だけを、DOM の文字が一致していることを条件に無視するのに使う */
+export function pixelDiff(a, b, ignore = []) {
   const diff = new PNG({ width: a.width, height: a.height });
-  let over = 0, max = 0;
+  let over = 0, max = 0, ignored = 0;
+  const inIgnored = (x, y) => ignore.some((r) => x >= r.x - 1 && x <= r.x + r.w + 1 && y >= r.y - 1 && y <= r.y + r.h + 1);
   for (let i = 0; i < a.data.length; i += 4) {
     let d = 0;
     for (let c = 0; c < 3; c++) d = Math.max(d, Math.abs(a.data[i + c] - b.data[i + c]));
+    if (d > 8 && ignore.length && inIgnored((i / 4) % a.width, Math.floor(i / 4 / a.width))) { ignored++; d = 0; }
     max = Math.max(max, d);
     if (d > 8) over++;
     diff.data[i] = diff.data[i + 1] = diff.data[i + 2] = Math.min(255, d * 8); diff.data[i + 3] = 255;
   }
-  return { diff, over: (over / (a.width * a.height)) * 100, max };
+  return { diff, over: (over / (a.width * a.height)) * 100, max, ignored };
 }
 
+/** WebGL の描画が、ソフトウェア(SwiftShader)か、実機の GPU か。画素の厳しい比較(0 % / 8)は SwiftShader が前提(README) */
+export const rendererOf = (page) => page.evaluate(() => { const g = document.createElement("canvas").getContext("webgl2"); const e = g?.getExtension("WEBGL_debug_renderer_info"); return e ? g.getParameter(e.UNMASKED_RENDERER_WEBGL) : "unknown"; });
+
+/** GPU_TOLERANT=1: 案内の枠(.ue-hl)と吹き出しの中は、画素の差を無視する(実 GPU では、枠のある行の文字のアンチエイリアスが JS 版と違うことがある)。DOM の文字は別に比べる */
+export const GPU_TOLERANT = process.env.GPU_TOLERANT === "1";
+export const guideRects = (embed) => embed.evaluate((el) => {
+  const box = el.getBoundingClientRect();
+  return [...el.querySelectorAll(".ue-hl, .ue-hl-label:not([hidden])")].map((e) => { const r = e.getBoundingClientRect(); return { x: r.left - box.left - 10, y: r.top - box.top - 10, w: r.width, h: r.height }; });
+});
+
+/** Unity の画面の、ビルドの表示(ビルドしています… → 完了)が落ち着くまで待つ(表示が変わる 0.9 秒の境目で撮ると、片方だけ変わっている) */
+export const settleBuild = (embed) => embed.evaluate((el) => new Promise((res) => { const tick = () => { const pv = el.querySelector(".ue-preview"); if (!pv || pv.hidden || !pv.querySelector(".ue-progress")) res(); else setTimeout(tick, 30); }; tick(); setTimeout(res, 3000); }));
 
 /** /api/maintenance の requestfailed は、kit の MaintenanceInfo が 2 秒で打ち切る(仕様)ので、配信が重いと出る。csp-check.mjs と同じに、問題として数えない */
 export const realProblems = (page) => page.problems.filter((m) => !/Failed to load resource/.test(m) && !(m.startsWith("requestfailed:") && m.includes("/api/maintenance")));

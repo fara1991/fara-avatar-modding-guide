@@ -581,12 +581,14 @@ SwiftShader の Chromium・AOT なし・localhost（wrangler dev）。
 | ⑥ | DOM: 「画像で見る」に切り替えたあと `.tut-vp` の `tabindex`・`aria-label` が残る（JS 版）、「完了」のあと隠した吹き出しの文字が残る（JS 版） | JS 版は `dispose` で子だけ空にする・`applyHighlight` は表示するときだけ文字を書く | 同じ（始めたあとの空の `.tut-vp` に属性・最後の吹き出しの文字を保持） |
 | ⑦ | 入力欄（Position）に打った文字・フォーカス | `unity.js` は欄からの入力のあと欄を作り直さない・フォーカスを `keepFocus` で戻す | 打った文字はそのまま見せ（値が別の理由で変わったら状態の値）、フォーカスは `FocusRoot` で戻す |
 | ⑧ | 腕を振るポーズ・ビルドの表示の時刻 | 時計（`performance.now`・`setTimeout`）で決まる | 比較では時計を止める。C# のスケジュールは JS の `setTimeout`（`PracticeCsJsTutorial.SetTimer`）、チュートリアル内の待ちは `DelayAsync`（`Task.Delay` は JS コールバックの中で再開しない） |
+| ⑨ | 同じページに Unity と Blender の埋め込みがあると、Blender を始めたあと Unity の DOM だけが残り、Unity が二度と始まらない（レビュー M2。`tools/verify/practice-mixed.mjs` で再現） | 「いま WebGL を使っているチュートリアル」の登録（`active`）が `TutorialController` と `UnityTutorialController` で別の static で、片方が始まっても、もう片方が手放されなかった（gl.js の `start()` は前の WebGL を壊す） | 共通の登録 `ActiveGlView`（`Claim` が、新しいものが始まる前に、いまのものを `Suspend` する）。`practice-mixed.mjs`（`ma-outfit` の記事に `transform` の埋め込みを足して、Unity ↔ Blender を 5 回切り替え: canvas は 1 つ・もう一方に 3D ビューが残らない・Unity の DOM は Unity が持つときだけ）と `ActiveGlViewTests`。直す前は、Blender を始めたところで落ちる |
+| ⑩ | 実機の GPU・DPR が 1 でない画面で、画面全体の 3D（人形・方眼）が 1.1〜1.3 % ずれる（レビュー M1。`DPR=1.25 GPU=1`。SwiftShader でも DPR 1.25 で再現。Blender の `transform` も 0.12 %） | three.js は描画バッファを `floor(幅 × DPR)`、ビューポートを `round(幅 × DPR)` にする（小数の DPR で 1 画素大きく、はみ出した分は切れる）。`gl.js` はバッファの大きさをビューポートにしていた | `gl.js` のビューポートを `round(幅 × DPR)` に。DPR 1.5・2 は 0 % / 最大 1、1.25 は 0.003〜0.012 % / 最大 29 の残り（下の §15.5） |
 
 ### 15.4 計測 [実測]
 
 SwiftShader の Chromium・AOT なし・localhost（wrangler dev）。前は `develop`（#115 のマージ）を `git worktree` で同じ条件で publish したもの。
 
-- **配信物の大きさ（IL の dll。brotli）**: `Web` 306,453 → 388,885 バイト（92.9 → 115.1 KB、**+22.2 KB。全ページが読む**。`UnityEditorView`・`UnityCsEngine`・`UnityTutorialController` が主のアセンブリにあるため）、`Practice` 294,677 → 412,949（93.8 → 130.9 KB、+37.1 KB。遅れて読む）、`Render` 50,965 → 59,157（18.8 → 21.5 KB、+2.7 KB。遅れて読む）。JS（brotli）: `gl.js` 21.5 → 25.3 KB（7.5 → 8.3 KB）、`unity-ui.js` 9.2 KB（2.7 KB。`?engine=cs` のときだけ）、`practice-cs.js` 9.6 → 10.0 KB、`practice.css` 32.0 → 34.0 KB。`unity.js` は変えていない（71 KB。S7 まで残る）。
+- **配信物の大きさ（IL の dll。brotli）**: `Web` 95,178 → 119,987 バイト（brotli q11。独立レビューの再計測。**+24.8 KB。全ページが読む**。`UnityEditorView`・`UnityCsEngine`・`UnityTutorialController` が主のアセンブリにあるため）、`Practice` 294,677 → 412,949（93.8 → 130.9 KB、+37.1 KB。遅れて読む）、`Render` 50,965 → 59,157（18.8 → 21.5 KB、+2.7 KB。遅れて読む）。JS（brotli）: `gl.js` 21.5 → 25.3 KB（7.5 → 8.3 KB）、`unity-ui.js` 9.2 KB（2.7 KB。`?engine=cs` のときだけ）、`practice-cs.js` 9.6 → 10.0 KB、`practice.css` 32.0 → 34.0 KB。`unity.js` は変えていない（71 KB。S7 まで残る）。
 - **`/practice/unity` を開いて canvas が出るまで**（3 回）: Three.js 版 1.54 / 2.60 / 2.73 秒、C# 版 2.61 / 2.68 / 2.80 秒。転送量は 4,197 KB と 4,126 KB（C# 版は three.js・`unity.js` を読まず、`Practice`・`Render`・`gl.js`・`unity-ui.js` を読む）。記事（`/learn/unity/modular-avatar-outfit`）は 2.86 / 2.77 / 2.85 秒（JS）と 2.63 / 2.70 / 2.77 秒（C#）。
 - **「次へ（スキップ）」1 回（再生）**（`ma-outfit` の 11 回。クリック → 表示の更新まで）: Three.js 版 中央値 180 ms・最大 447 ms、C# 版 中央値 293 ms・最大 566 ms（Razor の描き直しを含む）。
 - テスト件数: `Practice.Tests` 349・`Render.Tests` 226・`Build.Tests` 47・`Web.Tests` 196・`Content.Tests` 26・node 52（検索の索引のテストは `SEARCH_INDEX_FILE` が要る）。
@@ -594,9 +596,19 @@ SwiftShader の Chromium・AOT なし・localhost（wrangler dev）。前は `de
 ### 15.5 確証が持てない点・S6 以降への申し送り
 
 - 実機の GPU・Firefox・Safari は未確認（SwiftShader の Chromium のみ）。**dev サイトでの確認**（特に Windows・Mac の Chrome での Unity の操作の手触り: ドラッグ・Alt ドラッグ・ホイール・右クリックのメニュー・入力欄、タッチ端末の「画像で見る」）が要る。
-- **主のアセンブリ（`Web`）が全ページで +22 KB（brotli）**。S4 の +14 KB と合わせて +36 KB。Razor の部品はルートコンポーネントとして主のアセンブリに置く必要があった（遅れて読むアセンブリには置けない）。S7 で `unity.js`・`tutorial.js` などを消すときに、全体の収支で見る（three.js の 260 KB を外せる）。`UnityEditorView` を別アセンブリに移せるかは未調査。
+- **主のアセンブリ（`Web`）が全ページで +24.8 KB（brotli q11。95,178 → 119,987 バイト）**。S4 の +14 KB と合わせて +39 KB。Razor の部品はルートコンポーネントとして主のアセンブリに置く必要があった（遅れて読むアセンブリには置けない）。S7 で `unity.js`・`tutorial.js` などを消すときに、全体の収支で見る（three.js の 260 KB を外せる）。`UnityEditorView` を別アセンブリに移せるかは未調査。
 - **Razor の描き直しのタイミング**: イベントのあとの次の描画の機会（JS 版は DOM を同期で書き換える）。画像比較・実入力の比較では差が出ていない。
 - Hierarchy の行の「ドラッグ中の影」は DOM を JS（`unity-ui.js`）が作る（Razor の外）。ドラッグの経路は `unity-compare`・`tutorial-input-compare`（Project → Avatar・Project → Element 0・Project → Scene）で確かめたが、Hierarchy の行どうしの付け替え（reparent）の実入力は、ロジックの突き合わせ（`UnityParityTests`）だけ。
 - 三角関数の最後の桁（float の 1 ulp）の違いが、ジオメトリの位置に 2e-7 まで出る。画素には出ていない（`unity-compare` 0.000 %）。
 - `tutorial.js` に、`?debug=1` のとき `window.__unity` を置く 1 行を足した（確認用。`tutorial-input-compare` が、ギズモの位置と状態の比べに使う）。
+- **画像比較の 0.000 % は、SwiftShader（既定。DPR 1）が前提**。実 GPU（`GPU=1`。RTX 4090・D3D11）でも DPR 1・1.5・2 は一致する（0 % / 最大 1）。`DPR=1.25` では、`ma-outfit` の手順 11（SDK のメニュー）と `unity-basics` の手順 9（Inspector の区切りの線 1 本）に、0.003〜0.012 %（最大 29。1 本の線・12 画素四方）の差が残り、`ma-outfit` は実行によっては Scene の上端・下端の 1 行（0.1 %）が違う（GPU のときだけ。原因は未特定）。レビューで見つかった「案内枠つきの Unity の手順の Hierarchy の行の文字の差（0.15〜1.29 %）」は、この小数の DPR のずれ（⑩）が主で、**CSS で消す対象の文字の描き方の差は再現できなかった**（`.ue-hl` の枠のある行の文字は、SwiftShader・GPU・DPR 1〜2 のどれでも JS 版と同じ。動きを減らさない設定 `MOTION=1` では枠の脈動の位相が違うので比べない）。`tutorial-compare.mjs` は、描画が実 GPU だと分かると、この前提を表示する。`GPU_TOLERANT=1` は、実 GPU 用に、案内の枠（`.ue-hl`）の中の画素の差を無視し、閾値を 0.2 % / 40 に緩める（DOM の文字は別に比べる。通常の SwiftShader の厳しさ 0 % / 8 は変えない）。
+- **Unity の Hierarchy の行どうしの付け替えの実入力**は、`unity-compare.mjs` に「行 → Scene」のドラッグを足した（何も起きないことの比べ）。両エンジンの描画の完了（ドラッグの影・ドロップ先の枠が消え、2 フレーム進む）を待ってから撮る（以前は、4 回に 2 回、最大 14 の揺れがあった）。4 回連続で一致。
 - 次は S6（共有ルーム）。S7 で three.js・`unity.js`・`tutorial.js`・`scenarios.js` などを消す。
+
+### 15.6 レビュー指摘への対応（head 5c01b89 のあと）
+
+- **M2**: ⑨（`ActiveGlView`・`practice-mixed.mjs`）。**M1**: ⑩と §15.5（SwiftShader 前提の明記・`GPU_TOLERANT`・`GPU=1`・`DPR`・`HEADED` の環境変数）。
+- **L1**（テストの穴）: `unity-cases.generate.mjs` に、SDK の集計（親が EditorOnly のときの子の除外・スキンドメッシュの数え方・PhysBone の数え方・アバターが無いとき）・Undo の上限（50）・`AssignMaterial` の番号の境目（枚数ちょうど = 末尾に足す）の 3 ケース（102 ケース・2,617 操作）。変異（Undo の上限 50 → 49・EditorOnly を親から伝えない・番号の境目を `>=` に・PhysBone を無効な親で数えない・スキンドメッシュを有効なものだけ数える）で、それぞれ落ちることを確かめた。UI から起こせる「親に EditorOnly を付けたときの SDK の集計」は、`unity-compare.mjs` の実入力にも 1 場面。
+- **L3**: `AssignMaterial` は、番号が 0..枚数の外なら何もしない（`unity.js` は範囲外でも配列を広げる（穴ができる）が、Inspector の欄からは起こせない。1e9 で固まらないための意図した差）。`UnityRobustnessTests`。
+- **L5**: JS モジュールの読み込み（`gl.js`・`practice-cs.js`・`unity-ui.js`）は、失敗した Task を static に残さず、次の呼び出しでやり直す（`RetryableTask`。`PracticeCsAssemblies` と同じ決まり）。`RetryableTaskTests`。
+- **L2**・**L4**: §15.5・§15.4。

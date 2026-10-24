@@ -34,3 +34,5 @@
   - `unity-lib.mjs` … ドラッグ・ギズモの位置・状態の読み取りと比べ（`unity-compare.mjs`・`tutorial-input-compare.mjs` の共通部品）
   - `tutorial-compare.mjs`・`tutorial-dom.mjs`・`tutorial-input-compare.mjs` は Unity の 2 本（`unity-basics`・`ma-outfit`）も比べる（`tutorial-input-compare` は `transform`・`unity-basics`・`ma-outfit` の実入力の列。`ONLY=<名前>`）
   - `practice.mjs` の `ENGINE=cs` は、`/practice/unity` の操作も C# 版で動かす。`csp-check.mjs` は `?engine=cs` の Unity 3 画面も見る
+  - **画像比較の 0.000 % は SwiftShader（既定。DPR 1）が前提**。実 GPU で描くときは `GPU=1`、画面の拡大率は `DPR=1.25` など、ウィンドウ付きは `HEADED=1`（`lib.mjs`）。実 GPU・小数の DPR では、案内の枠のある Unity の手順で、小さな差（0.003〜0.012 %。実行によっては Scene の上端・下端の 1 行 0.1 %）が出ることがある既知の差。`tutorial-compare.mjs` の `GPU_TOLERANT=1` が、案内の枠（`.ue-hl`）の中の画素の差を無視し、閾値を 0.2 % / 40 に緩める（DOM の文字は比べる。通常の厳しさは変わらない）。`MOTION=1` は動きを減らす設定を外す（枠の脈動の位相が違うので、比べる用ではない）
+  - `practice-mixed.mjs` … Unity と Blender の記事内チュートリアルが同じページにあるとき（`ma-outfit` の記事に `transform` を足して作る）、WebGL の切り替えで canvas が 1 つだけ・もう一方に 3D ビューが残らない

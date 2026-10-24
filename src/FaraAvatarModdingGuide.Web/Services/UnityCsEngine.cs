@@ -28,7 +28,7 @@ internal static partial class UnityUiJs
 /// </summary>
 public sealed class UnityCsEngine : IUnityCs
 {
-    private static Task? importingUi;
+    private static readonly RetryableTask importingUi = new();
 
     private readonly string rootId;
     private readonly string sceneViewId;
@@ -86,7 +86,7 @@ public sealed class UnityCsEngine : IUnityCs
     }
 
     /// <summary>unity-ui.js を読み込む(1 回だけ)。</summary>
-    public static Task ImportUiAsync() => importingUi ??= JSHost.ImportAsync("unity-ui", "../js/unity-ui.js");
+    public static Task ImportUiAsync() => importingUi.RunAsync(() => JSHost.ImportAsync("unity-ui", "../js/unity-ui.js"));
 
     /// <inheritdoc />
     public void AttachPractice()

@@ -81,6 +81,14 @@ const ACTIONS = [
   ["scene-pick-hoodie", async (p) => { const [x, y] = await at(p, 175, 190); await p.mouse.click(x, y); }],
   ["delete-key", async (p) => { await p.keyboard.press("Delete"); }],
   ["undo-delete", async (p) => { await p.keyboard.press("Control+z"); }],
+  // Hierarchy の行を Scene へドラッグして離す(何も起きない。ドラッグの影・ドロップ先の枠が残らない)
+  ["drag-row-to-scene", async (p) => { await dragTo(p, ROW("Hoodie"), "#unity-practice .ue-scene-view"); }],
+  // 親に EditorOnly を付けたときの SDK の集計(子も除かれる。UI から起こせる操作。レビュー L1)
+  ["select-hoodie-row", async (p) => p.click(ROW("Hoodie"))],
+  ["tag-parent-editoronly", async (p) => p.selectOption("#unity-practice .ue-tag", "EditorOnly")],
+  ["menu-sdk-again", async (p) => p.click('#unity-practice [data-menu="VRChat SDK"]')],
+  ["sdk-panel-parent-editoronly", async (p) => p.click('#unity-practice [data-menuitem="sdk-panel"]')],
+  ["sdk-close", async (p) => p.click('#unity-practice [data-sdk="close"]')],
 ];
 
 async function snapshotOf(p, cs) {
@@ -107,6 +115,9 @@ try {
     if (opts.noSnapshot) { compared++; return; }
     for (const p of [js, cs]) await p.mouse.move(2, 2);
     await sleep(name === "build-test" ? 200 : 400);
+    // 両方の描画が終わるのを待つ(ドラッグの影・ドロップ先の枠が消え、2 フレーム進む。C# 版は Razor の描き直しがあとから来る)
+    for (const p of [js, cs]) await p.waitForFunction(() => !document.querySelector("#unity-practice .ue-ghost, #unity-practice .ue-drop"), null, { timeout: 3000 }).catch(() => {});
+    for (const p of [js, cs]) await p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 50)))));
     const [a, b] = await Promise.all([snapshotOf(js, false), snapshotOf(cs, !SELF)]);
     let ok = true, note = "";
     if (a.png.width !== b.png.width || a.png.height !== b.png.height) { ok = false; note = "大きさが違う"; }

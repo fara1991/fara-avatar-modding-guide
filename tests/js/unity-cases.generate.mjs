@@ -68,6 +68,34 @@ cases.push({ name: "transform-edits", ops: [
   { k: "edit", path: "Avatar", prop: "p", axis: 1, value: Number.NaN }, frame(), { k: "instantiate", asset: "Hoodie", parent: null }, { k: "reparent", path: "Hoodie", parent: "Avatar" }, frame(),
   { k: "reparent", path: "Avatar/Hoodie", parent: "Avatar/Armature/Hips" }, { k: "reparent", path: "Avatar/Armature/Hips/Hoodie", parent: null }, { k: "undo" }, frame(), { k: "delete", path: "Avatar/Armature" }, frame(), { k: "undo" },
 ] });
+// SDK の集計(レビュー L1): 親が EditorOnly なら子も除く伝播・skinned の数え方・PhysBone の数え方(無効でも数える・EditorOnly の下は数えない)・アバターが無いとき
+cases.push({ name: "sdk-editoronly-propagation", practice: true, ops: [
+  { k: "instantiate", asset: "Hoodie", parent: "Avatar" }, { k: "setupOutfit", path: "Avatar/Hoodie" }, { k: "expand", path: "Avatar", on: true }, { k: "expand", path: "Avatar/Hoodie", on: true },
+  { k: "addComponent", path: "Avatar/Hoodie", type: "VRCPhysBone" }, { k: "addComponent", path: "Avatar/Hoodie/Hoodie_Mesh", type: "VRCPhysBone" },
+  { k: "addComponent", path: "Avatar/Body", type: "VRCPhysBone" }, { k: "addComponent", path: "Avatar/Armature/Hips", type: "VRCPhysBone" }, { k: "openSdk" }, frame(),
+  { k: "tag", path: "Avatar/Hoodie", tag: "EditorOnly" }, frame(),
+  { k: "tag", path: "Avatar/Hoodie", tag: "Untagged" }, { k: "tag", path: "Avatar/Hoodie/Hoodie_Mesh", tag: "EditorOnly" }, frame(),
+  { k: "tag", path: "Avatar/Hoodie/Hoodie_Mesh", tag: "Untagged" }, { k: "active", path: "Avatar/Hoodie", on: false }, frame(),
+  { k: "tag", path: "Avatar/Armature/Hips", tag: "EditorOnly" }, frame(), { k: "tag", path: "Avatar/Armature/Hips", tag: "Untagged" },
+  { k: "tag", path: "Avatar/Armature/Hips/Spine", tag: "EditorOnly" }, frame(), { k: "tag", path: "Avatar/Armature", tag: "EditorOnly" }, frame(),
+  { k: "tag", path: "Avatar/Armature", tag: "Untagged" }, { k: "tag", path: "Avatar/Armature/Hips/Spine", tag: "Untagged" },
+  { k: "instantiate", asset: "Hoodie", parent: "Avatar" }, { k: "tag", path: "Avatar/Hoodie (1)", tag: "EditorOnly" }, { k: "tag", path: "Avatar/Body", tag: "MainCamera" }, frame(),
+  { k: "tag", path: "Avatar", tag: "EditorOnly" }, frame(), { k: "tag", path: "Avatar", tag: "Untagged" },
+  { k: "build", kind: "test" }, { k: "advance", ms: 900 }, frame(), { k: "advance", ms: 4500 }, frame(),
+  { k: "delete", path: "Avatar" }, { k: "openSdk" }, { k: "build", kind: "upload" }, frame(), { k: "undo" }, { k: "openSdk" }, frame(),
+] });
+// Undo の上限(50。51 個目で最も古いものを捨てる)と、AssignMaterial の番号の境目(枚数ちょうどは末尾に足す)
+cases.push({ name: "undo-limit", detail: "light", ops: [
+  ...Array.from({ length: 55 }, (_, i) => ({ k: "active", path: "Avatar/Body", on: i % 2 === 1 })),
+  ...Array.from({ length: 53 }, () => ({ k: "undo" })),
+] });
+cases.push({ name: "material-slot-boundary", ops: [
+  { k: "select", path: "Avatar/Body" }, { k: "material", path: "Avatar/Body", slot: 1, material: "Hoodie_Red" }, { k: "material", path: "Avatar/Body", slot: 2, material: "Hoodie_lilToon" },
+  { k: "material", path: "Avatar/Body", slot: 3, material: "Hoodie_Red" }, { k: "material", path: "Avatar/Body", slot: 0, material: "Hoodie_Standard" }, { k: "frame", dt: 16, full: true },
+  { k: "undo" }, { k: "undo" }, { k: "instantiate", asset: "Hoodie", parent: "Avatar" }, { k: "select", path: "Avatar/Hoodie/Hoodie_Mesh" },
+  { k: "material", path: "Avatar/Hoodie/Hoodie_Mesh", slot: 1, material: "Hoodie_Red" }, { k: "material", path: "Avatar/Hoodie/Hoodie_Mesh", slot: 0, material: "Hoodie_Tex" },
+  { k: "material", path: "Avatar/Hoodie/Hoodie_Mesh", slot: 2, material: "Nothing" }, { k: "dropAsset", asset: "Hoodie_Red", target: { kind: "slot", slot: 2 } }, { k: "dropAsset", asset: "Hoodie_Red", target: { kind: "slot", slot: 3 } },
+] });
 // 視点・ギズモの確かめの共通の準備
 function scratch(setup) {
   const h = createHarness({ name: "scratch", ops: [], rect: RECT, client: CLIENT });

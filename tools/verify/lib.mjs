@@ -1,16 +1,18 @@
 import { chromium } from "playwright-core";
 export const EXE = "C:/Users/Fara/AppData/Local/ms-playwright/chromium-1208/chrome-win64/chrome.exe";
 /** ヘッドレスで WebGL を使う(練習の 3D。GPU が無くてもソフトウェア描画 SwiftShader で動く) */
-export const WEBGL_ARGS = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--enable-webgl"];
+export const WEBGL_ARGS = process.env.GPU === "1"
+  ? ["--use-angle=d3d11", "--ignore-gpu-blocklist", "--enable-webgl", "--enable-gpu-rasterization"]   // GPU=1: 実機の GPU で描く(SwiftShader との文字の描き方の差を調べる。画像比較の既定は SwiftShader)
+  : ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--enable-webgl"];
 export async function launch() {
   // 稀にブラウザの起動が落ちる(共有の ms-playwright を他の作業が触っているとき等)ので、数回試す
   for (let i = 1; ; i++) {
-    try { return await chromium.launch({ ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}), args: WEBGL_ARGS }); } catch (e) { if (i >= 6) throw e; await new Promise((r) => setTimeout(r, 2000)); }
+    try { return await chromium.launch({ headless: process.env.HEADED !== "1", ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}), args: WEBGL_ARGS }); } catch (e) { if (i >= 6) throw e; await new Promise((r) => setTimeout(r, 2000)); }
   }
 }
 /** ページを作り、コンソールエラー・CSP 違反・ページエラーを集める */
 export async function newPage(browser, { width = 1280, height = 800, theme = "dark", seed = {}, mobile = false } = {}) {
-  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, colorScheme: theme, hasTouch: mobile, isMobile: mobile });
+  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: Number(process.env.DPR || 1), colorScheme: theme, hasTouch: mobile, isMobile: mobile });
   await ctx.addInitScript(({ seed, theme }) => {
     try {
       if (!sessionStorage.getItem("__seeded")) {

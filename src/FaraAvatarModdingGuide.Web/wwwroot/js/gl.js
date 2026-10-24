@@ -388,7 +388,8 @@ function paint(s, f, n) {
   const count = f[19];
   const modes = PRIMITIVES(gl);
   const dpr = s.pixelRatio;
-  gl.viewport(0, 0, s.canvas.width, s.canvas.height);
+  // three.js は、描画バッファは floor(幅 × pixelRatio)、ビューポートは round(幅 × pixelRatio)(小数の DPR で 1 画素大きいことがある。はみ出した分は切れる)。同じにしないと、DPR 1.25 などで画面全体が 0.1 % ずれる
+  gl.viewport(0, 0, s.vw ?? s.canvas.width, s.vh ?? s.canvas.height);
   gl.depthMask(true);
   gl.disable(gl.SCISSOR_TEST);
   gl.clearColor(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2], 1);
@@ -447,6 +448,8 @@ function render(s, t) {
   const cw = Math.floor(w * s.pixelRatio), ch = Math.floor(h * s.pixelRatio);
   if (canvas.width !== cw) canvas.width = cw;
   if (canvas.height !== ch) canvas.height = ch;
+  s.vw = Math.round(w * s.pixelRatio);
+  s.vh = Math.round(h * s.pixelRatio);
   const t0 = performance.now();
   s.stats.frames++;
   // 座標の変換は getBoundingClientRect の小数の幅・高さ(viewport.js の ndc / toScreen と同じ)。C# が、縦横比には丸めた整数を使う(resize() は clientWidth / clientHeight)
