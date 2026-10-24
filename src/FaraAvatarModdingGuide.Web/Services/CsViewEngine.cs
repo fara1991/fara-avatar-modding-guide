@@ -69,7 +69,7 @@ public abstract class CsViewEngine : IDisposable
         core = new ViewportCore(new ViewRect(0, 0, 960, 540), CreateOptions());
         renderer = new SceneRenderer(core);   // 操作の前に作る(契約)
         OnCoreCreated(core);
-        started = PracticeGl.Start(RootId, OnFrame, OnPointerDown, OnPointerMove, OnPointerUp, OnWheel, OnKey, OnKeyUp, OnFocus, CanvasHostId);
+        started = PracticeGl.Start(RootId, OnFrame, OnPointerDown, OnPointerMove, OnPointerUp, OnWheel, OnKey, OnKeyUp, OnFocus, CanvasHostId, null, null);
         if (!started) return false;
         AfterInput();
         return true;

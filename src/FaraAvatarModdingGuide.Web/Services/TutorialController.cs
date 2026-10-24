@@ -72,6 +72,8 @@ internal sealed class TutorialController : ITutorialCs
     public TutorialInfo Info { get; }
     public TutorialUiState State { get; private set; }
     public PracticeHud Hud => engine?.Hud ?? new PracticeHud();
+    public IUnityCs? Unity => null;
+    public void OnUnityStarted(bool ok) { }
     public bool Numpad { get; set; }
     public event Action? Changed;
 

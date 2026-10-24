@@ -200,10 +200,10 @@ async function practiceHud(browser, base) {
 // ---------------------------------------------------------------- 2. /practice/unity の操作
 async function unityOps(browser, base, isNew) {
   const page = await open(browser, { width: 1280, height: 900 });
-  await page.goto(base + "/practice/unity?debug=1", { waitUntil: "load" });
+  await page.goto(base + "/practice/unity?debug=1" + (isNew ? ENGINE_QUERY : ""), { waitUntil: "load" });   // ENGINE=cs: Unity 風の画面も C# 版(Phase 3b S5)
   if (isNew) await page.waitForSelector(".mud-layout", { timeout: 90000 });
   await page.waitForSelector(".unity-editor canvas", { timeout: 60000 });
-  await page.waitForFunction(() => window.__unity?.findByName);
+  if (isNew && ENGINE === "cs") await page.waitForFunction(() => window.__unityCs?.nodes); else await page.waitForFunction(() => window.__unity?.findByName);
   // Project の Hoodie を、Hierarchy の Avatar へドラッグ
   const asset = page.locator('.ue-asset[data-asset]', { hasText: "Hoodie" }).first();
   const target = page.locator(".ue-scene-row, .ue-hier-list [data-node]", { hasText: "Avatar" }).first();
@@ -213,7 +213,7 @@ async function unityOps(browser, base, isNew) {
   await page.mouse.move(t.x + 20, t.y + t.height / 2, { steps: 8 });
   await page.mouse.up();
   await sleep(200);
-  const hoodie = await page.evaluate(() => !!window.__unity.findByName("Avatar/Hoodie"));
+  const hoodie = isNew && ENGINE === "cs" ? await page.evaluate(() => window.__unityCs.nodes.some((n) => n.path === "Avatar/Hoodie")) : await page.evaluate(() => !!window.__unity.findByName("Avatar/Hoodie"));
   await page.keyboard.press("w");
   const state = await page.evaluate(() => ({
     nodes: [...document.querySelectorAll(".ue-hier-list [data-node]")].map((e) => e.textContent.trim().replace(/\s+/g, " ")),

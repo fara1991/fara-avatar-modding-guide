@@ -56,7 +56,7 @@ public interface IPracticeCs : IDisposable
 public sealed record TutorialStepInfo(string Text, IReadOnlyList<string> Keys, string? Mouse);
 
 /// <summary>記事内チュートリアル 1 本の、画面に要る情報(題・手順・テンキーの有無)。</summary>
-public sealed record TutorialInfo(string Name, string Title, bool Numpad, IReadOnlyList<TutorialStepInfo> Steps);
+public sealed record TutorialInfo(string Name, string Title, bool Numpad, IReadOnlyList<TutorialStepInfo> Steps, string Engine = "blender");
 
 /// <summary>画面に出す、いまの手順・メッセージ・完了の状態。</summary>
 public sealed class TutorialUiState
@@ -88,6 +88,11 @@ public interface ITutorialCs : IDisposable
     TutorialInfo Info { get; }
     TutorialUiState State { get; }
     PracticeHud Hud { get; }
+    /// <summary>Unity 風の画面のチュートリアルのとき、その画面(Blender のものは null)。画面はこれがあるあいだ、UnityEditorView を置く。</summary>
+    IUnityCs? Unity { get; }
+    /// <summary>Unity 風の画面の WebGL を始めた(成功したか)。</summary>
+    void OnUnityStarted(bool ok);
+    bool Debug { get; set; }
     event Action? Changed;
     /// <summary>3D ビューを始める(canvas は #<c>canvasHostId</c>、操作を受ける要素は #<c>rootId</c>)。ほかのチュートリアルのビューは休止する。</summary>
     Task ActivateAsync();
@@ -117,11 +122,11 @@ public static class PracticeCsLoader
 public static class TutorialCsLoader
 {
     /// <summary>name の C# 版のチュートリアル(無ければ null。Unity のものなど)。rootId / canvasHostId は、ビューを置く要素の id。</summary>
-    public static async Task<ITutorialCs?> CreateAsync(string name, string rootId, string canvasHostId, string imageBase)
+    public static async Task<ITutorialCs?> CreateAsync(string name, string rootId, string canvasHostId, string sceneViewId, string imageBase)
     {
         await PracticeCsEngine.ImportAsync();
         await PracticeCsEngine.ImportHelperAsync();
-        return TutorialController.Create(name, rootId, canvasHostId, imageBase);
+        return TutorialController.Create(name, rootId, canvasHostId, imageBase) ?? UnityTutorialController.Create(name, rootId, canvasHostId, sceneViewId);
     }
 }
 

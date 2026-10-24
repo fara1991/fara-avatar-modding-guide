@@ -28,6 +28,22 @@ public enum DrawFlags
     PolygonOffset = 16,
     /// <summary>透明で両面の材質は、裏の面 → 表の面の 2 回に分けて描く(three.js が `transparent && side === DoubleSide` で行う。半透明の重なりの順が、三角形の並び順ではなく、裏が先・表があとになる)。</summary>
     TwoPass = 32,
+    /// <summary>裏の面を描かない(three.js の FrontSide。Blender の練習のオブジェクトは両面だが、Unity 風の部品・ギズモは表だけ)。</summary>
+    CullBack = 64,
+}
+
+/// <summary>背景。Flat = three.js の scene.background = 0x3d3d3d(Blender の練習)、Sky = Unity の既定の空に近いグラデーションの画像(Unity 風の Scene ビュー)。</summary>
+public enum FrameBackground { Flat = 0, Sky = 1 }
+
+/// <summary>
+/// 陰影のある面(Shading.Lit = MeshStandardMaterial)の光と材質。半球光(上が白、下が GroundGray)と平行光(LightDirection から原点へ)。
+/// 既定は Blender の練習のシーン(HemisphereLight(0xffffff, 0x444444, 1.1)・DirectionalLight(0xffffff, 1.2) を (4, -6, 8) に・roughness 0.75)。
+/// </summary>
+public sealed record FrameLighting(Vec3 LightDirection, float GroundGray, float HemiIntensity, float DirectionalIntensity, float Roughness)
+{
+    public static readonly FrameLighting Blender = new(new Vec3(4, -6, 8), 0x44 / 255f, 1.1f, 1.2f, 0.75f);
+    /// <summary>Unity 風: HemisphereLight(0xffffff, 0x5a5a5a, 1.3)・DirectionalLight(0xffffff, 1.4) を (2, 4, 3) に・roughness 0.8。</summary>
+    public static readonly FrameLighting Unity = new(new Vec3(2, 4, 3), 0x5a / 255f, 1.3f, 1.4f, 0.8f);
 }
 
 /// <summary>GPU に送る頂点のバッファ 1 つ。Data を差し替えるたびに <see cref="Version"/> が増え、描画層は増えたときだけ送り直す。</summary>
@@ -75,6 +91,8 @@ public sealed class Frame
     public required Mat4 View { get; init; }
     /// <summary>カメラのワールド座標(鏡面反射の視線。three.js は -modelViewPosition から求める)。</summary>
     public required Vec3 CameraPosition { get; init; }
+    public FrameLighting Lighting { get; init; } = FrameLighting.Blender;
+    public FrameBackground Background { get; init; } = FrameBackground.Flat;
     public required IReadOnlyList<DrawItem> Items { get; init; }
     public required IReadOnlyList<GpuBuffer> Uploads { get; init; }
     public required IReadOnlyList<int> Releases { get; init; }

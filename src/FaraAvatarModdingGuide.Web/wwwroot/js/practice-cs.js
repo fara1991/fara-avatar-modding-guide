@@ -48,8 +48,10 @@ export function positionMenu(rootId, x, y) {
 }
 
 // ---------------------------------------------------------------- 記事内チュートリアル
-/** C# 版のチュートリアルの名前(Practice の TutorialScenarios.All のキー。Practice.Tests が同じであることを確かめる)。ここに無いもの(Unity)は、今までの tutorial.js が動かす */
-export const CS_SCENARIOS = ["navigation-mouse", "navigation-numpad", "select", "transform", "edit-mode", "extrude-inset-loopcut", "bevel-merge", "mirror", "topology"];
+/** C# 版のチュートリアルの名前(Practice の TutorialScenarios.All のキー。Practice.Tests が同じであることを確かめる)。ここに無いものは、今までの tutorial.js が動かす */
+export const CS_SCENARIOS = ["navigation-mouse", "navigation-numpad", "select", "transform", "edit-mode", "extrude-inset-loopcut", "bevel-merge", "mirror", "topology", "unity-basics", "ma-outfit"];
+/** そのうち、Unity 風の画面のもの(data-engine="unity"。CSS が見る) */
+export const UNITY_SCENARIOS = ["unity-basics", "ma-outfit"];
 
 const DONE_KEY = "avatar-modding-guide.tutorials"; // { シナリオ名: 完了日時 }(tutorial.js と同じ)
 
@@ -170,7 +172,7 @@ export async function mount(container = document) {
   for (const el of container.querySelectorAll(".practice-embed[data-scenario]:not([data-cs])")) {
     if (!CS_SCENARIOS.includes(el.dataset.scenario)) continue;
     el.dataset.cs = "1";
-    el.dataset.engine = "blender";   // tutorial.js と同じ印(CSS は unity だけ見る)
+    el.dataset.engine = UNITY_SCENARIOS.includes(el.dataset.scenario) ? "unity" : "blender";   // tutorial.js と同じ印(CSS は unity だけ見る)
     if (!el.id) el.id = `tut-host-${nextHost++}`;
     const intro = el.innerHTML.trim();
     const component = await window.Blazor.rootComponents.add(el, "tutorial-embed", { scenario: el.dataset.scenario, intro, hostId: el.id, debug: new URLSearchParams(location.search).get("debug") === "1" });

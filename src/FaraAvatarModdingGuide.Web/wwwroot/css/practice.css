@@ -910,6 +910,9 @@
     outline-offset: -2px;
 }
 
+/* C# 版(Razor)は canvas を空の div(.practice-gl)に入れる。Unity 風の画面では、その div を無いものとして扱う(JS 版は Scene ビューの直下に canvas を置く。position:absolute のままだと、案内の枠が付いたとき Inspector の文字の描き方が変わる) */
+.ue-scene-view > .practice-gl { display: contents; }
+
 /* チュートリアルの案内（setHighlight） */
 .unity-editor .ue-hl {
     outline: 2px solid var(--violet);

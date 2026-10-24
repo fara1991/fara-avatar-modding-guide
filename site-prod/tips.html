@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="ja" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- SEO-HEAD:START -->
+    <title>TIPS - Avatar Modding Guide</title>
+    <meta name="description" content="スケールの未適用、法線の裏返り、Unity でピンクになる、Modular Avatar で服がついてこないなど、アバターづくりでよくあるつまずきと直し方です。" />
+    <link rel="canonical" href="https://avatar.fara-labs.com/tips" />
+    <meta property="og:site_name" content="Avatar Modding Guide" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="TIPS - Avatar Modding Guide" />
+    <meta property="og:description" content="スケールの未適用、法線の裏返り、Unity でピンクになる、Modular Avatar で服がついてこないなど、アバターづくりでよくあるつまずきと直し方です。" />
+    <meta property="og:url" content="https://avatar.fara-labs.com/tips" />
+    <meta property="og:image" content="https://avatar.fara-labs.com/og.png?v=1" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- SEO-HEAD:END -->
+    <!-- OGP 画像の大きさと説明。画像（og:image）そのものは SEO-HEAD の中に、Build が全ページに入れる(SiteBuilder の OgImageFile)。kit は width・height・alt を出さないので、全ページ共通の値をここに置く。
+         og:image の「後ろ」に並ぶ位置にする(SNS のクローラーは、直前の og:image に紐づけて読む)。画像を差し替えたら、SiteBuilder の OgImageVersion（?v=）と、ここの大きさ・説明を合わせる -->
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="紫色の方眼の床の上に、ワイヤーフレームの立体(立方体・円錐・球・トーラスなど)が浮かぶ絵" />
+    <base href="/" />
+    <!-- ファビコン。/favicon.ico は、ブラウザーがページの指定とは別に決まって取りに行く(無いと、存在しないパスなので 404 ページになる)。4 サイト共通の名前で、版は ?v=N で管理する(同じ名前のまま画像を直したら N を上げる)。SVG は対応するブラウザーで ico より優先して使われ、
+         apple-touch-icon は iOS のホーム画面用(不透明な背景つき)。ヘッダーのロゴとは別物(ロゴは画像を使わない) -->
+    <link rel="icon" href="/favicon.ico?v=2" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+    <!--
+        この index.html は、dotnet publish の出力としてテンプレートになる。Build（src/FaraAvatarModdingGuide.Build）が、
+        SEO-HEAD / SEO-BODY の区切りの間に、ページごとの head と本文を差し込んで、ページごとの HTML を書き出す。
+        WASM-ONLY の区切りで囲んだ部分（読み込み表示・Blazor のスクリプトなど）は、WebAssembly を使うページだけに残し、それ以外のページ（記事など）からは外す。
+        STATIC-ONLY の区切りで囲んだ部分は、その逆（WebAssembly を使わないページだけに残す）。
+        CSP（_headers）でインラインの script は止まるので、script は外部ファイルだけにする。
+    -->
+        <!-- 起動までの読み込み表示。静的な本文は、起動の前から見えたまま残す(本文を覆わない)。画面の右下に小さく「読み込み中…」だけを出す(操作は止めない:
+         pointer-events: none。45 秒たっても描かれないときだけ、案内と「再読み込み」のリンクに変わり、リンクだけ押せる)。
+         静的な本文の枠は、起動の後の画面と同じ構造・同じ位置(Build の StaticFrame)。起動すると、Blazor が #app の中身を置き換えて、boot-indicator.js(kit)がこの表示を外す。
+         最初に当てる(CSS の読み込み前にも色が合うように、インラインで書く)。60 秒の保険は、JS の RELEASE_MS と同じ秒数 -->
+    <style>
+        html, body { background: #f7f4fd; }
+        html[data-bs-theme="dark"], html[data-bs-theme="dark"] body { background: #0c0616; }
+        #boot-indicator {
+            position: fixed; right: 1rem; bottom: 3.4rem; z-index: 2147483000;
+            display: flex; align-items: center; gap: 0.6rem;
+            box-sizing: border-box; max-width: calc(100vw - 2rem); padding: 0.45rem 0.95rem;
+            border: 1px solid rgba(200, 170, 255, 0.3); border-radius: 999px;
+            background: rgba(26, 13, 51, 0.92); color: #f3edff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+            font-family: "Zen Kaku Gothic New", "Yu Gothic", system-ui, sans-serif;
+            pointer-events: none;
+            animation: boot-indicator-release 0s linear 60s forwards;
+        }
+        @keyframes boot-indicator-release { to { visibility: hidden; } }
+        .boot-indicator-spinner {
+            flex: none; width: 1rem; height: 1rem; box-sizing: border-box;
+            border: 0.17rem solid #c084fc; border-right-color: transparent; border-radius: 50%;
+            animation: boot-indicator-spin 0.75s linear infinite;
+        }
+        .boot-indicator-label { font-size: 0.8rem; font-weight: 700; line-height: 1.5; }
+        .boot-indicator-label:empty::before { content: "読み込み中…"; }
+        .boot-indicator-label a { color: #e9d5ff; font-weight: 700; text-decoration: underline; pointer-events: auto; }
+        #boot-indicator[data-state="slow"] { pointer-events: auto; }
+        #boot-indicator[data-state="slow"] .boot-indicator-spinner { animation: none; }
+        @keyframes boot-indicator-spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .boot-indicator-spinner { animation: none; }
+        }
+    </style>
+    <!-- JavaScript が無い環境: 読み込み表示は出さない。スマホは、サイドバー(ハンバーガーで開く一時的なメニュー。JavaScript が無いと開けない)を、本文とフッターの後ろに並べて出す(ページの移動に使える) -->
+    <noscript><style>
+        #boot-indicator { display: none; }
+        @media (max-width: 767.98px) {
+            .av-static { display: flex; flex-direction: column; }
+            .av-static .mud-main-content { order: 1; }
+            .av-static .fsk-sidebar { order: 2; display: block !important; position: static !important; width: auto !important; height: auto !important; overflow: visible !important; }
+        }
+    </style></noscript>
+    <!-- three.js の importmap(練習・記事内チュートリアルの 3D 表示)。three.js は自分のサイトに同梱している(lib/three/。jsDelivr は使わない)。
+         この文書で最初の module が読まれる前に置く必要がある(Blazor が後から足したものは効かない)ので、テンプレートの head に 1 つだけ置く。
+         CSP は script-src に importmap の sha256 を入れて許可する。ハッシュは Build が、この script の中身(<script> と </script> の間の文字を、そのまま)から計算して _headers に入れる。
+         ハッシュが変わるのは、この importmap の文字を変えたとき(マッピングを足すなど)だけ。three.js の版を上げるときは、lib/three/ のファイルを置き換えるだけで、
+         この行は変わらない(ハッシュも変わらない)。手順(r171 以降は three.core.js も要る)は docs/wasm-migration-plan.md の 13.2。手では直さない。 -->
+    <script type="importmap">{"imports":{"three":"/lib/three/three.module.js"}}</script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet" />
+        <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+        <!-- Bootstrap 5.3.3 から、このサイトで使っているクラスだけを取り出したもの（CDN の Bootstrap・Bootstrap Icons はやめた） -->
+    <link href="css/base.css" rel="stylesheet" />
+    <!-- 共通部品（fara-site-kit）の CSS。サイトの app.css より前に読む（同じ強さの規則は app.css が勝つ） -->
+    <link href="_content/FaraSiteKit.Razor/css/fara-site-kit.css" rel="stylesheet" />
+    <!-- 練習・記事内チュートリアルの見た目(SSR 版の site.css から移した)と、練習の JavaScript が出すアイコン(Bootstrap Icons のうち使うものだけを CSS にした) -->
+    <link href="css/bi-icons.css" rel="stylesheet" />
+    <link href="css/practice.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <!-- 描画の前に、保存されたテーマ（ライト／ダーク）と PC のサイドバーを隠す設定を html に反映する（kit の theme-init.js）。
+         data-storage-key・data-sidebar-key は、SiteOptions（Services/SiteInfo.cs の StorageKey・SidebarKey）と同じ値にする（違うと、起動の後にコンソールに警告が出る）。
+         storage-migrate.js は、SSR 版が保存していた形（文字列の light / dark）を、kit が読む形（JSON）に直す。theme-init.js より前に読む -->
+    <script src="js/storage-migrate.js"></script>
+    <script src="_content/FaraSiteKit.Razor/js/theme-init.js" data-storage-key="avatar-modding-guide.theme" data-sidebar-key="avatar-modding-guide.sidebar-hidden"></script>
+    <!-- 保存されたテーマが無い・読めないときの既定を、SSR 版と同じダークにする（theme-init.js は light にするので、直後に直す） -->
+    <script src="js/theme-default.js"></script>
+    <!-- STATIC-ONLY の区切りで囲んだ部分は、WebAssembly を使わないページ（記事など）だけに残す。「更新予定」の帯は、WebAssembly のページでは kit の MaintenanceBanner が出し、
+         静的 HTML のページでは、この notice.js が Worker の /api/maintenance を読んで出す -->
+    <!-- 背景の飾り(床の方眼と回る針金のアバター。2D の canvas)。全ページで 1 度だけ動く。ページを移っても、本文だけが替わるので、そのまま残る(多重に作らない) -->
+    <script src="js/bgscene.js" defer></script>
+    </head>
+<body>
+        <!-- 起動までの読み込み表示（右下の小さな表示）。#app の外に置く（Blazor が #app の中身を置き換えても残るので、boot-indicator.js（kit）が起動後に外す）。
+         静的な本文は、起動の前から見えたまま残す（検索エンジン・JavaScript が無い環境のため）。文言は CSS（:empty::before）で出す -->
+    <div id="boot-indicator" class="boot-indicator">
+        <div class="boot-indicator-spinner" aria-hidden="true"></div>
+        <span class="boot-indicator-label" role="status" aria-live="polite" aria-label="読み込み中"></span>
+    </div>
+        <div id="app">
+        <!-- SEO-BODY:START -->
+    <div class="entry-static av-static">
+<header class="mud-appbar mud-appbar-fixed-top mud-elevation-0 fsk-header">
+<div role="toolbar" class="mud-toolbar mud-toolbar-appbar">
+<div class="fsk-scroll-progress" aria-hidden="true" style="--scroll-progress: 0.0000;"></div>
+<span class="mud-button-root mud-icon-button mud-inherit-text mud-ripple mud-ripple-icon fsk-menu-toggle" aria-hidden="true"><span class="mud-icon-button-label"><svg class="mud-icon-root mud-svg-icon mud-icon-size-medium" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></span></span>
+<a class="fsk-brand" href="/" title="ホームへ">Avatar Modding Guide</a>
+<div class="av-search av-pc" role="search" aria-hidden="true">
+<svg class="av-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" class="av-search-input" placeholder="検索（例: 押し出し、Ctrl+R、ウェイト）" autocomplete="off" spellcheck="false" tabindex="-1" readonly="readonly" aria-hidden="true">
+<span class="av-search-hint" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+</div>
+<div class="av-sw av-pc" aria-hidden="true"><span class="av-sw-track"></span><span class="av-sw-thumb">
+<span class="av-sw-moon"><svg class="mud-icon-root mud-svg-icon mud-icon-size-medium" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><rect fill="none" height="24" width="24"/><path d="M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36c-0.98,1.37-2.58,2.26-4.4,2.26 c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg></span><span class="av-sw-sun"><svg class="mud-icon-root mud-svg-icon mud-icon-size-medium" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><rect fill="none" height="24" width="24"/><path d="M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0 c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2 c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1 C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06 c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41 l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41 c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36 c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg></span>
+</span></div>
+<span class="mud-button-root mud-icon-button mud-inherit-text mud-ripple mud-ripple-icon fsk-search-toggle av-sp" aria-hidden="true"><span class="mud-icon-button-label"><svg class="mud-icon-root mud-svg-icon mud-icon-size-medium" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></span></span>
+</div>
+</header>
+<aside id="fsk-sidebar" class="mud-drawer mud-drawer-fixed mud-drawer-pos-left mud-drawer--open mud-drawer--initial mud-drawer-sm mud-drawer-clipped-always mud-elevation-0 mud-drawer-mini fsk-sidebar">
+<div class="mud-drawer-content">
+<nav class="mud-navmenu mud-navmenu-default mud-navmenu-margin-none fsk-nav">
+<div class="mud-nav-item"><a href="/" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><div class="mud-nav-link-text">ホーム</div></a></div>
+<div class="mud-nav-item"><a href="/learn" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"/></svg><div class="mud-nav-link-text">目次</div></a></div>
+<div class="fsk-nav-section">Blender</div>
+<div class="mud-nav-item"><a href="/learn/getting-started" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g><rect fill="none" height="24" width="24"/></g><g><g><path d="M9.19,6.35c-2.04,2.29-3.44,5.58-3.57,5.89L2,10.69l4.05-4.05c0.47-0.47,1.15-0.68,1.81-0.55L9.19,6.35L9.19,6.35z M11.17,17c0,0,3.74-1.55,5.89-3.7c5.4-5.4,4.5-9.62,4.21-10.57c-0.95-0.3-5.17-1.19-10.57,4.21C8.55,9.09,7,12.83,7,12.83 L11.17,17z M17.65,14.81c-2.29,2.04-5.58,3.44-5.89,3.57L13.31,22l4.05-4.05c0.47-0.47,0.68-1.15,0.55-1.81L17.65,14.81 L17.65,14.81z M9,18c0,0.83-0.34,1.58-0.88,2.12C6.94,21.3,2,22,2,22s0.7-4.94,1.88-6.12C4.42,15.34,5.17,15,6,15 C7.66,15,9,16.34,9,18z M13,9c0-1.1,0.9-2,2-2s2,0.9,2,2s-0.9,2-2,2S13,10.1,13,9z"/></g></g></svg><div class="mud-nav-link-text">はじめに<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/basics" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></svg><div class="mud-nav-link-text">基本操作<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/modeling" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M18.25 7.6l-5.5-3.18c-.46-.27-1.04-.27-1.5 0L5.75 7.6c-.46.27-.75.76-.75 1.3v6.35c0 .54.29 1.03.75 1.3l5.5 3.18c.46.27 1.04.27 1.5 0l5.5-3.18c.46-.27.75-.76.75-1.3V8.9c0-.54-.29-1.03-.75-1.3zM7 14.96v-4.62l4 2.32v4.61l-4-2.31zm5-4.03L8 8.61l4-2.31 4 2.31-4 2.32zm1 6.34v-4.61l4-2.32v4.62l-4 2.31zM7 2H3.5C2.67 2 2 2.67 2 3.5V7h2V4h3V2zm10 0h3.5c.83 0 1.5.67 1.5 1.5V7h-2V4h-3V2zM7 22H3.5c-.83 0-1.5-.67-1.5-1.5V17h2v3h3v2zm10 0h3.5c.83 0 1.5-.67 1.5-1.5V17h-2v3h-3v2z"/></svg><div class="mud-nav-link-text">モデリング<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/materials" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g><rect fill="none" height="24" width="24"/></g><g><path d="M12,2C6.49,2,2,6.49,2,12s4.49,10,10,10c1.38,0,2.5-1.12,2.5-2.5c0-0.61-0.23-1.2-0.64-1.67c-0.08-0.1-0.13-0.21-0.13-0.33 c0-0.28,0.22-0.5,0.5-0.5H16c3.31,0,6-2.69,6-6C22,6.04,17.51,2,12,2z M17.5,13c-0.83,0-1.5-0.67-1.5-1.5c0-0.83,0.67-1.5,1.5-1.5 s1.5,0.67,1.5,1.5C19,12.33,18.33,13,17.5,13z M14.5,9C13.67,9,13,8.33,13,7.5C13,6.67,13.67,6,14.5,6S16,6.67,16,7.5 C16,8.33,15.33,9,14.5,9z M5,11.5C5,10.67,5.67,10,6.5,10S8,10.67,8,11.5C8,12.33,7.33,13,6.5,13S5,12.33,5,11.5z M11,7.5 C11,8.33,10.33,9,9.5,9S8,8.33,8,7.5C8,6.67,8.67,6,9.5,6S11,6.67,11,7.5z"/></g></svg><div class="mud-nav-link-text">マテリアルとテクスチャ<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/rigging" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/></svg><div class="mud-nav-link-text">リギング<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="fsk-nav-section">Unity</div>
+<div class="mud-nav-item"><a href="/learn/unity" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g fill-rule="evenodd"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/></g></svg><div class="mud-nav-link-text">Unity でアバターを整える<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="fsk-nav-section">VRChat</div>
+<div class="mud-nav-item"><a href="/learn/vrchat" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg><div class="mud-nav-link-text">VRChat にアップロードする<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/vrchat-features" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg><div class="mud-nav-link-text">メニュー・表情・揺れもの<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="fsk-nav-section">通しで作る</div>
+<div class="mud-nav-item"><a href="/learn/modding" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path clip-rule="evenodd" d="M0 0h24v24H0z" fill="none"/><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg><div class="mud-nav-link-text">実践：アバター改変<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/avatar-clothing" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g><rect fill="none" height="24" width="24"/></g><g><g><path d="M13.94,8.31C13.62,7.52,12.85,7,12,7s-1.62,0.52-1.94,1.31L7,16h3v6h4v-6h3L13.94,8.31z"/><circle cx="12" cy="4" r="2"/></g></g></svg><div class="mud-nav-link-text">実践：アバター用衣装の作成<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="fsk-nav-section">リファレンス</div>
+<div class="mud-nav-item"><a href="/shortcuts" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/><path d="M0 0h24v24H0zm0 0h24v24H0z" fill="none"/></svg><div class="mud-nav-link-text">ショートカット一覧</div></a></div>
+<div class="mud-nav-item"><a href="/glossary" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg><div class="mud-nav-link-text">用語集</div></a></div>
+<div class="mud-nav-item"><a href="/howto" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg><div class="mud-nav-link-text">何て名前？</div></a></div>
+<div class="mud-nav-item"><a href="/tips" class="mud-nav-link mud-ripple active" aria-current="page"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><div class="mud-nav-link-text">TIPS</div></a></div>
+<div class="mud-nav-item"><a href="/qa" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg><div class="mud-nav-link-text">改変 Q&amp;A</div></a></div>
+<div class="mud-nav-item"><a href="/addons" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg><div class="mud-nav-link-text">アドオン</div></a></div>
+<div class="mud-nav-item"><a href="/links" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg><div class="mud-nav-link-text">リンク集</div></a></div>
+<div class="mud-nav-item"><a href="/changelog" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg><div class="mud-nav-link-text">更新履歴</div></a></div>
+<div class="fsk-nav-section">練習</div>
+<div class="mud-nav-item"><a href="/practice" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g><rect fill="none" height="24" width="24"/></g><g><g><path d="M21.58,16.09l-1.09-7.66C20.21,6.46,18.52,5,16.53,5H7.47C5.48,5,3.79,6.46,3.51,8.43l-1.09,7.66 C2.2,17.63,3.39,19,4.94,19h0c0.68,0,1.32-0.27,1.8-0.75L9,16h6l2.25,2.25c0.48,0.48,1.13,0.75,1.8,0.75h0 C20.61,19,21.8,17.63,21.58,16.09z M11,11H9v2H8v-2H6v-1h2V8h1v2h2V11z M15,10c-0.55,0-1-0.45-1-1c0-0.55,0.45-1,1-1s1,0.45,1,1 C16,9.55,15.55,10,15,10z M17,13c-0.55,0-1-0.45-1-1c0-0.55,0.45-1,1-1s1,0.45,1,1C18,12.55,17.55,13,17,13z"/></g></g></svg><div class="mud-nav-link-text">操作の練習</div></a></div>
+<div class="mud-nav-item"><a href="/practice/unity" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g fill-rule="evenodd"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/></g></svg><div class="mud-nav-link-text">Unity の練習</div></a></div>
+<div class="mud-nav-item"><a href="/practice/room" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><rect fill="none" height="24" width="24"/><g><path d="M12,12.75c1.63,0,3.07,0.39,4.24,0.9c1.08,0.48,1.76,1.56,1.76,2.73L18,18H6l0-1.61c0-1.18,0.68-2.26,1.76-2.73 C8.93,13.14,10.37,12.75,12,12.75z M4,13c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2s-2,0.9-2,2C2,12.1,2.9,13,4,13z M5.13,14.1 C4.76,14.04,4.39,14,4,14c-0.99,0-1.93,0.21-2.78,0.58C0.48,14.9,0,15.62,0,16.43V18l4.5,0v-1.61C4.5,15.56,4.73,14.78,5.13,14.1z M20,13c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2s-2,0.9-2,2C18,12.1,18.9,13,20,13z M24,16.43c0-0.81-0.48-1.53-1.22-1.85 C21.93,14.21,20.99,14,20,14c-0.39,0-0.76,0.04-1.13,0.1c0.4,0.68,0.63,1.46,0.63,2.29V18l4.5,0V16.43z M12,6c1.66,0,3,1.34,3,3 c0,1.66-1.34,3-3,3s-3-1.34-3-3C9,7.34,10.34,6,12,6z"/></g></svg><div class="mud-nav-link-text">みんなで練習</div></a></div>
+<div class="fsk-nav-section">このサイトについて</div>
+<div class="mud-nav-item"><a href="/report" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/></svg><div class="mud-nav-link-text">問い合わせ</div></a></div>
+<div class="mud-nav-item"><a href="/privacy" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g><rect fill="none" height="24" width="24"/><path d="M12,1L3,5v6c0,5.55,3.84,10.74,9,12c5.16-1.26,9-6.45,9-12V5L12,1L12,1z M11,7h2v2h-2V7z M11,11h2v6h-2V11z"/></g></svg><div class="mud-nav-link-text">プライバシーポリシー</div></a></div>
+</nav>
+</div>
+</aside>
+<div class="mud-main-content">
+<main id="fsk-main" tabindex="-1"><article class="fsk-content">
+<h1>TIPS</h1>
+<p class="lead">アバターづくりでよくあるつまずきを、症状・原因・直し方でまとめました。言葉の意味は <a href="/glossary">用語集</a>、操作の名前は <a href="/howto">何て名前？</a>、手順や「どうすれば？」は <a href="/qa">改変 Q&amp;A</a> へ。</p>
+<div class="tips-filter mb-4"><input type="search" class="form-control mb-2" placeholder="症状で絞り込む（例: ピンク、黒い、ボーン）" aria-label="この一覧を絞り込む" autocomplete="off" /><div class="d-flex flex-wrap gap-2" role="group" aria-label="タグで絞り込む"><button type="button" class="btn btn-sm btn-primary" data-tag="" aria-pressed="true">すべて</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="Blender" aria-pressed="false">Blender</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="Unity" aria-pressed="false">Unity</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="VRChat" aria-pressed="false">VRChat</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="Modular Avatar" aria-pressed="false">Modular Avatar</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="リギング" aria-pressed="false">リギング</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="衣装" aria-pressed="false">衣装</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="マテリアル" aria-pressed="false">マテリアル</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="PhysBone" aria-pressed="false">PhysBone</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="モデリング" aria-pressed="false">モデリング</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="ウェイト" aria-pressed="false">ウェイト</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="VRM" aria-pressed="false">VRM</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="書き出し" aria-pressed="false">書き出し</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="軽量化" aria-pressed="false">軽量化</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="アニメーション" aria-pressed="false">アニメーション</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="規約" aria-pressed="false">規約</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="表情" aria-pressed="false">表情</button><button type="button" class="btn btn-sm btn-outline-primary" data-tag="source:discord" aria-pressed="false">Discord より</button></div><p class="small text-body-secondary mt-2 mb-0" aria-live="polite">60 件</p></div><div class="row g-3">
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="unapplied-scale" data-tags="Blender|書き出し|モデリング" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#unapplied-scale" class="tip-anchor">スケールを適用していない</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">書き出し</span><span class="tip-tag">モデリング</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>ソリッド化の厚みやベベルの幅が軸ごとに違う。Unity に入れると大きさが 100 倍・0.01 倍になる。</dd><dt>原因</dt><dd>オブジェクトモードで拡大縮小すると、メッシュではなくオブジェクトの「スケール」の値が変わる。モディファイアーや書き出しはその値の影響を受ける。</dd><dt>直し方</dt><dd><ul>
+<li>オブジェクトを選んで <kbd>Ctrl</kbd>+<kbd>A</kbd> &gt; <strong>スケール</strong>（書き出し前は <strong>全トランスフォーム</strong>）</li>
+<li>サイドバー（<kbd>N</kbd>）でスケールが 1.000 になっていることを確かめる</li>
+<li>アーマチュアで動かしているメッシュは、アーマチュアと一緒に適用する</li>
+</ul></dd></dl>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><p><strong>アバターと服を結合（Ctrl+J）したら大きさが変わった</strong></p>
+<p>アーマチュアやメッシュのスケールが 1 になっていないと、結合時に片方の大きさが変わります。結合前にそれぞれ Ctrl+A → 全トランスフォームを適用してスケールを 1 にします。</p>
+<ol>
+<li><code>N</code> でサイドバーを開き、アバターと服それぞれのアーマチュア（とメッシュ）のスケールが <code>1</code> か確認します。</li>
+<li>1 でないものを選択し、<code>Ctrl+A</code> → <strong>全トランスフォーム</strong> を適用します。見た目はそのままでスケールが 1 になります。</li>
+<li>両方が 1 になった状態で結合します。</li>
+</ol>
+<ul>
+<li>メッシュ結合で「衣装が素体に対して大きく表示される」場合も同じく適用漏れが原因です。</li>
+<li>FBX の読み込み直後はアーマチュアに 0.01 などのスケールが付いていることがあります。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="適用"><kbd>Ctrl+A</kbd></a><a href="/shortcuts?category=%E8%A6%96%E7%82%B9" class="text-decoration-none" title="サイドバー"><kbd>N</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/basics/transform">移動・回転・スケール</a><span class="text-body-secondary"> / </span><a href="/learn/avatar-clothing/export-fbx">FBX に書き出す</a></div><div><span class="tip-refs-label">関連</span><a href="/glossary#apply-transform">トランスフォームの適用</a></div><div><span class="tip-refs-label">関連語</span><span class="tip-keywords">Ctrl+A</span></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="flipped-normals" data-tags="Blender|Unity|モデリング" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#flipped-normals" class="tip-anchor">面が黒い・Unity で一部が透けて見えない</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">Unity</span><span class="tip-tag">モデリング</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>マテリアルプレビューで一部の面が黒い。Unity では、その面が裏からしか見えない（透明に見える）。</dd><dt>原因</dt><dd>面の表裏（法線）が裏返っている。ミラーや押し出しのあとに起きやすい。</dd><dt>直し方</dt><dd><ul>
+<li>3D ビューの「オーバーレイ &gt; 面の向き」で確認する（表が青、裏が赤）</li>
+<li>編集モードで <kbd>A</kbd> → <kbd>Shift</kbd>+<kbd>N</kbd>（面の向きを外側に揃える）</li>
+<li>直らない面だけ選んで「メッシュ &gt; ノーマル &gt; 反転」</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E3%83%A2%E3%83%87%E3%83%AA%E3%83%B3%E3%82%B0" class="text-decoration-none" title="面の向きを外側に揃える"><kbd>Shift+N</kbd></a><a href="/shortcuts?category=%E9%81%B8%E6%8A%9E" class="text-decoration-none" title="全選択"><kbd>A</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/modeling/topology">トポロジーの整理</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="duplicate-vertices-tip" data-tags="Blender|モデリング" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#duplicate-vertices-tip" class="tip-anchor">スムーズにすると黒い筋が出る</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">モデリング</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>スムーズシェードにすると線状の影や筋が出る。自動ウェイトが失敗する。</dd><dt>原因</dt><dd>同じ位置に頂点が重なっている（押し出しのキャンセル、ミラーの中央、統合のあとなど）。</dd><dt>直し方</dt><dd><ul>
+<li>編集モードで <kbd>A</kbd> → <kbd>M</kbd> &gt; <strong>距離で</strong></li>
+<li>画面左下に「○個の頂点を削除」と出る。消えた数が 0 なら別の原因（法線の裏返りなど）</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="コレクションへ移動"><kbd>M</kbd></a><a href="/shortcuts?category=%E9%81%B8%E6%8A%9E" class="text-decoration-none" title="全選択"><kbd>A</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/modeling/topology">トポロジーの整理</a><span class="text-body-secondary"> / </span><a href="/learn/modeling/bevel-knife-merge">ベベル・ナイフ・マージ・分離</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="pink-material" data-tags="Unity|マテリアル" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#pink-material" class="tip-anchor">Unity でマテリアルがピンク（マゼンタ）になる</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">マテリアル</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>アバターや衣装を入れたら、表面が真っピンクになる。</dd><dt>原因</dt><dd>マテリアルが使うシェーダーがプロジェクトに無い。衣装が lilToon などを前提にしているのに、プロジェクトに入っていないことが多い。</dd><dt>直し方</dt><dd><ul>
+<li>衣装の説明で、必要なシェーダー（lilToon など）とバージョンを確かめる</li>
+<li>VCC / ALCOM のパッケージ、または配布元の unitypackage でシェーダーを入れる</li>
+<li>入れたあとも直らなければ、マテリアルの Inspector でシェーダーを選び直す</li>
+</ul></dd></dl>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><p><strong>アバターや衣装がピンク色（マゼンタ）で表示されるのはなぜですか？</strong></p>
+<p>マテリアルが参照しているシェーダーがプロジェクトに入っていないか、読み込みに失敗しています。作者が指定するシェーダーを導入し、直らなければシェーダーを Reimport します。</p>
+<ul>
+<li>ピンク色は「シェーダーが見つからない／コンパイルできない」状態です。</li>
+<li>対処
+<ol>
+<li>アバター・衣装の説明書で指定されているシェーダー（lilToon、UTS2、Poiyomi など）を導入します。</li>
+<li>導入後も直らない場合は、該当シェーダーのフォルダを右クリック → <code>Reimport</code> を試します。</li>
+<li>それでも駄目ならアバターのアセットを一度削除し、シェーダー → アバターの順にインポートし直します。</li>
+</ol>
+</li>
+<li>マテリアルを選択し、Inspector 上部の <code>Shader</code> 欄が正しいシェーダーになっているかも確認します。</li>
+<li>VRM（MToon）向けの書き出しで MToon 以外のシェーダーを使うと、Standard シェーダー扱いになり金属のような見た目になることがあります（<a href="/qa#vrm-mtoon-conversion">VRM の MToon 変換</a>）。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/materials/for-unity">Unity / VRChat 向けのマテリアルの注意点</a></div><div><span class="tip-refs-label">関連</span><a href="/glossary#shader">シェーダー</a></div><div><span class="tip-refs-label">関連語</span><span class="tip-keywords">Reimport / UTS2</span></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="ma-bone-mismatch" data-tags="Unity|Modular Avatar|リギング" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#ma-bone-mismatch" class="tip-anchor">Modular Avatar で服が体についてこない</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">Modular Avatar</span><span class="tip-tag">リギング</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>Setup Outfit をしたのに、アバターが動くと服がその場に残る・ずれる。</dd><dt>原因</dt><dd>衣装のボーン名がアバターのボーン名と合っていない（別のアバター向けの衣装、名前の前後に余計な文字があるなど）。Setup Outfit が衣装のアーマチュアを見つけられていないこともある。</dd><dt>直し方</dt><dd><ul>
+<li>衣装がそのアバターに対応しているか確かめる（対応アバター以外は、ボーンの調整が必要）</li>
+<li>衣装のアーマチュアに <strong>MA Merge Armature</strong> が付いているか、Merge Target がアバターの Armature か確かめる</li>
+<li>名前の前後の違いは、MA Merge Armature の Prefix / Suffix で合わせる</li>
+<li>Build &amp; Test で実際に動かして確かめる</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/avatar-clothing/unity-setup">Unity で着せる（Modular Avatar）</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="clothes-clip-through" data-tags="Blender|ウェイト|Unity" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#clothes-clip-through" class="tip-anchor">体が服を突き抜ける</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">ウェイト</span><span class="tip-tag">Unity</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>腕を曲げたりしゃがんだりすると、体が服の外に出てくる。</dd><dt>原因</dt><dd>服と体のウェイトが合っていない、または服が体に近すぎる。</dd><dt>直し方</dt><dd><ul>
+<li>服のウェイトを体から転送し直す（データ転送）</li>
+<li>服を少しだけ外に膨らませる（編集モードで <kbd>Alt</kbd>+<kbd>S</kbd>）</li>
+<li>服で隠れる部分の体は、シェイプキーで縮めるか、服の下の体のメッシュを消す</li>
+</ul></dd></dl>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><p><strong>衣装から肌が突き抜ける（貫通する）ときの対策</strong></p>
+<p>主な対策は、①見えない素体メッシュを消す、②素体を細くするシェイプキーを作る、③衣装を少し膨らませる、④素体と衣装の頂点数・位置を揃える、⑤ウェイトを揃える、です。関節まわりが特に貫通しやすいです。</p>
+<p><strong>原因</strong></p>
+<ul>
+<li>素体と衣装の頂点の数・位置が違うと、曲げたときにどちらかがはみ出します（頂点が少ない側が内側の頂点を突き抜けやすい）。</li>
+<li>素体と衣装でウェイトや関節位置が違う。</li>
+</ul>
+<p><strong>対策</strong></p>
+<ol>
+<li><strong>素体メッシュを消す</strong>: 衣装で隠れる部分なら一番確実です。メッシュが分かれていれば軽量化にもなります。</li>
+<li><strong>素体を細くするシェイプキー</strong>: 消すのが不安なら、肩・肘・膝・脚の付け根など関節まわりや脇の下を細くするシェイプキーを作り、衣装に合わせて値を入れます。Unity 側で調整できるので、非対応衣装も Unity だけで済む場合があります。</li>
+<li><strong>衣装を少し膨らませる</strong>: 貫通箇所だけ外側に出します。</li>
+<li><strong>頂点数・位置を揃える</strong>: 貫通箇所を細分化してポリゴンを増やす、など。</li>
+<li><strong>ウェイトを揃える</strong>: 素体からウェイトを転送します（<a href="/howto#copy-weights">ウェイト転送</a>）。体のウェイトが入り組んだ箇所（Spine と Chest の境目など）は、捻ると貫通しやすくなります。</li>
+<li><strong>素体に衣装と同じ色を塗る</strong>: テクスチャ側でごまかす方法もあります。</li>
+</ol>
+<ul>
+<li>Unity だけで行う場合は、体を細くするシェイプキーを自動作成するエディタ拡張（DietShaper など）も使えます。</li>
+<li>何枚も重なった衣装で肌が見えない部分は、貫通防止用のシェイプキーでまとめて絞るのが現実的です。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E3%83%A2%E3%83%87%E3%83%AA%E3%83%B3%E3%82%B0" class="text-decoration-none" title="収縮/膨張"><kbd>Alt+S</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/avatar-clothing/weight-transfer">ウェイトを体から転送する</a></div><div><span class="tip-refs-label">関連</span><a href="/glossary#shape-key">シェイプキー</a></div><div><span class="tip-refs-label">関連語</span><span class="tip-keywords">DietShaper / メッシュ削除</span></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="fbx-leaf-bones" data-tags="Blender|Unity|書き出し" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#fbx-leaf-bones" class="tip-anchor">Unity で余計なボーン（_end）が増えている</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">Unity</span><span class="tip-tag">書き出し</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>書き出した FBX を Unity に入れると、ボーンの先に「〜_end」というボーンが増えている。</dd><dt>原因</dt><dd>FBX 書き出しの「リーフボーン追加」（Add Leaf Bones）がオンになっている。</dd><dt>直し方</dt><dd><ul>
+<li>FBX の書き出しで、アーマチュアの <strong>リーフボーン追加</strong> をオフにする</li>
+<li>あわせて「選択したオブジェクト」で、服とアーマチュアだけを書き出す</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/avatar-clothing/export-fbx">FBX に書き出す</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="fbx-rotation" data-tags="Blender|Unity|書き出し" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#fbx-rotation" class="tip-anchor">Unity で服が 90&#176; 回っている・寝ている</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">Unity</span><span class="tip-tag">書き出し</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>FBX を Unity に置くと、横倒しになっている。Rotation に -90 などの値が入っている。</dd><dt>原因</dt><dd>Blender（Z が上）と Unity（Y が上）の軸の違いが、オブジェクトの回転として残っている。</dd><dt>直し方</dt><dd><ul>
+<li>書き出す前に <kbd>Ctrl</kbd>+<kbd>A</kbd> &gt; 全トランスフォーム を適用する</li>
+<li>FBX 書き出しの「トランスフォーム」の前方 -Z・上 Y（既定値）を変えていないか確かめる（衣装の配布元の推奨設定があればそれに従う）</li>
+<li>同じ欄の「トランスフォームを適用」は実験的な機能で、アーマチュアでは正しく動かないことがわかっているので、アバターでは使わない</li>
+</ul></dd></dl>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><p><strong>Blender で合わせた服やアクセサリーが Unity では傾く・向きが変わる</strong></p>
+<p>Blender（Z 上）と Unity（Y 上）の座標系の違いで、FBX 読み込み後に Rotation X が -89.98 のようなわずかにずれた値になることがあります。Blender 側で回転を整えて書き出し、Unity で Rotation が (0, 0, 0) になるようにします。</p>
+<ul>
+<li>通常は FBX エクスポーター／インポーターが自動で変換するので、普段は気にしなくて大丈夫です。おかしくなったときだけ対処します（揺れものの動きがおかしくなる形で表れることもあります）。</li>
+<li><strong>シェイプキーのないメッシュの場合</strong>（概要）
+<ol>
+<li><code>Shift+S</code> → カーソルをワールド原点へ。ピボットポイント（<code>.</code>）を 3D カーソルにします。</li>
+<li>全オブジェクトを X 軸に -90° 回転 → 回転を適用 → X 軸に +90° 回転（適用しない）、の手順で、Blender 上の Rotation X が 90 の状態にします。</li>
+<li>FBX を書き出し、Unity で Rig の向きや Rotation が (0, 0, 0) になっているか確認します。</li>
+</ol>
+</li>
+<li><strong>シェイプキーのあるメッシュの場合</strong>: メッシュを固定したまま座標軸だけを回転させる方法を使います（オブジェクトモードで実行）。</li>
+<li>詳しい手順は外部記事「BlenderとUnityの座標系の違いを治す」を参照してください。</li>
+<li>Maya 製のアバターなどは、Blender を通すとスケールが 100 倍になる・回転値が残るなどの差が出ることがあります。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="適用"><kbd>Ctrl+A</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/avatar-clothing/export-fbx">FBX に書き出す</a></div><div><span class="tip-refs-label">関連語</span><span class="tip-keywords">座標系 / Rotation / FBX エクスポート</span></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="bone-heat-failed" data-tags="Blender|ウェイト|リギング" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#bone-heat-failed" class="tip-anchor">自動のウェイトで「Bone Heat Weighting」エラーが出る</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">ウェイト</span><span class="tip-tag">リギング</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd><kbd>Ctrl</kbd>+<kbd>P</kbd> &gt; 自動のウェイトで、「Bone Heat Weighting: failed to find solution for one or more bones」と出て、一部の頂点が動かない。</dd><dt>原因</dt><dd>重複頂点、とても小さい・薄い部分、つながっていないパーツ、スケールの大きすぎる / 小さすぎるメッシュなど。</dd><dt>直し方</dt><dd><ul>
+<li><kbd>M</kbd> &gt; 距離で 重複頂点を消す</li>
+<li>スケールを適用する（<kbd>Ctrl</kbd>+<kbd>A</kbd>）</li>
+<li>服なら、自動ではなく体からのウェイト転送（データ転送）を使う</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="親を設定"><kbd>Ctrl+P</kbd></a><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="コレクションへ移動"><kbd>M</kbd></a><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="適用"><kbd>Ctrl+A</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/rigging/parent-weights">親子付けと自動ウェイト</a><span class="text-body-secondary"> / </span><a href="/learn/avatar-clothing/weight-transfer">ウェイトを体から転送する</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="shape-key-modifier" data-tags="Blender|リギング|モデリング" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#shape-key-modifier" class="tip-anchor">シェイプキーがあるとモディファイアーを適用できない</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">リギング</span><span class="tip-tag">モデリング</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>モディファイアーの「適用」で「Modifier cannot be applied to a mesh with shape keys」と出る。</dd><dt>原因</dt><dd>Blender は、シェイプキーを持つメッシュへのモディファイアーの適用を（そのままでは）できない。</dd><dt>直し方</dt><dd><ul>
+<li>シェイプキーを作る前に、ミラーなどのモディファイアーを適用しておく（作業の順番で避ける）</li>
+<li>すでにシェイプキーがある場合は、シェイプキーを保ったまま適用するアドオンを使う。FBX 書き出しの「モディファイアーを適用」をオンにすると、シェイプキーが書き出されなくなるので代わりにはならない</li>
+</ul></dd></dl>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><p><strong>シェイプキーがあるメッシュにモディファイアーを適用できない</strong></p>
+<p>Blender の仕様で、シェイプキーを持つメッシュには通常モディファイアーを適用できません。シェイプキーを Basis に反映して削除するか、シェイプキーを保ったまま適用できるアドオンを使います。ウェイトだけならウェイトペイントモードの「ウェイトを転送」で適用不要にできます。</p>
+<ul>
+<li>選択肢
+<ol>
+<li><strong>シェイプキーを使っていない</strong> → 削除してから適用します。</li>
+<li><strong>シェイプキーで形を調整していた</strong> → 必要な形を Basis に反映してから全シェイプキーを削除し、適用します。</li>
+<li><strong>シェイプキーを残したい</strong> → シェイプキー付きメッシュにモディファイアーを適用できるアドオン（ApplyModifier など）を使います。</li>
+</ol>
+</li>
+<li><strong>ウェイト転送が目的なら</strong>: モディファイアーを使わず、ウェイトペイントモードの <code>ウェイト &gt; ウェイトを転送（Transfer Weights）</code> を使うと、シェイプキーがあってもそのまま転送できます。</li>
+<li>Armature モディファイアーは <strong>適用せずに残しておく</strong> ものです（<a href="/qa#clothes-not-following-bones">服が動かない</a>）。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/rigging/shape-keys">シェイプキー</a><span class="text-body-secondary"> / </span><a href="/learn/basics/modifiers">モディファイアーの基本</a></div><div><span class="tip-refs-label">関連語</span><span class="tip-keywords">ApplyModifier / Transfer Weights / Basis</span></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="shape-keys-lost" data-tags="Blender|Unity|書き出し" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#shape-keys-lost" class="tip-anchor">Unity でシェイプキー（ブレンドシェイプ）が出ない</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">Unity</span><span class="tip-tag">書き出し</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>Blender で作ったシェイプキーが、Unity の Skinned Mesh Renderer の BlendShapes に出てこない。</dd><dt>原因</dt><dd>FBX 書き出しの「モディファイアーを適用」がオンになっていて、シェイプキーが書き出されていない。</dd><dt>直し方</dt><dd><ul>
+<li>FBX 書き出しの <strong>ジオメトリ &gt; モディファイアーを適用</strong> をオフにして書き出し直す（オンだとシェイプキーが書き出されない）</li>
+<li>書き出し前に、メッシュにシェイプキーが残っているか（プロパティ &gt; データ &gt; シェイプキー）確かめる</li>
+<li>Unity 側で FBX の Import Settings &gt; Model &gt; <strong>Import BlendShapes</strong> がオンか確かめる</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/rigging/shape-keys">シェイプキー</a><span class="text-body-secondary"> / </span><a href="/learn/avatar-clothing/export-fbx">FBX に書き出す</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="mirror-center-gap" data-tags="Blender|モデリング" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#mirror-center-gap" class="tip-anchor">ミラーの真ん中が開く・重なる</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">モデリング</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>ミラーで作った形の中央に、すき間や段差ができる。</dd><dt>原因</dt><dd>中央の頂点が X = 0 からずれている。クリッピング・マージがオフになっている。</dd><dt>直し方</dt><dd><ul>
+<li>ミラー モディファイアーの <strong>クリッピング</strong> と <strong>マージ</strong> をオンにする</li>
+<li>中央の頂点を選んで <kbd>S</kbd> → <kbd>X</kbd> → <code>0</code> → <kbd>Enter</kbd> で X = 0 にそろえる</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="スケール"><kbd>S</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/modeling/mirror-smooth">ミラーとスムーズ</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="weights-not-normalized" data-tags="Blender|ウェイト" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#weights-not-normalized" class="tip-anchor">動かすと、関係ないところまで引っ張られる</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">ウェイト</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>腕を上げると脇腹やスカートまで一緒に動く。</dd><dt>原因</dt><dd>関係ないボーンにもウェイトが少し付いている、またはウェイトの合計が 1 になっていない。</dd><dt>直し方</dt><dd><ul>
+<li>ウェイトペイントで、引っ張られている頂点に付いているボーン（頂点グループ）を確かめる</li>
+<li>「ウェイト &gt; すべてを正規化」で合計を 1 にそろえる</li>
+<li>小さすぎるウェイトは「ウェイト &gt; クリーン」で消す</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/rigging/weight-paint">ウェイトペイント</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="unity-version" data-tags="Unity|VRChat" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#unity-version" class="tip-anchor">Unity のバージョンが違うと言われる</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">VRChat</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>VCC / ALCOM でプロジェクトを開くと、Unity のバージョンが違う・見つからないと表示される。SDK が入らない。</dd><dt>原因</dt><dd>VRChat が対応している Unity のバージョン（2026 年 10 月時点は 2022.3.22f1）以外で開いている。</dd><dt>直し方</dt><dd><ul>
+<li>VCC / ALCOM が案内する Unity のバージョンを、Unity Hub から入れる</li>
+<li>新しいプロジェクトは VCC / ALCOM から作る（Unity Hub から直接作らない）</li>
+</ul></dd></dl>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><p><strong>VRChat から Unity のバージョンを上げるよう言われたら</strong></p>
+<p>VRChat が指定するパッチバージョンに上げ、合わせて VRChat SDK も更新します。同じマイナー系列（例: 2022.3.x）内の更新ならプロジェクトはそのまま移行できることが多いですが、事前にバックアップを取ります。</p>
+<ul>
+<li>VCC / ALCOM や Unity Hub から、指定されたバージョンの Unity をインストールし、プロジェクトのバージョンを切り替えます。</li>
+<li>Unity を上げたら VRChat SDK も最新に更新します。</li>
+<li>当時の事例: 2022.3.6f1 → 2022.3.22f1 への移行はそのまま開け（初回起動は時間がかかる）、FBX のフレームレートに関する警告が出た程度でアップロードできました。</li>
+<li>大きくバージョンが変わる場合（メジャー更新）は、新しいプロジェクトを作って移行する方が安全なこともあります。</li>
+<li>VRChat が指定するより新しい Unity（Unity 6 など）でアップロードしたものは、VRChat で読み込めません。VRChat の案内が出るまでは上げないでください。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/avatar-clothing/unity-setup">Unity で着せる（Modular Avatar）</a></div><div><span class="tip-refs-label">関連</span><a href="/glossary#vcc">VCC（VRChat Creator Companion）</a></div><div><span class="tip-refs-label">関連語</span><span class="tip-keywords">Unity Hub / SDK 更新</span></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="cannot-upload" data-tags="VRChat|Unity" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#cannot-upload" class="tip-anchor">Build &amp; Publish のボタンが押せない</a></h2>
+<div class="tip-tags"><span class="tip-tag">VRChat</span><span class="tip-tag">Unity</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>SDK の Builder でアップロードのボタンが灰色、または赤いエラーが並んでいる。</dd><dt>原因</dt><dd>VRC Avatar Descriptor が無い、Humanoid でない、ログインしていない、権利の確認にチェックしていない、などの検査エラー。</dd><dt>直し方</dt><dd><ul>
+<li>Builder の一覧の赤いエラーを上から読む。「Auto Fix」があるものは押す</li>
+<li>アバターのルートに VRC Avatar Descriptor が付いているか、FBX の Rig が Humanoid か確かめる</li>
+<li>Authentication タブでログインしているか確かめる</li>
+<li>アップロードできるのはトラストランクが New User 以上のアカウント（Visitor は Build &amp; Test だけ使える）</li>
+</ul></dd></dl>
+
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="overwrote-avatar" data-tags="VRChat" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#overwrote-avatar" class="tip-anchor">別のアバターに上書きしてしまった</a></h2>
+<div class="tip-tags"><span class="tip-tag">VRChat</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>新しく作ったアバターをアップロードしたら、前のアバターが置き換わった。</dd><dt>原因</dt><dd>前のアバターから複製したため、Pipeline Manager の Blueprint ID が同じまま。</dd><dt>直し方</dt><dd><ul>
+<li>アップロード前に、アバターの Pipeline Manager で <strong>Detach</strong> して Blueprint ID を外す</li>
+<li>上書きしてしまったら、前のアバターのプロジェクトから同じ Blueprint ID でアップロードし直して戻す</li>
+<li>Blueprint ID は SDK の Content Manager タブでも確かめられる</li>
+</ul></dd></dl>
+
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="very-poor" data-tags="VRChat|モデリング" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#very-poor" class="tip-anchor">パフォーマンスランクが Very Poor になる</a></h2>
+<div class="tip-tags"><span class="tip-tag">VRChat</span><span class="tip-tag">モデリング</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>Builder でアバターのランクが Very Poor になり、ほかの人から見えにくくなる。</dd><dt>原因</dt><dd>三角形の数・マテリアル数・Skinned Mesh の数・PhysBone の数などのどれかが上限を超えている。いちばん悪い項目がランクになる。</dd><dt>直し方</dt><dd><ul>
+<li>Builder のランクの詳細で、どの項目が悪いかを見る</li>
+<li>見えない面を消す、服の下の体を消す、マテリアルをまとめる（同じテクスチャにまとめる）</li>
+<li>使わない衣装やギミックは、無効にするのではなく Tag を EditorOnly にするか削除する</li>
+</ul></dd></dl>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><p><strong>パフォーマンスランクが Very Poor になるのは普通ですか？</strong></p>
+<p>最近の販売アバターは衣装切り替えなどを含むと Very Poor になることが多いです。ポリゴン数・メッシュ数・マテリアルスロット数・PhysBone 数などで決まるので、人の多い場所用に軽い版を用意すると親切です。</p>
+<ul>
+<li>ランクは複数の項目のうち最も悪い項目で決まります（ポリゴン数、Skinned Mesh 数、マテリアルスロット数、PhysBone のコンポーネント数・Transform 数・コライダー数など）。</li>
+<li>マテリアル数は「実際に使っているマテリアルの種類」ではなく <strong>スロット数</strong> で数えられます。</li>
+<li>衣装を複数入れて切り替えると、非表示のメッシュもカウントされてすぐ上限を超えます。</li>
+<li>目安として、集会など人の多い場所に行くときは衣装 1 着だけの軽量版アバターを別に用意する方法があります。</li>
+<li>各ランクの具体的な上限値は VRChat 公式の「Avatar Performance Ranking System」ページで確認してください（PC/Android で異なります）。PC では Very Poor でもアップロード・表示はできますが、Android（Quest など）では Very Poor のアバターは表示されません。</li>
+<li>Cloth コンポーネントは評価が厳しく、すぐ Very Poor になります。</li>
+<li>詳しい手順は <a href="/qa#avatar-lightweight">アバターの軽量化</a> を参照してください。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/modeling/topology">トポロジーの整理</a><span class="text-body-secondary"> / </span><a href="/learn/vrchat/optimization">アバターを軽くする（Avatar Optimizer）</a></div><div><span class="tip-refs-label">関連</span><a href="/glossary#performance-rank">パフォーマンスランク</a></div><div><span class="tip-refs-label">関連語</span><span class="tip-keywords">Very Poor / Avatar Optimizer</span></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="texture-too-large" data-tags="Unity|VRChat|マテリアル" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#texture-too-large" class="tip-anchor">アバターのダウンロードサイズが大きい</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">VRChat</span><span class="tip-tag">マテリアル</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>アップロードはできるが、ダウンロードサイズ（容量）が大きい。</dd><dt>原因</dt><dd>テクスチャの解像度が必要以上に大きい（4096 など）、圧縮されていない。</dd><dt>直し方</dt><dd><ul>
+<li>Project ウィンドウでテクスチャを選び、Inspector の <strong>Max Size</strong> を 2048 や 1024 に下げる</li>
+<li>Compression を Normal Quality 以上の圧縮にする（目立つ顔などは様子を見ながら）</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/materials/for-unity">Unity / VRChat 向けのマテリアルの注意点</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="physbone-not-swinging" data-tags="VRChat|Unity" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#physbone-not-swinging" class="tip-anchor">PhysBone が揺れない・揺れすぎる</a></h2>
+<div class="tip-tags"><span class="tip-tag">VRChat</span><span class="tip-tag">Unity</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>髪やスカートがまったく揺れない、または暴れる。</dd><dt>原因</dt><dd>Root Transform が揺らしたいボーンの根元になっていない、Pull と Spring のバランスが極端、Ignore Transforms に揺らすボーンが入っている。</dd><dt>直し方</dt><dd><ul>
+<li>VRC Phys Bone の Root Transform に、揺らしたいボーンの根元を指定する</li>
+<li>Pull（戻る力）を 0.2〜0.4、Spring（揺れ）を 0.2 前後から調整する</li>
+<li>Build &amp; Test で実際に動かして確かめる</li>
+</ul></dd></dl>
+
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="original-clothes-show" data-tags="Unity|Modular Avatar" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#original-clothes-show" class="tip-anchor">元の服と新しい服が重なって表示される</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">Modular Avatar</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd>衣装を着せたのに、アバターの初期衣装が服から突き出している。</dd><dt>原因</dt><dd>アバターの元の服（または、服の下の体）が表示されたまま。</dd><dt>直し方</dt><dd><ul>
+<li>Hierarchy でアバターの元の服のメッシュを選び、Inspector 左上のチェックを外す</li>
+<li>完全に外すなら Tag を EditorOnly にする（アップロードに含めない）</li>
+<li>服の下で体が突き抜けるなら、アバターの体の「縮める」シェイプキーを MA の設定や Skinned Mesh Renderer で使う</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/avatar-clothing/unity-setup">Unity で着せる（Modular Avatar）</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="added-at-wrong-place" data-tags="Blender" data-source="manual">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#added-at-wrong-place" class="tip-anchor">追加したオブジェクトが変なところに出る</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span></div>
+<dl class="tip-detail mb-2"><dt>症状</dt><dd><kbd>Shift</kbd>+<kbd>A</kbd> で追加したものが、見えない場所や遠くに出る。</dd><dt>原因</dt><dd>新しいオブジェクトは 3D カーソルの位置に追加される。カーソルが動いている。</dd><dt>直し方</dt><dd><ul>
+<li><kbd>Shift</kbd>+<kbd>S</kbd> &gt; カーソル → ワールド原点 で戻してから追加する</li>
+<li>すでに追加したものは <kbd>Alt</kbd>+<kbd>G</kbd> で位置をリセット</li>
+</ul></dd></dl>
+
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="スナップパイ"><kbd>Shift+S</kbd></a><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="追加"><kbd>Shift+A</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/basics/select">選択・追加・削除</a><span class="text-body-secondary"> / </span><a href="/learn/basics/origin-pivot-snap">原点・3D カーソル・ピボット・スナップ</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="fbx-import-settings-unity" data-tags="Blender|Unity|リギング" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#fbx-import-settings-unity" class="tip-anchor">Blender から書き出した FBX を Unity に入れたら確認する設定</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">Unity</span><span class="tip-tag">リギング</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">アバターごと書き出した FBX は Rig を Humanoid にし、Blend Shape Normals を None にします。Humanoid にしたら Configure でボーンの割り当てと向きも確認します。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>FBX を選択して Inspector で次を設定し <code>Apply</code> します。
+<ul>
+<li><code>Model</code> タブ: <strong>Blend Shape Normals を None</strong>（シェイプキー使用時の陰影の乱れを防ぎます）</li>
+<li><code>Rig</code> タブ: <strong>Animation Type を Humanoid</strong></li>
+</ul>
+</li>
+<li><code>Rig</code> タブの <code>Configure...</code> で、各 Humanoid ボーン（Hips、Spine、Chest、Upper Chest など）が正しく割り当てられているか、体の向きが正しいかを確認します。</li>
+<li>衣装単体の FBX は、Modular Avatar で着せる場合はアバターと同じ設定でなくても動作しますが、作者の指定があればそれに従います。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/avatar-clothing/export-fbx">FBX に書き出す</a></div><div><span class="tip-refs-label">関連</span><a href="/glossary#humanoid">Humanoid</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="unitypackage-fbx" data-tags="Blender|Unity|衣装" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#unitypackage-fbx" class="tip-anchor">unitypackage 内の FBX を使う・取り出す</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">Unity</span><span class="tip-tag">衣装</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">Blender で編集するときは、unitypackage をインポートしたときに Assets に入る FBX を使うのが確実です。Project ウィンドウで右クリック → Show in Explorer でファイルの場所を開けます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>ZIP に同梱されている FBX と unitypackage 内の FBX が異なる（更新漏れ）ことがあります。<strong>Unity で実際に使われるのは unitypackage 内のモデル</strong> なので、編集元にはそちらを使うのが安全です。</li>
+<li>取り出し方: Project ウィンドウで FBX を右クリック → <code>Show in Explorer</code>（Windows ではエクスプローラーで表示）。</li>
+<li>編集した FBX で上書きするときは、Unity にドラッグ＆ドロップすると別名ファイルができます。上書きしたい場合はエクスプローラーで上書きするか、同名ファイルを上書きできるエディタ拡張（unity-overwriter）を使います。</li>
+<li>一部のアバターは、FBX を Blender で編集すると足の位置などがずれる仕様のものもあります。作者の説明を確認してください。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="unity-project-organization" data-tags="Unity|衣装" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#unity-project-organization" class="tip-anchor">Unity プロジェクトの分け方（アバター単位・シーン単位）</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">衣装</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">プロジェクトはアバターごと（または VRChat 用・VRM 用）に分け、衣装ごとにシーンや Prefab を分けて管理する方法がよく使われます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>例 1: VRChat 用と VRM 用でプロジェクトを 1 つずつ作り、衣装ごとにシーンを作る。</li>
+<li>例 2: アバターごとにプロジェクトを作り、素体の Prefab を用意しておき、衣装ごとにシーンや Prefab を保存する。</li>
+<li>着せ終わったアバターは Prefab 化して Hierarchy から消しておくと、シーンが重くなりません。</li>
+<li>素体が大きく更新されて互換性がなくなったら、新しいプロジェクトに作り直すのも手です。</li>
+<li>衣装ごとにプロジェクトを作るとディスク容量が大きくなりがちです。共通で使うアニメーションやマテリアルは unitypackage に書き出しておくと移行が楽です。</li>
+<li>シーンは保存し忘れやすいので、切り替え前に <code>Ctrl+S</code> で保存しましょう。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">関連</span><a href="/glossary#scene-view">Scene ビュー</a><span class="text-body-secondary"> / </span><a href="/glossary#prefab">Prefab（プレハブ）</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="check-license-terms" data-tags="規約|衣装" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#check-license-terms" class="tip-anchor">改変・非対応衣装を着せる前に利用規約を確認する</a></h2>
+<div class="tip-tags"><span class="tip-tag">規約</span><span class="tip-tag">衣装</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">改変や他アバター向けの調整、ウェイト転送などの可否は商品ごとの規約で決まります。「禁止と書いていない」ではなく「許可されている」ことを確認するのが安全です。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>確認するポイント（VN3 ライセンスなどの項目）
+<ul>
+<li>調整・改変の可否</li>
+<li>他のデータを改変するための利用（他アバターの素体からのウェイト転送など）</li>
+<li>配信・動画での利用、営利利用の可否</li>
+</ul>
+</li>
+<li>書かれていない項目は「不可」として扱う方が無難です。</li>
+<li>専売衣装（特定ショップ向け）でも、規約で改変が許可されていれば自分で他アバターに合わせるのは問題ない場合があります。</li>
+<li>素体からのウェイト転送は「素体データを他の衣装に流用」する行為になるので、規約で許可されているか確認してからにします。</li>
+<li>規約は途中で変わることもあります。購入時点の規約を保存しておくと安心です。</li>
+<li>配信・動画での利用は個別許可制の衣装もあります。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="booth-author-bug-report" data-tags="規約|衣装" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#booth-author-bug-report" class="tip-anchor">BOOTH の衣装に不具合（貫通など）があったときの作者への連絡</a></h2>
+<div class="tip-tags"><span class="tip-tag">規約</span><span class="tip-tag">衣装</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">まず説明書やシェイプキーの指定（体を絞る前提など）を確認し、素の状態で着せて再現することを確かめてから、質問の形で丁寧に問い合わせると行き違いが少なくなります。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ol>
+<li>説明書・商品ページで「素体のシェイプキーを絞る前提」などの指定がないか確認します。</li>
+<li>自分の改変ではなく、素の状態（作者指定の手順）で着せて再現するか確認します。</li>
+<li>連絡する場合は「○○の素体にそのまま着せると××が貫通するのですが、シェイプキーで絞る前提でしょうか？」のように、断定ではなく質問として伝えます。</li>
+</ol>
+<ul>
+<li>作者が気づいていないだけ・手違いのこともあるので、伝えること自体は有益です。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="editor-only-tag" data-tags="Unity|VRChat|軽量化" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#editor-only-tag" class="tip-anchor">アップロードしたくないオブジェクトには EditorOnly タグを付ける</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">VRChat</span><span class="tip-tag">軽量化</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">VRChat では非アクティブなオブジェクトもアップロードされます。作業用・退避用のオブジェクトはアバターの外に出すか、Tag を EditorOnly にするとビルド時に除外されます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>非表示（非アクティブ）にしただけでは VRChat にアップロードされ、容量・負荷が増えます。</li>
+<li>対処: アバターの外に出す、削除する、または Inspector の <code>Tag</code> を <strong>EditorOnly</strong> にします。</li>
+<li>元アバターの Prefab Variant で作業していて削除できない要素がある場合に、EditorOnly が便利です。</li>
+<li>VRM 出力では非表示のオブジェクトは出力されません。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/unity/pre-upload-check">アップロード前の確認</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="blender-useful-shortcuts" data-tags="Blender" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#blender-useful-shortcuts" class="tip-anchor">改変でよく使う Blender のショートカット</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">リンク選択（L / Ctrl+L）、ループ選択（Alt+クリック）、対称選択（Shift+Ctrl+M）、非表示（H / Alt+H）、トランスフォーム適用（Ctrl+A）などは覚えておくと作業が大きく速くなります。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>キー</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>サイドバー表示</td>
+<td><code>N</code></td>
+<td>位置・回転・スケールの数値確認</td>
+</tr>
+<tr>
+<td>リンク選択</td>
+<td><code>L</code>（カーソル下）/ <code>Ctrl+L</code></td>
+<td>つながったメッシュ（ボタン、服の一部）をまとめて選択</td>
+</tr>
+<tr>
+<td>ループ選択</td>
+<td><code>Alt+クリック</code></td>
+<td>袖口・裾などの辺ループを選択</td>
+</tr>
+<tr>
+<td>対称位置の頂点を選択</td>
+<td><code>Shift+Ctrl+M</code></td>
+<td>左右で同じ編集をしたいとき（選択 → 対称選択）</td>
+</tr>
+<tr>
+<td>非表示 / 再表示</td>
+<td><code>H</code> / <code>Alt+H</code></td>
+<td>編集したくない頂点を隠す</td>
+</tr>
+<tr>
+<td>選択以外を非表示</td>
+<td><code>Shift+H</code></td>
+<td>作業対象だけを残す</td>
+</tr>
+<tr>
+<td>適用メニュー</td>
+<td><code>Ctrl+A</code></td>
+<td>スケール・回転などを適用（全トランスフォーム）</td>
+</tr>
+<tr>
+<td>結合</td>
+<td><code>Ctrl+J</code></td>
+<td>オブジェクト（メッシュ・アーマチュア）の結合</td>
+</tr>
+<tr>
+<td>分離</td>
+<td><code>P</code></td>
+<td>選択部分を別オブジェクトにする</td>
+</tr>
+<tr>
+<td>プロポーショナル編集</td>
+<td><code>O</code></td>
+<td>周囲の頂点もなめらかに動かす（ホイールで範囲）</td>
+</tr>
+<tr>
+<td>ポーズのリセット</td>
+<td><code>Alt+G</code> / <code>Alt+R</code> / <code>Alt+S</code></td>
+<td>ポーズモードで位置・回転・拡縮を初期化</td>
+</tr>
+<tr>
+<td>ピボット変更</td>
+<td><code>.</code>（ピリオド）</td>
+<td>回転・拡縮の中心（3D カーソル、個々の原点など）</td>
+</tr>
+<tr>
+<td>3D カーソル</td>
+<td><code>Shift+S</code></td>
+<td>カーソルをワールド原点などへ移動</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>複数オブジェクトの同じ値を一括変更するには、値を変更するときに <code>Alt</code> を押しながら確定します（<a href="/tips#blender-alt-multi-edit">Alt で一括変更</a>）。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E9%81%B8%E6%8A%9E" class="text-decoration-none" title="リンク選択"><kbd>L</kbd></a><a href="/shortcuts?category=%E9%81%B8%E6%8A%9E" class="text-decoration-none" title="リンク選択（選択から）"><kbd>Ctrl+L</kbd></a><a href="/shortcuts?category=%E9%81%B8%E6%8A%9E" class="text-decoration-none" title="ループ選択"><kbd>Alt+クリック</kbd></a><kbd>Ctrl+Shift+M</kbd><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="隠す"><kbd>H</kbd></a><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="隠したものを表示"><kbd>Alt+H</kbd></a><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="適用"><kbd>Ctrl+A</kbd></a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="blender-alt-multi-edit" data-tags="Blender" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#blender-alt-multi-edit" class="tip-anchor">複数オブジェクトの値を一括で変更する（Alt を押しながら）</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">複数オブジェクトを選択した状態で、プロパティの値を Alt を押しながら変更・確定すると、選択中のすべてのオブジェクトに同じ値が入ります。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>通常はアクティブ（最後に選んだ）オブジェクトの値しか変わりません。</li>
+<li>値の入力欄で <code>Alt</code> を押しながら Enter で確定する、または <code>Alt</code> を押しながらドラッグ・チェックボックスをクリックすると、選択中の全オブジェクトに反映されます。</li>
+<li>モディファイアーの設定値やオブジェクトプロパティの一括変更に便利です。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="blender-undo-steps" data-tags="Blender" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#blender-undo-steps" class="tip-anchor">Blender の「元に戻す」回数を増やす</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">Preferences の System → Undo Steps で元に戻せる回数を増やせます。増やしすぎるとメモリを多く使う点に注意します。バージョンを上げると設定が別になるので再設定が必要です。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li><code>Edit &gt; Preferences &gt; System &gt; Memory &amp; Limits</code> の <strong>Undo Steps</strong> を増やします（初期値は 32）。</li>
+<li>値を大きくするとメモリ使用量が増えます。PC のメモリに合わせて調整してください。</li>
+<li>新しいバージョンの Blender は設定が別に保存されるので、バージョンアップ後に戻し忘れに注意します。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="proportional-edit-connected-only" data-tags="Blender" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#proportional-edit-connected-only" class="tip-anchor">プロポーショナル編集で別パーツまで動いてしまうのを防ぐ（接続のみ）</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">プロポーショナル編集の設定で「接続のみ（Connected Only）」にチェックを入れると、つながっているメッシュだけが影響を受けます。結合済みの服とボタンや素体が一緒に動くのを防げます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>3D ビューポート上部のプロポーショナル編集アイコン横のメニューで <strong>接続のみ（Connected Only）</strong> を有効にします。</li>
+<li>素体と服を結合（<code>Ctrl+J</code>）した状態でプロポーショナル編集を使うと、服を動かしたつもりで素体まで動き、タイツが凹むなどの原因になります。</li>
+<li>代わりに、動かしたくない頂点を <code>H</code> で非表示にする方法もあります（<a href="/tips#hide-vertices-while-editing">編集したくない部分を固定する</a>）。</li>
+<li>プロポーショナル編集を使わないときは <code>O</code> でオフにします。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="プロポーショナル編集"><kbd>O</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/avatar-clothing/base-shape">服の形を作る</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="hide-vertices-while-editing" data-tags="Blender|衣装" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#hide-vertices-while-editing" class="tip-anchor">ボタンなど変形させたくない部分を固定して編集する</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">衣装</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">服の形を変えるとき、ボタンやリボンなど形を保ちたいパーツは先に H で非表示にしておき、本体の調整後に位置だけ合わせるのが基本です。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ol>
+<li>編集モードでボタンなどを <code>L</code>（リンク選択）で選び、<code>H</code> で非表示にします。</li>
+<li>服本体をプロポーショナル編集などで調整します。</li>
+<li><code>Alt+H</code> で再表示し、ボタンを移動・回転で配置し直します。</li>
+</ol>
+<ul>
+<li>選択部分だけ編集不可にする有料アドオン（Hide Only Vertex / Lock Vertex）もあります。</li>
+<li>プロポーショナル編集の「接続のみ」を使えば、つながっていないパーツは最初から影響を受けません。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="隠す"><kbd>H</kbd></a><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="text-decoration-none" title="隠したものを表示"><kbd>Alt+H</kbd></a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="restore-symmetry" data-tags="Blender" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#restore-symmetry" class="tip-anchor">左右対称だった頂点がずれた（ミラーが外れた）ときの直し方</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">わずかなずれなら Blender 標準の「対称にスナップ（Snap to Symmetry）」で戻せることがあります。より確実に復元したい場合は RestoreSymmetry 系のアドオンを使います。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>編集モードで対象の頂点を選び、<code>メッシュ &gt; 対称にスナップ（Snap to Symmetry）</code> を実行します。許容範囲内の頂点を対称位置に揃えます（大きなずれは直りません）。</li>
+<li>RestoreSymmetry アドオン: 左右非対称になったオブジェクトを対称に復元します。元は Blender 2.7 向けを 2.8 以降で動くように改修したもので、当時 3.0 でも動作した報告があります。最新版向けの fork もあります。</li>
+<li>アドオン（.py 単体）の入れ方: <code>Edit &gt; Preferences &gt; Add-ons</code> → 右上のメニューから <code>Install from Disk...</code> で .py を選択して有効化します（Blender 4.2 以降のメニュー名。古いバージョンでは <code>Install...</code>）。</li>
+<li>元ファイルの時点でミラーが外れている頂点が混ざっていることもあります。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="looptools" data-tags="Blender|衣装" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#looptools" class="tip-anchor">LoopTools でガタついたループをなめらかに整える</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">衣装</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">LoopTools の Circle / Relax / Space などを使うと、シュリンクラップしたソックスの縁や、ボーンで縮めてガタついた部分をきれいに揃えられます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>用途の例
+<ul>
+<li>シュリンクラップしたソックス・タイツの縁を整える（Circle、Space）</li>
+<li>胸のサイズ変更などでガタついたメッシュを均す（Relax）</li>
+</ul>
+</li>
+<li>導入: Blender 4.2 以降は <code>Edit &gt; Preferences &gt; Get Extensions</code> から LoopTools を検索してインストールします（以前は標準同梱アドオンで、有効化するだけでした）。</li>
+<li>使い方: 編集モードで辺ループを選択 → 右クリックメニューの LoopTools から実行します。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="transform-axis-normal" data-tags="Blender|リギング" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#transform-axis-normal" class="tip-anchor">円形に並んだボーンや頂点を中心方向へまとめて移動する</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">リギング</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">トランスフォーム座標系を「ノーマル」、ピボットポイントを「それぞれの原点」にして Z 方向に移動すると、各要素を自分の向きに沿って動かせます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ol>
+<li>移動したい複数のボーン（または頂点）を選択します。</li>
+<li>3D ビューポート上部の <strong>トランスフォーム座標系</strong> を <code>ノーマル</code> にします。</li>
+<li><strong>ピボットポイント</strong>（<code>.</code> キー）を <code>それぞれの原点</code> にします。</li>
+<li><code>G</code> → <code>Z</code>（座標系のローカル軸）で移動すると、各ボーンがそれぞれの向きに沿って中心方向へ動きます。</li>
+</ol>
+<ul>
+<li>スケールで縮めるとボーンの大きさまで変わりますが、この方法なら位置だけ動かせます。</li>
+<li>胸周りのフィッティングでプロポーショナル編集と組み合わせるのにも便利です。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/basics/origin-pivot-snap">原点・3D カーソル・ピボット・スナップ</a></div><div><span class="tip-refs-label">関連</span><a href="/glossary#pivot-point">ピボットポイント</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="face-custom-normals" data-tags="Blender|表情|マテリアル" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#face-custom-normals" class="tip-anchor">Blender で表情を編集したら特定のワールドで顔に皺のような影が出る</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">表情</span><span class="tip-tag">マテリアル</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">トゥーン向けに整えられていた顔のカスタム法線が編集で崩れています。データ転送などで元の顔（または整形用メッシュ）からカスタム法線を転写し直すときれいになります。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>顔のシェイプキーやメッシュを Blender で編集すると、作者が設定していた <strong>カスタム法線</strong> が崩れ、ライトの強いワールドで皺のような影が出ることがあります。</li>
+<li>対処: 元のメッシュなどから「データ転送」でカスタム法線を転写し直します（外部記事「blenderでToon用に顔の法線を整える」が参考になります）。</li>
+<li>目など一部だけ転写しない（別メッシュにしてから結合）ことで、目だけリアル寄りの反射にするといった使い分けもできます。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">関連</span><a href="/glossary#normal">法線</a><span class="text-body-secondary"> / </span><a href="/glossary#data-transfer">データ転送</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="underwear-separate-mesh" data-tags="Blender|Unity|衣装" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#underwear-separate-mesh" class="tip-anchor">下着やスパッツは別メッシュにしておくと衣装に合わせて切り替えやすい</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">Unity</span><span class="tip-tag">衣装</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">素体と一体化した下着などは Blender で別メッシュに分けておくと、衣装に応じて Unity で ON/OFF できます。透過テクスチャで消すより管理が楽です。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>下着・スパッツなどを別メッシュ（<code>P</code> → 選択で分離）にしておき、Unity でトグルできるようにします。</li>
+<li>素体とは別ファイル（衣装側）に下着が付いているアバターでは、それを読み込んで下着だけ素体側へ移し、Armature モディファイアーを素体のアーマチュアに設定します。</li>
+<li>スパッツを描いた素肌テクスチャを用意してテクスチャで切り替える方法もあります。</li>
+<li>下着姿のベースモデルを書き出しておき、服だけ着せ替える運用も便利です。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">関連</span><a href="/glossary#separate">分離</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="blender-vs-unity-fitting" data-tags="Blender|Unity|衣装" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#blender-vs-unity-fitting" class="tip-anchor">Unity だけで着せるか、Blender を使うかの判断</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">Unity</span><span class="tip-tag">衣装</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">ボディラインが出ない服や対応衣装なら Unity だけで（位置合わせ・拡縮・シェイプキー・Unity 上のメッシュ編集ツール）なんとかなることが多いです。肌に埋まる・体形が大きく違う場合は Blender の方がきれいに仕上がります。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li><strong>Unity だけで済むことが多い例</strong>
+<ul>
+<li>対応衣装、ボディラインの出ないゆったりした服</li>
+<li>少しの隙間・はみ出しの修正（Unity 上で頂点を動かせるエディタ拡張を使う方法もあります）</li>
+<li>見えない部分の体を消す・細くする（シェイプキーや Unity 上のメッシュ削除ツール）</li>
+</ul>
+</li>
+<li><strong>Blender が向いている例</strong>
+<ul>
+<li>衣装が肌に埋まる、体形・姿勢が独特なアバター</li>
+<li>ウェイトの調整が必要、ボーン位置を個別に合わせたい</li>
+</ul>
+</li>
+<li>Blender でのボーン合わせ自体は Unity でやることと大差ありませんが、ボーンが見えて個別調整しやすく、破綻したときに頂点やウェイトをすぐ直せるのが利点です。</li>
+<li>ウェイトを触らずにボーンだけ個別に動かすと破綻が大きくなるので注意します。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">関連</span><a href="/glossary#weight">ウェイト</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="skirt-bones-from-cone" data-tags="Blender|リギング|ウェイト|PhysBone" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#skirt-bones-from-cone" class="tip-anchor">ボーンのないスカートに揺れ用のボーンとウェイトを付ける</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">リギング</span><span class="tip-tag">ウェイト</span><span class="tip-tag">PhysBone</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">スカートの形に近い円錐メッシュを作ってボーンとウェイトを付け、それをスカートにウェイト転送すると確実に揺れ用のウェイトが作れます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ol>
+<li>スカートに近い形の円錐メッシュを作り、放射状にスカート用ボーンを配置します（ボーン作成を補助するアドオンもあります）。</li>
+<li>円錐に自動ウェイトなどでウェイトを付け、きれいに整えます。</li>
+<li>円錐からスカートへウェイトを転送します（<a href="/howto#copy-weights">ウェイト転送</a>）。</li>
+<li>Unity で PhysBone を設定します。</li>
+</ol>
+<ul>
+<li>Cloth で揺れる前提のスカートを VRM などに変換する場合も、この方法でボーンを生やすことになります。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/avatar-clothing/weight-transfer">ウェイトを体から転送する</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="weight-check-tools" data-tags="Blender|ウェイト" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#weight-check-tools" class="tip-anchor">ウェイトの確認・微調整を楽にする方法</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">ウェイト</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">ウェイトペイントモードで Ctrl+クリックでボーンを選ぶと、そのボーンのウェイトを確認できます。編集モードでウェイト値を表示する設定や、ちょっとした貫通をスクロールで直せる有料アドオンも便利です。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li><strong>ボーンごとのウェイト確認</strong>: オブジェクトモードでアーマチュア → <code>Shift</code> + メッシュ選択 → ウェイトペイントモード → <code>Ctrl+クリック</code> でボーンを選びます。</li>
+<li><strong>編集モードで確認</strong>: サイドバー（<code>N</code>）の <code>アイテム &gt; 頂点ウェイト</code> で、選択頂点のウェイト値を数値で確認・編集できます。</li>
+<li><strong>ポーズを付けて確認</strong>: ウェイトペイントモードでもボーンを回転させながら塗れるので、関節の破綻を見ながら直せます。</li>
+<li>便利なアドオン（有料）: Handy Weight Edit（スクロールでウェイトを少しずつ変更）など。</li>
+<li>ウェイトが乗っていない頂点を探す機能を持つ多機能アドオンもあります。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E3%83%9A%E3%82%A4%E3%83%B3%E3%83%88" class="text-decoration-none" title="ボーンを選択（ウェイトペイント）"><kbd>Ctrl+クリック</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/rigging/weight-paint">ウェイトペイント</a></div><div><span class="tip-refs-label">関連</span><a href="/glossary#weight-paint-mode">ウェイトペイント</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="hip-assist-bones" data-tags="Blender|リギング|ウェイト" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#hip-assist-bones" class="tip-anchor">お尻・股関節の補助ボーンで座りポーズの破綻を減らす</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">リギング</span><span class="tip-tag">ウェイト</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">股関節やお尻に補助ボーンがあると、座る・前かがみになるときのお尻の破綻が大きく減ります。補助ボーンは Humanoid ではないため、Constraint などで動かす仕組みが必要です。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>膝・股関節・お尻の補助ボーンは、座りや前かがみの見た目の改善効果が大きい部位です。</li>
+<li>補助ボーンは Humanoid に含まれないので、トラッキングでは動きません。Constraint（VRChat では VRC Constraint）で親ボーンの回転を一部受け取るように設定します。</li>
+<li>膝を二重関節にして Constraint でつなぐ方法、肘の痩せを防ぐツイストボーンの設定などは外部の記事で紹介されています（<a href="/links#unity-constraint">ひざを二重関節と Constraint で修正する</a>、<a href="/links#twistbone-note">肘関節が痩せるのを防止する TwistBone 設定</a>）。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="gradient-map-recolor" data-tags="マテリアル" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#gradient-map-recolor" class="tip-anchor">グラデーションマップで元の濃淡を保ったまま色を変える</a></h2>
+<div class="tip-tags"><span class="tip-tag">マテリアル</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">CLIP STUDIO PAINT などのグラデーションマップレイヤーを使うと、元テクスチャの明暗をそのままに色だけを置き換えられます。元の色に引っ張られずに色変更できるので、髪やタイツの色変えに向いています。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ol>
+<li>色を変えたいレイヤー（髪、タイツなど）の上にグラデーションマップの色調補正レイヤーを追加します。</li>
+<li>目的の色の濃い部分と薄い部分をスポイトで取り、グラデーションに設定します。</li>
+<li>微調整してから書き出します。</li>
+</ol>
+<ul>
+<li>色ごとにレイヤーが分かれているテクスチャ向けです。</li>
+<li>色相を回すだけより自然になりやすい一方、細部の調整は必要です。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="psd-compatibility" data-tags="マテリアル" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#psd-compatibility" class="tip-anchor">PSD を GIMP などで開くとレイヤーが崩れることがある</a></h2>
+<div class="tip-tags"><span class="tip-tag">マテリアル</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">PSD は Photoshop 独自の形式で、他のソフトでは一部の機能（調整レイヤーや合成モードなど）が再現されないことがあります。崩れる場合は作者推奨のソフトか、CLIP STUDIO PAINT などで開きます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>PSD は汎用フォーマットではなく、Photoshop と CLIP STUDIO PAINT の間でさえ完全には互換しません。</li>
+<li>GIMP で開いたときにレイヤーが壊れる PSD もあります。色改変を頻繁にするなら CLIP STUDIO PAINT などがあると便利です。</li>
+<li>色を少し変えるだけなら、高機能な有料ソフトは割高に感じるかもしれません。まず無料の GIMP で試し、困ったら検討するのがおすすめです。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="uv-map-name-unify" data-tags="Blender|マテリアル" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#uv-map-name-unify" class="tip-anchor">メッシュを結合・書き出しする前に UV マップ名を揃える</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">マテリアル</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">異なる UV マップ名のメッシュを結合すると、UV が壊れたり書き出し後にテクスチャが外れたりします。結合前に各メッシュの UV マップ名を同じにしておきます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>オブジェクトデータプロパティ（緑の▽）→ <code>UV マップ</code> で、最初の UV マップの名前を各メッシュで同じにします（例: すべて <code>UVMap</code>）。</li>
+<li>結合（<code>Ctrl+J</code>）はアクティブオブジェクトの UV マップ名を基準にするため、名前が違うメッシュの UV は別レイヤー扱いになり、見た目が崩れます。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">記事</span><a href="/learn/materials/uv-unwrap">UV 展開</a></div><div><span class="tip-refs-label">関連</span><a href="/glossary#uv">UV</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="animator-layer-priority" data-tags="Unity|アニメーション|PhysBone" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#animator-layer-priority" class="tip-anchor">FX のレイヤーは下にあるものが優先される（同じプロパティを触る場合）</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">アニメーション</span><span class="tip-tag">PhysBone</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">Animator のレイヤーは上から順に評価され、同じプロパティを複数のレイヤーが動かすと下のレイヤーの値で上書きされます。リセット用のレイヤーは上に置きます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>例: レイヤー A で OFF にした PhysBone をレイヤー B で ON にしていると、最終的には B（下）の値になります。</li>
+<li>「全部リセット」するレイヤーを下に置くと、何をしても変わらなくなります。リセットは上、個別の ON は下に置きます。</li>
+<li>レイヤー数が多すぎると同期が取りにくくなる点にも注意します。</li>
+<li>多数の PhysBone の ON/OFF をアニメーションに書くのが大変なら、PhysBone をまとめて数を減らす（<a href="/tips#physbone-merge-components">PhysBone のまとめ方</a>）か、スクリプトでアニメーションを生成する方法があります。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="animation-missing-path-f2" data-tags="Unity|アニメーション" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#animation-missing-path-f2" class="tip-anchor">AnimationClip のプロパティが (Missing!) になったら F2 で階層を直せる</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">アニメーション</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">オブジェクトの名前や階層を変えると、アニメーションのプロパティが (Missing!) になります。Animation ウィンドウで該当プロパティを選び F2 で名前（パス）を編集すると、付け直さずに修正できます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ol>
+<li>アバターを選択した状態で Animation ウィンドウを開き、対象のクリップを表示します。</li>
+<li><code>(Missing!)</code> になっているプロパティを選択して <code>F2</code> を押します。</li>
+<li>新しい階層パス（例: <code>Armature/Hips/...</code> やメッシュ名）に書き換えます。</li>
+</ol></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E4%B8%80%E8%88%AC" class="text-decoration-none" title="名前を変更"><kbd>F2</kbd></a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="merge-animation-clips" data-tags="Unity|アニメーション" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#merge-animation-clips" class="tip-anchor">2 つの AnimationClip の内容を 1 つにまとめる</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">アニメーション</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">Animation ウィンドウでコピー元のプロパティ（キー）を選択して Ctrl+C、まとめ先のクリップを開いて Ctrl+V で貼り付けられます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>同じ Animator Controller（同じアバター）で扱えるクリップどうしなら、Animation ウィンドウ上でプロパティのキーフレームを <code>Ctrl+C</code> → <code>Ctrl+V</code> でコピーできます。</li>
+<li>数個程度ならこの方法が手軽です。大量に作るならスクリプトで自動生成した方が楽です。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><kbd>Ctrl+C</kbd><a href="/shortcuts?category=%E3%83%A2%E3%83%87%E3%83%AA%E3%83%B3%E3%82%B0" class="text-decoration-none" title="頂点メニュー"><kbd>Ctrl+V</kbd></a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="perfect-sync-tips" data-tags="Blender|リギング|表情|VRM" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#perfect-sync-tips" class="tip-anchor">パーフェクトシンク（52 BlendShape）用シェイプキー作成のコツ</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">リギング</span><span class="tip-tag">表情</span><span class="tip-tag">VRM</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">BlendShape 名は大文字小文字を区別し、アプリ側の表記（例: BrowInnerUp）と完全に一致させます。トラッキングでは値が 0.3〜0.8 程度にしかならないことが多いので、各シェイプキーは大げさに作っておくと手戻りが少なくなります。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li><strong>名前</strong>: 大文字小文字を区別します。参考記事で <code>browInnerUp</code> と書かれていても、実際には <code>BrowInnerUp</code> でないと動かない場合がありました（使うアプリ・ランタイムのバージョンに合わせます）。</li>
+<li><strong>変化量</strong>: iPhone のフェイストラッキングでは各値が 0.3〜0.8 程度にしかならないことが多く、値 1 を基準に作ると思ったより表情が変わりません。目（eye〜）以外は 2〜5 倍程度大げさに作り、やりすぎた分は Unity 側で最大値を下げて調整します。</li>
+<li>主に VRM / VMC 系の配信・ゲーム向けの話です。VRChat でもフェイストラッキング用に同様の命名規則（Unified Expressions など）があり、規格ごとに名前が異なります。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="physbone-merge-components" data-tags="Unity|PhysBone|軽量化" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#physbone-merge-components" class="tip-anchor">髪の PhysBone をまとめてコンポーネント数を減らす</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">PhysBone</span><span class="tip-tag">軽量化</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">前髪・横髪・後ろ髪ごとに空のオブジェクトを作り、各ボーンのルートをその子にまとめて、空オブジェクトに PhysBone を 1 つずつ付けると、コンポーネント数を大幅に減らせます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ol>
+<li>髪のルートボーン（Head など）の下に、前髪・横髪・後ろ髪用の空の GameObject を作ります。</li>
+<li>それぞれの髪束のルートボーンを、対応する空オブジェクトの子にします。</li>
+<li>空オブジェクトに PhysBone を付け、Root Transform に空オブジェクトを指定します（揺れは子から反映されるので、空オブジェクト自体は揺れの計算対象外です）。</li>
+</ol>
+<ul>
+<li>もともと各髪束の PhysBone で根元側のボーンを Root に指定していた場合は、揺れ方が変わるので確認します。</li>
+<li>スカートはコライダー設定の都合で、髪ほど単純にはまとめられません。</li>
+<li>PhysBone のコンポーネント数は Performance Rank に影響します。多数の枝がある髪でも 1 つにまとめるとランクが上がることがあります。</li>
+<li>Blender でボーンのルートを整理し、最初から PhysBone をまとめられる構造にしておくのも有効です。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">関連</span><a href="/glossary#physbone">PhysBone</a><span class="text-body-secondary"> / </span><a href="/glossary#performance-rank">パフォーマンスランク</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="collider-v-shape" data-tags="Unity|PhysBone|VRM" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#collider-v-shape" class="tip-anchor">細い紐やスカートのボーンが貫通するときは、コライダーを V 字に 2 つ置く</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">PhysBone</span><span class="tip-tag">VRM</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">ボーン 1 本に対してコライダー 1 つでは、ボーンの動き方によって貫通を防げません。大きめのコライダー 2 つで V 字の谷を作り、その上にボーンが乗るよう配置すると、動ける範囲を制限できます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>コライダーの線（境界）は足とボーンの間に来るように置くのが基本です。</li>
+<li>絶対に貫通させたくない場合は、大きめのコライダーを 2 つ使って V 字の谷を作り、ボーンをその谷に乗せる配置にします（内側コライダーの代わり）。</li>
+<li>コライダーが増えると負荷も増えます。VRChat の PhysBone には <code>Inside</code> タイプのコライダーもあるので、まずそちらで足りるか検討します。</li>
+<li>VRM（SpringBone）には Inside コライダーがないため、この方法が特に有効です。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="breast-physbone-dampen" data-tags="Unity|PhysBone|リギング" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#breast-physbone-dampen" class="tip-anchor">胸の PhysBone の揺れが大きすぎるときの抑え方（Constraint を併用）</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">PhysBone</span><span class="tip-tag">リギング</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">揺れ方の雰囲気はよいが量が多すぎる場合、同じ構成の空ボーンを揺らし、そこへ元の胸ボーンを Parent Constraint（ソースの重み 0.4 程度）でつなぐと揺れを弱められることがあります。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ol>
+<li>胸ボーンと同じ位置・構成の空オブジェクトを作り、そちらに PhysBone を付けて揺らします。</li>
+<li>元の Breast ボーンに Constraint（VRChat では VRC Parent Constraint）を付け、ソースを揺れる空オブジェクトにして重み（Weight）を 0.4 程度にします。</li>
+<li>重みで揺れの量を調整します。</li>
+</ol>
+<ul>
+<li>必ずうまくいくとは限らないので、実機で確認しながら調整します。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="save-playmode-values-prefab" data-tags="Unity|PhysBone" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#save-playmode-values-prefab" class="tip-anchor">再生中に調整した値を保存する（再生中にアバターを Project へドラッグ）</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">PhysBone</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">再生中に揺れものやコライダーの値を調整した場合、再生中に Hierarchy のアバタールートを Project ウィンドウへドラッグすると、その状態で新しい Prefab が作られます。値をメモして入力し直す手間が省けます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ol>
+<li>再生モードで値を調整します。</li>
+<li>再生中に Hierarchy のアバタールートを Project ウィンドウへドラッグし、新しい Prefab を作ります。</li>
+<li>再生を止めたら、元のアバターを削除（または非表示）し、新しい Prefab を Hierarchy に置きます。</li>
+</ol>
+<ul>
+<li>コライダーの位置調整などで特に便利です。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">関連</span><a href="/glossary#prefab">Prefab（プレハブ）</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="knee-twist-bone-constraint" data-tags="Blender|Unity|リギング" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#knee-twist-bone-constraint" class="tip-anchor">膝の二重関節・腕のツイストボーンを Constraint で作る</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag">Unity</span><span class="tip-tag">リギング</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">膝を二重関節にして Constraint でつなぐ方法や、肘が痩せるのを防ぐツイストボーンの設定が外部記事で紹介されています。現在の VRChat では VRC Constraint を使えます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>参考記事: <a href="/links#unity-constraint">ひざを二重関節と Constraint で修正する</a>、<a href="/links#twistbone-note">肘関節が痩せるのを防止する TwistBone 設定</a></li>
+<li>膝を二重関節にして Unity の Constraint でつなぐと、膝を曲げたときの形がきれいになります。</li>
+<li>腕にツイストボーンを入れると、ひねったときに肘や手首が痩せるのを防げます。費用対効果のバランスがよい改善です。</li>
+<li>VRChat では 2024 年以降、軽量な <strong>VRC Constraint</strong> が使えます（Unity 標準の Constraint からの変換機能もあります）。</li>
+<li>VRM 0.x では Constraint が使えません。VRM 1.0 には独自の Constraint があり、Unity の Rotation Constraint はソースのグローバル座標、VRM 1.0 の Rotation Constraint はローカル座標に対する変化で制約するという違いがあります。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="vrm-file-size" data-tags="VRM|軽量化|リギング" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#vrm-file-size" class="tip-anchor">VRM のファイルサイズ・負荷を減らす</a></h2>
+<div class="tip-tags"><span class="tip-tag">VRM</span><span class="tip-tag">軽量化</span><span class="tip-tag">リギング</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">VRM 出力時の Reduce Blendshape を有効にすると、使っていない BlendShape が削られて容量が大きく減ります。ほかにテクスチャサイズを下げる、揺れものとボーンを減らす、FirstPerson を手動設定するのが有効です。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li><strong>容量</strong>
+<ul>
+<li>VRM 出力時の <code>Reduce Blendshape</code> を有効にします（<code>Reduce Blendshape Clip</code> は喜怒哀楽以外の表情クリップも消えるので注意）。</li>
+<li>顔のメッシュは他と結合しない（シェイプキーが他のメッシュにも複製されて巨大化します。結合で数百 MB になった例もあります）。</li>
+<li>テクスチャを 2048 → 1024 にする、使っていないシェイプキーを削除する。</li>
+</ul>
+</li>
+<li><strong>負荷</strong>
+<ul>
+<li>揺れもの（SpringBone）とボーンを減らす（衣装とアバターのボーンを入れ子ではなく統合する、使わないスカートボーンを消す）。</li>
+<li>メッシュをまとめる（VRM では頭を分けたいので 2 つ程度）。ただし必ず軽くなるとは限りません。</li>
+<li>FirstPerson を Auto ではなく手動で設定する（<a href="/qa#vrm-firstperson-settings">FirstPerson 設定</a>）。</li>
+</ul>
+</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="vrm-springbone-center" data-tags="VRM|PhysBone" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#vrm-springbone-center" class="tip-anchor">VRM の SpringBone でゲーム内移動時にスカートが破綻するのを防ぐ（Center の設定）</a></h2>
+<div class="tip-tags"><span class="tip-tag">VRM</span><span class="tip-tag">PhysBone</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">SpringBone の Center に、アバタールート直下にある Armature 以外のオブジェクト（Secondary など）を入れると、ゲーム内で強制的に移動させられたときの破綻を防げることがあります。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>SpringBone は通常ワールド座標で計算するため、ゲーム内で急に移動させられるとスカートなどが大きく遅れて破綻します。</li>
+<li><code>Center</code> に基準となるオブジェクトを入れると、その座標系で計算され移動の影響を受けにくくなります。</li>
+<li>Center に入れるのは <strong>アバタールート直下のオブジェクト</strong>（Armature 以外）。アバタールートそのものや Armature 配下のボーンでは期待通りに動かず、揺れなくなることもあります。</li>
+<li>外部記事「VRMSpringBoneにおけるゲーム内移動時のスカート貫通対策についてのメモ」が参考になります。実機で確認してください。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="beatsaber-customsaber-dynamicbone" data-tags="Unity" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#beatsaber-customsaber-dynamicbone" class="tip-anchor">Beat Saber のカスタムセイバーで揺れもの（DynamicBone）が揺れない</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">カスタムセイバー用の DynamicBone は専用版で、コンポーネント追加後に配下の Transform 変更を受け付けません。揺れるオブジェクトを配置し終えてから、DynamicBone を Root のボーンに直接付けます。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>専用の DynamicBone を使います。</li>
+<li>コンポーネントを追加して Root を設定した後は、下の階層の Transform の変更や追加が反映されません。<strong>揺れるオブジェクトを完全に配置し終えてから</strong> 取り付けます。</li>
+<li>DynamicBone は <strong>Root のボーンに直接</strong> 付けます（親オブジェクトに付けて Root を指定すると揺れなかった事例があります）。</li>
+<li>Unity 上で納得のいく揺れになっても、ゲーム内では演算の違いで揺れ方が変わることがあります。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="beatsaber-material-change" data-tags="Unity|VRM|マテリアル" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#beatsaber-material-change" class="tip-anchor">Beat Saber 用アバターのマテリアル切り替え（MaterialChange 系 MOD）</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">VRM</span><span class="tip-tag">マテリアル</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">VMC / NalulunaAvatars 用の MaterialChange 系 MOD を使うと、VRM でも衣装の切り替えや lilToon 系の見た目を使えます。MOD 用に改造された lilToon を使う場合は、通常版の lilToon と同じプロジェクトに入れないようにします。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ul>
+<li>VMC 用と NalulunaAvatars 用で別の MOD があります（<a href="/links#reference">リンク集</a>）。</li>
+<li>MOD 用の lilToon を使うプロジェクトには通常版の lilToon を入れません。入っていたら先に削除してから導入します。</li>
+<li>透過（Transparent）どうしの重なりで表示が消える場合は Render Queue を調整します（<a href="/qa#transparent-render-queue">透過の描画順</a>）。MOD のバージョンによっては不具合のこともあるので、作者に報告します。</li>
+<li>一部の特殊なシェーダー設定（2 パス半透明など）には対応していない場合があります。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="unity-scene-view-navigation" data-tags="Unity" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#unity-scene-view-navigation" class="tip-anchor">Unity の Scene ビューで視点を動かす・拡大する</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">マウスホイールで拡大縮小、Alt + 左ドラッグで視点の回転、中ボタン（ホイール）ドラッグで平行移動、Hierarchy でオブジェクトを選んで F キーでそのオブジェクトにフォーカスします。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>拡大・縮小</td>
+<td>マウスホイール</td>
+</tr>
+<tr>
+<td>視点の回転（周回）</td>
+<td>Alt + 左ドラッグ</td>
+</tr>
+<tr>
+<td>その場で見回す</td>
+<td>右ボタンドラッグ</td>
+</tr>
+<tr>
+<td>平行移動</td>
+<td>中ボタン（ホイール）ドラッグ</td>
+</tr>
+<tr>
+<td>選択物にフォーカス</td>
+<td>Hierarchy で選択して <code>F</code>（Scene ビュー上で）</td>
+</tr>
+<tr>
+<td>飛行移動</td>
+<td>右ボタンを押しながら <code>W</code> <code>A</code> <code>S</code> <code>D</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>髪の毛だけアップで見たい場合は、Hierarchy で髪のオブジェクトを選んで <code>F</code> を押すと便利です。</li>
+<li>表示がおかしくなったら <code>Window &gt; Layouts</code> からレイアウトを選び直すと初期配置に戻せます。</li>
+</ul></div></details>
+<div class="tip-refs"><div><span class="tip-refs-label">キー</span><a href="/shortcuts?category=%E3%83%A2%E3%83%87%E3%83%AA%E3%83%B3%E3%82%B0" class="text-decoration-none" title="面を作成"><kbd>F</kbd></a></div><div><span class="tip-refs-label">記事</span><a href="/learn/unity/editor-overview">Unity の画面の見方</a></div><div><span class="tip-refs-label">関連</span><a href="/glossary#scene-view">Scene ビュー</a></div></div>
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="continuous-avatar-uploader" data-tags="Unity|VRChat" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#continuous-avatar-uploader" class="tip-anchor">複数のアバター（衣装違い）をまとめて連続アップロードする</a></h2>
+<div class="tip-tags"><span class="tip-tag">Unity</span><span class="tip-tag">VRChat</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">Continuous Avatar Uploader を使うと、設定ファイルに登録した複数のアバターを自動で順番にアップロードできます。素体が更新されて全衣装をアップし直すときに便利です。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><ol>
+<li><code>Assets &gt; Create &gt; Avatar Upload Setting Group</code> で設定ファイルを作ります。</li>
+<li>アップロードしたいアバター（VRC Avatar Descriptor の付いたオブジェクト）をドラッグして <code>Add Avatar</code> を押し、対象プラットフォームやオプションを設定します。</li>
+<li><code>Tools &gt; Continuous Avatar Uploader</code> でウィンドウを開き、Groups に設定ファイルをセットします。</li>
+<li><code>Start Upload</code> を押すと順番にアップロードされます。</li>
+</ol>
+<ul>
+<li>同じ作者の Avatar Optimizer（AAO）も軽量化に便利です。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+<div class="col-lg-6" data-tip-item>
+<article class="tip-card card h-100" id="blender-addons-for-avatar" data-tags="Blender" data-source="discord">
+<div class="card-body">
+<h2 class="h5 mb-2"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><a href="/tips#blender-addons-for-avatar" class="tip-anchor">アバター改変でよく使われる Blender アドオン</a></h2>
+<div class="tip-tags"><span class="tip-tag">Blender</span><span class="tip-tag tip-source-discord" title="Discord での質問・会話をもとにした項目"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg> Discord より</span></div>
+<p class="mb-2">LoopTools（ループ整形）、シェイプキー付きメッシュにモディファイアーを適用するアドオン、ウェイト調整系のアドオンなどがよく使われます。CATS は本家の更新が止まっているため、Blender 4.5 では対応状況を確認してください。</p>
+<details class="tip-body mb-2"><summary>詳しく</summary><div class="tip-body-content"><table>
+<thead>
+<tr>
+<th>アドオン</th>
+<th>用途</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LoopTools</td>
+<td>辺ループを円形・均等に整える</td>
+<td>Blender 4.2 以降は Extensions から導入</td>
+</tr>
+<tr>
+<td>ApplyModifier（など）</td>
+<td>シェイプキー付きメッシュにモディファイアーを適用</td>
+<td>同種の他アドオンもあります</td>
+</tr>
+<tr>
+<td>Handy Weight Edit</td>
+<td>スクロールでウェイトを少しずつ調整</td>
+<td>有料</td>
+</tr>
+<tr>
+<td>Better FBX Importer &amp; Exporter</td>
+<td>FBX の入出力</td>
+<td>有料。設定に注意（<a href="/qa#better-fbx-exporter-normals">法線</a>）</td>
+</tr>
+<tr>
+<td>RestoreSymmetry</td>
+<td>左右対称の復元</td>
+<td>古いアドオン。fork あり</td>
+</tr>
+<tr>
+<td>CATS Blender Plugin</td>
+<td>当時の定番（最適化、ポーズのレストポーズ適用、Decimation 等）</td>
+<td>本家は更新停止。2.9 以降で不具合報告あり。後継の Unofficial 版の対応バージョンを確認</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>配布先は <a href="/addons">アドオン</a> のページにまとめています。</li>
+<li>アドオンは対応している Blender のバージョンが決まっているので、Blender を更新する前に確認します。</li>
+<li>どのアドオンを入れていたか忘れないよう、メモしておくと移行が楽です。</li>
+</ul></div></details>
+
+</div>
+</article>
+</div>
+</div>
+</article></main>
+<footer class="fsk-footer"><div class="fsk-footer-line">
+<span class="fsk-footer-name">Avatar Modding Guide</span><span class="fsk-footer-sep" aria-hidden="true">|</span>
+<a href="/report?from=%2Ftips">問い合わせ</a><span class="fsk-footer-sep" aria-hidden="true">|</span>
+<a href="/privacy">プライバシーポリシー</a><span class="fsk-footer-sep" aria-hidden="true">|</span>
+<span>© 2026 <a href="https://fara-labs.com/">Fara</a></span>
+<span class="fsk-footer-socials"><a class="fsk-footer-social fsk-service-github" href="https://github.com/fara1991" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub" style="--brand: #6e40c9"><svg class="icon " viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" focusable="false" fill="currentColor" stroke="none"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3"/></svg></a><a class="fsk-footer-social fsk-service-twitter" href="https://twitter.com/game_fara" target="_blank" rel="noopener noreferrer" aria-label="Twitter" title="Twitter" style="--brand: #1d9bf0"><svg class="icon " viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" focusable="false" fill="currentColor" stroke="none"><path d="M23.95 4.57a10 10 0 0 1-2.82.77 4.96 4.96 0 0 0 2.16-2.72c-.95.55-2 .96-3.12 1.19a4.92 4.92 0 0 0-8.39 4.48A13.96 13.96 0 0 1 1.64 3.16a4.82 4.82 0 0 0-.67 2.48c0 1.71.87 3.21 2.19 4.1a4.9 4.9 0 0 1-2.23-.62v.06a4.92 4.92 0 0 0 3.95 4.83 5 5 0 0 1-2.21.08 4.94 4.94 0 0 0 4.6 3.42A9.87 9.87 0 0 1 0 19.54a14 14 0 0 0 7.56 2.21c9.05 0 14-7.5 14-13.98l-.02-.64A9.94 9.94 0 0 0 24 4.59z"/></svg></a><a class="fsk-footer-social fsk-service-twitch" href="https://twitch.tv/game_fara" target="_blank" rel="noopener noreferrer" aria-label="Twitch" title="Twitch" style="--brand: #9146ff"><svg class="icon " viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" focusable="false" fill="currentColor" stroke="none"><path d="M11.57 4.71h1.72v5.15h-1.72zm4.72 0H18v5.15h-1.71zM6 0 1.71 4.29v15.42h5.15V24l4.28-4.29h3.43L22.29 12V0zm14.57 11.14-3.43 3.43h-3.43l-3 3v-3H6.86V1.71h13.71z"/></svg></a><a class="fsk-footer-social fsk-service-discord" href="https://discord.com/invite/B38eCSYyk5" target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord" style="--brand: #5865f2"><svg class="icon " viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" focusable="false" fill="currentColor" stroke="none"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a></span>
+</div></footer>
+</div>
+</div>
+
+    <!-- SEO-BODY:END -->
+    </div>
+
+        <div id="blazor-error-ui">
+        エラーが発生しました。ページを再読み込みしてください。
+        <a href="" class="reload">再読み込み</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="js/startup.js"></script>
+    <script src="js/search-norm.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/page.js"></script>
+    <script src="js/head-sync.js"></script>
+    <script src="js/toc.js"></script>
+    <script src="js/search-ui.js"></script>
+    <script src="_content/FaraSiteKit.Razor/js/boot-indicator.js"></script>
+    <script src="_content/FaraSiteKit.Razor/js/fara-site-kit.js"></script>
+    <script src="_content/FaraSiteKit.Razor/js/scroll-progress.js"></script>
+    <script src="_content/FaraSiteKit.Razor/js/report.js"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    </body>
+</html>

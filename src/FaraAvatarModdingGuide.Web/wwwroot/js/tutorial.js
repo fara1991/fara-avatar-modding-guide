@@ -312,6 +312,7 @@ class Tutorial {
         wheelNeedsFocus: true,
       });
       this.vp.on("*", e => this.onEvent(e));
+      if (this.unity && new URLSearchParams(location.search).get("debug") === "1") window.__unity = this.vp; // 確認用(tools/verify/tutorial-input-compare.mjs)
       this.replayTo(this.finished ? this.scenario.steps.length : this.groupStart(this.index));
     } catch (err) {
       console.error(err);
@@ -325,6 +326,7 @@ class Tutorial {
   /** 別のチュートリアルにビューを譲る */
   suspend() {
     if (!this.vp) return;
+    if (window.__unity === this.vp) delete window.__unity;
     this.vp.dispose();
     this.vp = null;
     if (active === this) active = null;

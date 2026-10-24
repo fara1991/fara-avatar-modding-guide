@@ -21,7 +21,9 @@ internal static partial class PracticeGl
         [JSMarshalAs<JSType.Function<JSType.String, JSType.String, JSType.Number, JSType.Boolean>>] Func<string, string, int, bool> key,
         [JSMarshalAs<JSType.Function<JSType.Number>>] Action<int> keyup,
         [JSMarshalAs<JSType.Function<JSType.Boolean>>] Action<bool> focus,
-        string canvasHostId);
+        string canvasHostId,
+        string? keyRootId,
+        string? keyIgnore);
 
     [JSImport("uploadBuffer", "gl")]
     internal static partial void UploadBuffer(int id, int layout, [JSMarshalAs<JSType.MemoryView>] Span<byte> data);
