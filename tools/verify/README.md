@@ -25,6 +25,7 @@
 - Phase 3b S3（`/practice` の C# 版 `?engine=cs`。docs/phase3b-design.md の §13）: `ENGINE=cs node practice.mjs`（`/practice` の操作・往復を C# 版で。基準は JS 版と同じ `practice-baseline.json`）、`practice-compare.mjs`（同じ操作で、Three.js 版と C# 版のビューポート（3D + HUD）の画素を比べる。`NEW=` はサイトの配信（wrangler dev など）、閾値 0.001 % / 8。S4 で厳しくした）
 - Phase 3b S4（記事内チュートリアルの C# 版 `?engine=cs`。docs/phase3b-design.md の §14）: Three.js 版と C# 版の差を 0 にするための比較。`NEW=` はサイトの配信（wrangler dev など）。`CHROME_PATH` は Playwright 同梱の Chromium
   - `tutorial-compare.mjs` … 9 本を「次へ（スキップ）」で 1 手順ずつ進めながら、毎回、埋め込み全体（題・進み・吹き出し・3D + HUD・キー表示・ボタン）の画素と文字を比べる（閾値は 0 % / 8。`ONLY=`・`STEPS=`・`OUT=`）。背景の 3D を隠し、CSS アニメーションを止める（始まった時刻で位相が決まるため）
+  - `tutorial-input-compare.mjs` … `transform` を、Three.js 版と C# 版で同じ本物のマウス・キーで操作して、毎回、画素と文字を比べる（スキップを通らない本物のイベントの経路。23 スナップショット）
   - `tutorial-dom.mjs` … 埋め込みの DOM の骨格（タグ・クラス・data-*・aria-*）を、5 つの状態（最初・フォーカス後・スキップ後・画像で見る・完了）で比べる
   - `practice-details.mjs` … `/practice` の細部（カーソル・フォーカス・枠・ボックス選択の枠・メニューの位置・HUD の文字・ツールの点灯・N パネル）を、25 の場面（ドラッグ中・数値入力中・メニューを開いたまま）で値で比べる
   - `practice-race.mjs` … 低速な読み込み中に「離れて戻る」（`Practice`・`Render` の wasm を 3.5 秒遅らせ、`/practice?engine=cs` → `/learn` → 戻る）。wasm を二重に読まず、エラーが出ないこと

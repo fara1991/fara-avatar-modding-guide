@@ -63,4 +63,19 @@ internal static partial class PracticeCsJsTutorial
     /// <summary>完了を記録して(localStorage)、ページ内のチュートリアルがすべて終わっていればページを完了にし、完了の画面に出す文を返す。</summary>
     [JSImport("finishTutorial", "practice-cs")]
     internal static partial string Finish(string name);
+
+    /// <summary>ms ミリ秒後に cb を呼ぶ(JavaScript の setTimeout)。</summary>
+    [JSImport("setTimer", "practice-cs")]
+    internal static partial void SetTimer(int ms, [JSMarshalAs<JSType.Function>] Action callback);
+
+    /// <summary>
+    /// ms ミリ秒待つ。<c>Task.Delay</c> は使わない: ポインター・キーの JS のコールバックの中(= 操作の結果を出す所)から始めた <c>Task.Delay</c> は、
+    /// 待ち時間が過ぎても再開しなかった(「できました！」が消えない・失敗のやり直しが起きない。実測)ので、JS のタイマーで待つ(コールバックの経路は、描画・入力と同じ)。
+    /// </summary>
+    internal static Task DelayAsync(int ms)
+    {
+        var tcs = new TaskCompletionSource();
+        SetTimer(ms, () => tcs.TrySetResult());
+        return tcs.Task;
+    }
 }

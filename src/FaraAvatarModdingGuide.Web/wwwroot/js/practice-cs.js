@@ -75,6 +75,11 @@ export function finishTutorial(name) {
   return all ? "" : "このページには、ほかにもチュートリアルがあります。";
 }
 
+/** ms ミリ秒後に cb を呼ぶ(C# の Task.Delay の代わり。Services/PracticeCs.cs の DelayAsync) */
+export function setTimer(ms, cb) {
+  setTimeout(cb, ms);
+}
+
 export function isTouchOnly() {
   return matchMedia("(hover: none) and (pointer: coarse)").matches;
 }

@@ -77,7 +77,7 @@ else if (ctrl is not null)
             }
         </div>
     </div>
-    <div class="tut-stage" @onfocusin="() => focused = true" @onfocusout="() => focused = false">
+    <div class="tut-stage" @onfocusin="OnFocusIn" @onfocusout="OnFocusOut">
         <div class="@(s.Message is null ? "tut-msg" : $"tut-msg is-{s.MessageKind}")" hidden="@(s.Message is null)" role="status">@((MarkupString)(s.Message ?? ""))</div>
         <div class="tut-vp practice-viewport" id="@RootId" tabindex="0" aria-label="3D ビューポート">
             <PracticeHudView Hud="ctrl.Hud" GlHostId="@GlHostId" RootId="@RootId" ShowHud="s.HasView" Failed="s.ViewFailed" OnTool="OnTool" OnMenu="OnMenu" OnNPanel="OnNPanel" />
@@ -143,6 +143,19 @@ else if (ctrl is not null)
     /// <summary>画像で見る表示にしたことがあるか(tutorial.js は、そのとき初めて、前へ・次へ・何枚目かを書く。それまでは空)。</summary>
     private bool imageEver;
     private bool focused;
+    private int focusToken;
+
+    private void OnFocusIn() { focusToken++; focused = true; }
+
+    /// <summary>フォーカスが外れたとき。tutorial.js と同じに、1 フレーム待って、そのあいだにまた入っていなければ外す(ビューの中のボタンを押すと、focusout のすぐあとに focusin が来る。すぐ外すと、覆いが一瞬出る)。</summary>
+    private async Task OnFocusOut()
+    {
+        var token = ++focusToken;
+        await PracticeCsJsTutorial.DelayAsync(20);
+        if (token != focusToken || disposed) return;
+        focused = false;
+        StateHasChanged();
+    }
     private bool disposed;
     private int card;
     private readonly HashSet<int> imageFailed = [];
@@ -164,11 +177,14 @@ else if (ctrl is not null)
             // 操作のロジック・手順・描画の命令(Practice・Render)は、C# 版を使うときだけ、1 回だけ読み込む
             await PracticeCsAssemblies.LoadAsync(Services);
             if (disposed) return;
-            ctrl = await TutorialCsLoader.CreateAsync(Scenario, RootId, GlHostId, "/images/tutorials");
+            var created = await TutorialCsLoader.CreateAsync(Scenario, RootId, GlHostId, "/images/tutorials");
+            if (disposed) { created?.Dispose(); return; }   // 読み込み中に記事を離れた: 登録も module の読み込みもしない
+            ctrl = created;
             if (ctrl is null) { error = $"チュートリアル「{Scenario}」が見つかりません（C# 版）。"; return; }
             ctrl.Changed += OnChanged;
             all.Add(this);
             module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/practice-cs.js");
+            if (disposed) { await module.DisposeAsync(); module = null; return; }
             touch = await module.InvokeAsync<bool>("isTouchOnly");
             imageMode = touch;
             imageEver = touch;

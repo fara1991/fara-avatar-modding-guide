@@ -125,16 +125,7 @@
         if (wantCs != csMode) Nav.NavigateTo(e.Location, forceLoad: true);
     }
 
-    private string? Query(string name)
-    {
-        var query = new Uri(Nav.Uri).Query.TrimStart('?');
-        foreach (var pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
-        {
-            var kv = pair.Split('=', 2);
-            if (kv[0] == name) return kv.Length == 2 ? Uri.UnescapeDataString(kv[1]) : "";
-        }
-        return null;
-    }
+    private string? Query(string name) => Nav.Get(name);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

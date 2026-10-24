@@ -515,6 +515,13 @@ S3 の `?engine=cs` と Three.js 版の差を、(a) 画素（`practice-compare.m
 | DOM（記事の 3 本 × 5 状態） | `data-act` などの違い | 一致 |
 | `/practice` の細部 25 場面（カーソル・フォーカス・枠・メニュー位置・HUD の文字…。`practice-details.mjs`） | — | 一致 |
 
+レビュー(PR #115)のあとに足したもの:
+
+- **実入力の突き合わせ**（`tutorial-input-compare.mjs`）: `transform` を、Three.js 版と C# 版で、同じ本物のマウス・キー（立方体のクリック → G → マウス移動 → Esc → G Z 2 Enter → R Z 45 Enter → S 0.5 Enter → N → Ctrl+Z）で操作し、毎回、画素と文字を比べる（23 スナップショット。`tutorial-compare.mjs` は「次へ（スキップ）」で進めるので、本物のイベントの経路を通らない）。これで **C# 版だけの不具合**が見つかった: ポインター・キーの JS のコールバックの中から始めた `Task.Delay` が、待ち時間が過ぎても再開せず、「できました！」が消えない・失敗のやり直し（400 ms 後）が起きなかった（`Task.Delay(300).ContinueWith` も `Task.Run` 経由も再開しなかった。原因は特定していない）。JS の `setTimeout` を使う `PracticeCsJsTutorial.DelayAsync` に替えた。
+- フォーカスが外れたときの覆い: ビューの中のボタンを押すと focusout のすぐあとに focusin が来るので、`tutorial.js` と同じに 1 フレーム待ってから外す（覆いが一瞬出なくなった）。
+- `?engine=` の判定は、`Practice.razor` と `ArticlePage.razor` で同じ完全一致（`NavigationQuery.IsCsEngine`）。読み込み中に記事を離れたときの `TutorialEmbed` の登録・module の解放漏れを直した。
+- `tutorial-compare.mjs` は、kit の `/api/maintenance` の requestfailed（2 秒で打ち切る既知の仕様）を問題に数えない（`csp-check.mjs` と同じ）。
+
 直せていない・意図して違える点:
 
 - **マウスの最後の位置（メニュー）**: `viewport.js` は、最後のマウス位置をクライアント座標で覚えるので、マウスが一度もビューに入っていないとき、メニューの位置がページのスクロール位置で変わる（1 px 程度のずれ、ビューの外なら中央）。C# は常に中央にする（意図した差。再現できる動きにするため）。マウスが入ったあとは同じ。

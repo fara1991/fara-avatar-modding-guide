@@ -204,7 +204,7 @@ internal sealed class TutorialController : ITutorialCs
     private async Task ReplayAfterFailAsync(string fail, int target)
     {
         var token = ++failToken;
-        await Task.Delay(400);
+        await PracticeCsJsTutorial.DelayAsync(400);
         if (token != failToken || disposed || engine is null) return;
         session.ReplayTo(target);
         RenderStep();
@@ -239,7 +239,7 @@ internal sealed class TutorialController : ITutorialCs
 
     private async Task HideLaterAsync(int token, int ms)
     {
-        await Task.Delay(ms);
+        await PracticeCsJsTutorial.DelayAsync(ms);
         if (token != msgToken || disposed) return;
         HideMessage();
         Publish();
@@ -267,7 +267,7 @@ internal sealed class TutorialController : ITutorialCs
 
     private async Task UnflashAsync(string label)
     {
-        await Task.Delay(250);
+        await PracticeCsJsTutorial.DelayAsync(250);
         if (disposed) return;
         pressed.Remove(label);
         Publish();
