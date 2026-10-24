@@ -113,7 +113,20 @@ public class RenderUnitTests(ITestOutputHelper output)
         Assert.Equal((float)frame.CameraPosition.Y, data[17]);
         Assert.Equal((float)frame.CameraPosition.Z, data[18]);
         Assert.Equal(frame.Items.Count, data[19]);
-        Assert.All(data[20..24], v => Assert.Equal(0, v));
+        Assert.Equal((float)frame.Background, data[20]);
+        var lightView = frame.View.TransformDirection(frame.Lighting.LightDirection);
+        Assert.Equal((float)lightView.X, data[21]);
+        Assert.Equal((float)lightView.Y, data[22]);
+        Assert.Equal((float)lightView.Z, data[23]);
+        var hemiView = frame.View.TransformDirection(new Vec3(0, 1, 0));
+        Assert.Equal((float)hemiView.X, data[28]);
+        Assert.Equal((float)hemiView.Y, data[29]);
+        Assert.Equal((float)hemiView.Z, data[30]);
+        Assert.Equal(frame.Lighting.GroundGray, data[24]);
+        Assert.Equal(frame.Lighting.HemiIntensity, data[25]);
+        Assert.Equal(frame.Lighting.DirectionalIntensity, data[26]);
+        Assert.Equal(frame.Lighting.Roughness, data[27]);
+        Assert.Equal(0, data[31]);
         var o = FramePacker.HeaderFloats;
         foreach (var item in frame.Items)
         {
@@ -132,6 +145,8 @@ public class RenderUnitTests(ITestOutputHelper output)
             for (var k = 0; k < 16; k++) Assert.Equal((float)item.World.E[k], data[o + 12 + k]);
             var modelView = Mat4.Multiply(frame.View, item.World);
             for (var k = 0; k < 16; k++) Assert.Equal((float)modelView.E[k], data[o + 28 + k]);
+            var normal = modelView.NormalMatrix();
+            for (var k = 0; k < 9; k++) Assert.Equal((float)normal[k], data[o + 44 + k]);
             o += FramePacker.ItemFloats;
         }
         Assert.Equal(data.Length, o);

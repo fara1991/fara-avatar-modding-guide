@@ -1,20 +1,8 @@
 // 記事内チュートリアルの埋め込みの DOM の骨格(タグ・クラス・data-*・aria-*・hidden・disabled・type・href・id)を、Three.js 版と C# 版で並べて比べる(S4)
 import { launch, newPage } from "./lib.mjs";
+import { skeleton } from "./tutorial-lib.mjs";
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
-const cases = [["navigation-numpad", "/learn/getting-started/navigation"], ["transform", "/learn/basics/transform"], ["extrude-inset-loopcut", "/learn/modeling/extrude-inset-loopcut"]];
-const skeleton = (el) => {
-  const out = [];
-  const walk = (e, d) => {
-    // C# 版は、canvas を Blazor の外の空の div(.practice-gl)に入れる(Blazor の子の数え方が狂わないように)。canvas だけを見て、空の div は無いものとする
-    if (e.classList?.contains("practice-gl")) { for (const c of e.children) walk(c, d); return; }
-    if (e.tagName === "CANVAS") { out.push(`${" ".repeat(d)}[gl]`); return; }
-    const attrs = [...e.attributes].filter((a) => !(a.name === "class" && !e.classList.length)).filter((a) => !["style", "id", "data-cs", "data-i"].includes(a.name) && !(a.name.startsWith("_bl_") || a.name.startsWith("blazor"))).map((a) => `${a.name}=${a.name === "class" ? [...e.classList].sort().join(" ") : a.value}`).sort();
-    out.push(`${" ".repeat(d)}<${e.tagName.toLowerCase()} ${attrs.join(" ")}>${e.children.length ? "" : (e.textContent || "").trim().slice(0, 40)}`);
-    for (const c of e.children) walk(c, d + 1);
-  };
-  walk(el, 0);
-  return out;
-};
+const cases = [["navigation-numpad", "/learn/getting-started/navigation"], ["transform", "/learn/basics/transform"], ["extrude-inset-loopcut", "/learn/modeling/extrude-inset-loopcut"], ["unity-basics", "/learn/unity/editor-overview"], ["ma-outfit", "/learn/unity/modular-avatar-outfit"]];
 let failed = 0;
 const browser = await launch();
 for (const [name, url] of cases) {

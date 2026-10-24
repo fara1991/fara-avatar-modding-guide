@@ -111,8 +111,8 @@
 | **S1** ロジックの完成（**済**。§9） | 編集モード（`editmesh.js`: 選択モード・選択の伝播・押し出し・差し込み・ループカット・ベベル・結合・面張り・分離・削除）、追加（Shift+A）・複製・削除・取り消し/やり直し・ミラー・X 線・N パネルの値、共同練習の口（`roomState`・`applyRemote`・`canTransform`・`getView/setView`）、`wheelNeedsFocus`。**チュートリアル用の補助**（`selectLoopWhere`・`editSelectWhere`・`findEdge`・`previewLoopCut`・`loopCutWhere`・`selectByName`・`setHighlight`）と、ほかの参加者の表示（`setRemotePeers`）は、使う側の段階（S4・S6）で移す | S0 と同じ突き合わせを、編集モードを含む操作列（乱数 + 練習 1 の 18 件のお題を全部こなす手順）に広げて一致。`practice-baseline.json` 相当の最終状態が一致 | 済（行数は S0 の約 2.3 倍。§9.5）。当初の見積もり 10〜15 |
 | **S2**（**済**。§11）描画層の試作と判断の関門 | 薄い WebGL 層（`gl.js` + C#）。練習 1 のシーン（方眼・軸線・オブジェクト・輪郭・3D カーソル・編集モードの点線面）を描く。画像比較（SwiftShader。3 面の明るさ・縁・線の太さ）。新しいコンテキストの問題と AOT なしの負荷の測定。§3 の判断基準で (A) を確定 | §3 の 3 条件。結果をこの文書に追記（ADR）。ユーザーの確認 | 8〜12 |
 | **S3**（**済**。§13）`/practice` を C# で（フラグ付き） | ページ（Razor）+ HUD + お題の一覧を Razor で。`?engine=cs` で C# 版。`tools/verify/practice.mjs` を両エンジンで通す（`practice-baseline.json` と一致）。往復 20 回でリスナー・コンテキストが増えない。画像比較の結果を PR に載せる | Phase 3 と同じ操作（キー・マウス）ができる。**描画の差はユーザーが受け入れる**（画像で提示）。既定は JS のまま | 6〜9 |
-| **S4**（**済**。§14）記事内チュートリアル | `scenarios.js` の Blender 9 本と `tutorial.js` を C# に（`?engine=cs`。フラグ付き）。シナリオは C# のデータ + 述語（イベント → 達成）。「画像で見る」とタッチ端末の扱いは維持。Unity 2 本は S5（`unity.js` の画面に載っているため）。`guideLine`（案内の点線）の描画も S4 | 9 本を JS 版と C# 版で同じイベント列に通して、手順の定義・再生後の状態・案内・達成/失敗/ヒントの答えが一致するテスト。記事を画面で確認し、**Three.js 版と C# 版の画素・文字・DOM の差を 0 にする**（§14.3） | 8〜12 |
-| **S5** Unity 風 | `unity.js` を Razor（Hierarchy・Inspector・Project・メニュー・SDK パネル）+ Scene ビュー（②の描画層）に。`unity-practice.js` のお題 7 件。ツリー操作・Setup Outfit・タグ・マテリアルのロジックは①に | `practice.mjs` の `unity` の基準と一致。階層・お題の状態をイベント列で JS と突き合わせ | 12〜18 |
+| **S4**（**済**。§14）記事内チュートリアル | `scenarios.js` の Blender 9 本と `tutorial.js` を C# に（`?engine=cs`。フラグ付き）。シナリオは C# のデータ + 述語（イベント → 達成）。「画像で見る」とタッチ端末の扱いは維持。Unity 2 本は S5（`unity.js` の画面に載っているため。**S5 で済**）。`guideLine`（案内の点線）の描画も S4 | 9 本を JS 版と C# 版で同じイベント列に通して、手順の定義・再生後の状態・案内・達成/失敗/ヒントの答えが一致するテスト。記事を画面で確認し、**Three.js 版と C# 版の画素・文字・DOM の差を 0 にする**（§14.3） | 8〜12 |
+| **S5**（**済**。§15）Unity 風 | `unity.js` を Razor（Hierarchy・Inspector・Project・メニュー・SDK パネル）+ Scene ビュー（②の描画層）に。`unity-practice.js` のお題 7 件。ツリー操作・Setup Outfit・タグ・マテリアルのロジックは①に | `practice.mjs` の `unity` の基準と一致。階層・お題の状態をイベント列で JS と突き合わせ | 12〜18 |
 | **S6** 共有ルーム | `room.js` を C#（`ClientWebSocket`）に。差分の送受信・ロック・カーソル・選択・視点の共有。`tools/room-check` と画面からの二人の確認 | 二人が入れる・追加/移動が届く・退室が消える。プロトコルは変えない | 5〜8 |
 | **S7** three.js を外す | 既定を C# に。JS の `viewport.js`・`editmesh.js`・`unity.js`・`room.js`・`tutorial.js`・`scenarios.js`・`practice*.js`、`lib/three`、importmap、CSP のハッシュ、README/プライバシーの記述を消す | 全ページで違反ゼロ（CSP）。配信量の前後比較。ユーザーの承認（戻せない変更） | 2〜3 |
 | FBX（別枠） | 新機能。読み込み方式（外部ライブラリ or 自前）の調査から | 別途 | 5〜15 |
@@ -541,4 +541,74 @@ SwiftShader の Chromium・AOT なし・localhost（wrangler dev）。
 - 実機の GPU・Firefox・Safari は未確認（SwiftShader の Chromium のみ）。**dev サイトでの確認**（実ブラウザ。特にタッチ端末の「画像で見る」と、Windows・Mac の Chrome での操作）が要る。
 - Razor の描き直しは、イベントのあとの次の描画の機会（JS 版は DOM を同期で書き換える）。画像比較・`practice-details` では差が出ていない。
 - 同じ記事に 2 本あるとき、「別のビューが見えているあいだは奪わない」の挙動は JS 版と同じ（クリックで切り替え）。通知の順の入れ替わり（§14.3 ⑥）への対応は、ブラウザの通知の順に依存するので、実機で見たほうがよい。
-- `gl.js` のレンダーラボ専用の関数を分ける課題（§13.4）は残っている。three.js を外せるのは S7（S3〜S6 が本番で一定期間動いてから）。Web の主のアセンブリが 14 KB（brotli）増えた件は、S7 で `tutorial.js` などを消すときに、全体の収支で見る。
+- ~~`gl.js` のレンダーラボ専用の関数を分ける課題（§13.4）は残っている。~~ **S5 で分けた**（§15.1。`RenderLab/wwwroot/js/gl-lab.js`）。three.js を外せるのは S7（S3〜S6 が本番で一定期間動いてから）。Web の主のアセンブリが 14 KB（brotli）増えた件は、S7 で `tutorial.js` などを消すときに、全体の収支で見る。
+
+## 15. S5（Unity 風の画面と記事内の Unity チュートリアルを C# で。`?engine=cs`）の記録
+
+印: **[実測]** はこの作業で測った値。既定は今までの Three.js 版のまま（フラグなしの `/practice/unity`・記事は変わらない）。
+
+### 15.1 作ったもの
+
+- **`Practice`（純粋）**: `UnityEditorCore`（`unity.js` の `UnityEditor` のロジック全部。選択・開閉・追加・付け替え・削除・有効/無効・Tag・マテリアル・コンポーネント・Setup Outfit・ツール・Transform の入力・Frame Selected・視点（回す・平行移動・ズーム・見回し）・SDK の集計とビルド・腕を振るポーズ・ポップアップ・ドロップ・キー・取り消し。`.Scene.cs` に Scene ビューのポインター・ギズモ・視点、`.Model.cs` に Razor 用の表示モデル）、`UnityObj3D`（three.js の `Object3D` の意味どおりの階層・行列・attach・Euler YXZ・クォータニオン。ワールド行列は `updateMatrixWorld` が呼ばれたときだけ更新される「古い行列」の挙動まで同じ）、`UnityGeometry`（three r170 の Sphere・Capsule・Box・Cylinder・Cone・Torus と translate・rotateX）、`UnityData`（ASSETS・COMPONENTS・ボーン・ランク）、`UnityPractice`（お題 7 件。`unity-practice.js`）、`UnityTutorial`・`UnityTutorialScenarios`（`scenarios.js` の `unity-basics` 13 手順・`ma-outfit` 12 手順。述語・ヒント・失敗・スキップ）。
+- **`Render`**: `UnitySceneRenderer`（部品＝不透明を作った順 → 方眼（半透明 0.55）→ ギズモ（別シーンの render。半透明 0.95・奥から））。`FrameLighting.Unity`・`FrameBackground.Sky`（`canvas` のグラデーションのテクスチャ。全画面の三角形）・`DrawFlags.CullBack`。three.js の `MeshStandardMaterial` の見た目に合わせて、**頂点シェーダーが視空間の法線（`uNormalMatrix`）・視空間の光の向き**を使う（§15.3 ①）。`FramePacker` は 1 フレームあたり、ヘッダー 20 → 32 float、1 描画 44 → 53 float。
+- **Razor**: `Components/UnityEditorView.razor`（`unity.js` が `root.innerHTML` に作っていた DOM・クラス名と同じ。Hierarchy・Scene・Inspector・Project・メニュー・SDK パネル・ポップアップ・案内の吹き出し）、`Pages/PracticeUnity.razor`（`?engine=cs` の経路と、お題の一覧・リセット）、`Components/TutorialEmbed.razor`（Unity のとき、`.tut-vp` に `UnityEditorView`）。画面は Practice の型を直接使わず、`Services/UnityHud.cs` の単純な型だけを読む（遅れて読み込むため）。
+- **`Services`**: `UnityCsEngine`（エディター・描画・`gl.js` とのやり取り・HUD の作成）、`UnityTutorialController`（`tutorial.js` の `Tutorial`。`TutorialController` と同じ作りで、Scene ビューの WebGL は画面が DOM を描いたあと（`UnityEditorView` の最初の描画のあと）に始まるので、`OnUnityStarted` を待つ）。JS 側は `wwwroot/js/unity-ui.js`（Hierarchy・Project のドラッグとドロップ先の枠・ポップアップとアバターの吹き出しの位置・フォーカス）。`practice-cs.js` の `CS_SCENARIOS` に `unity-basics`・`ma-outfit` を足した（`data-engine="unity"`・画像の高さ 840）。
+- **`gl.js`**: ①視空間のライティング（上記）・空の背景・`CullBack`・キーを受ける要素と無視する要素（`keyRoot`・`keyIgnore`・`data-gl-ignore`）。②**レンダーラボ専用の関数を分けた**（§13.4・§14.5 の申し送り）: `diag`・`report`・`exposeControl`・`getQuery`・`now`・`loseContext`・`exposeDebugGlobals` は `RenderLab/wwwroot/js/gl-lab.js` へ。サイトに出す `gl.js` にラボ専用のコードは無い。
+- **確認の道具**: `tools/verify/unity-compare.mjs`（`/practice/unity` を 38 の本物のマウス・キーの操作で、Three.js 版と並べて、画素・DOM の骨格・お題・ステータス・状態（視点・カメラ・ノードの位置/回転/拡大率・選択・ツール）を比べる）、`unity-lib.mjs`（ドラッグ・ギズモの位置・状態の比べ。`unity-compare` と `tutorial-input-compare` が共有）、`tutorial-compare.mjs`・`tutorial-dom.mjs`・`tutorial-input-compare.mjs` を Unity の 2 本へ拡張、`practice.mjs` の `ENGINE=cs` が Unity の操作（Hoodie を Avatar へドラッグ）も C# 版で動かす、`csp-check.mjs` に `?engine=cs` の 3 画面を追加。
+- **突き合わせ**: `tests/js/unity-reference.mjs`（本物の `unity.js`・`unity-practice.js`・`scenarios.js` を Node で動かす。描画（WebGL）だけ代用品。`setTimeout`・`performance.now` は仮想の時計）・`unity-cases.generate.mjs`（99 ケース・2,448 操作: 台本・ギズモの 3 種 × ハンドル × 変種・視点・Scene のクリックの格子・乱数）、`UnityParityTests`（101 件。操作のたびに状態・イベント・preventDefault・クリックの下にあるもの・ワールド行列・ジオメトリを 1e-9 で比べる。変異テストで、距離・順序・判定を変えると落ちることを確認）、`UnityTutorialParityTests`（9 件。手順の定義・再生後の状態・イベント一覧に対する達成/失敗/ヒントの答え・お題の文）、`UnitySceneRendererTests`（6 件）。
+
+### 15.2 受け入れ（§4.2 の S5）の結果
+
+| 基準 | 結果 [実測] |
+| --- | --- |
+| `practice.mjs` の `unity` の基準と一致 | `ENGINE=cs node practice.mjs` も `すべて ok`（階層・お題の進みが基準と一致。往復 20 回・CSP・コンソールも） |
+| 階層・お題の状態をイベント列で JS と突き合わせ | `UnityParityTests` 101 件（上記）。`unity-compare.mjs` の 38 状態で、状態・お題も一致 |
+| 見た目 | `unity-compare.mjs` 38 状態: **0.000 % / 最大 1**（閾値 0 % / 8）。`tutorial-compare.mjs` は Blender 9 本 + Unity 2 本の全手順（156 比較）で **0.000 % / 最大 1**。`tutorial-dom.mjs` は Unity 2 本 × 5 状態で一致。390 px 幅も一致（横スクロールなし） |
+| 実入力 | `tutorial-input-compare.mjs`: `transform` 23・`unity-basics` 20（ヒントが出る誤操作・ホイール 2 回・Alt ドラッグ・中ボタン・矢印のドラッグ・Position の入力）・`ma-outfit` 23（ルートに落とす（ヒント）・Ctrl+Z・メニューを開いて別の行をクリック（失敗 → やり直し）・Setup Outfit・Tag・マテリアルのドラッグ・Add Component の検索・SDK・Build & Test）。画素 0.000 % / 最大 8 以下・文字・状態が一致（最後は「完了」まで進む） |
+| そのほか | `practice-compare.mjs`（Blender 9 場面。`gl.js` を直したあと）0.000 % / 最大 3、`gl-compare.mjs`（ラボ 12 場面。`gl-lab.js` に分けたあと）0.000 % / 最大 1、`csp-check.mjs` 52 画面で違反 0 |
+
+### 15.3 見た目・操作の細かい差の洗い出しと、直した原因
+
+初版は `unity-compare` で、膝の縫い目に 2〜4 画素の差（最大 100 前後）があった。閾値で隠さず、原因を直した。
+
+| # | 差（見え方） | 原因 | 直し方 |
+| --- | --- | --- | --- |
+| ① | 膝・肘などの縫い目に 2〜4 画素の線 | 旋回体（Lathe）の極に近い**細長い三角形**で、varying の補間が外挿になる。three.js は法線を**視空間**（`normalMatrix` を掛けて頂点シェーダーで正規化）で補間し、光も視空間で計算する。C# 版はワールド空間の法線・光で、補間の誤差が出る場所が違った | `FramePacker` に法線行列（3×3）と視空間の光の向きを足し、頂点シェーダーを three.js と同じ式に（`gl_Position = uProj * (uModelView * pos)`・`vViewPosition`）。Blender 側の描画（`practice-compare`・`gl-compare`）は変わらない（Lit のまま。ライティングの種類は `FrameLighting`） |
+| ② | 空の背景のグラデーション | three.js は `canvas` のグラデーションを `SRGB8_ALPHA8`・`flipY`・ミップマップのテクスチャにして、全画面に描く | `gl.js` の `drawSky`（同じテクスチャ） |
+| ③ | 透明で両面の面・方眼の重なり | 描く順・深度の書き込み・`TwoPass` | `UnitySceneRenderer` の順（不透明 → 方眼 → ギズモ。透明は奥から）・`CullBack`（FrontSide） |
+| ④ | Inspector の名前の文字が、案内の枠が付くと JS 版だけ LCD のアンチエイリアス（0.27 %。最大 165） | C# 版は canvas を空の `div.practice-gl`（`position:absolute`）に入れる（Blazor の子の数え方が狂わないように）。JS 版は Scene ビューの直下。`position:absolute` の層が間に入ると、Chromium が兄弟の文字の描き方を変える | `.ue-scene-view > .practice-gl { display: contents }`（Unity の画面だけ） |
+| ⑤ | 「できました！」の吹き出しが、片方にだけ写る（実入力の比較） | 吹き出しは 1.5 秒で消え、丸のアニメーションは約 1 秒。撮る時刻が境目だった（描画の差ではない） | 比較スクリプトが、両方で `.tut-msg.is-ok` が消え、アニメーションが終わってから撮る |
+| ⑥ | DOM: 「画像で見る」に切り替えたあと `.tut-vp` の `tabindex`・`aria-label` が残る（JS 版）、「完了」のあと隠した吹き出しの文字が残る（JS 版） | JS 版は `dispose` で子だけ空にする・`applyHighlight` は表示するときだけ文字を書く | 同じ（始めたあとの空の `.tut-vp` に属性・最後の吹き出しの文字を保持） |
+| ⑦ | 入力欄（Position）に打った文字・フォーカス | `unity.js` は欄からの入力のあと欄を作り直さない・フォーカスを `keepFocus` で戻す | 打った文字はそのまま見せ（値が別の理由で変わったら状態の値）、フォーカスは `FocusRoot` で戻す |
+| ⑧ | 腕を振るポーズ・ビルドの表示の時刻 | 時計（`performance.now`・`setTimeout`）で決まる | 比較では時計を止める。C# のスケジュールは JS の `setTimeout`（`PracticeCsJsTutorial.SetTimer`）、チュートリアル内の待ちは `DelayAsync`（`Task.Delay` は JS コールバックの中で再開しない） |
+| ⑨ | 同じページに Unity と Blender の埋め込みがあると、Blender を始めたあと Unity の DOM だけが残り、Unity が二度と始まらない（レビュー M2。`tools/verify/practice-mixed.mjs` で再現） | 「いま WebGL を使っているチュートリアル」の登録（`active`）が `TutorialController` と `UnityTutorialController` で別の static で、片方が始まっても、もう片方が手放されなかった（gl.js の `start()` は前の WebGL を壊す） | 共通の登録 `ActiveGlView`（`Claim` が、新しいものが始まる前に、いまのものを `Suspend` する）。`practice-mixed.mjs`（`ma-outfit` の記事に `transform` の埋め込みを足して、Unity ↔ Blender を 5 回切り替え: canvas は 1 つ・もう一方に 3D ビューが残らない・Unity の DOM は Unity が持つときだけ）と `ActiveGlViewTests`。直す前は、Blender を始めたところで落ちる |
+| ⑩ | 実機の GPU・DPR が 1 でない画面で、画面全体の 3D（人形・方眼）が 1.1〜1.3 % ずれる（レビュー M1。`DPR=1.25 GPU=1`。SwiftShader でも DPR 1.25 で再現。Blender の `transform` も 0.12 %） | three.js は描画バッファを `floor(幅 × DPR)`、ビューポートを `round(幅 × DPR)` にする（小数の DPR で 1 画素大きく、はみ出した分は切れる）。`gl.js` はバッファの大きさをビューポートにしていた | `gl.js` のビューポートを `round(幅 × DPR)` に。DPR 1.5・2 は 0 % / 最大 1、1.25 は 0.003〜0.012 % / 最大 29 の残り（下の §15.5） |
+
+### 15.4 計測 [実測]
+
+SwiftShader の Chromium・AOT なし・localhost（wrangler dev）。前は `develop`（#115 のマージ）を `git worktree` で同じ条件で publish したもの。
+
+- **配信物の大きさ（IL の dll。brotli）**: `Web` 95,178 → 119,987 バイト（brotli q11。独立レビューの再計測。**+24.8 KB。全ページが読む**。`UnityEditorView`・`UnityCsEngine`・`UnityTutorialController` が主のアセンブリにあるため）、`Practice` 294,677 → 412,949（93.8 → 130.9 KB、+37.1 KB。遅れて読む）、`Render` 50,965 → 59,157（18.8 → 21.5 KB、+2.7 KB。遅れて読む）。JS（brotli）: `gl.js` 21.5 → 25.3 KB（7.5 → 8.3 KB）、`unity-ui.js` 9.2 KB（2.7 KB。`?engine=cs` のときだけ）、`practice-cs.js` 9.6 → 10.0 KB、`practice.css` 32.0 → 34.0 KB。`unity.js` は変えていない（71 KB。S7 まで残る）。
+- **`/practice/unity` を開いて canvas が出るまで**（3 回）: Three.js 版 1.54 / 2.60 / 2.73 秒、C# 版 2.61 / 2.68 / 2.80 秒。転送量は 4,197 KB と 4,126 KB（C# 版は three.js・`unity.js` を読まず、`Practice`・`Render`・`gl.js`・`unity-ui.js` を読む）。記事（`/learn/unity/modular-avatar-outfit`）は 2.86 / 2.77 / 2.85 秒（JS）と 2.63 / 2.70 / 2.77 秒（C#）。
+- **「次へ（スキップ）」1 回（再生）**（`ma-outfit` の 11 回。クリック → 表示の更新まで）: Three.js 版 中央値 180 ms・最大 447 ms、C# 版 中央値 293 ms・最大 566 ms（Razor の描き直しを含む）。
+- テスト件数: `Practice.Tests` 349・`Render.Tests` 226・`Build.Tests` 47・`Web.Tests` 196・`Content.Tests` 26・node 52（検索の索引のテストは `SEARCH_INDEX_FILE` が要る）。
+
+### 15.5 確証が持てない点・S6 以降への申し送り
+
+- 実機の GPU・Firefox・Safari は未確認（SwiftShader の Chromium のみ）。**dev サイトでの確認**（特に Windows・Mac の Chrome での Unity の操作の手触り: ドラッグ・Alt ドラッグ・ホイール・右クリックのメニュー・入力欄、タッチ端末の「画像で見る」）が要る。
+- **主のアセンブリ（`Web`）が全ページで +24.8 KB（brotli q11。95,178 → 119,987 バイト）**。S4 の +14 KB と合わせて +39 KB。Razor の部品はルートコンポーネントとして主のアセンブリに置く必要があった（遅れて読むアセンブリには置けない）。S7 で `unity.js`・`tutorial.js` などを消すときに、全体の収支で見る（three.js の 260 KB を外せる）。`UnityEditorView` を別アセンブリに移せるかは未調査。
+- **Razor の描き直しのタイミング**: イベントのあとの次の描画の機会（JS 版は DOM を同期で書き換える）。画像比較・実入力の比較では差が出ていない。
+- Hierarchy の行の「ドラッグ中の影」は DOM を JS（`unity-ui.js`）が作る（Razor の外）。ドラッグの経路は `unity-compare`・`tutorial-input-compare`（Project → Avatar・Project → Element 0・Project → Scene）で確かめたが、Hierarchy の行どうしの付け替え（reparent）の実入力は、ロジックの突き合わせ（`UnityParityTests`）だけ。
+- 三角関数の最後の桁（float の 1 ulp）の違いが、ジオメトリの位置に 2e-7 まで出る。画素には出ていない（`unity-compare` 0.000 %）。
+- `tutorial.js` に、`?debug=1` のとき `window.__unity` を置く 1 行を足した（確認用。`tutorial-input-compare` が、ギズモの位置と状態の比べに使う）。
+- **画像比較の 0.000 % は、SwiftShader（既定。DPR 1）が前提**。実 GPU（`GPU=1`。RTX 4090・D3D11）でも DPR 1・1.5・2 は一致する（0 % / 最大 1）。`DPR=1.25` では、`ma-outfit` の手順 11（SDK のメニュー）と `unity-basics` の手順 9（Inspector の区切りの線 1 本）に、0.003〜0.012 %（最大 29。1 本の線・12 画素四方）の差が残り、`ma-outfit` は実行によっては Scene の上端・下端の 1 行（0.1 %）が違う（GPU のときだけ。原因は未特定）。レビューで見つかった「案内枠つきの Unity の手順の Hierarchy の行の文字の差（0.15〜1.29 %）」は、この小数の DPR のずれ（⑩）が主で、**CSS で消す対象の文字の描き方の差は再現できなかった**（`.ue-hl` の枠のある行の文字は、SwiftShader・GPU・DPR 1〜2 のどれでも JS 版と同じ。動きを減らさない設定 `MOTION=1` では枠の脈動の位相が違うので比べない）。`tutorial-compare.mjs` は、描画が実 GPU だと分かると、この前提を表示する。`GPU_TOLERANT=1` は、実 GPU 用に、案内の枠（`.ue-hl`）の中の画素の差を無視し、閾値を 0.2 % / 40 に緩める（DOM の文字は別に比べる。通常の SwiftShader の厳しさ 0 % / 8 は変えない）。
+- **Unity の Hierarchy の行どうしの付け替えの実入力**は、`unity-compare.mjs` に「行 → Scene」のドラッグを足した（何も起きないことの比べ）。両エンジンの描画の完了（ドラッグの影・ドロップ先の枠が消え、2 フレーム進む）を待ってから撮る（以前は、4 回に 2 回、最大 14 の揺れがあった）。4 回連続で一致。
+- 次は S6（共有ルーム）。S7 で three.js・`unity.js`・`tutorial.js`・`scenarios.js` などを消す。
+
+### 15.6 レビュー指摘への対応（head 5c01b89 のあと）
+
+- **M2**: ⑨（`ActiveGlView`・`practice-mixed.mjs`）。**M1**: ⑩と §15.5（SwiftShader 前提の明記・`GPU_TOLERANT`・`GPU=1`・`DPR`・`HEADED` の環境変数）。
+- **L1**（テストの穴）: `unity-cases.generate.mjs` に、SDK の集計（親が EditorOnly のときの子の除外・スキンドメッシュの数え方・PhysBone の数え方・アバターが無いとき）・Undo の上限（50）・`AssignMaterial` の番号の境目（枚数ちょうど = 末尾に足す）の 3 ケース（102 ケース・2,617 操作）。変異（Undo の上限 50 → 49・EditorOnly を親から伝えない・番号の境目を `>=` に・PhysBone を無効な親で数えない・スキンドメッシュを有効なものだけ数える）で、それぞれ落ちることを確かめた。UI から起こせる「親に EditorOnly を付けたときの SDK の集計」は、`unity-compare.mjs` の実入力にも 1 場面。
+- **L3**: `AssignMaterial` は、番号が 0..枚数の外なら何もしない（`unity.js` は範囲外でも配列を広げる（穴ができる）が、Inspector の欄からは起こせない。1e9 で固まらないための意図した差）。`UnityRobustnessTests`。
+- **L5**: JS モジュールの読み込み（`gl.js`・`practice-cs.js`・`unity-ui.js`）は、失敗した Task を static に残さず、次の呼び出しでやり直す（`RetryableTask`。`PracticeCsAssemblies` と同じ決まり）。`RetryableTaskTests`。
+- **L2**・**L4**: §15.5・§15.4。

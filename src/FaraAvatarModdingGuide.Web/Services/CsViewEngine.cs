@@ -14,8 +14,8 @@ namespace FaraAvatarModdingGuide.Web.Services;
 /// </summary>
 public abstract class CsViewEngine : IDisposable
 {
-    private static Task? importing;
-    private static Task? importingHelper;
+    private static readonly RetryableTask importing = new();
+    private static readonly RetryableTask importingHelper = new();
 
     protected readonly string RootId;
     protected readonly string CanvasHostId;
@@ -46,10 +46,10 @@ public abstract class CsViewEngine : IDisposable
     public event Action? Changed;
 
     /// <summary>gl.js を読み込む(ページごとではなく、1 回だけ)。</summary>
-    public static Task ImportAsync() => importing ??= JSHost.ImportAsync("gl", "../js/gl.js");
+    public static Task ImportAsync() => importing.RunAsync(() => JSHost.ImportAsync("gl", "../js/gl.js"));
 
     /// <summary>practice-cs.js を読み込む(1 回だけ)。</summary>
-    public static Task ImportHelperAsync() => importingHelper ??= JSHost.ImportAsync("practice-cs", "../js/practice-cs.js");
+    public static Task ImportHelperAsync() => importingHelper.RunAsync(() => JSHost.ImportAsync("practice-cs", "../js/practice-cs.js"));
 
     /// <summary>ビューのオプション(最初のシーン・視点・ホイールの扱いなど)。</summary>
     protected abstract ViewportOptions CreateOptions();
@@ -69,7 +69,7 @@ public abstract class CsViewEngine : IDisposable
         core = new ViewportCore(new ViewRect(0, 0, 960, 540), CreateOptions());
         renderer = new SceneRenderer(core);   // 操作の前に作る(契約)
         OnCoreCreated(core);
-        started = PracticeGl.Start(RootId, OnFrame, OnPointerDown, OnPointerMove, OnPointerUp, OnWheel, OnKey, OnKeyUp, OnFocus, CanvasHostId);
+        started = PracticeGl.Start(RootId, OnFrame, OnPointerDown, OnPointerMove, OnPointerUp, OnWheel, OnKey, OnKeyUp, OnFocus, CanvasHostId, null, null);
         if (!started) return false;
         AfterInput();
         return true;

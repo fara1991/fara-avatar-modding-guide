@@ -36,7 +36,7 @@ else if (ctrl is not null)
                     }
                     else
                     {
-                        <img src="@ImageUrl(i)" alt="@PlainText(step.Text)" loading="lazy" width="1100" height="619" />
+                        <img src="@ImageUrl(i)" alt="@PlainText(step.Text)" loading="lazy" width="1100" height="@(info.Engine == "unity" ? 840 : 619)" />
                     }
                     <figcaption>
                         <div class="tut-text"><span class="tut-step-no">@(i + 1)</span><span>@((MarkupString)step.Text)</span></div>
@@ -79,9 +79,21 @@ else if (ctrl is not null)
     </div>
     <div class="tut-stage" @onfocusin="OnFocusIn" @onfocusout="OnFocusOut">
         <div class="@(s.Message is null ? "tut-msg" : $"tut-msg is-{s.MessageKind}")" hidden="@(s.Message is null)" role="status">@((MarkupString)(s.Message ?? ""))</div>
-        <div class="tut-vp practice-viewport" id="@RootId" tabindex="0" aria-label="3D ビューポート">
-            <PracticeHudView Hud="ctrl.Hud" GlHostId="@GlHostId" RootId="@RootId" ShowHud="s.HasView" Failed="s.ViewFailed" OnTool="OnTool" OnMenu="OnMenu" OnNPanel="OnNPanel" />
-        </div>
+        @if (ctrl.Unity is { } unity)
+        {
+            @* Unity 風の画面(Phase 3b S5): unity.js が .tut-vp に作っていた構造と同じ(エディター全体が .tut-vp) *@
+            <UnityEditorView Engine="unity" RootId="@RootId" RootClass="tut-vp unity-editor" SceneViewId="@SceneViewId" GlHostId="@GlHostId" OnStarted="ctrl.OnUnityStarted" />
+        }
+        else if (info.Engine == "unity")
+        {
+            <div class="tut-vp" id="@RootId" tabindex="@(s.Started ? "0" : null)" aria-label="@(s.Started ? "Unity エディター（練習）" : null)">@if (s.ViewFailed){<div class="tut-error">3D ビューを表示できません。WebGL が有効なブラウザで開いてください。</div>}</div>
+        }
+        else
+        {
+            <div class="tut-vp practice-viewport" id="@RootId" tabindex="0" aria-label="3D ビューポート">
+                <PracticeHudView Hud="ctrl.Hud" GlHostId="@GlHostId" RootId="@RootId" ShowHud="s.HasView" Failed="s.ViewFailed" OnTool="OnTool" OnMenu="OnMenu" OnNPanel="OnNPanel" />
+            </div>
+        }
         <div class="tut-keys" aria-hidden="true" hidden="@(s.Finished || (s.Keys.Count == 0 && s.Mouse is null))">
             @for (var k = 0; k < s.Keys.Count; k++)
             {
@@ -169,6 +181,7 @@ else if (ctrl is not null)
 
     private string RootId => $"tut-vp-{HostId}";
     private string GlHostId => $"tut-gl-{HostId}";
+    private string SceneViewId => $"tut-scene-{HostId}";
 
     protected override async Task OnInitializedAsync()
     {
@@ -177,10 +190,11 @@ else if (ctrl is not null)
             // 操作のロジック・手順・描画の命令(Practice・Render)は、C# 版を使うときだけ、1 回だけ読み込む
             await PracticeCsAssemblies.LoadAsync(Services);
             if (disposed) return;
-            var created = await TutorialCsLoader.CreateAsync(Scenario, RootId, GlHostId, "/images/tutorials");
+            var created = await TutorialCsLoader.CreateAsync(Scenario, RootId, GlHostId, SceneViewId, "/images/tutorials");
             if (disposed) { created?.Dispose(); return; }   // 読み込み中に記事を離れた: 登録も module の読み込みもしない
             ctrl = created;
             if (ctrl is null) { error = $"チュートリアル「{Scenario}」が見つかりません（C# 版）。"; return; }
+            ctrl.Debug = Debug;
             ctrl.Changed += OnChanged;
             all.Add(this);
             module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/practice-cs.js");

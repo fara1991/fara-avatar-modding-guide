@@ -33,7 +33,7 @@ public static class Picking
     }
 
     /// <summary>three.js の Ray.intersectSphere(当たるかどうかだけ)。</summary>
-    private static bool HitsSphere(Ray ray, Vec3 center, double radius)
+    internal static bool HitsSphere(Ray ray, Vec3 center, double radius)
     {
         var v = center - ray.Origin;
         var tca = v.Dot(ray.Direction);
@@ -46,7 +46,7 @@ public static class Picking
     }
 
     /// <summary>three.js の Ray.intersectsBox(スラブ法。NaN の扱いまで同じ)。</summary>
-    private static bool HitsBox(Ray ray, Vec3 min, Vec3 max)
+    internal static bool HitsBox(Ray ray, Vec3 min, Vec3 max)
     {
         double tmin, tmax, tymin, tymax, tzmin, tzmax;
         double invdirx = 1 / ray.Direction.X, invdiry = 1 / ray.Direction.Y, invdirz = 1 / ray.Direction.Z;

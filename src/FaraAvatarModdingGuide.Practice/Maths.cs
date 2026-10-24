@@ -239,9 +239,9 @@ public readonly struct Mat4
     }
 
     /// <summary>
-    /// three.js の Matrix3.getNormalMatrix(上 3x3 の逆行列の転置)で法線 n を変換する(Vector3.applyMatrix3。正規化はしない)。
+    /// three.js の Matrix3.getNormalMatrix(上 3x3 の逆行列の転置)の elements(列順の 9 個)。
     /// </summary>
-    public Vec3 ApplyNormalMatrix(Vec3 n)
+    public double[] NormalMatrix()
     {
         var te = E;
         double n11 = te[0], n21 = te[1], n31 = te[2], n12 = te[4], n22 = te[5], n32 = te[6], n13 = te[8], n23 = te[9], n33 = te[10];
@@ -264,6 +264,15 @@ public readonly struct Mat4
         (r[1], r[3]) = (r[3], r[1]);
         (r[2], r[6]) = (r[6], r[2]);
         (r[5], r[7]) = (r[7], r[5]);
+        return r;
+    }
+
+    /// <summary>
+    /// <see cref="NormalMatrix"/> で法線 n を変換する(Vector3.applyMatrix3。正規化はしない)。
+    /// </summary>
+    public Vec3 ApplyNormalMatrix(Vec3 n)
+    {
+        var r = NormalMatrix();
         return new Vec3(r[0] * n.X + r[3] * n.Y + r[6] * n.Z, r[1] * n.X + r[4] * n.Y + r[7] * n.Z, r[2] * n.X + r[5] * n.Y + r[8] * n.Z);
     }
 }
