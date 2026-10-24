@@ -1,5 +1,0 @@
-User-agent: *
-Disallow: /api/
-Disallow: /practice/room?room=
-
-Sitemap: https://avatar.fara-labs.com/sitemap.xml
