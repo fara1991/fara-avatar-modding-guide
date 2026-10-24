@@ -1,4 +1,6 @@
-// 背景の飾り（見た目だけ）: Blender の 3D ビューのような、奥へ延びる床の方眼と、床の上でゆっくり回る基本オブジェクト（立方体・球・アイコ球・円錐・円柱・トーラス）。
+// 背景の飾り（見た目だけ）: Blender の 3D ビューのような、奥へ延びる床の方眼と、宙に散らばってゆっくり回る基本オブジェクト（立方体・球・アイコ球・円錐・円柱・トーラス）。
+// - 図形の配置は固定の乱数（シード付き）で決めるので、読み込みのたびに変わらない。画面の中で高さ・奥行きがばらつき、互いに重ならない
+// - 回る軸・向き（正逆）・速さ、ゆるやかに漂う向き・幅・周期は、図形ごとにばらばら
 // 画面の後ろ（z-index: -1）に置いた canvas に描く。操作には関わらない。
 // - 動きを減らす設定（prefers-reduced-motion）のときは、止めた 1 枚だけを描く
 // - タブが裏に回ったら止める。負荷を抑えるため、描くのは 30fps まで、解像度の倍率は最大 1.5
@@ -22,21 +24,31 @@
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     W = window.innerWidth; H = window.innerHeight;
+    refreshInset();
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     canvas.style.width = W + "px"; canvas.style.height = H + "px";
   }
 
   // ---- 3D（カメラは、床の少し上から、奥を見る） ----
   var cam = { x: 0, y: 1.3, z: 6, pitch: 0.05 };
-  function project(p) {
+  var HORIZON = 0.38;   // 画面の高さのうち、地平線の位置（上から）
+  function focal(w, h) { return Math.max(w, h * 0.6) * 0.95; }
+  function projectWH(p, w, h) {
     var x = p[0] - cam.x, y = p[1] - cam.y, z = p[2] - cam.z;
     var cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
     var y2 = y * cp + z * sp, z2 = -y * sp + z * cp;
     var d = -z2;
     if (d < 0.2) return null;
     // 縦長の画面（スマホ）では、高さではなく幅に合わせる（高さに合わせると、右のオブジェクトが画面の外に出て、端しか見えない）
-    var f = Math.max(W, H * 0.6) * 0.95;
-    return [W * 0.5 + (x * f) / d, H * 0.38 - (y2 * f) / d, d];
+    var f = focal(w, h);
+    return [w * 0.5 + (x * f) / d, h * HORIZON - (y2 * f) / d, d];
+  }
+  function project(p) { return projectWH(p, W, H); }
+  // 画面の位置（u, v は 0〜1）と、カメラからの奥行き d から、世界の座標へ戻す（project の逆）
+  function unproject(u, v, d, w, h) {
+    var f = focal(w, h), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+    var y2 = (h * HORIZON - v * h) * d / f;
+    return [cam.x + (u * w - w * 0.5) * d / f, cam.y + y2 * cp + d * sp, cam.z + y2 * sp - d * cp];
   }
 
   function line(a, b, alpha) {
@@ -64,11 +76,13 @@
     }
     return { v: v, f: f };
   }
+  // 面の向き（巻き順）を逆にする。裏向きの面は描かないので、外向きになっていないと、手前の面が抜けて向こう側の内側が見える
+  function flip(m) { m.f = m.f.map(function (t) { return [t[0], t[2], t[1]]; }); return m; }
   function uvSphere(r, seg, rings) {
-    return grid(seg, rings, function (i, j) {
+    return flip(grid(seg, rings, function (i, j) {
       var th = (i / seg) * Math.PI * 2, ph = (j / rings) * Math.PI;
       return [r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)];
-    });
+    }));
   }
   function icosphere(r) {
     var t = (1 + Math.sqrt(5)) / 2, n = Math.sqrt(1 + t * t);
@@ -79,13 +93,13 @@
   function cone(r, h, seg) {
     var m = grid(seg, 1, function (i, j) { var th = (i / seg) * Math.PI * 2; return j === 0 ? [r * Math.cos(th), -h / 2, r * Math.sin(th)] : [0, h / 2, 0]; });
     var c = m.v.length; m.v.push([0, -h / 2, 0]);
-    for (var i = 0; i < seg; i++) m.f.push([c, i + 1, i]);
+    for (var i = 0; i < seg; i++) m.f.push([c, i, i + 1]);
     return m;
   }
   function cylinder(r, h, seg) {
     var m = grid(seg, 1, function (i, j) { var th = (i / seg) * Math.PI * 2; return [r * Math.cos(th), j === 0 ? -h / 2 : h / 2, r * Math.sin(th)]; });
     var bot = m.v.length; m.v.push([0, -h / 2, 0]); var top = m.v.length; m.v.push([0, h / 2, 0]);
-    for (var i = 0; i < seg; i++) { m.f.push([bot, i + 1, i]); m.f.push([top, seg + 1 + i, seg + 2 + i]); }
+    for (var i = 0; i < seg; i++) { m.f.push([bot, i, i + 1]); m.f.push([top, seg + 2 + i, seg + 1 + i]); }
     return m;
   }
   function torus(R, r, seg, tube) {
@@ -95,36 +109,149 @@
     });
   }
 
-  // 置く物（x, z は床の上の位置。spin は回る速さ、tilt は傾き）。奥のものほど、画面の上に見える
-  var OBJECTS = [
-    { m: cone(0.5, 1.1, 16), x: 1.7, z: -4.4, y: 0.45, spin: 0.9, tilt: 0.12, hue: [168, 85, 247] },
-    { m: icosphere(0.62), x: 3.3, z: -6.4, y: 0.5, spin: 0.5, tilt: 0.3, hue: [196, 181, 253] },
-    { m: cube(), x: 2.7, z: -3.2, y: 0.42, spin: 0.7, tilt: 0.35, hue: [124, 58, 237] },
-    { m: torus(0.5, 0.2, 18, 10), x: 4.6, z: -4.8, y: 0.6, spin: 0.6, tilt: 0.9, hue: [192, 132, 252] },
-    { m: uvSphere(0.5, 14, 9), x: 0.9, z: -6.0, y: 0.42, spin: 0.35, tilt: 0.1, hue: [147, 114, 255] },
-    { m: cylinder(0.38, 1.0, 16), x: 5.6, z: -3.6, y: 0.42, spin: 0.8, tilt: 0.2, hue: [168, 85, 247] },
-    // 左側にも（右だけに偏らないよう、左右で釣り合わせる。PC は左のサイドバーの右側から見える）
-    { m: cube(), x: -2.6, z: -3.8, y: 0.42, spin: 0.55, tilt: 0.28, hue: [147, 114, 255] },
-    { m: icosphere(0.58), x: -4.5, z: -6.2, y: 0.5, spin: 0.45, tilt: 0.25, hue: [196, 181, 253] },
-    { m: cone(0.45, 1.0, 16), x: -1.4, z: -6.6, y: 0.4, spin: 0.85, tilt: 0.15, hue: [192, 132, 252] },
-    { m: torus(0.5, 0.2, 18, 10), x: -6.0, z: -4.6, y: 0.6, spin: 0.5, tilt: 0.8, hue: [168, 85, 247] },
+  // 置く物の形と色。br は、形をすっぽり包む球の半径（重ならない距離を測るのに使う）。配置・回り方・漂い方は、下の layout が決める
+  var SHAPES = [
+    { m: cone(0.5, 1.1, 16), br: 0.62, hue: [168, 85, 247] },
+    { m: icosphere(0.62), br: 0.62, hue: [196, 181, 253] },
+    { m: cube(), br: 0.87, hue: [124, 58, 237] },
+    { m: torus(0.5, 0.2, 18, 10), br: 0.7, hue: [192, 132, 252] },
+    { m: uvSphere(0.5, 14, 9), br: 0.5, hue: [147, 114, 255] },
+    { m: cylinder(0.38, 1.0, 16), br: 0.55, hue: [168, 85, 247] },
+    { m: cube(), br: 0.87, hue: [147, 114, 255] },
+    { m: icosphere(0.58), br: 0.58, hue: [196, 181, 253] },
+    { m: cone(0.45, 1.0, 16), br: 0.56, hue: [192, 132, 252] },
+    { m: torus(0.5, 0.2, 18, 10), br: 0.7, hue: [168, 85, 247] },
   ];
-  var OBJ_SCALE = 0.8;
+  // 広い画面（PC）と縦長の画面（スマホ）で、図形の大きさと数（配置は、本文の領域の中での 0〜1 の位置で持つので、画面の大きさが少し変わっても崩れない）
+  var MODES = {
+    wide: { scale: 0.8, count: 10, alpha: 0.42 },
+    tall: { scale: 1.25, count: 8, alpha: 0.34 },
+  };
+  // 左のサイドバーとヘッダーの寸法（app.css の --mud-drawer-width-left・--mud-appbar-height と、PC のブレークポイント 768px と同じ）。実際の寸法は DOM から測り、測れなければこの値
+  var SIDEBAR_W = 230, HEADER_H = 56, SIDEBAR_MIN_W = 768;
+  var SEED = 20240611;
   var LIGHT = (function () { var l = [-0.45, 0.8, 0.4], n = Math.hypot(l[0], l[1], l[2]); return [l[0] / n, l[1] / n, l[2] / n]; })();
 
-  function drawObjects(t, k) {
-    var tris = [];
-    OBJECTS.forEach(function (o, idx) {
-      var ay = t * 0.001 * o.spin * 0.6 + idx, ax = o.tilt + Math.sin(t * 0.0004 + idx) * 0.15;
-      var cy = Math.cos(ay), sy = Math.sin(ay), cx = Math.cos(ax), sx = Math.sin(ax);
-      var bob = Math.sin(t * 0.0008 + idx * 1.7) * 0.06;
-      function tf(p) {
-        var px = p[0] * OBJ_SCALE, py = p[1] * OBJ_SCALE, pz = p[2] * OBJ_SCALE;
-        var x = px * cy + pz * sy, z = -px * sy + pz * cy, y = py;
-        var y2 = y * cx - z * sx, z2 = y * sx + z * cx;
-        return [x, y2, z2];
+  // 固定のシードの乱数（mulberry32）。同じシードなら、いつも同じ並びになる
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function randAxis(r) {
+    var z = r() * 2 - 1, th = r() * Math.PI * 2, s = Math.sqrt(1 - z * z);
+    return [s * Math.cos(th), z, s * Math.sin(th)];
+  }
+  // 軸 a のまわりに ang だけ回す 3×3 の行列（ロドリゲスの公式。行優先）
+  function axisAngle(a, ang) {
+    var c = Math.cos(ang), s = Math.sin(ang), k = 1 - c, x = a[0], y = a[1], z = a[2];
+    return [c + x * x * k, x * y * k - z * s, x * z * k + y * s,
+            x * y * k + z * s, c + y * y * k, y * z * k - x * s,
+            x * z * k - y * s, y * z * k + x * s, c + z * z * k];
+  }
+  function mul(A, B) {
+    var R = [];
+    for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++) R.push(A[i * 3] * B[j] + A[i * 3 + 1] * B[3 + j] + A[i * 3 + 2] * B[6 + j]);
+    return R;
+  }
+
+  // 図形が隠れないように、サイドバーの右・ヘッダーの下（本文の領域）の寸法を測る。[左の余白, 上の余白]
+  function insets() {
+    var l = 0, t = HEADER_H;
+    if (W >= SIDEBAR_MIN_W) {
+      var sb = document.querySelector(".fsk-sidebar"), r = sb && sb.getBoundingClientRect();
+      l = r && r.width > 0 ? Math.min(Math.round(r.right), W * 0.5) : SIDEBAR_W;
+    }
+    var hd = document.querySelector(".fsk-header"), q = hd && hd.getBoundingClientRect();
+    if (q && q.height > 0) t = Math.min(Math.round(q.bottom), H * 0.3);
+    return [l, t];
+  }
+  var inset = [0, HEADER_H];
+  // 配置を決めるときの画面の大きさ。少しの違い（スマホのアドレスバーの出入り）で配置が変わらないよう、丸める
+  function bucket() { return [Math.max(300, Math.round(W / 50) * 50), Math.max(300, Math.round(H / 100) * 100)]; }
+
+  // 図形ごとの配置・回り方・漂い方を、固定のシードで決める。
+  // 配置: 本文の領域（サイドバーの右・ヘッダーの下）の中だけに置く。位置（画面の上の x, y）・奥行き d・大きさの倍率をばらして候補を作り、漂う幅の分も含めて、互いに重ならない候補
+  //   （画面の上で、大きさの和より 12px 以上離れているもの）のうち、縦の離れを重く見て一番離れたものを選ぶ（横一列になりにくい）。置けなければ、その図形を小さくして置き直す。
+  //   見出し・リード文のあたり（本文の領域の上の左寄り。スマホは上の幅いっぱい）は、文字が読みにくくなるので避ける
+  //   高さは、領域の縦を図形の数の帯に分けて別々にあてがい、地平線より下（床の上）にも置く
+  // 動き: 回る軸（向きは図形ごとにばらばら）・正逆・速さ、漂う向き・幅・周期も、図形ごとにばらばら
+  function layout(mode, ins, size) {
+    var cfg = MODES[mode], w = size[0], h = size[1], f = focal(w, h), r = rng(SEED + (mode === "tall" ? 7919 : 0));
+    var x0 = ins[0], y0 = ins[1], rw = w - x0, rh = h - y0;
+    var zone = w >= SIDEBAR_MIN_W ? [x0, y0, x0 + Math.min(780, rw), y0 + Math.min(300, rh * 0.45)] : [0, y0, w, y0 + Math.min(140000 / w + 20, rh * 0.55)];   // スマホは、幅が狭いほど文が折り返して長くなる   // 避ける長方形
+    // 避ける長方形が領域の横幅いっぱい（スマホ）なら、帯は、その下から数える
+    var top = zone[0] <= x0 && zone[2] >= w ? zone[3] : y0, th = h - top;
+    var placed = [], bands = [];
+    for (var b = 0; b < cfg.count; b++) bands.push(b);
+    for (var b2 = bands.length - 1; b2 > 0; b2--) { var sw = Math.floor(r() * (b2 + 1)), tmp = bands[b2]; bands[b2] = bands[sw]; bands[sw] = tmp; }
+    for (var i = 0; i < cfg.count; i++) {
+      var sh = SHAPES[i % SHAPES.length];
+      var amp = [0.12 + 0.22 * r(), 0.08 + 0.14 * r(), 0.1 + 0.2 * r()];   // 漂う幅（世界の x, y, z）
+      var sz = 0.75 + 0.4 * r(), best = null;
+      // 帯の中で置けなければ小さくし、それでも置けなければ、帯をやめて領域のどこにでも置く
+      for (var shrink = 1, free = false; !(best && best.gap >= 12) && (shrink > 0.45 || !free); shrink -= 0.12) {
+        if (shrink <= 0.45 && !free) { free = true; shrink = 1; }
+        best = null;
+        for (var k = 0; k < 300; k++) {
+          var d = 4.5 + 7.5 * r(), ux = r(), uy = free ? r() : (bands[i] + 0.5 + (r() - 0.5) * 1.6) / cfg.count;
+          var scale = cfg.scale * sz * shrink;
+          var pr = sh.br * scale * f / d, reserve = Math.hypot(amp[0], amp[1]) * f / d + pr * amp[2] / d;   // 画面の上での半径と、漂う幅
+          var edge = pr + reserve, sx = x0 + ux * rw, sy = free ? y0 + uy * rh : top + uy * th;
+          if (sx < x0 + edge || sx > w - edge || sy < y0 + edge || sy > h - edge) continue;   // 本文の領域からはみ出さない
+          // 見出し・リード文の長方形（避ける）との、円の重なり
+          var nx = Math.max(zone[0], Math.min(sx, zone[2])), ny = Math.max(zone[1], Math.min(sy, zone[3]));
+          if (Math.hypot(sx - nx, sy - ny) < edge) continue;
+          var gap = 1e9, spread = 1e9;   // gap: 実際の画面の上の隙間（12px 以上が必須）。spread: 縦を重く見た隙間（大きいほど、縦にもばらける）
+          for (var j = 0; j < placed.length; j++) {
+            var o = placed[j], sum = pr + reserve + o.pr + o.reserve;
+            gap = Math.min(gap, Math.hypot(sx - o.sx, sy - o.sy) - sum);
+            spread = Math.min(spread, Math.hypot((sx - o.sx) * 0.75, (sy - o.sy) * 1.3) - sum);
+          }
+          var score = gap >= 12 ? 1e6 + spread : gap;
+          if (!best || score > best.score) best = { score: score, gap: gap, ux: ux, uy: uy, d: d, sx: sx, sy: sy, pr: pr, reserve: reserve, s: scale };
+        }
       }
-      var wv = o.m.v.map(function (p) { var q = tf(p); return [o.x + q[0], o.y + bob + q[1], o.z + q[2]]; });
+      if (!best || best.gap < 12) continue;   // どうしても置けなければ、その図形は置かない
+      var dirs = [r() < 0.5 ? -1 : 1, r() < 0.5 ? -1 : 1, r() < 0.5 ? -1 : 1];
+      placed.push({
+        m: sh.m, hue: sh.hue, br: sh.br, s: best.s, ux: (best.sx - x0) / rw, uy: (best.sy - y0) / rh, d: best.d, sx: best.sx, sy: best.sy, pr: best.pr, reserve: best.reserve, gap: best.gap,
+        base: axisAngle(randAxis(r), r() * Math.PI * 2),   // 最初の向き
+        axis: randAxis(r), spin: (r() < 0.5 ? -1 : 1) * (0.12 + 0.4 * r()), phase: r() * Math.PI * 2,   // 回る軸・向き・速さ（rad/秒）
+        amp: amp, drift: [0, 1, 2].map(function (n) { return { w: dirs[n] * Math.PI * 2 / (16 + 34 * r()), p: r() * Math.PI * 2 }; }),   // 漂う向き（符号）・周期（16〜50 秒）・位相
+      });
+    }
+    return placed;
+  }
+  var layouts = {};
+  function mode() { return W >= H ? "wide" : "tall"; }
+  function objects() {
+    var m = mode(), sz = bucket(), key = m + "|" + inset[0] + "|" + inset[1] + "|" + sz[0] + "|" + sz[1];
+    return layouts[key] || (layouts[key] = layout(m, inset, sz));
+  }
+  // サイドバーの開閉などで、本文の領域が変わったか（変わったら、配置し直す）
+  function refreshInset() {
+    var n = insets(), changed = n[0] !== inset[0] || n[1] !== inset[1];
+    inset = n;
+    return changed;
+  }
+
+  function drawObjects(t, k) {
+    var tris = [], sec = t * 0.001, alpha = MODES[mode()].alpha, rw = W - inset[0], rh = H - inset[1];
+    objects().forEach(function (o) {
+      var R = mul(axisAngle(o.axis, o.phase + o.spin * sec), o.base);
+      var c = unproject((inset[0] + o.ux * rw) / W, (inset[1] + o.uy * rh) / H, o.d, W, H), s = o.s;
+      var cx = c[0] + o.amp[0] * Math.sin(o.drift[0].w * sec + o.drift[0].p),
+          cy = c[1] + o.amp[1] * Math.sin(o.drift[1].w * sec + o.drift[1].p),
+          cz = c[2] + o.amp[2] * Math.sin(o.drift[2].w * sec + o.drift[2].p);
+      var wv = o.m.v.map(function (p) {
+        var px = p[0] * s, py = p[1] * s, pz = p[2] * s;
+        return [cx + R[0] * px + R[1] * py + R[2] * pz, cy + R[3] * px + R[4] * py + R[5] * pz, cz + R[6] * px + R[7] * py + R[8] * pz];
+      });
       o.m.f.forEach(function (tri) {
         var A = wv[tri[0]], B = wv[tri[1]], C = wv[tri[2]];
         var ux = B[0] - A[0], uy = B[1] - A[1], uz = B[2] - A[2], vx = C[0] - A[0], vy = C[1] - A[1], vz = C[2] - A[2];
@@ -143,13 +270,13 @@
     ctx.lineWidth = 0.8 * dpr; ctx.lineJoin = "round";
     tris.forEach(function (tr) {
       var shade = 0.32 + 0.68 * tr.lit, h = tr.hue;
-      ctx.globalAlpha = 0.5 * k;
+      ctx.globalAlpha = alpha * k;
       ctx.fillStyle = "rgb(" + Math.round(h[0] * shade) + "," + Math.round(h[1] * shade) + "," + Math.round(h[2] * shade) + ")";
       ctx.beginPath();
       ctx.moveTo(tr.p[0][0] * dpr, tr.p[0][1] * dpr); ctx.lineTo(tr.p[1][0] * dpr, tr.p[1][1] * dpr); ctx.lineTo(tr.p[2][0] * dpr, tr.p[2][1] * dpr);
       ctx.closePath(); ctx.fill();
       // 面のつなぎ目に、細い線（Blender の「ワイヤーのオーバーレイ」のように）
-      ctx.globalAlpha = 0.18 * k; ctx.strokeStyle = dark ? "rgb(230,215,255)" : "rgb(60,30,130)"; ctx.stroke();
+      ctx.globalAlpha = alpha * 0.36 * k; ctx.strokeStyle = dark ? "rgb(230,215,255)" : "rgb(60,30,130)"; ctx.stroke();
     });
     ctx.globalAlpha = 1;
   }
@@ -177,7 +304,7 @@
     line([-18, 0, 0], [18, 0, 0], 0.4 * k);
     line([0, 0, -34], [0, 0, 5], 0.4 * k);
 
-    // Blender の基本オブジェクトを、床の上に置いて、ゆっくり回す
+    // Blender の基本オブジェクトを、宙に散らして、ゆっくり回す・漂わせる
     drawObjects(t, k);
     ctx.globalAlpha = 1;
   }
@@ -197,6 +324,8 @@
     raf = requestAnimationFrame(frame);
   }
 
+  // サイドバーの開閉（html の class）や、WebAssembly の起動でヘッダー・サイドバーが入れ替わったあとの寸法の変化を拾う
+  setInterval(function () { if (refreshInset() && reduce.matches) draw(4000); }, 500);
   window.addEventListener("resize", function () { resize(); if (reduce.matches) draw(4000); });
   new MutationObserver(function () { readTheme(); if (reduce.matches) draw(4000); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-bs-theme"] });
   if (reduce.addEventListener) reduce.addEventListener("change", start);
