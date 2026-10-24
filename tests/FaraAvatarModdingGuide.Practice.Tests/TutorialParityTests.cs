@@ -36,7 +36,7 @@ public class TutorialParityTests
         var m = System.Text.RegularExpressions.Regex.Match(source, @"export const CS_SCENARIOS = \[(?<list>[^\]]*)\]");
         Assert.True(m.Success);
         var listed = System.Text.RegularExpressions.Regex.Matches(m.Groups["list"].Value, "\"([^\"]+)\"").Select(x => x.Groups[1].Value).OrderBy(x => x).ToList();
-        Assert.Equal(TutorialScenarios.All.Keys.OrderBy(x => x).ToList(), listed);
+        Assert.Equal(TutorialScenarios.All.Keys.Concat(UnityTutorialScenarios.All.Select(u => u.Name)).OrderBy(x => x).ToList(), listed);
     }
 
     [Theory]

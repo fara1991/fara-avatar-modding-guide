@@ -102,6 +102,8 @@ export function installGlobals() {
     setSize() { }
     dispose() { }
     forceContextLoss() { }
+    clear() { }
+    clearDepth() { }
     render(scene, camera) {
       scene.updateMatrixWorld();
       if (camera.parent === null) camera.updateMatrixWorld();

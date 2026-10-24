@@ -29,3 +29,8 @@
   - `tutorial-dom.mjs` … 埋め込みの DOM の骨格（タグ・クラス・data-*・aria-*）を、5 つの状態（最初・フォーカス後・スキップ後・画像で見る・完了）で比べる
   - `practice-details.mjs` … `/practice` の細部（カーソル・フォーカス・枠・ボックス選択の枠・メニューの位置・HUD の文字・ツールの点灯・N パネル）を、25 の場面（ドラッグ中・数値入力中・メニューを開いたまま）で値で比べる
   - `practice-race.mjs` … 低速な読み込み中に「離れて戻る」（`Practice`・`Render` の wasm を 3.5 秒遅らせ、`/practice?engine=cs` → `/learn` → 戻る）。wasm を二重に読まず、エラーが出ないこと
+- Phase 3b S5（Unity 風の画面。docs/phase3b-design.md の §15）:
+  - `unity-compare.mjs` … `/practice/unity` を、Three.js 版と C# 版（`?engine=cs`）で、同じ本物のマウス・キーの 38 操作（Hierarchy・Scene・ギズモ・Project のドラッグ・右クリック・Inspector・SDK・Build & Test…）で操作して、毎回、画素・DOM の骨格・お題・ステータス・状態（`window.__unity` と `window.__unityCs`）を比べる。閾値は `MAX_OVER_PCT=0` `MAX_DIFF=8`
+  - `unity-lib.mjs` … ドラッグ・ギズモの位置・状態の読み取りと比べ（`unity-compare.mjs`・`tutorial-input-compare.mjs` の共通部品）
+  - `tutorial-compare.mjs`・`tutorial-dom.mjs`・`tutorial-input-compare.mjs` は Unity の 2 本（`unity-basics`・`ma-outfit`）も比べる（`tutorial-input-compare` は `transform`・`unity-basics`・`ma-outfit` の実入力の列。`ONLY=<名前>`）
+  - `practice.mjs` の `ENGINE=cs` は、`/practice/unity` の操作も C# 版で動かす。`csp-check.mjs` は `?engine=cs` の Unity 3 画面も見る

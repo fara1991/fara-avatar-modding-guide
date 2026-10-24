@@ -15,14 +15,20 @@ export const ARTICLES = {
   "bevel-merge": "/learn/modeling/bevel-knife-merge",
   mirror: "/learn/modeling/mirror-smooth",
   topology: "/learn/modeling/topology",
+  "unity-basics": "/learn/unity/editor-overview",
+  "ma-outfit": "/learn/unity/modular-avatar-outfit",
 };
+
+export const UNITY = ["unity-basics", "ma-outfit"];
 
 export async function open(browser, name, cs) {
   const page = await newPage(browser, { width: 1280, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });   // CSS のアニメーション(マーカーの上下など)は、始まった時刻で位相が決まるので止める(同じ CSS なので、止めても比べる意味は変わらない)
   await page.context().addInitScript(() => { performance.now = () => 1000; });   // 点線の点滅を止める
   await page.addInitScript(() => { const st = document.createElement("style"); st.textContent = "#site-scene{display:none !important}"; document.addEventListener("DOMContentLoaded", () => document.head.appendChild(st)); });   // 背景の 3D(動く)が、半透明の部分に透けるので隠す
-  await page.goto(`${NEW}${ARTICLES[name]}${cs ? "?engine=cs" : ""}`, { waitUntil: "load" });
+  // Unity 風の画面は、?debug=1 で状態(JS 版は window.__unity、C# 版は window.__unityCs)を読める(実入力の比較が、ギズモの位置・状態の比べに使う)
+  const query = [UNITY.includes(name) ? "debug=1" : null, cs ? "engine=cs" : null].filter(Boolean).join("&");
+  await page.goto(`${NEW}${ARTICLES[name]}${query ? "?" + query : ""}`, { waitUntil: "load" });
   await page.waitForSelector(".mud-layout", { timeout: 90000 });
   const embed = page.locator(`.practice-embed[data-scenario="${name}"]`);
   await embed.waitFor({ timeout: 30000 });
@@ -44,6 +50,7 @@ export async function texts(embed) {
       highlightedTools: [...el.querySelectorAll(".vp-tools .is-highlight")].map((b) => b.dataset.tool), viewHighlight: !!el.querySelector(".vp-view.is-highlight"),
       focused: el.classList.contains("is-focused"), toolsOn: [...el.querySelectorAll(".vp-tools .is-on")].map((b) => b.dataset.tool),
       progress: el.querySelector(".tut-progress span")?.style.width,
+      ueStatus: t(".ue-status"), ueInfo: t(".ue-scene-info"), ueLabel: el.querySelector(".ue-hl-label")?.hidden ? null : t(".ue-hl-label"), ueTools: [...el.querySelectorAll(".ue-toolbar .is-on")].map((b) => b.dataset.tool),
     };
   });
 }
@@ -71,3 +78,23 @@ export function pixelDiff(a, b) {
 
 /** /api/maintenance の requestfailed は、kit の MaintenanceInfo が 2 秒で打ち切る(仕様)ので、配信が重いと出る。csp-check.mjs と同じに、問題として数えない */
 export const realProblems = (page) => page.problems.filter((m) => !/Failed to load resource/.test(m) && !(m.startsWith("requestfailed:") && m.includes("/api/maintenance")));
+
+/** 要素の DOM の骨格(タグ・クラス・data-*・aria-*・hidden・disabled・type・href)。page.evaluate に渡す(tutorial-dom.mjs・unity-compare.mjs) */
+export const skeleton = (el) => {
+  const out = [];
+  const walk = (e, d) => {
+    // C# 版は、canvas を Blazor の外の空の div(.practice-gl)に入れる(Blazor の子の数え方が狂わないように)。canvas だけを見て、空の div は無いものとする
+    if (e.classList?.contains("practice-gl")) { for (const c of e.children) walk(c, d); return; }
+    // Unity 風の画面(C# 版): ドラッグの影を入れる空の div と、Scene の上の操作を無視する印(Razor の作り)は、JS 版に無いものとする。閉じた SDK の画面の古い中身も見ない
+    if (e.classList?.contains("ue-ghost-host")) return;
+    if (e.tagName === "CANVAS") { out.push(`${" ".repeat(d)}[gl]`); return; }
+    // 入力欄の値・チェック・選択は、属性ではなく現在の値(JS 版は innerHTML の属性、Razor は DOM のプロパティで持つ。見えるのは現在の値)
+    const live = e.tagName === "INPUT" && e.type === "checkbox" ? [`checked=${e.checked}`] : e.tagName === "INPUT" ? [`value=${e.value}`] : e.tagName === "OPTION" ? [`selected=${e.selected}`] : [];
+    const attrs = [...e.attributes].filter((a) => !(a.name === "class" && !e.classList.length)).filter((a) => !["style", "id", "data-cs", "data-i", "data-gl-ignore", "checked", "value", "selected"].includes(a.name) && !(a.name.startsWith("_bl_") || a.name.startsWith("blazor"))).map((a) => `${a.name}=${a.name === "class" ? [...e.classList].sort().join(" ") : a.value}`).concat(live).sort();
+    out.push(`${" ".repeat(d)}<${e.tagName.toLowerCase()} ${attrs.join(" ")}>${[...e.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join("").replace(/\s+/g, " ").trim().slice(0, 40)}`);   // 子の要素のあいだの文字も見る
+    if ((e.classList?.contains("ue-sdk") || e.classList?.contains("ue-preview")) && e.hidden) return;
+    for (const c of e.children) walk(c, d + 1);
+  };
+  walk(el, 0);
+  return out;
+};

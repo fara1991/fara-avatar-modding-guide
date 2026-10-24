@@ -6,8 +6,8 @@
 // (「新しいブラウザコンテキストで描画が始まらない」の原因: 隠れたウィンドウでは rAF が呼ばれない。docs/phase3b-design.md の §11.2)。
 // dispose() で WebGL のコンテキスト・リスナー・rAF・observer を全部解放する。コンテキストを失ったら(webglcontextlost)、復帰したとき(webglcontextrestored)に作り直して送り直す。
 
-const HEADER = 24;      // FramePacker.HeaderFloats
-const STRIDE = 44;      // FramePacker.ItemFloats
+const HEADER = 32;      // FramePacker.HeaderFloats
+const STRIDE = 53;      // FramePacker.ItemFloats
 const LAYOUT_STRIDE = [3, 6, 6];   // BufferLayout.Position / PositionNormal / PositionColor の 1 頂点あたりの float
 const BACKGROUND = [0x3d / 255, 0x3d / 255, 0x3d / 255];   // scene.background = 0x3d3d3d(sRGB の値のまま出力する)
 
@@ -16,19 +16,19 @@ layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aAttr;
 uniform mat4 uProj;
 uniform mat4 uModelView;
-uniform mat4 uWorld;
+uniform mat3 uNormalMatrix;   // ModelView の法線行列(three.js の normalMatrix)
 uniform float uPointSize;
-out vec3 vNormal;
-out vec3 vWorldPos;
+out vec3 vNormal;           // ビュー空間(three.js と同じ。補間してから使う)
+out vec3 vViewPosition;
 out vec3 vColor;
 out float vDist;
 void main() {
-  vec4 wp = uWorld * vec4(aPos, 1.0);
   vec4 mvPosition = uModelView * vec4(aPos, 1.0);   // three.js の project_vertex と同じ順(ModelView を先に掛けてから射影)。順が違うと、同じ平面の面・線の深度の丸めがずれて、重なった所のちらつき方が変わる
   gl_Position = uProj * mvPosition;
-  vWorldPos = wp.xyz;
-  // 法線は上 3x3 の逆行列の転置で変換する(G/R/S の軸固定で不均一なスケールになっても向きが合う。three.js の normalMatrix と同じ)
-  vNormal = transpose(inverse(mat3(uWorld))) * aAttr;
+  vViewPosition = -mvPosition.xyz;
+  // 法線は、three.js と同じに、ビュー空間で(normalMatrix = ModelView の上 3x3 の逆行列の転置)正規化してから補間する。
+  // 細い三角形(球・カプセルの極)では、補間が三角形の外へ大きく外挿されるので、空間・手順が違うと、その画素の明るさが変わる
+  vNormal = normalize(uNormalMatrix * aAttr);
   vColor = aAttr;
   vDist = aPos.x + 40.0;   // 点線(shading 3)の位置。X 方向に -40〜40 を 1 刻みで作った線なので、three.js の lineDistance(積算の長さ)と同じ
   gl_PointSize = uPointSize;
@@ -37,12 +37,17 @@ void main() {
 const FRAGMENT = `#version 300 es
 precision highp float;
 in vec3 vNormal;
-in vec3 vWorldPos;
+in vec3 vViewPosition;
 in vec3 vColor;
 in float vDist;
 uniform int uShading;      // 0 = 陰影(MeshStandardMaterial)  1 = 1 色  2 = 頂点の色  3 = 1 色の点線(0.3 描いて 0.2 空ける)
 uniform vec4 uColor;       // 色(sRGB)と不透明度
-uniform vec3 uCamera;
+uniform vec3 uLightDir;    // 平行光の向き(光源の向き。ビュー空間。正規化済み)
+uniform vec3 uHemiDir;     // 半球光の上の向き(ビュー空間。正規化済み)
+uniform float uGround;     // 半球光の下の色(灰色の濃さ。sRGB)
+uniform float uHemi;       // 半球光の強さ
+uniform float uDirI;       // 平行光の強さ
+uniform float uRough;      // 粗さ(MeshStandardMaterial の roughness)
 out vec4 outColor;
 
 const float PI = 3.141592653589793;
@@ -61,15 +66,15 @@ float V_GGX(float alpha, float dotNL, float dotNV) {
 }
 vec3 lit(vec3 baseSrgb, vec3 n, vec3 v) {
   vec3 albedo = toLinear(baseSrgb);
-  // HemisphereLight(0xffffff, 0x444444, 1.1): three.js の up は +Y のまま(このシーンの上は +Z だが、ライトの向きは変えていない)
-  vec3 ground = toLinear(vec3(68.0 / 255.0)) * 1.1;
-  vec3 hemi = mix(ground, vec3(1.1), 0.5 * n.y + 0.5);
-  // DirectionalLight(0xffffff, 1.2) を (4, -6, 8) から原点へ
-  vec3 l = normalize(vec3(4.0, -6.0, 8.0));
+  // HemisphereLight(0xffffff, 下の色, 強さ): three.js の up は +Y のまま(Blender の練習のシーンの上は +Z だが、ライトの向きは変えていない)
+  vec3 ground = toLinear(vec3(uGround)) * uHemi;
+  vec3 hemi = mix(ground, vec3(uHemi), 0.5 * dot(n, uHemiDir) + 0.5);
+  // DirectionalLight(0xffffff, 強さ) を uLightDir から原点へ
+  vec3 l = uLightDir;
   float dotNL = clamp(dot(n, l), 0.0, 1.0);
-  vec3 irradiance = vec3(dotNL * 1.2);
+  vec3 irradiance = vec3(dotNL * uDirI);
   vec3 diffuse = (hemi + irradiance) * albedo / PI;
-  float roughness = 0.75, alpha = roughness * roughness;
+  float roughness = uRough, alpha = roughness * roughness;
   vec3 h = normalize(l + v);
   float dotNV = clamp(abs(dot(n, v)) + 1e-5, 0.0, 1.0);
   float dotNH = clamp(dot(n, h), 0.0, 1.0);
@@ -84,7 +89,7 @@ void main() {
   if (uShading == 0) {
     vec3 n = normalize(vNormal);
     if (!gl_FrontFacing) n = -n;   // DoubleSide: 裏から見た面は法線を反転する
-    vec3 v = normalize(uCamera - vWorldPos);
+    vec3 v = normalize(vViewPosition);
     outColor = vec4(toSrgb(lit(uColor.rgb, n, v)), uColor.a);
   } else if (uShading == 3) {
     if (mod(vDist, 0.5) > 0.3) discard;
@@ -92,8 +97,27 @@ void main() {
   } else if (uShading == 1) {
     outColor = uColor;
   } else {
-    outColor = vec4(vColor, 1.0);
+    outColor = vec4(vColor, uColor.a);
   }
+}`;
+
+// スカイ(Unity 風の Scene の背景。scene.background = CanvasTexture と同じ: 全画面の板に、画像を貼る)
+const SKY_VERTEX = `#version 300 es
+out vec2 vUv;
+void main() {
+  vec2 p = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
+  vUv = p;
+  gl_Position = vec4(p * 2.0 - 1.0, 1.0, 1.0);
+}`;
+const SKY_FRAGMENT = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform sampler2D uTex;
+out vec4 outColor;
+vec3 toSrgb(vec3 c) { return mix(pow(c, vec3(1.0 / 2.4)) * 1.055 - 0.055, c * 12.92, lessThanEqual(c, vec3(0.0031308))); }
+void main() {
+  vec4 t = texture(uTex, vUv);
+  outColor = vec4(toSrgb(t.rgb), 1.0);
 }`;
 
 const PRIMITIVES = (gl) => [gl.TRIANGLES, gl.LINES, gl.LINE_STRIP, gl.POINTS];
@@ -105,8 +129,11 @@ const PRIMITIVES = (gl) => [gl.TRIANGLES, gl.LINES, gl.LINE_STRIP, gl.POINTS];
  *   pointerDown(button | modifiers << 4, x, y) → preventDefault するか     pointerMove(x, y, modifiers)     pointerUp(x, y)
  *   wheel(deltaY) → preventDefault するか       key(code, key, modifiers) → preventDefault するか   keyup(modifiers)   focus(boolean)
  * modifiers: 1 = Shift, 2 = Ctrl, 4 = Alt, 8 = Meta。
+ * keyRootId: キー・フォーカスを受ける要素(省略は root)。Unity 風の画面は、ポインター・ホイールを Scene ビュー(root)で、キーをエディター全体(keyRootId)で受ける。
+ * keyIgnore: キーを C# に渡さない要素の selector(省略は "input, button" = Blender の HUD。Unity 風は "input, select, textarea")。
+ * data-gl-ignore を付けた要素(の中)のポインター操作は、ビューの操作にしない(Scene の上に出る Build の表示など)。
  */
-export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel, key, keyup, focus, canvasHostId) {
+export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel, key, keyup, focus, canvasHostId, keyRootId, keyIgnore) {
   performance.mark("gl:start");
   dispose();
   const root = document.getElementById(rootId);
@@ -118,11 +145,12 @@ export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel,
   const canvas = document.createElement("canvas");
   canvas.style.cssText = "display:block;width:100%;height:100%";
   host.insertBefore(canvas, host.firstChild);
-  const prevTabIndex = root.getAttribute("tabindex");
-  root.tabIndex = 0;
+  const keyRoot = (keyRootId && document.getElementById(keyRootId)) || root;
+  const prevTabIndex = keyRoot.getAttribute("tabindex");
+  keyRoot.tabIndex = 0;
   const s = {
     prevTabIndex,
-    root, canvas, abort, frame,
+    root, keyRoot, canvas, abort, frame,
     gl: null, program: null, loc: null, buffers: new Map(), copies: new Map(), items: new Float32Array(0),
     raf: 0, onScreen: true, lost: false, disposed: false, pixelRatio: 1,
     stats: { frames: 0, drawn: 0, skippedHidden: 0, callbackMs: 0, lastDrawItems: 0, contextCreated: 0, contextLost: 0, contextRestored: 0 },
@@ -152,10 +180,11 @@ export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel,
   let down = false, lastX = 0, lastY = 0;
   const finish = (x, y) => { if (!down) return; down = false; pointerUp(x, y); };
   // サイドバーの入力欄・ボタン・メニューの上の操作は、ビューの操作にしない
-  const onUi = (e) => !!e.target.closest?.("input, button");
+  const onUi = (e) => !!e.target.closest?.("input, button, [data-gl-ignore]");
+  const keyIgnored = (e) => !!e.target.closest?.(keyIgnore || "input, button");
   root.addEventListener("pointerdown", (e) => {
     if (onUi(e)) return;
-    root.focus({ preventScroll: true });
+    keyRoot.focus({ preventScroll: true });
     root.setPointerCapture(e.pointerId);
     const [x, y] = at(e);
     lastX = x; lastY = y; down = true;
@@ -171,10 +200,10 @@ export function start(rootId, frame, pointerDown, pointerMove, pointerUp, wheel,
   root.addEventListener("lostpointercapture", () => finish(lastX, lastY), { signal });
   // ホイールは passive: false にしないと preventDefault できず、ページがスクロールしてしまう(試作ではここで失敗した)
   root.addEventListener("wheel", (e) => { if (wheel(e.deltaY)) e.preventDefault(); }, { passive: false, signal });
-  root.addEventListener("keydown", (e) => { if (onUi(e)) return; if (key(e.code, e.key, mods(e))) e.preventDefault(); }, { signal });
-  root.addEventListener("keyup", (e) => { keyup(mods(e)); }, { signal });
-  root.addEventListener("focus", () => focus(true), { signal });
-  root.addEventListener("blur", () => focus(false), { signal });
+  keyRoot.addEventListener("keydown", (e) => { if (keyIgnored(e)) return; if (key(e.code, e.key, mods(e))) e.preventDefault(); }, { signal });
+  keyRoot.addEventListener("keyup", (e) => { keyup(mods(e)); }, { signal });
+  keyRoot.addEventListener("focus", () => focus(true), { signal });
+  keyRoot.addEventListener("blur", () => focus(false), { signal });
 
   // 画面外にあるあいだは描かない。見えるようになったときに 1 フレーム描く
   const io = new IntersectionObserver((entries) => {
@@ -212,7 +241,7 @@ function cleanupFailedStart(s) {
 }
 
 function restoreTabIndex(s) {
-  if (s.prevTabIndex === null) s.root.removeAttribute("tabindex"); else s.root.setAttribute("tabindex", s.prevTabIndex);
+  if (s.prevTabIndex === null) s.keyRoot.removeAttribute("tabindex"); else s.keyRoot.setAttribute("tabindex", s.prevTabIndex);
 }
 
 function compile(gl, type, src) {
@@ -235,7 +264,8 @@ function init(s) {
   gl.linkProgram(program);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
   s.program = program;
-  s.loc = Object.fromEntries(["uProj", "uModelView", "uWorld", "uPointSize", "uShading", "uColor", "uCamera"].map((n) => [n, gl.getUniformLocation(program, n)]));
+  s.loc = Object.fromEntries(["uProj", "uModelView", "uNormalMatrix", "uPointSize", "uShading", "uColor", "uLightDir", "uHemiDir", "uGround", "uHemi", "uDirI", "uRough"].map((n) => [n, gl.getUniformLocation(program, n)]));
+  s.sky = null;   // スカイは、使うとき(Unity 風の画面)に作る
   s.buffers = new Map();
   gl.useProgram(program);
   gl.disable(gl.CULL_FACE);
@@ -307,6 +337,52 @@ export function draw(bytes) {
   paint(s, s.items, n);
 }
 
+/** スカイ: Unity の既定の空に近いグラデーションの画像(2 x 256。three.js の CanvasTexture(sRGB・上下反転・ミップマップ)と同じ設定)を、画面いっぱいに貼る */
+function drawSky(s) {
+  const gl = s.gl;
+  if (!s.sky) {
+    const program = gl.createProgram();
+    gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, SKY_VERTEX));
+    gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, SKY_FRAGMENT));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
+    const c = document.createElement("canvas");
+    c.width = 2; c.height = 256;
+    const g = c.getContext("2d");
+    const grad = g.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, "#5f7ea3");
+    grad.addColorStop(0.5, "#a9b8c8");
+    grad.addColorStop(0.52, "#8a8580");
+    grad.addColorStop(1, "#5a5652");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 2, 256);
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, c);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    s.sky = { program, texture, vao: gl.createVertexArray(), tex: gl.getUniformLocation(program, "uTex") };
+  }
+  gl.disable(gl.DEPTH_TEST);
+  gl.disable(gl.BLEND);
+  gl.disable(gl.CULL_FACE);
+  gl.depthMask(false);
+  gl.useProgram(s.sky.program);
+  gl.bindVertexArray(s.sky.vao);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, s.sky.texture);
+  gl.uniform1i(s.sky.tex, 0);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.bindVertexArray(null);
+  gl.useProgram(s.program);
+  gl.depthMask(true);
+}
+
 function paint(s, f, n) {
   const gl = s.gl;
   const count = f[19];
@@ -317,8 +393,14 @@ function paint(s, f, n) {
   gl.disable(gl.SCISSOR_TEST);
   gl.clearColor(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2], 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  if (f[20] === 1) drawSky(s);   // 背景: 1 = スカイ(0 = 単色)
   gl.uniformMatrix4fv(s.loc.uProj, false, f.subarray(0, 16));
-  gl.uniform3f(s.loc.uCamera, f[16], f[17], f[18]);
+  gl.uniform3f(s.loc.uLightDir, f[21], f[22], f[23]);
+  gl.uniform3f(s.loc.uHemiDir, f[28], f[29], f[30]);
+  gl.uniform1f(s.loc.uGround, f[24]);
+  gl.uniform1f(s.loc.uHemi, f[25]);
+  gl.uniform1f(s.loc.uDirI, f[26]);
+  gl.uniform1f(s.loc.uRough, f[27]);
   let lastVao = null;
   for (let i = 0; i < count; i++) {
     const o = HEADER + i * STRIDE;
@@ -331,8 +413,9 @@ function paint(s, f, n) {
     if (flags & 4) gl.enable(gl.BLEND); else gl.disable(gl.BLEND);
     if (flags & 16) { gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(f[o + 4], f[o + 5]); } else gl.disable(gl.POLYGON_OFFSET_FILL);
     gl.frontFace((flags & 8) ? gl.CW : gl.CCW);
-    gl.uniformMatrix4fv(s.loc.uWorld, false, f.subarray(o + 12, o + 28));
+    if (flags & 64) { gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK); } else if (!(flags & 32)) gl.disable(gl.CULL_FACE);   // 64 = 表だけ(FrontSide)
     gl.uniformMatrix4fv(s.loc.uModelView, false, f.subarray(o + 28, o + 44));
+    gl.uniformMatrix3fv(s.loc.uNormalMatrix, false, f.subarray(o + 44, o + 53));
     gl.uniform1i(s.loc.uShading, f[o + 2]);
     gl.uniform4f(s.loc.uColor, f[o + 8], f[o + 9], f[o + 10], f[o + 6]);
     gl.uniform1f(s.loc.uPointSize, f[o + 7] * dpr);
@@ -384,6 +467,7 @@ export function dispose() {
   if (s.gl && !s.lost) {
     for (const id of [...s.buffers.keys()]) release(s, id, false);
     s.gl.deleteProgram(s.program);
+    if (s.sky) { s.gl.deleteProgram(s.sky.program); s.gl.deleteTexture(s.sky.texture); s.gl.deleteVertexArray(s.sky.vao); }
     s.gl.getExtension("WEBGL_lose_context")?.loseContext();
   }
   s.copies.clear();
@@ -391,45 +475,5 @@ export function dispose() {
   restoreTabIndex(s);
 }
 
-/** 調べる用: いまの状態の要約 */
-export function diag() {
-  const s = state;
-  const base = { visibilityState: document.visibilityState, hasFocus: document.hasFocus(), raf: s ? s.stats.rafCalls || 0 : 0 };
-  if (!s) return JSON.stringify({ ...base, started: false });
-  return JSON.stringify({
-    ...base, started: true, lost: s.lost, onScreen: s.onScreen, renderer: s.renderer, pixelRatio: s.pixelRatio,
-    canvas: { w: s.canvas.width, h: s.canvas.height, cw: s.root.clientWidth, ch: s.root.clientHeight },
-    buffers: s.buffers.size, ...s.stats,
-  });
-}
-
-/** 取り出した計測の結果を置く場所(C# の Report が書き、Playwright が読む) */
-export function report(name, json) {
-  (globalThis.__labReport ??= {})[name] = JSON.parse(json);
-}
-
-/** C# の制御用の関数(ベンチ・停止・再開)を、ページから呼べるようにする */
-export function exposeControl(control) {
-  globalThis.__labControl = control;
-}
-
-export function getQuery() { return location.search; }
-
-/** 呼び出し 1 回の時間を測るための、いまの時刻(ms) */
-export function now() { return performance.now(); }
-
-/** 調べる用: コンテキストを人為的に失わせる / 戻す(WEBGL_lose_context) */
-export function loseContext(restoreAfterMs) {
-  const s = state;
-  const ext = s?.gl?.getExtension("WEBGL_lose_context");
-  if (!ext) return false;
-  ext.loseContext();
-  if (restoreAfterMs >= 0) setTimeout(() => ext.restoreContext(), restoreAfterMs);
-  return true;
-}
-
-/** 確認用: window.__glDiag / __glLose を作る。レンダーラボ（RenderLab）だけが呼ぶ（サイトの /practice では公開しない） */
-export function exposeDebugGlobals() {
-  globalThis.__glDiag = diag;
-  globalThis.__glLose = loseContext;
-}
+/** レンダーラボ(gl-lab.js)が、状態の要約・コンテキストの喪失の確認に使う。サイトの画面は呼ばない */
+export function inspectState() { return state; }
