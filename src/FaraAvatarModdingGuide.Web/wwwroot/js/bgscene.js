@@ -24,6 +24,7 @@
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     W = window.innerWidth; H = window.innerHeight;
+    refreshInset();
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     canvas.style.width = W + "px"; canvas.style.height = H + "px";
   }
@@ -121,11 +122,13 @@
     { m: cone(0.45, 1.0, 16), br: 0.56, hue: [192, 132, 252] },
     { m: torus(0.5, 0.2, 18, 10), br: 0.7, hue: [168, 85, 247] },
   ];
-  // 広い画面（PC）と縦長の画面（スマホ）で、図形の大きさと、配置を決めるときの基準の画面の大きさ（配置は 0〜1 の画面の位置で持つので、実際の大きさが違っても崩れない）
+  // 広い画面（PC）と縦長の画面（スマホ）で、図形の大きさと数（配置は、本文の領域の中での 0〜1 の位置で持つので、画面の大きさが少し変わっても崩れない）
   var MODES = {
-    wide: { ref: [1440, 900], hMax: 1440, scale: 0.8, count: 10 },
-    tall: { ref: [390, 844], hMax: 844, scale: 1.25, count: 8 },
+    wide: { scale: 0.8, count: 10, alpha: 0.42 },
+    tall: { scale: 1.25, count: 8, alpha: 0.34 },
   };
+  // 左のサイドバーとヘッダーの寸法（app.css の --mud-drawer-width-left・--mud-appbar-height と、PC のブレークポイント 768px と同じ）。実際の寸法は DOM から測り、測れなければこの値
+  var SIDEBAR_W = 230, HEADER_H = 56, SIDEBAR_MIN_W = 768;
   var SEED = 20240611;
   var LIGHT = (function () { var l = [-0.45, 0.8, 0.4], n = Math.hypot(l[0], l[1], l[2]); return [l[0] / n, l[1] / n, l[2] / n]; })();
 
@@ -156,41 +159,67 @@
     return R;
   }
 
+  // 図形が隠れないように、サイドバーの右・ヘッダーの下（本文の領域）の寸法を測る。[左の余白, 上の余白]
+  function insets() {
+    var l = 0, t = HEADER_H;
+    if (W >= SIDEBAR_MIN_W) {
+      var sb = document.querySelector(".fsk-sidebar"), r = sb && sb.getBoundingClientRect();
+      l = r && r.width > 0 ? Math.min(Math.round(r.right), W * 0.5) : SIDEBAR_W;
+    }
+    var hd = document.querySelector(".fsk-header"), q = hd && hd.getBoundingClientRect();
+    if (q && q.height > 0) t = Math.min(Math.round(q.bottom), H * 0.3);
+    return [l, t];
+  }
+  var inset = [0, HEADER_H];
+  // 配置を決めるときの画面の大きさ。少しの違い（スマホのアドレスバーの出入り）で配置が変わらないよう、丸める
+  function bucket() { return [Math.max(300, Math.round(W / 50) * 50), Math.max(300, Math.round(H / 100) * 100)]; }
+
   // 図形ごとの配置・回り方・漂い方を、固定のシードで決める。
-  // 配置: 画面の位置（u, v）・奥行き d をばらして候補を作り、漂う幅の分も含めて、互いに重ならない候補（画面の上で、大きさの和より離れているもの）のうち、縦の離れを重く見て一番離れたものを選ぶ（横一列になりにくい）
+  // 配置: 本文の領域（サイドバーの右・ヘッダーの下）の中だけに置く。位置（画面の上の x, y）・奥行き d・大きさの倍率をばらして候補を作り、漂う幅の分も含めて、互いに重ならない候補
+  //   （画面の上で、大きさの和より 12px 以上離れているもの）のうち、縦の離れを重く見て一番離れたものを選ぶ（横一列になりにくい）。置けなければ、その図形を小さくして置き直す。
+  //   見出し・リード文のあたり（本文の領域の上の左寄り。スマホは上の幅いっぱい）は、文字が読みにくくなるので避ける
+  //   高さは、領域の縦を図形の数の帯に分けて別々にあてがい、地平線より下（床の上）にも置く
   // 動き: 回る軸（向きは図形ごとにばらばら）・正逆・速さ、漂う向き・幅・周期も、図形ごとにばらばら
-  function layout(mode) {
-    var cfg = MODES[mode], w = cfg.ref[0], h = cfg.ref[1], f = focal(w, h), r = rng(SEED + (mode === "tall" ? 7919 : 0));
+  function layout(mode, ins, size) {
+    var cfg = MODES[mode], w = size[0], h = size[1], f = focal(w, h), r = rng(SEED + (mode === "tall" ? 7919 : 0));
+    var x0 = ins[0], y0 = ins[1], rw = w - x0, rh = h - y0;
+    var zone = w >= SIDEBAR_MIN_W ? [x0, y0, x0 + Math.min(780, rw), y0 + Math.min(300, rh * 0.45)] : [0, y0, w, y0 + Math.min(140000 / w + 20, rh * 0.55)];   // スマホは、幅が狭いほど文が折り返して長くなる   // 避ける長方形
+    // 避ける長方形が領域の横幅いっぱい（スマホ）なら、帯は、その下から数える
+    var top = zone[0] <= x0 && zone[2] >= w ? zone[3] : y0, th = h - top;
     var placed = [], bands = [];
-    // 高さが揃わないよう、画面の高さを図形の数に等分し、図形ごとに別の帯をあてがう（帯の順はシードで混ぜる）
     for (var b = 0; b < cfg.count; b++) bands.push(b);
     for (var b2 = bands.length - 1; b2 > 0; b2--) { var sw = Math.floor(r() * (b2 + 1)), tmp = bands[b2]; bands[b2] = bands[sw]; bands[sw] = tmp; }
     for (var i = 0; i < cfg.count; i++) {
       var sh = SHAPES[i % SHAPES.length];
       var amp = [0.12 + 0.22 * r(), 0.08 + 0.14 * r(), 0.1 + 0.2 * r()];   // 漂う幅（世界の x, y, z）
-      var best = null;
-      for (var k = 0; k < 300; k++) {
-        var u = 0.08 + 0.84 * r(), d = 5.2 + 6.8 * r(), v = 0.07 + 0.55 * (bands[i] + 0.5 + (r() - 0.5) * 1.6) / cfg.count;
-        var cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
-        // この位置の、世界の高さ。画面の縦横比が変わっても（hMax まで）床にめり込まないようにする
-        var yw = cam.y + (HORIZON - v) * (v > HORIZON ? cfg.hMax : h) * d / f * cp + d * sp;
-        if (yw < 0.45 + amp[1]) continue;
-        var pr = sh.br * 0.9 * cfg.scale * f / d, reserve = Math.max(amp[0], amp[1], amp[2]) * f / d;   // 画面の上での半径と、漂う幅
-        var sx = u * w, sy = v * h, edge = pr / 0.9 + reserve;
-        if (sx < edge || sx > w - edge || sy < edge * 0.9) continue;   // 画面の端で欠けない
-        var gap = 1e9, spread = 1e9;   // gap: 実際の画面の上の隙間（10px 以上が必須）。spread: 縦を重く見た隙間（大きいほど、縦にもばらける）
-        for (var j = 0; j < placed.length; j++) {
-          var o = placed[j], sum = pr + reserve + o.pr + o.reserve;
-          gap = Math.min(gap, Math.hypot(sx - o.sx, sy - o.sy) - sum);
-          spread = Math.min(spread, Math.hypot((sx - o.sx) * 0.75, (sy - o.sy) * 1.3) - sum);
+      var sz = 0.75 + 0.4 * r(), best = null;
+      // 帯の中で置けなければ小さくし、それでも置けなければ、帯をやめて領域のどこにでも置く
+      for (var shrink = 1, free = false; !(best && best.gap >= 12) && (shrink > 0.45 || !free); shrink -= 0.12) {
+        if (shrink <= 0.45 && !free) { free = true; shrink = 1; }
+        best = null;
+        for (var k = 0; k < 300; k++) {
+          var d = 4.5 + 7.5 * r(), ux = r(), uy = free ? r() : (bands[i] + 0.5 + (r() - 0.5) * 1.6) / cfg.count;
+          var scale = cfg.scale * sz * shrink;
+          var pr = sh.br * scale * f / d, reserve = Math.hypot(amp[0], amp[1]) * f / d + pr * amp[2] / d;   // 画面の上での半径と、漂う幅
+          var edge = pr + reserve, sx = x0 + ux * rw, sy = free ? y0 + uy * rh : top + uy * th;
+          if (sx < x0 + edge || sx > w - edge || sy < y0 + edge || sy > h - edge) continue;   // 本文の領域からはみ出さない
+          // 見出し・リード文の長方形（避ける）との、円の重なり
+          var nx = Math.max(zone[0], Math.min(sx, zone[2])), ny = Math.max(zone[1], Math.min(sy, zone[3]));
+          if (Math.hypot(sx - nx, sy - ny) < edge) continue;
+          var gap = 1e9, spread = 1e9;   // gap: 実際の画面の上の隙間（12px 以上が必須）。spread: 縦を重く見た隙間（大きいほど、縦にもばらける）
+          for (var j = 0; j < placed.length; j++) {
+            var o = placed[j], sum = pr + reserve + o.pr + o.reserve;
+            gap = Math.min(gap, Math.hypot(sx - o.sx, sy - o.sy) - sum);
+            spread = Math.min(spread, Math.hypot((sx - o.sx) * 0.75, (sy - o.sy) * 1.3) - sum);
+          }
+          var score = gap >= 12 ? 1e6 + spread : gap;
+          if (!best || score > best.score) best = { score: score, gap: gap, ux: ux, uy: uy, d: d, sx: sx, sy: sy, pr: pr, reserve: reserve, s: scale };
         }
-        var score = gap >= 10 ? 1e6 + spread : gap;
-        if (!best || score > best.score) best = { score: score, gap: gap, u: u, v: v, d: d, yw: yw, sx: sx, sy: sy, pr: pr, reserve: reserve };
       }
-      if (!best || best.gap < 10) continue;   // 重ならずに置ける場所がなければ、その図形は置かない
+      if (!best || best.gap < 12) continue;   // どうしても置けなければ、その図形は置かない
       var dirs = [r() < 0.5 ? -1 : 1, r() < 0.5 ? -1 : 1, r() < 0.5 ? -1 : 1];
       placed.push({
-        m: sh.m, hue: sh.hue, br: sh.br, u: best.u, v: best.v, d: best.d, sx: best.sx, sy: best.sy, pr: best.pr, reserve: best.reserve, gap: best.gap,
+        m: sh.m, hue: sh.hue, br: sh.br, s: best.s, ux: (best.sx - x0) / rw, uy: (best.sy - y0) / rh, d: best.d, sx: best.sx, sy: best.sy, pr: best.pr, reserve: best.reserve, gap: best.gap,
         base: axisAngle(randAxis(r), r() * Math.PI * 2),   // 最初の向き
         axis: randAxis(r), spin: (r() < 0.5 ? -1 : 1) * (0.12 + 0.4 * r()), phase: r() * Math.PI * 2,   // 回る軸・向き・速さ（rad/秒）
         amp: amp, drift: [0, 1, 2].map(function (n) { return { w: dirs[n] * Math.PI * 2 / (16 + 34 * r()), p: r() * Math.PI * 2 }; }),   // 漂う向き（符号）・周期（16〜50 秒）・位相
@@ -200,13 +229,22 @@
   }
   var layouts = {};
   function mode() { return W >= H ? "wide" : "tall"; }
-  function objects() { var m = mode(); return layouts[m] || (layouts[m] = layout(m)); }
+  function objects() {
+    var m = mode(), sz = bucket(), key = m + "|" + inset[0] + "|" + inset[1] + "|" + sz[0] + "|" + sz[1];
+    return layouts[key] || (layouts[key] = layout(m, inset, sz));
+  }
+  // サイドバーの開閉などで、本文の領域が変わったか（変わったら、配置し直す）
+  function refreshInset() {
+    var n = insets(), changed = n[0] !== inset[0] || n[1] !== inset[1];
+    inset = n;
+    return changed;
+  }
 
   function drawObjects(t, k) {
-    var tris = [], sec = t * 0.001, s = MODES[mode()].scale;
+    var tris = [], sec = t * 0.001, alpha = MODES[mode()].alpha, rw = W - inset[0], rh = H - inset[1];
     objects().forEach(function (o) {
       var R = mul(axisAngle(o.axis, o.phase + o.spin * sec), o.base);
-      var c = unproject(o.u, o.v, o.d, W, H);
+      var c = unproject((inset[0] + o.ux * rw) / W, (inset[1] + o.uy * rh) / H, o.d, W, H), s = o.s;
       var cx = c[0] + o.amp[0] * Math.sin(o.drift[0].w * sec + o.drift[0].p),
           cy = c[1] + o.amp[1] * Math.sin(o.drift[1].w * sec + o.drift[1].p),
           cz = c[2] + o.amp[2] * Math.sin(o.drift[2].w * sec + o.drift[2].p);
@@ -232,13 +270,13 @@
     ctx.lineWidth = 0.8 * dpr; ctx.lineJoin = "round";
     tris.forEach(function (tr) {
       var shade = 0.32 + 0.68 * tr.lit, h = tr.hue;
-      ctx.globalAlpha = 0.5 * k;
+      ctx.globalAlpha = alpha * k;
       ctx.fillStyle = "rgb(" + Math.round(h[0] * shade) + "," + Math.round(h[1] * shade) + "," + Math.round(h[2] * shade) + ")";
       ctx.beginPath();
       ctx.moveTo(tr.p[0][0] * dpr, tr.p[0][1] * dpr); ctx.lineTo(tr.p[1][0] * dpr, tr.p[1][1] * dpr); ctx.lineTo(tr.p[2][0] * dpr, tr.p[2][1] * dpr);
       ctx.closePath(); ctx.fill();
       // 面のつなぎ目に、細い線（Blender の「ワイヤーのオーバーレイ」のように）
-      ctx.globalAlpha = 0.18 * k; ctx.strokeStyle = dark ? "rgb(230,215,255)" : "rgb(60,30,130)"; ctx.stroke();
+      ctx.globalAlpha = alpha * 0.36 * k; ctx.strokeStyle = dark ? "rgb(230,215,255)" : "rgb(60,30,130)"; ctx.stroke();
     });
     ctx.globalAlpha = 1;
   }
@@ -286,6 +324,8 @@
     raf = requestAnimationFrame(frame);
   }
 
+  // サイドバーの開閉（html の class）や、WebAssembly の起動でヘッダー・サイドバーが入れ替わったあとの寸法の変化を拾う
+  setInterval(function () { if (refreshInset() && reduce.matches) draw(4000); }, 500);
   window.addEventListener("resize", function () { resize(); if (reduce.matches) draw(4000); });
   new MutationObserver(function () { readTheme(); if (reduce.matches) draw(4000); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-bs-theme"] });
   if (reduce.addEventListener) reduce.addEventListener("change", start);
