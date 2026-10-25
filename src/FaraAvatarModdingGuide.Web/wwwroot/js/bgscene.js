@@ -125,7 +125,8 @@
   // 広い画面（PC）と縦長の画面（スマホ）で、図形の大きさと数（配置は、本文の領域の中での 0〜1 の位置で持つので、画面の大きさが少し変わっても崩れない）
   var MODES = {
     wide: { scale: 0.8, count: 10, alpha: 0.42 },
-    tall: { scale: 1.25, count: 8, alpha: 0.34 },
+    // スマホは本文の幅が画面いっぱいで、図形がどうしても文字に重なるので、数を減らして薄くする
+    tall: { scale: 1.1, count: 5, alpha: 0.2 },
   };
   // 左のサイドバーとヘッダーの寸法（app.css の --mud-drawer-width-left・--mud-appbar-height と、PC のブレークポイント 768px と同じ）。実際の寸法は DOM から測り、測れなければこの値
   var SIDEBAR_W = 230, HEADER_H = 56, SIDEBAR_MIN_W = 768;

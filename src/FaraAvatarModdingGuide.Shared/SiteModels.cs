@@ -6,7 +6,7 @@ namespace FaraAvatarModdingGuide.Models;
 
 public sealed record SectionDto(string Id, string Title, string Description, string Icon);
 
-public sealed record CategoryDto(string Id, string Section, string Title, string Reading, string? En, string Description, string Icon);
+public sealed record CategoryDto(string Id, string Section, string Title, string Reading, string? En, string Description, string Icon, string? NavTitle = null);
 
 public sealed record ArticleDto(
     string Category, string Slug, int Order, string Title, string Reading, string Description, string Difficulty,

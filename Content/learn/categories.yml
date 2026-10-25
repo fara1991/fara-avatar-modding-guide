@@ -1,6 +1,7 @@
 # 目次のカテゴリ。上から順に読む想定で並べる。
 # id はディレクトリ名 (Content/learn/<id>/) と URL (/learn/<id>) に使われる。
 # section は sections.yml の id（Blender / Unity / VRChat / 通しで作る）。目次はその区切りごとにまとまる。
+# nav_title は、サイドバーの文言（任意。サイドバーの幅で 1 行に収まる長さ。区切りの見出しの下に出るので、区切りと重なる語は省く）。無ければ title。
 
 - id: getting-started
   section: blender
@@ -45,6 +46,7 @@
 - id: unity
   section: unity
   title: Unity でアバターを整える
+  nav_title: アバターを整える
   reading: ゆにてぃーであばたーをととのえる
   en: Unity
   description: Unity の画面の見方、Modular Avatar での衣装の着せ方、lilToon、アップロード前の確認。
@@ -53,6 +55,7 @@
 - id: vrchat
   section: vrchat
   title: VRChat にアップロードする
+  nav_title: アップロード
   reading: ぶいあーるちゃっとにあっぷろーどする
   en: VRChat Upload
   description: VCC でのプロジェクト作成、アップロード、つまずいたときの対処、パフォーマンスランク、軽量化、Android（Quest）対応。
@@ -61,6 +64,7 @@
 - id: vrchat-features
   section: vrchat
   title: メニュー・表情・揺れもの
+  nav_title: メニュー・表情・揺れ
   reading: めにゅーひょうじょうゆれもの
   en: Menu, Expressions, Physics
   description: Expression メニューとパラメーター、表情と FX の基礎、PhysBone と Contact。
@@ -69,6 +73,7 @@
 - id: modding
   section: practice
   title: 実践：アバター改変
+  nav_title: アバター改変
   reading: じっせんあばたーかいへん
   en: Avatar Modding
   description: 買ったアバターの改変の進め方と、非対応衣装の着せ替え、首すげ替え、VRM への書き出し。
@@ -77,6 +82,7 @@
 - id: avatar-clothing
   section: practice
   title: 実践：アバター用衣装の作成
+  nav_title: 衣装を作る
   reading: じっせんあばたーよういしょうのさくせい
   en: Clothing Creation
   description: VRChat などで使うアバターの衣装を、インポートから Unity での設定まで通して作る。
