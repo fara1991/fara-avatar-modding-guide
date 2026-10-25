@@ -4,7 +4,7 @@ using Xunit;
 namespace FaraAvatarModdingGuide.Web.Tests;
 
 /// <summary>
-/// 公開の設定（.github/workflows/deploy.yml・wrangler.toml・worker/index.js）の検査。
+/// 公開の設定（.github/workflows/build.yml・deploy-develop.yml・deploy.yml・wrangler.toml・worker/index.js）の検査。
 /// 守ること: (1) 本番（avatar.fara-labs.com、Worker fara-avatar）へ届く経路は、master への push（と master を選んだ手動実行）だけ。
 /// (2) 本番用のビルドと確認用のビルドを取り違えない。(3) 本番の最初の公開は、メンテナンス画面のまま作られる。
 /// bash で実際に動かして、wrangler（npx）に渡る引数を確かめるテストを含む（bash が無い環境では飛ばす。CI の ubuntu には有る）。
@@ -13,7 +13,9 @@ public class DeployWorkflowTests
 {
     private static string Read(string relative) => File.ReadAllText(Path.Combine(TestData.Root, relative.Replace('/', Path.DirectorySeparatorChar))).Replace("\r\n", "\n");
 
-    private static string Deploy => Read(".github/workflows/deploy.yml");
+    private static string Build => Read(".github/workflows/build.yml");
+    private static string Dev => Read(".github/workflows/deploy-develop.yml");
+    private static string Prod => Read(".github/workflows/deploy.yml");
     private static string Toml => Read("wrangler.toml");
 
     /// <summary>"- name: <名前>" から次のステップの手前まで。</summary>
@@ -25,29 +27,51 @@ public class DeployWorkflowTests
         return yml[start..(next > 0 ? next : yml.Length)];
     }
 
+    /// <summary>ステップ名が、並べた順に出てくる。</summary>
+    private static void AssertOrder(string yml, params string[] names)
+    {
+        var positions = names.Select(n => yml.IndexOf($"- name: {n}\n", StringComparison.Ordinal)).ToArray();
+        for (var i = 0; i < names.Length; i++) Assert.True(positions[i] >= 0, $"ステップ「{names[i]}」がある");
+        for (var i = 1; i < names.Length; i++) Assert.True(positions[i - 1] < positions[i], $"「{names[i - 1]}」は「{names[i]}」より前");
+    }
+
     // ------------------------------------------------------------------ ワークフローの置き場と、本番に届く経路
 
     [Fact]
-    public void There_is_one_deploy_workflow_and_no_leftover_wasm_dev_workflow()
+    public void There_are_three_workflows_in_the_same_shape_as_pokemon()
     {
-        var files = Directory.GetFiles(Path.Combine(TestData.Root, ".github", "workflows")).Select(Path.GetFileName).OrderBy(x => x).ToArray();
-        Assert.Equal(new[] { "deploy.yml" }, files);                                // Deploy (wasm-dev) は develop への統合で不要（avatar-dev が WASM 版になる）
-        Assert.DoesNotContain("migration/wasm", Deploy);
-        Assert.DoesNotContain("wasm-dev", Deploy);
+        // build.yml（ビルドとテスト）・deploy-develop.yml（develop → 確認用）・deploy.yml（master → 本番）。Pokémon・portfolio と同じ名前
+        var files = Directory.GetFiles(Path.Combine(TestData.Root, ".github", "workflows")).Select(Path.GetFileName).OrderBy(x => x, StringComparer.Ordinal).ToArray();
+        Assert.Equal(new[] { "build.yml", "deploy-develop.yml", "deploy.yml" }, files);
+        foreach (var yml in new[] { Build, Dev, Prod })
+        {
+            Assert.DoesNotContain("migration/wasm", yml);
+            Assert.DoesNotContain("wasm-dev", yml);
+            Assert.Contains("permissions:\n  contents: read", yml);
+            // 成果物は保存も取り出しもしない（公開のワークフローは自分でビルドする）
+            Assert.DoesNotContain("upload-artifact", yml);
+            Assert.DoesNotContain("download-artifact", yml);
+        }
     }
 
     [Fact]
-    public void Only_a_push_to_master_or_develop_or_a_manual_run_starts_the_workflow_and_only_those_refs_deploy()
+    public void Only_a_push_to_master_reaches_production_and_only_a_push_to_develop_reaches_dev()
     {
-        var yml = Deploy;
-        Assert.Matches(@"(?ms)^on:\s*\n\s*push:\s*\n\s*branches: \[master, develop\]\s*\n\s*pull_request:\s*\n\s*workflow_dispatch:", yml);
-        var deploy = yml[yml.IndexOf("  deploy:\n", StringComparison.Ordinal)..];
-        Assert.Contains("if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')", deploy);
-        // 公開する job は deploy だけ。build は何も公開しない（wrangler は dry-run だけ）
-        var build = yml[..yml.IndexOf("  deploy:\n", StringComparison.Ordinal)];
-        foreach (Match m in Regex.Matches(build, @"wrangler@\S+ deploy[^\n]*"))
+        Assert.Matches(@"(?ms)^on:\s*\n\s*push:\s*\n\s*branches-ignore: \[gh-pages\]\s*\n\s*pull_request:\s*\n\s*workflow_dispatch:", Build);
+        Assert.Matches(@"(?ms)^on:\s*\n\s*push:\s*\n\s*branches: \[develop\]\s*\n\s*workflow_dispatch:", Dev);
+        Assert.Matches(@"(?ms)^on:\s*\n\s*push:\s*\n\s*branches: \[master\]\s*\n\s*workflow_dispatch:", Prod);
+        Assert.DoesNotContain("pull_request", Dev);
+        Assert.DoesNotContain("pull_request", Prod);
+        Assert.Contains("\n    if: github.ref == 'refs/heads/develop'\n", Dev);
+        Assert.Contains("\n    if: github.ref == 'refs/heads/master'\n", Prod);
+        Assert.Contains("environment:\n      name: develop\n      url: https://avatar-dev.fara-labs.com\n", Dev);
+        Assert.Contains("environment:\n      name: production\n      url: https://avatar.fara-labs.com\n", Prod);
+        Assert.Matches(@"concurrency:\n  group: deploy\n(?:  #.*\n)?  cancel-in-progress: false", Prod);
+        // build は何も公開しない（wrangler は dry-run だけ。Cloudflare の鍵と environment を使わない）
+        foreach (Match m in Regex.Matches(Build, @"wrangler@\S+ deploy[^\n]*"))
             Assert.Contains("--dry-run", m.Value);
-        Assert.DoesNotContain("secrets.", build);                                    // build は Cloudflare の鍵を使わない
+        Assert.DoesNotContain("secrets.", Build);
+        Assert.DoesNotContain("environment:", Build);
     }
 
     [Fact]
@@ -59,61 +83,60 @@ public class DeployWorkflowTests
             foreach (Match m in Regex.Matches(yml, @"npx [^\n]*wrangler@\S+ deploy[^\n]*"))
                 Assert.Contains("--env ", m.Value);
         }
-        // 本番を表す式は、master のときだけ production になる形が、公開の job の中で一貫している
-        var deploy = Deploy[Deploy.IndexOf("  deploy:\n", StringComparison.Ordinal)..];
-        Assert.Contains("DEPLOY_ENV: ${{ github.ref_name == 'master' && 'production' || 'dev' }}", deploy);
-        Assert.Contains("SITE_ENV: ${{ github.ref_name == 'master' && 'production' || 'develop' }}", deploy);
-        Assert.Contains("name: site-${{ github.ref_name == 'master' && 'production' || 'develop' }}", deploy);
-        Assert.Contains("WORKER_NAME: ${{ github.ref_name == 'master' && 'fara-avatar' || 'fara-avatar-dev' }}", deploy);
-        // 'production' が出てくる式は、すべて master の判定とセット
-        foreach (Match m in Regex.Matches(deploy, @"\$\{\{[^}]*'production'[^}]*\}\}"))
-            Assert.Contains("github.ref_name == 'master' && 'production'", m.Value);
-        Assert.Single(Regex.Matches(deploy, @"--env ""\$DEPLOY_ENV"""));              // 公開の wrangler deploy は 1 か所
+        // 確認用のファイルに本番の名前は出てこない。本番のファイルに確認用の名前は出てこない
+        Assert.Single(Regex.Matches(Dev, @"wrangler@4\.149\.0 deploy --env dev ""\$\{vars\[@\]\}"""));
+        Assert.Single(Regex.Matches(Prod, @"wrangler@4\.149\.0 deploy --env production ""\$\{vars\[@\]\}"""));
+        Assert.DoesNotContain("production", Dev);
+        Assert.DoesNotContain("fara-avatar\n", Dev);
+        Assert.DoesNotContain("--env dev", Prod);
+        Assert.DoesNotContain("--env develop", Prod);
+        Assert.DoesNotContain("avatar-dev", Prod);
+        Assert.Contains("WORKER_NAME: fara-avatar-dev\n", Dev);
+        Assert.Contains("WORKER_NAME: fara-avatar\n", Prod);
     }
 
     [Fact]
-    public void Each_environment_gets_its_own_build_and_the_deploy_job_takes_only_the_one_for_its_target()
+    public void Each_deploy_workflow_builds_only_its_own_environment_and_verifies_it_before_deploying()
     {
-        var yml = Deploy;
-        // build: 本番用と確認用を別のフォルダに作る（--env production / --env develop）。--dev-origin は付けない（devOrigin は tools/site.json の avatar-dev）
-        Assert.Contains("--template publish/wwwroot/index.html --out site-production --env production", yml);
-        Assert.Contains("--template publish/wwwroot/index.html --out site-develop --env develop", yml);
-        Assert.DoesNotContain("--dev-origin", yml);
-        Assert.Contains("node .github/scripts/verify-site.mjs site-production production", yml);
-        Assert.Contains("node .github/scripts/verify-site.mjs site-develop develop", yml);
-        Assert.Contains("name: site-production\n          path: site-production", yml);
-        Assert.Contains("name: site-develop\n          path: site-develop", yml);
-        // deploy: 取り出した一式を、公開の直前に確かめる。確認は、メンテナンスの確認・公開より前
-        var deploy = yml[yml.IndexOf("  deploy:\n", StringComparison.Ordinal)..];
-        var download = deploy.IndexOf("actions/download-artifact@v4", StringComparison.Ordinal);
-        var verify = deploy.IndexOf("- name: Verify the output matches the target", StringComparison.Ordinal);
-        var gate = deploy.IndexOf("- name: Require MAINTENANCE_MODE=notice (production)", StringComparison.Ordinal);
-        var wrangler = deploy.IndexOf("- name: Deploy to Cloudflare Workers", StringComparison.Ordinal);
-        Assert.True(0 < download && download < verify && verify < gate && gate < wrangler);
-        Assert.Contains("node .github/scripts/verify-site.mjs dist \"$SITE_ENV\"", deploy);
-        // 確認用の noindex を追記するステップは無い（Build が環境ごとに出す。追記すると二重になる）
-        Assert.DoesNotContain("Add noindex header", yml);
-        Assert.DoesNotContain("cat >> dist/_headers", yml);
+        // build: 本番用と確認用を別のフォルダに作って確かめる。--dev-origin は付けない（devOrigin は tools/site.json の avatar-dev）
+        Assert.Contains("--template publish/wwwroot/index.html --out site-production --env production", Build);
+        Assert.Contains("--template publish/wwwroot/index.html --out site-develop --env develop", Build);
+        Assert.Contains("node .github/scripts/verify-site.mjs site-production production", Build);
+        Assert.Contains("node .github/scripts/verify-site.mjs site-develop develop", Build);
+        // 公開: その環境だけを dist に作り、公開の直前に確かめる。確認は、メンテナンスの確認・公開より前
+        Assert.Contains("--template publish/wwwroot/index.html --out dist --env develop", Dev);
+        Assert.Contains("node .github/scripts/verify-site.mjs dist develop\n", Dev);
+        AssertOrder(Dev, "Publish web (WebAssembly)", "Build static pages (develop)", "Verify the output matches the target", "Deploy to Cloudflare Workers (develop)", "Summary (maintenance)");
+        Assert.Contains("--template publish/wwwroot/index.html --out dist --env production", Prod);
+        Assert.Contains("node .github/scripts/verify-site.mjs dist production\n", Prod);
+        AssertOrder(Prod, "Publish web (WebAssembly)", "Build static pages (production)", "Verify the output matches the target", "Require MAINTENANCE_MODE=notice (production)", "Deploy to Cloudflare Workers", "Summary (maintenance)");
+        foreach (var yml in new[] { Build, Dev, Prod })
+        {
+            Assert.DoesNotContain("--dev-origin", yml);
+            // 確認用の noindex を追記するステップは無い（Build が環境ごとに出す。追記すると二重になる）
+            Assert.DoesNotContain("Add noindex header", yml);
+            Assert.DoesNotContain("cat >> dist/_headers", yml);
+            Assert.Contains("submodules: true", yml);
+        }
     }
 
     [Fact]
     public void Ci_dry_runs_wrangler_for_both_environments_against_their_own_output()
     {
-        var yml = Deploy;
-        var production = Step(yml, "Wrangler dry-run (production)");
+        var production = Step(Build, "Wrangler dry-run (production)");
         Assert.Contains("rm -rf dist && cp -r site-production dist", production);
         Assert.Contains("npx --yes wrangler@4.149.0 deploy --dry-run --env production", production);
-        var dev = Step(yml, "Wrangler dry-run (dev)");
+        var dev = Step(Build, "Wrangler dry-run (dev)");
         Assert.Contains("rm -rf dist && cp -r site-develop dist", dev);
         Assert.Contains("npx --yes wrangler@4.149.0 deploy --dry-run --env dev", dev);
         // dry-run は、出力が環境のものか確かめたあと
-        Assert.True(yml.IndexOf("- name: Verify the outputs (production, develop)", StringComparison.Ordinal) < yml.IndexOf("- name: Wrangler dry-run (production)", StringComparison.Ordinal));
+        AssertOrder(Build, "Verify the outputs (production, develop)", "Wrangler dry-run (production)", "Wrangler dry-run (dev)");
     }
 
     [Fact]
     public void Ci_no_longer_exports_or_compares_ssr_and_still_runs_the_tests()
     {
-        var yml = Deploy;
+        var yml = Build;
         foreach (var gone in new[] { "--export", "dist-ssr", "ssr-develop", "ref: develop", "compare-text", "nav.test", "Export static site" })
             Assert.DoesNotContain(gone, yml);
         foreach (var kept in new[]
@@ -133,17 +156,20 @@ public class DeployWorkflowTests
     [Fact]
     public void Production_deploy_requires_MAINTENANCE_MODE_notice_unless_a_mode_is_given()
     {
-        var yml = Deploy;
-        // 本番（master）の公開の前に、Cloudflare の MAINTENANCE_MODE が notice かを確かめる（確認用の develop は確かめない）。
+        // 本番の公開の前に、Cloudflare の MAINTENANCE_MODE が notice かを確かめる（確認用は確かめない）。
         // mode を true / notice / false で指定した手動実行（maintenance-cli の set）は、確認を飛ばす
-        Assert.Contains("node .github/scripts/require-maintenance.mjs fara-avatar", yml);
-        var gate = Step(yml, "Require MAINTENANCE_MODE=notice (production)");
-        Assert.Contains("if: github.ref_name == 'master' && !contains(fromJSON('[\"true\",\"notice\",\"false\"]'), inputs.maintenance_mode)", gate);
+        var gate = Step(Prod, "Require MAINTENANCE_MODE=notice (production)");
+        Assert.Contains("node .github/scripts/require-maintenance.mjs fara-avatar", gate);
+        Assert.Contains("if: ${{ !contains(fromJSON('[\"true\",\"notice\",\"false\"]'), inputs.maintenance_mode) }}", gate);
         Assert.Contains("SKIP_MAINTENANCE_CHECK: ${{ inputs.skip_maintenance_check }}", gate);
-        Assert.Contains("skip_maintenance_check:", yml);
-        // 旧名 MAINTENANCE（_MODE なし）は使わない
-        Assert.DoesNotContain("MAINTENANCE:", yml.Replace("MAINTENANCE_MODE:", "").Replace("MAINTENANCE_MESSAGE:", ""));
-        Assert.DoesNotMatch(@"MAINTENANCE(?![_A-Z])", yml);
+        Assert.Contains("skip_maintenance_check:", Prod);
+        Assert.DoesNotContain("require-maintenance.mjs", Dev);
+        foreach (var yml in new[] { Dev, Prod })
+        {
+            // 旧名 MAINTENANCE（_MODE なし）は使わない
+            Assert.DoesNotContain("MAINTENANCE:", yml.Replace("MAINTENANCE_MODE:", "").Replace("MAINTENANCE_MESSAGE:", ""));
+            Assert.DoesNotMatch(@"MAINTENANCE(?![_A-Z])", yml);
+        }
     }
 
     [Fact]
@@ -154,28 +180,32 @@ public class DeployWorkflowTests
         Assert.Contains("初回の公開", gate);
         Assert.Contains("return 0;", gate[gate.IndexOf("if (settings.missing)", StringComparison.Ordinal)..]);
         // 通した公開は MAINTENANCE_MODE:true を付ける（入力なし・skip でないとき）。実際の引数は下の bash のテストが確かめる
-        Assert.Contains("vars+=(--var \"MAINTENANCE_MODE:true\")", Deploy);
+        Assert.Contains("vars+=(--var \"MAINTENANCE_MODE:true\")", Prod);
     }
 
     [Fact]
-    public void Workflow_takes_maintenance_inputs_and_writes_a_summary()
+    public void Deploy_workflows_take_maintenance_inputs_and_write_a_summary()
     {
-        var yml = Deploy;
-        Assert.Contains("      maintenance_mode:\n", yml);
-        Assert.Contains("options: [\"\", \"true\", \"notice\", \"false\"]", yml);
-        Assert.Contains("      maintenance_message:\n", yml);
-        Assert.Contains("MAINTENANCE_MODE_INPUT: ${{ inputs.maintenance_mode }}", yml);
-        Assert.Contains("MAINTENANCE_MESSAGE_INPUT: ${{ inputs.maintenance_message }}", yml);
-        // 入力はシェルに直接埋め込まない（run の中に ${{ を書かない）
-        foreach (var run in RunBlocks(yml)) Assert.DoesNotContain("${{", run);
-        // node -e '...' の中に、シングルクォートを書かない(bash の引用が途中で閉じて、構文エラーで落ちる。JS の中では \u0027 と書く)。閉じの引用符の直後が、グループの } であること
-        foreach (var run in RunBlocks(yml).Where(r => r.Contains("node -e '", StringComparison.Ordinal)))
-            Assert.Matches(@"node -e '[^']*'\s*\n\s*\} >> ""\$GITHUB_STEP_SUMMARY""", run);
-        var summary = Step(yml, "Summary (maintenance)");
-        Assert.Contains("$GITHUB_STEP_SUMMARY", summary);
-        Assert.Contains("MAINTENANCE_MODE", summary);
-        Assert.Contains("if: ${{ always() }}", summary);
-        Assert.Contains("WORKER_NAME: ${{ github.ref_name == 'master' && 'fara-avatar' || 'fara-avatar-dev' }}", summary);
+        foreach (var yml in new[] { Dev, Prod })
+        {
+            Assert.Contains("      maintenance_mode:\n", yml);
+            Assert.Contains("options: [\"\", \"true\", \"notice\", \"false\"]", yml);
+            Assert.Contains("      maintenance_message:\n", yml);
+            Assert.Contains("MAINTENANCE_MODE_INPUT: ${{ inputs.maintenance_mode }}", yml);
+            Assert.Contains("MAINTENANCE_MESSAGE_INPUT: ${{ inputs.maintenance_message }}", yml);
+            var summary = Step(yml, "Summary (maintenance)");
+            Assert.Contains("$GITHUB_STEP_SUMMARY", summary);
+            Assert.Contains("MAINTENANCE_MODE", summary);
+            Assert.Contains("if: ${{ always() }}", summary);
+        }
+        foreach (var yml in new[] { Build, Dev, Prod })
+        {
+            // 入力はシェルに直接埋め込まない（run の中に ${{ を書かない）
+            foreach (var run in RunBlocks(yml)) Assert.DoesNotContain("${{", run);
+            // node -e '...' の中に、シングルクォートを書かない(bash の引用が途中で閉じて、構文エラーで落ちる。JS の中では \u0027 と書く)。閉じの引用符の直後が、グループの } であること
+            foreach (var run in RunBlocks(yml).Where(r => r.Contains("node -e '", StringComparison.Ordinal)))
+                Assert.Matches(@"node -e '[^']*'\s*\n\s*\} >> ""\$GITHUB_STEP_SUMMARY""", run);
+        }
     }
 
     [Fact]
@@ -183,8 +213,8 @@ public class DeployWorkflowTests
     {
         Assert.True(File.Exists(Path.Combine(TestData.Root, ".github", "scripts", "require-maintenance.mjs")));
         Assert.True(File.Exists(Path.Combine(TestData.Root, ".github", "scripts", "verify-site.mjs")));
-        Assert.Contains("require-maintenance.test.mjs", Deploy);
-        Assert.Contains("verify-site.test.mjs", Deploy);
+        Assert.Contains("require-maintenance.test.mjs", Build);
+        Assert.Contains("verify-site.test.mjs", Build);
     }
 
     // ------------------------------------------------------------------ wrangler.toml・Worker
@@ -308,7 +338,9 @@ public class DeployWorkflowTests
         }
     }
 
-    private static string DeployRun(string stepName) => RunBlocks(Step(Deploy, stepName)).Single();
+    private static string DeployRun(string yml, string stepName) => RunBlocks(Step(yml, stepName)).Single();
+    private static string ProdScript => DeployRun(Prod, "Deploy to Cloudflare Workers");
+    private static string DevScript => DeployRun(Dev, "Deploy to Cloudflare Workers (develop)");
 
     private static string? FindBash()
     {
@@ -359,7 +391,6 @@ public class DeployWorkflowTests
     /// <summary>ブランチは、環境に合うもの（production = master、dev = develop）を既定にする。</summary>
     private static Dictionary<string, string> Inputs(string env, string mode = "", string message = "", string skip = "", string? gitRef = null) => new()
     {
-        ["DEPLOY_ENV"] = env,
         ["GITHUB_REF"] = gitRef ?? (env == "production" ? "refs/heads/master" : "refs/heads/develop"),
         ["MAINTENANCE_MODE_INPUT"] = mode, ["MAINTENANCE_MESSAGE_INPUT"] = message, ["SKIP_MAINTENANCE_CHECK"] = skip,
     };
@@ -369,7 +400,7 @@ public class DeployWorkflowTests
     [Fact]
     public void Production_deploy_step_passes_the_right_vars_for_each_trigger()
     {
-        var script = DeployRun("Deploy to Cloudflare Workers");
+        var script = ProdScript;
         if (Args(script, Inputs("production")) is not { } push) return;   // bash が無い環境では飛ばす
         // push（入力なし）: 公開と同時にメンテナンス画面（本番の最初の公開も、これ）
         Assert.Equal(Expected("production", "--var", "MAINTENANCE_MODE:true"), push);
@@ -390,7 +421,7 @@ public class DeployWorkflowTests
     [Fact]
     public void Develop_deploy_step_adds_vars_only_when_inputs_are_given()
     {
-        var script = DeployRun("Deploy to Cloudflare Workers");
+        var script = DevScript;
         if (Args(script, Inputs("dev")) is not { } push) return;
         Assert.Equal(Expected("dev"), push);                                          // push: 何も付けない（keep_vars で現在の値が残る）
         Assert.Equal(Expected("dev"), Args(script, Inputs("dev", skip: "true")));
@@ -408,8 +439,8 @@ public class DeployWorkflowTests
     [InlineData("dev", "refs/heads/feature/x")]
     public void The_deploy_step_refuses_an_environment_that_does_not_match_the_branch(string env, string gitRef)
     {
-        // 式の取り違え（production を master 以外から・dev を develop 以外から）は、wrangler を呼ぶ前に止まる
-        var script = DeployRun("Deploy to Cloudflare Workers");
+        // ブランチの取り違え（本番を master 以外から・dev を develop 以外から）は、wrangler を呼ぶ前に止まる
+        var script = env == "production" ? ProdScript : DevScript;
         if (Run(script, Inputs(env, gitRef: gitRef)) is not { } r) return;
         Assert.NotEqual(0, r.Exit);
         Assert.Empty(r.Args);                                                         // npx（wrangler）は呼ばれていない

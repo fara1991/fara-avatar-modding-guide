@@ -1,20 +1,15 @@
-name: Deploy
+name: Deploy (production)
 
-# Blazor WebAssembly + MudBlazor 版（docs/wasm-migration-plan.md）のビルドと公開。
+# 本番（https://avatar.fara-labs.com/ 。Worker fara-avatar）への公開。master に push（develop → master の PR のマージ。ユーザーが行う）されるたびに実行。
+# 手動で再実行したいときは Actions タブから master を選んで Run workflow。
+# 自分でビルドして公開する（成果物は使わない）。ビルドとテストは build.yml が同じ push で行う。
 #
-#   本番に届く経路は、master への push（と、master を選んだ手動実行）だけ。master へは develop からの PR のマージでしか入れない（ユーザーが行う）。
-#     master  → Worker fara-avatar      → https://avatar.fara-labs.com      （--env production。本番用のビルド: sitemap あり・noindex なし）
-#     develop → Worker fara-avatar-dev  → https://avatar-dev.fara-labs.com  （--env dev。確認用のビルド: noindex・sitemap なし）
-#     そのほかのブランチ・Pull Request … ビルドとテスト、wrangler の dry-run だけ（公開しない）
-#
-#   公開物は dotnet publish の出力（wwwroot）に、Build（本文入りの静的 HTML・データ・robots・sitemap・_headers）が書き足したもの。
-#   環境ごとの出力（本番用 / 確認用）を build ジョブで両方作り、deploy ジョブは公開先の環境のほうだけを取り出す。
-#   公開の直前に、取り出した一式がその環境のものか（verify-site.mjs）を確かめ、違えば止める。
+# kit の tools/maintenance.mjs（一括変更 CLI）と set-maintenance-all.yml は、この workflow の手動実行（workflow_dispatch の入力）を使う。
+# 入力の名前・型を変えるときは、kit の docs/maintenance-cli.md の雛形と、tests/FaraAvatarModdingGuide.Web.Tests/DeployWorkflowTests.cs も直す。
 
 on:
   push:
-    branches: [master, develop]
-  pull_request:
+    branches: [master]
   workflow_dispatch:
     inputs:
       skip_maintenance_check:
@@ -35,15 +30,21 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
+  group: deploy
+  # 公開の途中で中断すると、アセットが中途半端な状態になりうるので、後から来た分は待たせる
+  cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build static site
+  deploy:
+    name: Deploy to Cloudflare (production)
     runs-on: ubuntu-latest
+    # 手動実行で別のブランチを選んでも、本番には master だけを公開する
+    if: github.ref == 'refs/heads/master'
+    environment:
+      name: production
+      url: https://avatar.fara-labs.com
     steps:
-      # external/fara-site-kit（共通部品。Web・Build・Worker が使う）を取得する
+      # worker/index.js が external/fara-site-kit の report.js・maintenance.js を読み込むので、submodule も取得する
       - uses: actions/checkout@v4
         with:
           submodules: true
@@ -52,151 +53,52 @@ jobs:
         with:
           global-json-file: global.json
 
-      # Build.Tests が kit の Node ツール（build/build-pages.mjs）を実際に呼ぶ
       - uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Build
-        run: dotnet build -c Release --nologo
-
-      - name: Test
-        run: dotnet test -c Release --no-build --nologo
-
-      # 報告の受け口・メンテナンスの判定は共通部品（external/fara-site-kit/worker）。Worker の入口（worker/index.js）のテストと一緒に動かす
-      - name: Worker tests (report, maintenance, entry)
-        run: node --test external/fara-site-kit/worker/report.test.mjs external/fara-site-kit/worker/maintenance.test.mjs worker/index.test.mjs
-
-      - name: Deploy gate tests (maintenance, site verification)
-        run: node --test .github/scripts/require-maintenance.test.mjs .github/scripts/verify-site.test.mjs
-
-      - name: Browser script tests (storage migration, default theme, search normaliser, notice banner, practice entry, head sync)
-        run: node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/search-norm-fn.test.mjs tests/js/notice.test.mjs tests/js/practice-entry.test.mjs tests/js/head-sync.test.mjs
-
       - name: Publish web (WebAssembly)
         run: dotnet publish src/FaraAvatarModdingGuide.Web -c Release --nologo -o publish
 
-      # 本文入りの静的 HTML（76 本）・404.html・データの JSON・robots.txt・sitemap.xml（本番のみ）・_headers（CSP。確認用は X-Robots-Tag: noindex）・_redirects を、
-      # publish/wwwroot のコピーに書き足す（kit の build-pages.mjs を使う）。本番用と確認用で、コピーを分ける。
-      # 確認用のホスト名（canonical など）は tools/site.json の devOrigin（avatar-dev.fara-labs.com）
+      # 本番用のビルド（sitemap あり・noindex なし）を、wrangler.toml の assets（./dist）に作る
       - name: Build static pages (production)
         run: |
-          cp -r publish/wwwroot site-production
-          dotnet run --project src/FaraAvatarModdingGuide.Build -c Release --no-launch-profile -- --template publish/wwwroot/index.html --out site-production --env production
+          rm -rf dist && cp -r publish/wwwroot dist
+          dotnet run --project src/FaraAvatarModdingGuide.Build -c Release --no-launch-profile -- --template publish/wwwroot/index.html --out dist --env production
 
-      - name: Build static pages (develop)
-        run: |
-          cp -r publish/wwwroot site-develop
-          dotnet run --project src/FaraAvatarModdingGuide.Build -c Release --no-launch-profile -- --template publish/wwwroot/index.html --out site-develop --env develop
-
-      # 出力が、その環境のものか（本番: noindex なし・sitemap あり・canonical が avatar.fara-labs.com / 確認用: その逆）
-      - name: Verify the outputs (production, develop)
-        run: |
-          node .github/scripts/verify-site.mjs site-production production
-          node .github/scripts/verify-site.mjs site-develop develop
-
-      # 検索の索引が、現行の検索（searchcore.js）と同じ正規化であること。実際の索引での検索の回帰テスト
-      - name: Search tests with the built index
-        run: |
-          node tests/js/search-norm.mjs site-production/data/search.json
-          SEARCH_INDEX_FILE=site-production/search-index.json node --test tests/js/search.test.mjs
-
-      # wrangler の設定（本番・確認用）が通ること。dry-run は公開しない（Cloudflare の認証も使わない）。assets は ./dist なので、環境ごとの出力を dist に置いて確かめる
-      - name: Wrangler dry-run (production)
-        run: |
-          rm -rf dist && cp -r site-production dist
-          npx --yes wrangler@4.149.0 deploy --dry-run --env production
-
-      - name: Wrangler dry-run (dev)
-        run: |
-          rm -rf dist && cp -r site-develop dist
-          npx --yes wrangler@4.149.0 deploy --dry-run --env dev
-
-      # 保存期間は 3 日。deploy ジョブが同じ実行で取り出すほか、失敗した deploy の「再実行」にも使うため（容量の節約のため 7 日から短縮）
-      # 取り出すのは deploy ジョブだけなので、deploy ジョブが動くとき（master / develop への push と、master / develop を選んだ手動実行）だけ保存する。
-      # Pull Request では保存しない（使われないのに、アカウント全体の成果物の容量を使い、上限に達してほかの公開まで止まったため）
-      - uses: actions/upload-artifact@v4
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
-        with:
-          name: site-production
-          path: site-production
-          retention-days: 3
-
-      - uses: actions/upload-artifact@v4
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
-        with:
-          name: site-develop
-          path: site-develop
-          retention-days: 3
-
-  deploy:
-    name: Deploy to Cloudflare
-    needs: build
-    # PR では build だけ行い、master / develop への push（と手動実行）でデプロイする。
-    # 手動実行は master / develop を選んだときだけ（ほかのブランチで確認用・本番を上書きしない）
-    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
-    runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.ref_name == 'master' && 'production' || 'develop' }}
-      url: ${{ github.ref_name == 'master' && 'https://avatar.fara-labs.com' || 'https://avatar-dev.fara-labs.com' }}
-    steps:
-      # worker/index.js が external/fara-site-kit の report.js・maintenance.js を読み込むので、wrangler がバンドルできるよう submodule も取得する
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      # 公開先の環境のビルドだけを取り出す（master = 本番用、それ以外 = 確認用）。wrangler.toml の assets は ./dist
-      - uses: actions/download-artifact@v4
-        with:
-          name: site-${{ github.ref_name == 'master' && 'production' || 'develop' }}
-          path: dist
-
-      # 取り出した一式が、公開先の環境のものか。取り違え（確認用のビルドを本番へ、本番用を確認用へ）は、ここで止める
+      # 一式が本番用のものか。確認用の出力を本番へ出す取り違えは、ここで止める
       - name: Verify the output matches the target
-        run: node .github/scripts/verify-site.mjs dist "$SITE_ENV"
-        env:
-          SITE_ENV: ${{ github.ref_name == 'master' && 'production' || 'develop' }}
+        run: node .github/scripts/verify-site.mjs dist production
 
-      # 本番（master）の公開は、Cloudflare の Worker の変数 MAINTENANCE_MODE が notice（更新予定のお知らせを出している）のときだけ行う。
-      # 確認できないとき・notice でないときは、ここで止める（手動実行の skip_maintenance_check で飛ばせる）。確認用（develop）は確認しない。
+      # 本番の公開は、Cloudflare の Worker の変数 MAINTENANCE_MODE が notice（更新予定のお知らせを出している）のときだけ行う。
+      # 確認できないとき・notice でないときは、ここで止める（手動実行の skip_maintenance_check で飛ばせる）。
       # Worker がまだ無い（本番の初回の公開）ときは通す。次の公開のステップが MAINTENANCE_MODE:true を付けるので、メンテナンス画面のまま作られる。
       # mode に true / notice / false のどれかを指定した手動実行（maintenance-cli の set）は、操作した人の意思なので、確認を飛ばす
       - name: Require MAINTENANCE_MODE=notice (production)
-        if: github.ref_name == 'master' && !contains(fromJSON('["true","notice","false"]'), inputs.maintenance_mode)
+        if: ${{ !contains(fromJSON('["true","notice","false"]'), inputs.maintenance_mode) }}
         run: node .github/scripts/require-maintenance.mjs fara-avatar
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           SKIP_MAINTENANCE_CHECK: ${{ inputs.skip_maintenance_check }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       # 入力はシェルに直接埋め込まず、環境変数で受ける。空の入力には --var を付けない（keep_vars で現在の値が保持される）。
-      # 本番（master）: push と、何も指定しない手動実行は、公開と同時に MAINTENANCE_MODE=true（メンテナンス画面）にする。作業が終わったら false に戻す（お知らせも一緒に消える）。
+      # push と、何も指定しない手動実行は、公開と同時に MAINTENANCE_MODE=true（メンテナンス画面）にする。作業が終わったら false に戻す（お知らせも一緒に消える）。
       #   skip_maintenance_check のときは付けない。mode を指定した手動実行は、指定した値。message だけの手動実行は、mode を変えない。
-      # 確認用（develop）: 入力があるときだけ付ける
-      # 最初に、環境とブランチの取り違えを止める（production は master だけ、dev は develop だけ）
+      # 最初に、ブランチの取り違えを止める（production は master だけ）
       - name: Deploy to Cloudflare Workers
         shell: bash
         run: |
-          if [ "$DEPLOY_ENV" = "production" ] && [ "$GITHUB_REF" != "refs/heads/master" ]; then echo "::error::production へは master からしか公開しません ($GITHUB_REF)"; exit 1; fi
-          if [ "$DEPLOY_ENV" = "dev" ] && [ "$GITHUB_REF" != "refs/heads/develop" ]; then echo "::error::dev へは develop からしか公開しません ($GITHUB_REF)"; exit 1; fi
+          if [ "$GITHUB_REF" != "refs/heads/master" ]; then echo "::error::production へは master からしか公開しません ($GITHUB_REF)"; exit 1; fi
           vars=()
-          if [ "$DEPLOY_ENV" = "production" ]; then
-            if [ -n "$MAINTENANCE_MODE_INPUT" ]; then
-              vars+=(--var "MAINTENANCE_MODE:$MAINTENANCE_MODE_INPUT")
-            elif [ -z "$MAINTENANCE_MESSAGE_INPUT" ] && [ "$SKIP_MAINTENANCE_CHECK" != "true" ]; then
-              vars+=(--var "MAINTENANCE_MODE:true")
-            fi
-          elif [ -n "$MAINTENANCE_MODE_INPUT" ]; then
+          if [ -n "$MAINTENANCE_MODE_INPUT" ]; then
             vars+=(--var "MAINTENANCE_MODE:$MAINTENANCE_MODE_INPUT")
+          elif [ -z "$MAINTENANCE_MESSAGE_INPUT" ] && [ "$SKIP_MAINTENANCE_CHECK" != "true" ]; then
+            vars+=(--var "MAINTENANCE_MODE:true")
           fi
           if [ -n "$MAINTENANCE_MESSAGE_INPUT" ]; then vars+=(--var "MAINTENANCE_MESSAGE:$MAINTENANCE_MESSAGE_INPUT"); fi
-          npx --yes wrangler@4.149.0 deploy --env "$DEPLOY_ENV" "${vars[@]}"
+          npx --yes wrangler@4.149.0 deploy --env production "${vars[@]}"
         env:
-          DEPLOY_ENV: ${{ github.ref_name == 'master' && 'production' || 'dev' }}
           MAINTENANCE_MODE_INPUT: ${{ inputs.maintenance_mode }}
           MAINTENANCE_MESSAGE_INPUT: ${{ inputs.maintenance_message }}
           SKIP_MAINTENANCE_CHECK: ${{ inputs.skip_maintenance_check }}
@@ -227,6 +129,6 @@ jobs:
         env:
           MAINTENANCE_MODE_INPUT: ${{ inputs.maintenance_mode }}
           MAINTENANCE_MESSAGE_INPUT: ${{ inputs.maintenance_message }}
-          WORKER_NAME: ${{ github.ref_name == 'master' && 'fara-avatar' || 'fara-avatar-dev' }}
+          WORKER_NAME: fara-avatar
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}

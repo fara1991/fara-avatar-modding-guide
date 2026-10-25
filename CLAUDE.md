@@ -7,7 +7,7 @@ Avatar Modding Guide（https://avatar.fara-labs.com/）。.NET 10 / Blazor WebAs
 - 作業ブランチは `develop` から作成する（`master` から切らない）。作業ブランチの PR は `develop` 向けに作る
 - `master` へは `develop` からのみマージする。**master へのマージはユーザーが行う。Claude は develop → master の PR の作成までで、master にはマージしない。master 向けの PR は、頼まれたときだけ作る**
 - **本番（avatar.fara-labs.com）に届く経路は、master への push（と、master を選んだ手動実行）だけ。** develop への push は確認用（avatar-dev.fara-labs.com）に自動公開される。ほかのブランチ・PR は公開されない（ビルドとテストだけ）
-- 2026-10-23 に、別リポジトリで develop → master の PR を取り違えてマージし、本番がメンテナンス画面（503）で公開された事故があった。master 向け・本番向けの変更（`deploy.yml`・`wrangler.toml`・`worker/`・`.github/scripts/`）の PR 本文には、大きく警告を書く
+- 2026-10-23 に、別リポジトリで develop → master の PR を取り違えてマージし、本番がメンテナンス画面（503）で公開された事故があった。master 向け・本番向けの変更（`deploy.yml`・`deploy-develop.yml`・`wrangler.toml`・`worker/`・`.github/scripts/`）の PR 本文には、大きく警告を書く
 - 既存の `develop` → `master` の PR（#4）は古い題名のまま。統合のあとは WebAssembly 版への切り替えそのものになるので、そのままマージしない（docs/release-switch-and-rollback.md）
 - 履歴の書き換え（force push・rebase の push）はしない。コミットの末尾に `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`
 
@@ -21,7 +21,7 @@ Avatar Modding Guide（https://avatar.fara-labs.com/）。.NET 10 / Blazor WebAs
 - `src/FaraAvatarModdingGuide.Content`・`Shared`: 記事を読む部分（ビルド時のみ）と、Build と Web が共有する型
 - ルートの `wwwroot/` は `images/`（画像）と `og.png`（OGP。4 サイト共通の名前、URL は `/og.png?v=N`）だけ（Build がコピーする。画像は以前 tools/tutorial-images が書いた。S7 で消した。作り方は docs/phase3b-design.md の §17.7）
 - 共通部品は `external/fara-site-kit`（git submodule。直接は直さず、kit のリポジトリで直す）。`worker/index.js` は kit の共有 JS（報告・メンテナンス）を読む
-- 公開の設定は `wrangler.toml`（`name` はダッシュボードの Worker 名と一致させる。assets は `./dist`）と `.github/workflows/deploy.yml`。wrangler のバージョンは `4.149.0` で固定
+- 公開の設定は `wrangler.toml`（`name` はダッシュボードの Worker 名と一致させる。assets は `./dist`）と `.github/workflows/`（`build.yml`・`deploy-develop.yml`・`deploy.yml`。Pokémon と同じ形）。wrangler のバージョンは `4.149.0` で固定
 - メンテナンス表示は Worker の変数 `MAINTENANCE_MODE`（`true` / `notice` / `false`）と `MAINTENANCE_MESSAGE`。旧名 `MAINTENANCE` は読まない。本番の初回の公開は `MAINTENANCE_MODE:true` が付き、メンテナンス画面のまま公開される（README の「本番の公開とメンテナンス」）
 - 検索の「正解」は `tests/js/fixtures/searchcore.reference.js`（旧 SSR 版の写しを固定したもの）。仕様を変えるとき以外は書き換えない
 - スクロール演出・テーマ・検索などの UI の実装は kit と MudBlazor。`app.css` は Web の `wwwroot/css/` にある（色は MudBlazor のテーマ変数）
