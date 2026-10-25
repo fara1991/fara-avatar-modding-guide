@@ -1,0 +1,27 @@
+{
+ "count": "11 / 14",
+ "bubble": "11\nAlt+Z で透過表示にしてください。裏側の面も選べるようになります。",
+ "keys": "Alt\n+\nZ",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "選択解除",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [
+  "xray"
+ ],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "71.4286%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

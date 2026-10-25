@@ -71,12 +71,6 @@
             .av-static .fsk-sidebar { order: 2; display: block !important; position: static !important; width: auto !important; height: auto !important; overflow: visible !important; }
         }
     </style></noscript>
-    <!-- three.js の importmap(練習・記事内チュートリアルの 3D 表示)。three.js は自分のサイトに同梱している(lib/three/。jsDelivr は使わない)。
-         この文書で最初の module が読まれる前に置く必要がある(Blazor が後から足したものは効かない)ので、テンプレートの head に 1 つだけ置く。
-         CSP は script-src に importmap の sha256 を入れて許可する。ハッシュは Build が、この script の中身(<script> と </script> の間の文字を、そのまま)から計算して _headers に入れる。
-         ハッシュが変わるのは、この importmap の文字を変えたとき(マッピングを足すなど)だけ。three.js の版を上げるときは、lib/three/ のファイルを置き換えるだけで、
-         この行は変わらない(ハッシュも変わらない)。手順(r171 以降は three.core.js も要る)は docs/wasm-migration-plan.md の 13.2。手では直さない。 -->
-    <script type="importmap">{"imports":{"three":"/lib/three/three.module.js"}}</script>
     <!-- WASM-ONLY:END -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

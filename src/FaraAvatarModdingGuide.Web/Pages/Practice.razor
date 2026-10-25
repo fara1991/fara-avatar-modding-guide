@@ -14,16 +14,13 @@
 <p class="text-body-secondary small">各記事の「やってみよう」では、同じビューで 1 キーずつ案内付きで操作できます（<a href="/learn/basics/transform">移動・回転・スケール</a> など）。ここは案内なしで自由に試す場所です。何人かで同じビューを操作したいときは <a href="/practice/room">みんなで練習</a> へ。</p>
 </div>
 
-@* 本体は wwwroot/js/practice.js と viewport.js（Three.js）。ここは枠と文言だけで、3D とお題の中身は JavaScript が作る(PracticeHost が始めて、ページを離れるときに解放する)。
-   JavaScript が中身を入れる要素(#practice-viewport・#practice-tasks)は、Razor では空のままにする(Blazor は、中身のない要素の子を触らない)。
-   静的 HTML(Build の PageBodies.Practice)と同じ構造にする(Web.Tests が突き合わせる) *@
+@* 3D（Practice・Render。C#）と HUD・お題の一覧は Razor が描く（Phase 3b S3・S7。three.js は使わない）。静的 HTML（Build の PageBodies.Practice）と同じ構造にする（Web.Tests が突き合わせる） *@
 <div id="practice" class="row g-4 practice-pc-only">
     <div class="col-lg-8">
-        @* HUD・サイドバーなどの中身は viewport.js が作る *@
         <div class="practice-viewport" id="practice-viewport" tabindex="0" aria-label="3D ビューポート">
-            @if (csMode)
+            @* HUD は viewport.js の HUD_HTML と同じ構造・クラス名（PracticeHudView） *@
+            @if (cs is not null)
             {
-                @* C# 版(?engine=cs)。HUD は viewport.js の HUD_HTML と同じ構造・クラス名(PracticeHudView) *@
                 <PracticeHudView Hud="hud" GlHostId="practice-gl" RootId="practice-viewport" Failed="csFailed" OnTool="ClickTool" OnMenu="ChooseMenu" OnNPanel="OnNPanel" />
             }
         </div>
@@ -40,9 +37,8 @@
         <div class="card mb-3 practice-tasks-card">
             <div class="card-header fw-semibold">お題</div>
             <div class="card-body">
-                @if (csMode)
+                @if (cs is not null)
                 {
-                    @* C# 版(?engine=cs): 一覧は Razor が描く(JS 版は practice.js が中身を入れるので、ここは空のまま) *@
                     <ol class="practice-tasks mb-2" id="practice-tasks">
                         @for (var i = 0; i < hud.TaskTexts.Count; i++)
                         {
@@ -53,6 +49,7 @@
                 }
                 else
                 {
+                    @* 3D（C#）が始まる前・タッチだけの端末は、静的 HTML（PageBodies.Practice）と同じ空の一覧 *@
                     <ol class="practice-tasks mb-2" id="practice-tasks"></ol>
                     <div id="practice-tasks-done" class="small text-body-secondary" hidden>すべてできました。あとは自由に試してください。</div>
                 }
@@ -105,25 +102,9 @@
     private PracticeHost? host;
     private IPracticeCs? cs;
     private PracticeHud hud = new();
-    private bool csMode;
     private bool emulateNumpad;
     private bool csFailed;
     private bool disposed;
-
-    protected override void OnInitialized()
-    {
-        // 同じページのまま ?engine= だけが変わる移動（アドレスの書き換え・戻る）は、ページを読み込み直す（エンジンの切り替えは、始め直しが要るため）
-        Nav.LocationChanged += OnLocationChanged;
-        // ?engine=cs で、3D を C#(Practice・Render)+ 薄い WebGL 層で動かす(Phase 3b S3。既定は今までの Three.js 版)。?debug=1 で、確認用の状態(window.__practice)を出す
-        csMode = Query("engine") == "cs";
-    }
-
-    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
-    {
-        if (disposed || !new Uri(e.Location).AbsolutePath.TrimEnd('/').EndsWith("/practice", StringComparison.Ordinal)) return;
-        var wantCs = Query("engine") == "cs";
-        if (wantCs != csMode) Nav.NavigateTo(e.Location, forceLoad: true);
-    }
 
     private string? Query(string name) => Nav.Get(name);
 
@@ -131,18 +112,13 @@
     {
         if (!firstRender) return;
         host = new PracticeHost(JS);
-        if (csMode)
+        // タッチだけの端末は、案内の画面（記事内チュートリアルの「画像で見る」）。PC は C# 版の 3D
+        if (!await host.IsTouchOnlyAsync())
         {
-            // タッチだけの端末は、案内の画面(JS 版の入口)にする
-            if (!await host.IsTouchOnlyAsync())
-            {
-                await StartCsAsync();
-                return;
-            }
-            csMode = false;
-            StateHasChanged();
+            await StartCsAsync();
+            return;
         }
-        await host.StartAsync("practice.js", "");
+        await host.StartGuideAsync();
     }
 
     private async Task StartCsAsync()
@@ -150,7 +126,7 @@
         IPracticeCs? created = null;
         try
         {
-            // 操作のロジックと描画の命令（Practice・Render）は、?engine=cs のときだけ読み込む（通常のページの読み込みを増やさない）
+            // 操作のロジックと描画の命令（Practice・Render）は、PC の練習を始めるときに遅れて読み込む（通常のページの読み込みを増やさない）
             await PracticeCsAssemblies.LoadAsync(Services);
             if (disposed) return;                    // 読み込んでいるあいだにページを離れた
             created = await PracticeCsLoader.CreateAsync(() => emulateNumpad, Query("debug") == "1");
@@ -197,7 +173,6 @@
     public async ValueTask DisposeAsync()
     {
         disposed = true;
-        Nav.LocationChanged -= OnLocationChanged;
         if (cs is not null)
         {
             cs.Changed -= OnCsChanged;

@@ -1,14 +1,17 @@
-// /practice の Three.js 版と C# 版(?engine=cs)を、同じ操作で並べて、ビューポート(3D + HUD)の画素を比べる(Phase 3b S3)。  node practice-compare.mjs
+// /practice の Three.js 版（基準）と C# 版（?engine=cs）を、同じ操作で並べて、ビューポート（3D + HUD）の画素を比べる（Phase 3b S3）。  node practice-compare.mjs
 //   NEW=http://127.0.0.1:8787(wrangler dev など、サイトの配信)  OUT=<画像の出力先>  WIDTH=1280  MAX_OVER_PCT=0.001  MAX_DIFF=8
-// 比べるのは、ビューポートの要素のスクリーンショット(3D の描画 + HUD の文字・ボタン)。3 枚組(three.js | C# | 差)を書く。画素の差(>8 の割合・最大)に閾値を付けて合否に含める。
+//   基準: GOLDEN_MODE=capture で Three.js 版（?engine=js）の画像を tests/visual/golden/practice-compare に保存する（golden.mjs）。既定の compare は、保存した基準と C# 版を比べる（three.js が無くても動く）
+// 比べるのは、ビューポートの要素のスクリーンショット（3D の描画 + HUD の文字・ボタン）。3 枚組（基準 | C# | 差）を書く。画素の差（>8 の割合・最大）に閾値を付けて合否に含める。
 import { mkdirSync, writeFileSync } from "node:fs";
 import { PNG } from "pngjs";
 import { launch } from "./lib.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden, assertCaptureTarget } from "./golden.mjs";
 
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const OUT = process.env.OUT || "./practice-compare-out";
 const MAX_OVER_PCT = Number(process.env.MAX_OVER_PCT || 0.001);
 const MAX_DIFF = Number(process.env.MAX_DIFF || 8);
+const GROUP = "practice-compare";
 mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -54,17 +57,20 @@ async function run(page, steps) {
   await sleep(200);
 }
 
+if (GOLDEN_MODE === "capture") await assertCaptureTarget(process.env.NEW || "http://127.0.0.1:8787");   // 基準を作る前に、three.js の版が配られているかを確かめる
 const browser = await launch();
 let failed = 0;
 const only = process.env.ONLY;
 for (const s of SCENES) {
   if (only && !s.name.includes(only)) continue;
-  const a = await open(browser, "/practice");
+  const a = GOLDEN_MODE === "capture" ? await open(browser, "/practice?engine=js") : null;   // 基準の作成は、three.js の版（?engine=js）で
   const b = await open(browser, "/practice?engine=cs");
   try {
-    await run(a.page, s.steps);
+    if (a) await run(a.page, s.steps);
     await run(b.page, s.steps);
-    const shotA = PNG.sync.read(await a.page.locator("#practice-viewport").screenshot());
+    const bufA = a ? await a.page.locator("#practice-viewport").screenshot() : loadGolden(GROUP, s.name, "png");
+    if (a) saveGolden(GROUP, s.name, "png", bufA);
+    const shotA = PNG.sync.read(bufA);
     const shotB = PNG.sync.read(await b.page.locator("#practice-viewport").screenshot());
     const diff = new PNG({ width: shotA.width, height: shotA.height });
     let over = 0, max = 0;
@@ -80,12 +86,12 @@ for (const s of SCENES) {
     const triple = new PNG({ width: shotA.width * 3, height: shotA.height });
     [shotA, shotB, diff].forEach((img, k) => PNG.bitblt(img, triple, 0, 0, img.width, img.height, k * img.width, 0));
     writeFileSync(`${OUT}/${s.name}.png`, PNG.sync.write(triple));
-    const problems = [...a.page.problems, ...b.page.problems];
+    const problems = [...(a ? a.page.problems : []), ...b.page.problems];
     const ok = pct <= MAX_OVER_PCT && max <= MAX_DIFF && problems.length === 0;
     console.log(`${ok ? "ok  " : "NG  "}${s.name.padEnd(18)} 差>8: ${pct.toFixed(3)}%  最大 ${max}${problems.length ? "  " + problems.join(" | ") : ""}`);
     if (!ok) failed++;
   } finally {
-    await a.ctx.close();
+    if (a) await a.ctx.close();
     await b.ctx.close();
   }
 }

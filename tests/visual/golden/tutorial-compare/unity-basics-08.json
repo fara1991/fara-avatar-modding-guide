@@ -1,0 +1,25 @@
+{
+ "count": "9 / 13",
+ "bubble": "9\n赤い矢印をドラッグして、アバターを横（X 方向）に動かしてください。",
+ "keys": "赤い矢印をドラッグ",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "61.5385%",
+ "ueStatus": "Body を表示（Frame Selected）",
+ "ueInfo": "Avatar · Move Tool",
+ "ueLabel": "赤い矢印をドラッグ",
+ "ueTools": [
+  "move"
+ ]
+}

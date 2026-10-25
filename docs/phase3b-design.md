@@ -665,3 +665,71 @@ SwiftShader の Chromium・AOT なし・localhost（wrangler dev）。前は `de
 - **L1**: `OnOpen` は今の接続のものだけ扱う（古い接続の hello は送らない）。**L2**: `rejected` は JavaScript の真偽（0・空の文字・null は偽）。**L3**: `locks` は値が文字のものだけ使う。**L4**: コメント（`RoomCsEngine.Dispose` の説明）を、実際の順序に合わせた。**L7**: 名前の入力欄の `value` は初期値だけ（上記 3）。**L8**: §16.2 の 3・4 を、実際に確かめた範囲に書き直した。
 - **L5（JSMarshalAs<JSType.Function> の寿命）**: 調べた範囲: JSImport の関数引数は、JavaScript 側の関数（クロージャ）が managed の delegate を保持し、関数が解放されると managed 側の参照も解ける。JavaScript 側の保持は `room-cs.js` の `timers`（繰り返しのタイマー・`cancelTimer` まで）と、`attach`・`setHandlers` の登録。一回限りのタイマーは発火後に `timers` から外れる。名前の入力は、入力のたびにタイマーを作っていたので、1 本の繰り返しの確認（100 ms）に変えた。.NET の仕様の細部（解放の時点）は、この作業では確かめていない。実際の動作は `room-compare`・`room-mixed`・`room-race`・`practice.mjs` の往復（gl・ws・interval・listeners が増えない）で確かめた。
 - **L6**: 対応不要（指摘どおり）。
+
+## 17. S7（three.js を外す）の記録
+
+- **決定（ユーザー 2026-10-25）**: S6 と S7 を並行で進め、本番（master）への反映はユーザーが行う。S7 の PR は develop 向け（`migration/wasm` は origin に無い。#119 も develop 向け）。**本番での実績（S3〜S6 を本番に出して一定期間の確認）の前に three.js を外した**。リスクは PR 本文に書く。
+- **段階**: (a) 既定を C# 版にする（`?engine=` の指定は無くなり、`engine=js` も効かない。`?engine=js` の JS 版は残さない）／ (b) three.js の 1 人用の練習を消す（`practice.js`・`unity.js`・`unity-practice.js`。`tutorial.js` は「画像で見る」だけにした）／ (c) **S6 まで残すもの**: 共有ルーム（`room.js`・`viewport.js`・`editmesh.js`）、`lib/three`・importmap・CSP のハッシュ（`SiteBuilder.ImportMapHashes`）、README の一文。S6 が入ったら、これらを消して S7 を完了する。
+
+### 17.1 基準の凍結（three.js の版を消す前）
+
+three.js の版（commit `8262089`）から作った基準を、ファイルにした。以後の比較は、基準と C# 版を比べる。
+
+- 画像・DOM・文字・状態（`tests/visual/golden/`）: `practice-compare`・`practice-details`・`tutorial-compare`・`tutorial-input-compare`・`unity-compare`・`tutorial-dom`。PNG と JSON。約 25 MB（PNG は圧縮のまま。`tutorial-compare` が 12 MB）。
+- Node の基準（`tests/js/golden/*.json.gz`）: `practice-basic`・`practice-edit`（C# の `ParityTests`・`EditParityTests`）、`practice-tutorial-render`・`render-basic`・`render-edit`・`render-tutorial`（描画の突き合わせ）、`unity`（`UnityParityTests`）、`tutorial`（`TutorialParityTests`）。gzip で約 17 MB。C# のテストは Node を動かさず、これを読む。
+- 作り方（three.js の版が要る。今は作れない）: `git worktree add <dir> 8262089`、`dotnet publish` と Build（CLAUDE.md の手順）で、リポジトリの外に配信する（作業用の静的サーバーで配った。CSP は `_headers` の `/*` を付ける）。その配信に対して、`GOLDEN_MODE=capture` で `tools/verify/*` を動かす（`tools/verify/README.md`）。Node の基準は `tests/js/*-reference.mjs`（8262089 にある）を `node` で動かして `.json.gz` にする。
+- 確かめ: 8262089 の基準に対して、C# 版の `tutorial-compare`（既定の比べ方）が、一時的に変えた C# の文言（「左クリック」→「右クリック」）で NG になることを確かめた（3 手順で、文字の差と画素の差 0.023 %・最大 217）。変えた文言は戻した。
+- 併せて直したもの: `UnityData.PartMesh` の形のキャッシュ（`Dictionary` → `ConcurrentDictionary`）。テストが並列に動くと壊れた（ブラウザは 1 スレッドなので、本番では起きない）。
+
+### 17.2 配信量（brotli q11。`publish/wwwroot` の js・css・dll・wasm・json・html。`data/` と画像は除く）
+
+| 対象 | 前（8262089） | 後（この PR） | 差 |
+| --- | --- | --- | --- |
+| 合計 | 3,505,743 B | 3,483,445 B | **−22,298 B（約 −22 KB）** |
+| `unity.js` | 17,614 B | 0 | −17,614 |
+| `practice.js` | 2,168 B | 0 | −2,168 |
+| `unity-practice.js` | 1,591 B | 0 | −1,591 |
+| `tutorial.js` | 7,773 B | 6,856 B | −917 |
+| `practice-entry.js` | 1,682 B | 1,730 B | +48 |
+| `lib/three/three.module.js` | 207,529 B | 207,529 B | 0（S6 まで残る） |
+
+S6 のあとに消せる分（見込み。同じ方法）: `room.js` 4,986 + `viewport.js` 20,575 + `editmesh.js` 8,860 + `three.module.js` 207,048 = **約 241 KB**（この PR の −22 KB と合わせると、three.js 系の JS は、この PR の前から約 264 KB 減る）。
+
+### 17.3 検証（この PR の状態。本番の配信ではなく、`publish` と Build の出力を `tests/` の静的サーバーで配った）
+
+- `dotnet test -c Release`: 857 件（Content 26・Build 47・Web 200・Practice 358・Render 226）すべて成功。
+- `node --test`（CLAUDE.md の一覧）: 121 件すべて成功（`SEARCH_INDEX_FILE` を Build の出力に向けた）。
+- 基準との比較（既定の比べ方。C# 版と凍結した基準）: `practice-compare` 9/9、`practice-details` 25/25、`unity-compare` 44 件、`tutorial-input-compare` 66 件、`tutorial-compare` 156 件、`tutorial-dom` 25 件（うち 1 回目は待ちがタイムアウト。単独でやり直して通った。環境の揺れとして記録）。すべて ok。
+- `dom-diff`（静的 HTML と起動後）: `/practice`・`/practice/unity`・`/practice/room` の 3 ページで差なし。
+- `csp-check`（`_headers` の CSP を付けた配信）: CSP 違反 0。NG は `/report`（Worker の API が無い）と `/practice/room`（WebSocket が無い）の 404。Worker の無い静的サーバーのため。
+- スマートフォン幅（390・タッチ。`probe-touch` の手順）: 記事（`transform`・`editor-overview`・`edit-mode`）と `/practice` の「画像で見る」は、画像 6 枚が読め、Practice・Render の wasm は読まれない（base と同じ）。**一度、C# 版の記事内チュートリアルを読んでしまう不具合があった（`startArticle` が常に C# 版を始めたため）。タッチだけの端末では C# 版を始めないように直した。** 差: 3D に切り替える「3D ビューで操作する」ボタンは、スマートフォンでは出ない（base では出て、押すと 3D が始まった。この版の tutorial.js は画像だけ）。
+- `practice.mjs`（`ENGINE=cs`）: 基準（`practice-baseline.json`）との 49 件が ok。**共有ルームの部分は、Worker の WebSocket が無いため動かせなかった（S6 のあとに、wrangler の配信で確かめる）**。
+
+### 17.4 この PR で消したもの・残したもの
+
+- 消した: `wwwroot/js/practice.js`・`unity.js`・`unity-practice.js`。Node の基準を作る `tests/js/` の生成スクリプト（`practice-reference.mjs`・`practice-render-reference.mjs`・`unity-reference.mjs`・`tutorial-reference.mjs`・`practice-dom.mjs`・`practice-hooks.mjs`・`*-cases.generate.mjs`・`practice-fragile.mjs`・`practice-noise.mjs`・`practice-numeric.test.mjs`。作り方は 8262089 にある）。`PageDomParityTests` の `/practice`・`/practice/unity` は、bUnit では C# 版が始まらない（WebGL も WASM も無い）ので外し、`dom-diff`（ブラウザ）で見る。
+- 残したもの（S6 で消す）: `room.js`・`viewport.js`・`editmesh.js`・`lib/three`・importmap・CSP のハッシュ・README の Three.js の一文。`tests/js/practice-dom.mjs`・`practice-hooks.mjs` は、今は使われていない（S6 の Node の突き合わせが使うので残した。S6 がマージされたら消す）。
+- 残した（後で整理する）: `tutorial.js` の手順の処理（`replayTo`・`onEvent`・`skip` など）は、3D（`this.vp`）が無いので到達しない。画像の作成（`tools/tutorial-images`・`captureStep`）は、3D の版が無いので動かない（作成済みの画像は残る）。`tools/verify/practice.mjs` の `ENGINE=js` は、もう JS 版を作らない（`ENGINE=cs` と同じ）。
+
+### 17.5 確証が持てない点・S6 への申し送り
+
+- 本番での実績がないまま three.js の 1 人用の練習を消した（ユーザーの指示）。問題が見つかったときの戻し方は、この PR を戻す（`git revert`）か、8262089 の JS を取り戻す。`?engine=js` は無い。
+- 比較の基準は SwiftShader（DPR 1）前提。実 GPU・小数の DPR の差は、`tools/verify/README.md`（§15.5）のとおり。
+- S6（共有ルーム）: `room.js` を C# にしたら、`viewport.js`・`editmesh.js`・`lib/three`・importmap・CSP のハッシュ・README の一文を消す（S7 の完了）。
+
+### 17.6 S7 の後半（共有ルームの three.js を外した。S6 の取り込みのあと）
+
+- **共有ルーム**（`/practice/room`）は C# 版だけになった（`?engine=cs` は無くなり、`?engine=js` は無視）。`room.js`・`viewport.js`・`editmesh.js`・`lib/three/`（three.module.js・LICENSE）・index.html の importmap・CSP のハッシュ（Build の `AddImportMapHashes`）を消した。`tests/js/practice-dom.mjs`・`practice-hooks.mjs` と `tools/verify/gl-*`（three.js の参照ページ）・`room-mixed.mjs`（JS 版と C# 版を同じ部屋に入れる比較。JS 版が無いので消した）も消した。
+- **比較の基準**（room.js の版から作った）: `tests/visual/golden/room-compare/`（9 場面の画像・DOM の文字・送った文字の件数・meta.json）。`room-compare.mjs` は既定で基準と C# 版を比べる。部屋の WebSocket は Worker が要るので、確かめは `npx wrangler@4.149.0 dev --env dev --local` で行った（静的サーバーでは動かない）。
+- **確かめ**（wrangler dev。`dist` は Build の develop 出力。クリーンな publish から）: `room-compare` 基準と C# 版 9 場面 ok（画素 0.000 %、最大 1）・送った文字の一致・ページのエラー 0。`room-race` ok。`practice.mjs`（ENGINE=cs。部屋の往復を含む）76 件 ok。`csp-check` 全件 ok（CSP 違反 0。wrangler で Worker が動くので、部屋の WebSocket も通った）。`practice-compare` 9/9・`practice-details` 25/25・`unity-compare`・`tutorial-input-compare`・`tutorial-compare` 156・`tutorial-dom` ok。`dom-diff` 差なし。
+- **スマートフォン幅**（390・タッチ）: 記事 3 本の「画像で見る」の 6 枚が読め、`/practice`・`/practice/unity`・`/practice/room` は案内だけで、Practice・Render・canvas を読まない（部屋の canvas は 0）。
+- **テスト**: `dotnet test -c Release` 26 + 44 + 199 + 392 + 226 件すべて成功。`node --test`（CLAUDE.md の一覧）117 件すべて成功。
+- **配信量**（brotli q11。前 = fd6a94a（S6 を取り込んだ develop）、後 = この PR の最終形。js・css・dll・wasm・json・html）: 3,526,495 B → 3,261,657 B（**−264,838 B。約 265 KB**）。内訳: `lib/three/three.module.js` −207,048、`viewport.js` −20,575、`unity.js` −17,614、`room.js` −4,986、`editmesh.js` −8,860、`practice.js` −2,168、`unity-practice.js` −1,591、`tutorial.js` −917、`practice-entry.js` −465。JS（`js/*.js`）は 109,984 B → 52,808 B。
+- **残り**: `tutorial.js` の手順の処理（`this.vp` が無いので到達しない。17.7 参照）・`Maths.cs` などの three.js に倣った数式の注釈（コードの仕様としての説明。消さない）・`docs/wasm-migration-plan.md` の計画（歴史の記録）。
+
+### 17.7 記事内チュートリアルの画像（撮り直しができなくなった）
+
+- 手順画像（`wwwroot/images/tutorials/<名前>/NN.webp`・145 枚）は残す。Build がコピーする。
+- 撮り直しの道具 `tools/tutorial-images/capture.mjs` と、`tutorial.js` の `captureStep`（と `?debug=1` の `window.__tutorials`）は、three.js の 3D を動かして撮るものだったので消した。**今は画像を撮り直せない**（シナリオを変えたら、画像は古いまま）。
+- 作り方の記録: commit 8262089 の `tools/tutorial-images/capture.mjs`（ヘッドレス Chrome で、サイトの 3D を `?debug=1` で動かして、各手順のあとの画面を撮る）。C# 版で撮るには、`TutorialEmbed` の画面（Razor）を撮る道具を新しく作る（未着手）。
+- `tutorial.js` に残った手順の処理（`replayTo`・`onEvent`・`skip`・`showMsg` など）は、画面の作り（`build()`）・完了の画面と繋がっていて、消すと「画像で見る」の DOM まで動かす必要がある。タッチの確認（tools/verify/probe）と一緒に、後で整理する（残件）。

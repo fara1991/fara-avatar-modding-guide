@@ -1,0 +1,25 @@
+{
+ "count": "6 / 14",
+ "bubble": "6\n数字で 1.2 と入力してください。スケールの量がちょうど 1.2 倍 になります。",
+ "keys": "1\n.\n2",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "スケール : X 0.000 Y 0.000 Z 0.000　（X / Y / Z で軸固定）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge"
+ ],
+ "progress": "35.7143%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

@@ -1,0 +1,39 @@
+{
+ "under": [
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  },
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  },
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  },
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  }
+ ],
+ "active": "root",
+ "rootClasses": "practice-viewport",
+ "rootOutline": "solid 2px rgb(196, 181, 253) 2px",
+ "rootShadow": "none",
+ "rootBorder": "1px rgba(200, 170, 255, 0.14)",
+ "tabindex": "0",
+ "box": null,
+ "menu": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "選択: 頂点 7 / 辺 9 / 面 3",
+ "numeric": "",
+ "stats": null,
+ "marker": null,
+ "toolsOn": "vert",
+ "toolsHl": "",
+ "toolsDisabled": "",
+ "npanel": "",
+ "npanelVisible": false
+}

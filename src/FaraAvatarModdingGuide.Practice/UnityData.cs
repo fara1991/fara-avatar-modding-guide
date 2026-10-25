@@ -128,7 +128,7 @@ public static class UnityData
         ],
     };
 
-    private static readonly Dictionary<string, UnityMesh> shapeCache = [];
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, UnityMesh> shapeCache = new();   // テストが並列に動くので、スレッドごとに壊れない（ブラウザの WASM は 1 スレッド）
 
     /// <summary>部品の形(unity.js の makePart)。同じ形・大きさは 1 つを使い回す。</summary>
     public static UnityMesh PartMesh(string shape, double[] size)

@@ -85,25 +85,11 @@ public class IndexHtmlTests
     }
 
     [Fact]
-    public void Import_map_points_three_at_the_bundled_file_and_comes_before_every_module()
+    public void No_import_map_and_no_three_js_in_the_template()
     {
-        var html = NoComments(Html);
-        var maps = Regex.Matches(html, "<script type=\"importmap\">(?<body>.*?)</script>", RegexOptions.Singleline).Select(m => m.Groups["body"].Value).ToList();
-        var map = Assert.Single(maps);                                        // importmap は 1 つだけ(複数あると、後のものは無視される)
-        using var json = System.Text.Json.JsonDocument.Parse(map);
-        Assert.Equal("/lib/three/three.module.js", json.RootElement.GetProperty("imports").GetProperty("three").GetString());
-        Assert.False(json.RootElement.TryGetProperty("integrity", out _));    // 同じサイトのファイル。SRI は要らない
-        // 同梱のファイルが、importmap の指す場所にある(three.js 0.170.0)
-        var file = Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "lib", "three", "three.module.js");
-        Assert.True(File.Exists(file));
-        Assert.Contains("const REVISION = '170';", File.ReadAllText(file));
-        Assert.True(File.Exists(Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "lib", "three", "LICENSE")));   // MIT のライセンス表示
-        // 最初の module(Blazor の読み込み)より前
-        Assert.True(html.IndexOf("type=\"importmap\"", StringComparison.Ordinal) < html.IndexOf("_framework/blazor.webassembly.js", StringComparison.Ordinal));
-        // WebAssembly のページだけに残る領域の中(印の中)
-        Assert.Contains("importmap", SiteBuilder.RemoveStaticOnly(SiteBuilder.RemoveWasmOnly(Html, keep: true), keep: false));
-        // CSP に入れるハッシュは、Build が計算する(手で書かない)
-        Assert.Single(SiteBuilder.ImportMapHashes(Html));
+        // S7: three.js を外した（room も C# 版）。importmap も、同梱の lib/three も無い
+        Assert.DoesNotContain("importmap", Html, StringComparison.OrdinalIgnoreCase);
+        Assert.False(Directory.Exists(Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "lib", "three")));
     }
 
     [Fact]

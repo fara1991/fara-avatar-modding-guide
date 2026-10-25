@@ -1,0 +1,25 @@
+{
+ "count": "6 / 18",
+ "bubble": "6\n数字で 1 と入力してください（押し出す長さが 1 m になります）。",
+ "keys": "1",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "押し出し 法線: 0.000 m",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "27.7778%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

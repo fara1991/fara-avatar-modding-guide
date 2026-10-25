@@ -1,0 +1,25 @@
+{
+ "count": "11 / 12",
+ "bubble": "11\nShow Control Panel を選ぶと、アップロード用の画面（Builder）が開きます。パフォーマンスランクと、確認のメッセージを見てください。",
+ "keys": "クリック",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "83.3333%",
+ "ueStatus": "Hoodie_Mesh に MA Blendshape Sync を追加しました",
+ "ueInfo": "Hoodie_Mesh · Move Tool",
+ "ueLabel": "クリック",
+ "ueTools": [
+  "move"
+ ]
+}

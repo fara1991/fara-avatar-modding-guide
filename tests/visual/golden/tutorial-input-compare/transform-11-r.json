@@ -1,0 +1,26 @@
+{
+ "texts": {
+  "count": "9 / 16",
+  "bubble": "9\nZ を押して、Z 軸の方向だけに固定してください。Z 軸の線が表示されます。",
+  "keys": "Z",
+  "msg": null,
+  "mode": "オブジェクトモード",
+  "view": "ユーザー・透視投影",
+  "status": "回転 : 0.00°　（X / Y / Z で軸固定）",
+  "numeric": "",
+  "stats": null,
+  "complete": null,
+  "overlayHidden": true,
+  "marker": "Cube",
+  "highlightedTools": [],
+  "viewHighlight": false,
+  "focused": true,
+  "toolsOn": [],
+  "progress": "50%",
+  "ueStatus": null,
+  "ueInfo": null,
+  "ueLabel": null,
+  "ueTools": []
+ },
+ "state": null
+}

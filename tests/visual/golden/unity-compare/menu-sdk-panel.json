@@ -1,0 +1,946 @@
+{
+ "sk": [
+  "<div aria-label=Unity エディター（練習） class=unity-editor unity-practice-host tabindex=0>",
+  " <div class=ue-menubar>",
+  "  <button data-menu=File type=button>File",
+  "  <button data-menu=Edit type=button>Edit",
+  "  <button data-menu=Assets type=button>Assets",
+  "  <button data-menu=GameObject type=button>GameObject",
+  "  <button data-menu=Component type=button>Component",
+  "  <button data-menu=VRChat SDK type=button>VRChat SDK",
+  "  <button data-menu=Tools type=button>Tools",
+  "  <button data-menu=Window type=button>Window",
+  " <div class=ue-toolbar>",
+  "  <button data-tool=hand title=Q type=button>",
+  "   <i aria-hidden=true class=bi bi-hand-index>",
+  "   <span class=visually-hidden>hand",
+  "  <button class=is-on data-tool=move title=W type=button>",
+  "   <i aria-hidden=true class=bi bi-arrows-move>",
+  "   <span class=visually-hidden>move",
+  "  <button data-tool=rotate title=E type=button>",
+  "   <i aria-hidden=true class=bi bi-arrow-repeat>",
+  "   <span class=visually-hidden>rotate",
+  "  <button data-tool=scale title=R type=button>",
+  "   <i aria-hidden=true class=bi bi-arrows-angle-expand>",
+  "   <span class=visually-hidden>scale",
+  "  <span class=ue-toolbar-sep>",
+  "  <span class=ue-toolbar-label>Pivot",
+  "  <span class=ue-toolbar-label>Global",
+  "  <span class=ue-play>",
+  "   <i class=bi bi-play-fill>",
+  "   <i class=bi bi-pause-fill>",
+  "   <i class=bi bi-skip-end-fill>",
+  " <section class=ue-hierarchy ue-panel>",
+  "  <div class=ue-tab>Hierarchy",
+  "   <i class=bi bi-list-nested>",
+  "  <div class=ue-hier-list role=tree>",
+  "   <div class=ue-scene-row>SampleScene",
+  "    <i class=bi bi-unity>",
+  "   <div aria-selected=false class=ue-row data-node-name=Main Camera data-node=n24 role=treeitem>",
+  "    <span class=ue-fold data-fold=n24>",
+  "    <i aria-hidden=true class=bi bi-camera-video ue-row-icon>",
+  "    <span class=ue-row-name>Main Camera",
+  "   <div aria-selected=false class=ue-row data-node-name=Directional Light data-node=n25 role=treeitem>",
+  "    <span class=ue-fold data-fold=n25>",
+  "    <i aria-hidden=true class=bi bi-sun ue-row-icon>",
+  "    <span class=ue-row-name>Directional Light",
+  "   <div aria-expanded=true aria-selected=false class=is-prefab ue-row data-node-name=Avatar data-node=n26 role=treeitem>",
+  "    <span class=ue-fold data-fold=n26>",
+  "     <i class=bi bi-caret-down-fill>",
+  "    <i aria-hidden=true class=bi bi-box-fill ue-row-icon>",
+  "    <span class=ue-row-name>Avatar",
+  "   <div aria-expanded=false aria-selected=false class=ue-row data-node-name=Armature data-node=n27 role=treeitem>",
+  "    <span class=ue-fold data-fold=n27>",
+  "     <i class=bi bi-caret-right-fill>",
+  "    <i aria-hidden=true class=bi bi-box ue-row-icon>",
+  "    <span class=ue-row-name>Armature",
+  "   <div aria-selected=false class=ue-row data-node-name=Body data-node=n45 role=treeitem>",
+  "    <span class=ue-fold data-fold=n45>",
+  "    <i aria-hidden=true class=bi bi-person ue-row-icon>",
+  "    <span class=ue-row-name>Body",
+  "   <div aria-selected=false class=is-inactive ue-row data-node-name=Shirt_Default data-node=n46 role=treeitem>",
+  "    <span class=ue-fold data-fold=n46>",
+  "    <i aria-hidden=true class=bi bi-person ue-row-icon>",
+  "    <span class=ue-row-name>Shirt_Default",
+  "    <span class=ue-row-tag>EditorOnly",
+  "   <div aria-expanded=true aria-selected=false class=is-prefab ue-row data-node-name=Hoodie data-node=n47 role=treeitem>",
+  "    <span class=ue-fold data-fold=n47>",
+  "     <i class=bi bi-caret-down-fill>",
+  "    <i aria-hidden=true class=bi bi-box-fill ue-row-icon>",
+  "    <span class=ue-row-name>Hoodie",
+  "   <div aria-expanded=false aria-selected=false class=ue-row data-node-name=Armature data-node=n48 role=treeitem>",
+  "    <span class=ue-fold data-fold=n48>",
+  "     <i class=bi bi-caret-right-fill>",
+  "    <i aria-hidden=true class=bi bi-box ue-row-icon>",
+  "    <span class=ue-row-name>Armature",
+  "   <div aria-selected=true class=is-selected ue-row data-node-name=Hoodie_Mesh data-node=n56 role=treeitem>",
+  "    <span class=ue-fold data-fold=n56>",
+  "    <i aria-hidden=true class=bi bi-person ue-row-icon>",
+  "    <span class=ue-row-name>Hoodie_Mesh",
+  "   <div class=ue-hier-empty data-drop-root=>",
+  " <section class=ue-panel ue-scene>",
+  "  <div class=ue-tab>Scene",
+  "   <i class=bi bi-grid-3x3>",
+  "  <div class=ue-scene-view>",
+  "   [gl]",
+  "   <div class=ue-scene-info>Hoodie_Mesh · Move Tool",
+  "   <div class=ue-preview hidden=>",
+  " <section class=ue-inspector ue-panel>",
+  "  <div class=ue-tab>Inspector",
+  "   <i class=bi bi-info-circle>",
+  "  <div class=ue-insp-body>",
+  "   <div class=ue-insp-head>",
+  "    <input aria-label=有効 checked=true class=ue-active data-hl=active title=有効 / 無効 type=checkbox>",
+  "    <input aria-label=名前 class=ue-name readonly= type=text value=Hoodie_Mesh>",
+  "   <div class=ue-field ue-tagrow>",
+  "    <span class=ue-field-label>Tag",
+  "    <select class=ue-tag data-hl=tag>",
+  "     <option selected=true>Untagged",
+  "     <option selected=false>EditorOnly",
+  "     <option selected=false>MainCamera",
+  "     <option selected=false>Player",
+  "   <div class=ue-comp data-comp=Transform>",
+  "    <div class=ue-comp-head>",
+  "     <i class=bi bi-caret-down-fill>",
+  "     <strong >Transform",
+  "    <div class=ue-comp-body>",
+  "     <div class=ue-field>",
+  "      <span class=ue-field-label>Position",
+  "      <div class=ue-vec>",
+  "       <label class=ue-num>",
+  "        <span >X",
+  "        <input data-axis=0 data-field=p data-hl=p-0 step=0.01 type=number value=0>",
+  "       <label class=ue-num>",
+  "        <span >Y",
+  "        <input data-axis=1 data-field=p data-hl=p-1 step=0.01 type=number value=0>",
+  "       <label class=ue-num>",
+  "        <span >Z",
+  "        <input data-axis=2 data-field=p data-hl=p-2 step=0.01 type=number value=0>",
+  "     <div class=ue-field>",
+  "      <span class=ue-field-label>Rotation",
+  "      <div class=ue-vec>",
+  "       <label class=ue-num>",
+  "        <span >X",
+  "        <input data-axis=0 data-field=r data-hl=r-0 step=1 type=number value=0>",
+  "       <label class=ue-num>",
+  "        <span >Y",
+  "        <input data-axis=1 data-field=r data-hl=r-1 step=1 type=number value=0>",
+  "       <label class=ue-num>",
+  "        <span >Z",
+  "        <input data-axis=2 data-field=r data-hl=r-2 step=1 type=number value=0>",
+  "     <div class=ue-field>",
+  "      <span class=ue-field-label>Scale",
+  "      <div class=ue-vec>",
+  "       <label class=ue-num>",
+  "        <span >X",
+  "        <input data-axis=0 data-field=s data-hl=s-0 step=0.01 type=number value=1>",
+  "       <label class=ue-num>",
+  "        <span >Y",
+  "        <input data-axis=1 data-field=s data-hl=s-1 step=0.01 type=number value=1>",
+  "       <label class=ue-num>",
+  "        <span >Z",
+  "        <input data-axis=2 data-field=s data-hl=s-2 step=0.01 type=number value=1>",
+  "   <div class=ue-comp data-comp=SkinnedMeshRenderer>",
+  "    <div class=ue-comp-head>",
+  "     <i class=bi bi-caret-down-fill>",
+  "     <input checked=true disabled= type=checkbox>",
+  "     <strong >Skinned Mesh Renderer",
+  "    <div class=ue-comp-body>",
+  "     <div class=ue-field>",
+  "      <span class=ue-field-label>Materials",
+  "      <span class=ue-muted>Size 1",
+  "     <div class=ue-field ue-slot data-hl=material-slot-0 data-slot=0>",
+  "      <span class=ue-field-label>Element 0",
+  "      <span class=ue-objfield>Hoodie_lilToon",
+  "       <i class=bi bi-circle-fill>",
+  "     <div class=ue-field>",
+  "      <span class=ue-field-label>BlendShapes",
+  "      <span class=ue-muted>Breast_big",
+  "     <div class=ue-field>",
+  "      <span class=ue-field-label>Triangles",
+  "      <span class=ue-muted>9,600",
+  "   <div class=ue-comp data-comp=MABlendshapeSync>",
+  "    <div class=ue-comp-head>",
+  "     <i class=bi bi-caret-down-fill>",
+  "     <input checked=true disabled= type=checkbox>",
+  "     <strong >MA Blendshape Sync",
+  "    <div class=ue-comp-body>",
+  "     <div class=ue-field>",
+  "      <span class=ue-field-label>Body",
+  "      <span class=ue-muted>Breast_big",
+  "   <div class=ue-addcomp-wrap>",
+  "    <button class=ue-addcomp data-hl=add-component type=button>Add Component",
+  " <section class=ue-panel ue-project>",
+  "  <div class=ue-tab>Project",
+  "   <i class=bi bi-folder2>",
+  "  <div class=ue-proj-path>Assets",
+  "  <div class=ue-proj-grid>",
+  "   <div class=ue-asset data-asset=Avatar title=アバター（練習用の人形）>",
+  "    <i class=bi bi-box-fill>",
+  "    <span >Avatar",
+  "   <div class=ue-asset data-asset=Hoodie title=衣装（パーカー）。Avatar 向け>",
+  "    <i class=bi bi-box-fill>",
+  "    <span >Hoodie",
+  "   <div class=ue-asset data-asset=Hoodie.fbx title=衣装のモデル>",
+  "    <i class=bi bi-boxes>",
+  "    <span >Hoodie.fbx",
+  "   <div class=ue-asset data-asset=Hoodie_lilToon title=lilToon>",
+  "    <i class=bi bi-circle-fill>",
+  "    <span >Hoodie_lilToon",
+  "   <div class=ue-asset data-asset=Hoodie_Red title=lilToon>",
+  "    <i class=bi bi-circle-fill>",
+  "    <span >Hoodie_Red",
+  "   <div class=ue-asset data-asset=Hoodie_Tex title=テクスチャ（2048×2048）>",
+  "    <i class=bi bi-image>",
+  "    <span >Hoodie_Tex",
+  " <div class=ue-status>VRChat SDK > Show Control Panel",
+  " <div class=ue-popup hidden=>",
+  " <div class=ue-sdk>",
+  "  <div class=ue-sdk-head>",
+  "   <span >VRChat SDK",
+  "   <button aria-label=閉じる data-sdk=close type=button>×",
+  "  <div class=ue-sdk-tabs>",
+  "   <span >Authentication",
+  "   <span class=is-on>Builder",
+  "   <span >Settings",
+  "  <div class=ue-sdk-body>",
+  "   <div class=ue-sdk-avatar>Avatar",
+  "    <i class=bi bi-person-badge>",
+  "    <span class=ue-muted>（練習用アカウントでログイン中）",
+  "   <table class=ue-perf>",
+  "    <thead >",
+  "     <tr >",
+  "      <th >Performance",
+  "      <th >",
+  "      <th >",
+  "       <span class=ue-rank ue-rank-1>Good",
+  "    <tbody >",
+  "     <tr >",
+  "      <td >Triangles",
+  "      <td >31,600",
+  "      <td >",
+  "       <span class=ue-rank ue-rank-0>Excellent",
+  "     <tr >",
+  "      <td >Material Slots",
+  "      <td >3",
+  "      <td >",
+  "       <span class=ue-rank ue-rank-0>Excellent",
+  "     <tr >",
+  "      <td >Skinned Meshes",
+  "      <td >2",
+  "      <td >",
+  "       <span class=ue-rank ue-rank-1>Good",
+  "     <tr >",
+  "      <td >Bones",
+  "      <td >17",
+  "      <td >",
+  "       <span class=ue-rank ue-rank-0>Excellent",
+  "     <tr >",
+  "      <td >PhysBone Components",
+  "      <td >0",
+  "      <td >",
+  "       <span class=ue-rank ue-rank-0>Excellent",
+  "   <div class=ue-sdk-buttons>",
+  "    <button data-hl=build-test data-sdk=test type=button>Build & Test",
+  "    <button data-hl=build-upload data-sdk=upload type=button>Build & Publish",
+  "   <div class=small ue-muted>この画面は練習用のシミュレーションです。数値は目安で、実際には何もアップロードし",
+  " <div class=ue-hl-label hidden=>"
+ ],
+ "tasks": [
+  "done:Project の Hoodie を、Hierarchy の Avatar の上にドラッグして入れる",
+  "done:Hoodie を右クリック > Modular Avatar ▸ Setup Outfit",
+  "done:Shirt_Default を無効にして、Tag を EditorOnly にする",
+  "done:Hoodie_Mesh の Materials に Hoodie_lilToon（または Hoodie_Red）を設定する",
+  "done:Hoodie_Mesh に Add Component で MA Blendshape Sync を追加する",
+  "done:VRChat SDK > Show Control Panel でランクを確認する",
+  "current:Build & Test で、衣装がついてくることを確かめる",
+  "tasks-not-done"
+ ],
+ "text": {
+  "status": "VRChat SDK > Show Control Panel",
+  "info": "Hoodie_Mesh  ·  Move Tool",
+  "preview": null,
+  "active": "root"
+ },
+ "state": {
+  "view": {
+   "target": [
+    -0.11218333797084945,
+    0.9266420619003604,
+    0.028053486259254353
+   ],
+   "dist": 3.2101984800376426,
+   "yaw": 0.27999999999999997,
+   "pitch": 0.06999999999999997
+  },
+  "camera": [
+   0.7728004989973896,
+   1.1511724841128128,
+   3.105676591683644
+  ],
+  "selected": "Avatar/Hoodie/Hoodie_Mesh",
+  "tool": "move",
+  "nodes": [
+   {
+    "path": "Main Camera",
+    "p": [
+     0,
+     1,
+     -10
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Directional Light",
+    "p": [
+     0,
+     3,
+     0
+    ],
+    "r": [
+     50,
+     -30,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips",
+    "p": [
+     0,
+     0.95,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine",
+    "p": [
+     0,
+     0.1,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest",
+    "p": [
+     0,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/Neck",
+    "p": [
+     0,
+     0.2,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/Neck/Head",
+    "p": [
+     0,
+     0.08,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/LeftUpperArm",
+    "p": [
+     0.18,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/LeftUpperArm/LeftLowerArm",
+    "p": [
+     0.26,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/LeftUpperArm/LeftLowerArm/LeftHand",
+    "p": [
+     0.24,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/RightUpperArm",
+    "p": [
+     -0.18,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/RightUpperArm/RightLowerArm",
+    "p": [
+     -0.26,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/RightUpperArm/RightLowerArm/RightHand",
+    "p": [
+     -0.24,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/LeftUpperLeg",
+    "p": [
+     0.09,
+     -0.05,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/LeftUpperLeg/LeftLowerLeg",
+    "p": [
+     0,
+     -0.42,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/LeftUpperLeg/LeftLowerLeg/LeftFoot",
+    "p": [
+     0,
+     -0.4,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/RightUpperLeg",
+    "p": [
+     -0.09,
+     -0.05,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/RightUpperLeg/RightLowerLeg",
+    "p": [
+     0,
+     -0.42,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/RightUpperLeg/RightLowerLeg/RightFoot",
+    "p": [
+     0,
+     -0.4,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Body",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Shirt_Default",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": false,
+    "tag": "EditorOnly"
+   },
+   {
+    "path": "Avatar/Hoodie",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips",
+    "p": [
+     0,
+     0.95,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine",
+    "p": [
+     0,
+     0.1,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine/Chest",
+    "p": [
+     0,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine/Chest/LeftUpperArm",
+    "p": [
+     0.18,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine/Chest/LeftUpperArm/LeftLowerArm",
+    "p": [
+     0.26,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine/Chest/RightUpperArm",
+    "p": [
+     -0.18,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine/Chest/RightUpperArm/RightLowerArm",
+    "p": [
+     -0.26,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Hoodie_Mesh",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   }
+  ]
+ }
+}

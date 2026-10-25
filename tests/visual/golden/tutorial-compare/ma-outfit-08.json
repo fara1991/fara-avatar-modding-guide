@@ -1,0 +1,25 @@
+{
+ "count": "9 / 12",
+ "bubble": "9\n体型の変更（ブレンドシェイプ）に服を合わせます。Inspector の Add Component を押し、blend と入力して MA Blendshape Sync を選んでください。",
+ "keys": "Add Component",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "66.6667%",
+ "ueStatus": "Hoodie_Mesh の Element 0 に Hoodie_lilToon を設定しました",
+ "ueInfo": "Hoodie_Mesh · Move Tool",
+ "ueLabel": "クリックして blend と入力",
+ "ueTools": [
+  "move"
+ ]
+}

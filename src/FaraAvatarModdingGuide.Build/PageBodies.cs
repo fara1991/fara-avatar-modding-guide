@@ -540,7 +540,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
 
     /// <summary>
     /// 練習 3 ページの静的な本文。WebAssembly の画面（Web の Practice.razor・PracticeUnity.razor・PracticeRoom.razor）と同じ構造・文言にする（起動の前後でちらつかないように。Web.Tests が突き合わせる）。
-    /// 3D ビューとお題の中身は、JavaScript（js/practice.js など）が起動のあとに入れる。この静的 HTML では空の枠のまま。
+    /// 3D ビューとお題の一覧は、C#（Blazor。Practice.razor・PracticeUnity.razor）が起動のあとに入れる。この静的 HTML では空の枠のまま（起動の前の画面と同じ）。
     /// </summary>
     public string Practice() =>
         "<h1>操作の練習</h1>\n" +

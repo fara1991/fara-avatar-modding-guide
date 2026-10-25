@@ -15,7 +15,4 @@ internal static class NavigationQuery
         }
         return null;
     }
-
-    /// <summary>?engine=cs(Phase 3b。C# 版)か。</summary>
-    public static bool IsCsEngine(this NavigationManager nav) => nav.Get("engine") == "cs";
 }

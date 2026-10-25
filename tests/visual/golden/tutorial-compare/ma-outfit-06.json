@@ -1,0 +1,25 @@
+{
+ "count": "7 / 12",
+ "bubble": "7\n衣装の見た目（マテリアル）を変えます。Hoodie の ▶ を開いて Hoodie_Mesh を選んでください（Scene でパーカーをクリックしても選べます）。",
+ "keys": "左クリック",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "50%",
+ "ueStatus": "Shirt_Default はアップロードに含まれなくなります（EditorOnly）",
+ "ueInfo": "Shirt_Default · Move Tool",
+ "ueLabel": "▶ を開いて Hoodie_Mesh を選ぶ",
+ "ueTools": [
+  "move"
+ ]
+}

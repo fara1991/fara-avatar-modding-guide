@@ -1,0 +1,28 @@
+{
+ "count": "13 / 14",
+ "bubble": "13\nもう一度 Alt+Z で、透過表示を元に戻してください。",
+ "keys": "Alt\n+\nZ",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "透過表示: オン（裏側も選択できる）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [
+  "xray"
+ ],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face",
+  "xray"
+ ],
+ "progress": "85.7143%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

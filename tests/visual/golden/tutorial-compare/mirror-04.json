@@ -1,0 +1,25 @@
+{
+ "count": "5 / 13",
+ "bubble": "5\n続けて位置を決めます。今回は 右クリック（または Esc）で、ちょうど真ん中に入れてください。",
+ "keys": "右クリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "辺をスライド: 0.000（右クリックで中央）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "vert"
+ ],
+ "progress": "30.7692%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

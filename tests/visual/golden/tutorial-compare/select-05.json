@@ -1,0 +1,23 @@
+{
+ "count": "6 / 14",
+ "bubble": "6\n何もないところから 左ドラッグ して、立方体を 2 つ以上囲んでください（ボックス選択）。",
+ "keys": "左ドラッグで囲む",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "選択解除",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "35.7143%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

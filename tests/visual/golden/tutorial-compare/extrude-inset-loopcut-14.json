@@ -1,0 +1,25 @@
+{
+ "count": "15 / 18",
+ "bubble": "15\n黄色い線が出ている状態でホイールを回して、2 本にしてください。",
+ "keys": "ホイールを回す",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "ループカット: 1 本（ホイールで本数、クリックで確定）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "ホイール",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "77.7778%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

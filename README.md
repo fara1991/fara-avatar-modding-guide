@@ -32,7 +32,7 @@
 - [MudBlazor](https://mudblazor.com/)（画面部品）
 - 共通部品: [fara-site-kit](https://github.com/fara1991/fara-site-kit)（`external/fara-site-kit`。git submodule。レイアウト・フッター・報告フォーム・メンテナンス表示・静的 HTML の生成・CSP・Worker の共有 JS）
 - [Markdig](https://github.com/xoofx/markdig)（Markdown → HTML）と [YamlDotNet](https://github.com/aaubry/YamlDotNet)（フロントマター・データ）は、ビルド時だけ使う（ブラウザには載らない）
-- Three.js（練習の 3D。`src/FaraAvatarModdingGuide.Web/wwwroot/lib/three/` に同梱）
+- 練習の 3D: C#（Blazor WebAssembly。Phase 3b S7 で three.js を外した。共有ルームも C#）
 - Cloudflare Workers（Static Assets + Durable Objects）でホスティング
 
 ## セットアップ
@@ -75,7 +75,7 @@ npx wrangler@4.149.0 dev --env dev
 ### テスト
 
 ```bash
-dotnet test -c Release                       # Content.Tests・Build.Tests・Web.Tests・Practice.Tests（Build.Tests・Practice.Tests は Node を使う。Build.Tests は kit も）
+dotnet test -c Release                       # Content.Tests・Build.Tests・Web.Tests・Practice.Tests（Build.Tests は Node を使う。Build.Tests は kit も）
 node --test external/fara-site-kit/worker/report.test.mjs external/fara-site-kit/worker/maintenance.test.mjs worker/index.test.mjs
 node --test .github/scripts/require-maintenance.test.mjs .github/scripts/verify-site.test.mjs
 node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/search-norm-fn.test.mjs tests/js/notice.test.mjs tests/js/practice-entry.test.mjs tests/js/head-sync.test.mjs
@@ -98,21 +98,20 @@ fara-avatar-modding-guide/
 │   └── links.yml             # リンク集
 ├── src/
 │   ├── FaraAvatarModdingGuide.Web/      # Blazor WebAssembly + MudBlazor のアプリ（ページ・検索・進捗・練習の組み込み）
-│   │   └── wwwroot/          # index.html（Build のテンプレート）・css・js（練習の 3D = viewport.js など）・lib/three
+│   │   └── wwwroot/          # index.html（Build のテンプレート）・css・js（入口・画像で見るの JavaScript）
 │   ├── FaraAvatarModdingGuide.Build/    # 公開物の生成: 本文入りの静的 HTML・data/*.json・robots・sitemap・_headers（kit の Node ツールも使う）
 │   ├── FaraAvatarModdingGuide.Content/  # Content/ を読む（Markdown → HTML）。Build が使う
 │   ├── FaraAvatarModdingGuide.Shared/   # Build と Web が共有する型・サイドバーの項目
-│   └── FaraAvatarModdingGuide.Practice/ # 練習の 3D の純粋なロジック（G/R/S・お題の判定・視点・レイ判定。Phase 3b。`/practice?engine=cs`・記事内チュートリアル（`?engine=cs`）から呼ぶ。docs/phase3b-design.md）
-├── wwwroot/images/           # 画像（記事内チュートリアルの手順画像 = tools/tutorial-images で生成）。Build が公開物にコピーする
+│   └── FaraAvatarModdingGuide.Practice/ # 練習の 3D の純粋なロジック（G/R/S・お題の判定・視点・レイ判定・編集モード・共有ルームの規則。Phase 3b。練習・記事内チュートリアル・共有ルームから呼ぶ。docs/phase3b-design.md）
+├── wwwroot/images/           # 画像（記事内チュートリアルの手順画像。S7 以降は作り直せない。作り方は docs/phase3b-design.md の §17.7）。Build が公開物にコピーする
 ├── tests/
 │   ├── FaraAvatarModdingGuide.Content.Tests / Build.Tests / Web.Tests   # xUnit（Web.Tests は bUnit。公開の設定の検査 = DeployWorkflowTests を含む）
-│   ├── FaraAvatarModdingGuide.Practice.Tests   # xUnit。Practice を、現行の viewport.js・practice.js を Node で動かした結果と突き合わせる（tests/js/practice-*.mjs。Node が要る）
+│   ├── FaraAvatarModdingGuide.Practice.Tests   # xUnit。Practice を、凍結した基準（tests/js/golden/*.json.gz。three.js の版から作った）と突き合わせる（Node は使わない）
 │   └── js/                   # Node のテスト。fixtures/searchcore.reference.js は検索の正解（旧 SSR 版の写しを固定したもの）
 ├── tools/
 │   ├── site.json             # 公開先の設定（origin・devOrigin・CSP・robots）。Build が kit に渡す
 │   ├── verify/               # Playwright での確認スクリプト（練習・SEO・CSP・起動の前後の差など）
 │   ├── screenshots/          # 記事用スクリーンショットの自動撮影（Blender を自動操作）。tools/screenshots/README.md 参照
-│   ├── tutorial-images/      # 手順画像を、サイトの 3D ビューをヘッドレス Chrome で動かして撮る。Content/README.md 参照
 │   ├── icons/                # 練習の JS が使う Bootstrap Icons を、CSS だけで描く css/bi-icons.css に書き出す
 │   └── room-check/           # 共同練習の部屋（Durable Object）の動作確認スクリプト
 ├── worker/index.js           # Cloudflare Worker（/api/* と共同練習の部屋の Durable Object）。報告・メンテナンスの判定は kit の共有 JS
@@ -151,7 +150,7 @@ fara-avatar-modding-guide/
 `/practice/room` で「部屋を作る」と `?room=<ID>` 付きの URL ができ、その URL を開いた人どうしで 1 つの 3D ビューを操作できます。ログインはありません。
 
 ```
-ブラウザ（src/FaraAvatarModdingGuide.Web/wwwroot/js/room.js + viewport.js）
+ブラウザ（C#。src/FaraAvatarModdingGuide.Web の PracticeRoom.razor・room-cs.js。3D は Practice・Render）
    │  WebSocket  /api/rooms/<ID>/ws
    ▼
 Worker（worker/index.js）── 静的ファイルは env.ASSETS（run_worker_first = true。メンテナンス・報告・/api/maintenance のため全リクエストが通る）

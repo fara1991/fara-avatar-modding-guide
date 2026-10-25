@@ -1,0 +1,26 @@
+{
+ "count": "9 / 13",
+ "bubble": "9\n真ん中の線より 左側（X がマイナス側）の面を、ドラッグで囲んで選んでください。",
+ "keys": "左ドラッグで囲む",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "前・平行投影",
+ "status": "透過表示: オン（裏側も選択できる）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face",
+  "xray"
+ ],
+ "progress": "61.5385%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

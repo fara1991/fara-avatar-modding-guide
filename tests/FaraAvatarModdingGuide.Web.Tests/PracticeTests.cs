@@ -26,6 +26,17 @@ public class PracticeTests : WebTestContext
         return module;
     }
 
+    /// <summary>タッチだけの端末の模擬（isTouchOnly が true）。案内の入口（start・dispose）だけが呼ばれ、PC の 3D（C# 版）は始まらない。</summary>
+    private BunitJSModuleInterop TouchEntry()
+    {
+        var module = JSInterop.SetupModule("./js/practice-entry.js");
+        module.Setup<bool>("isTouchOnly", _ => true).SetResult(true);
+        module.SetupVoid("start", _ => true).SetVoidResult();
+        module.SetupVoid("startArticle", _ => true).SetVoidResult();
+        module.SetupVoid("dispose", _ => true).SetVoidResult();
+        return module;
+    }
+
     private static string? Id(JSRuntimeInvocation call) => call.Arguments[0] as string;
 
     /// <summary>?room= を付けた URL へ移動してから、みんなで練習のページを描く(部屋の ID は URL のクエリから来る)。room が null なら ?room= なし(ロビー)。</summary>
@@ -39,33 +50,6 @@ public class PracticeTests : WebTestContext
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost/practice/room" + (room is null ? "" : "?room=" + Uri.EscapeDataString(room)));
 
     [Fact]
-    public async Task Practice_page_starts_its_script_once_and_disposes_with_the_same_id()
-    {
-        var entry = Entry();
-        var cut = Render<Web.Pages.Practice>();
-        cut.WaitForAssertion(() => Assert.Single(entry.Invocations["start"]));
-        var call = entry.Invocations["start"].Single();
-        Assert.Equal("practice.js", call.Arguments[1]);
-        Assert.Empty(entry.Invocations["dispose"]);                         // 開いているあいだは解放しない
-
-        cut.Render();                                                       // 描き直しても、二重に始めない
-        Assert.Single(entry.Invocations["start"]);
-
-        await DisposeComponentsAsync();
-        Assert.Equal(Id(call), Id(Assert.Single(entry.Invocations["dispose"])));   // 離れるときに、始めたときと同じ id で解放する
-    }
-
-    [Fact]
-    public async Task Unity_practice_page_starts_the_unity_script_and_disposes()
-    {
-        var entry = Entry();
-        Render<PracticeUnity>();
-        Assert.Equal("unity-practice.js", entry.Invocations["start"].Single().Arguments[1]);
-        await DisposeComponentsAsync();
-        Assert.Single(entry.Invocations["dispose"]);
-    }
-
-    [Fact]
     public async Task Room_page_in_the_lobby_shows_the_lobby_and_starts_only_the_phone_guide()
     {
         var entry = Entry();
@@ -73,8 +57,7 @@ public class PracticeTests : WebTestContext
         Assert.False(cut.Find("#room-lobby").HasAttribute("hidden"));
         Assert.True(cut.Find("#room-main").HasAttribute("hidden"));
         var call = entry.Invocations["start"].Single();
-        Assert.Equal("room.js", call.Arguments[1]);
-        Assert.Null(call.Arguments[2]);                                     // null = ロビー(PC の 3D は始めない。スマートフォンの案内だけ)
+        Assert.Null(call.Arguments[1]);                                     // 案内の入口だけ（PC の 3D は C# 版。スマートフォンの案内だけ）
         await DisposeComponentsAsync();
         Assert.Single(entry.Invocations["dispose"]);
     }
@@ -83,13 +66,13 @@ public class PracticeTests : WebTestContext
     [InlineData("abcdef123456", "abcdef123456")]
     [InlineData("ABCDEF123456", "abcdef123456")]                            // 小文字にそろえる(room.js・Worker と同じ)
     [InlineData("abcdefghijklmnopqrstuvwxyz012345", "abcdefghijklmnopqrstuvwxyz012345")]   // 32 字
-    public void Room_page_with_a_valid_room_shows_the_room_and_starts_it(string parameter, string expectedRoom)
+    public void Room_page_with_a_valid_room_shows_the_room_without_a_javascript_3d(string parameter, string expectedRoom)
     {
         var entry = Entry();
         var cut = RenderRoom(parameter);
         Assert.True(cut.Find("#room-lobby").HasAttribute("hidden"));
         Assert.False(cut.Find("#room-main").HasAttribute("hidden"));
-        Assert.Equal(expectedRoom, entry.Invocations["start"].Single().Arguments[2]);
+        Assert.Empty(entry.Invocations["start"]);                             // PC の 3D は C# 版（bUnit では始まらない）。JavaScript は案内の入口だけ
     }
 
     [Theory]
@@ -106,7 +89,7 @@ public class PracticeTests : WebTestContext
         var entry = Entry();
         var cut = RenderRoom(parameter);
         Assert.False(cut.Find("#room-lobby").HasAttribute("hidden"));
-        Assert.Null(entry.Invocations["start"].Single().Arguments[2]);
+        Assert.Null(entry.Invocations["start"].Single().Arguments[1]);     // 案内の入口だけ（PC の 3D は C# 版）
     }
 
     [Fact]
@@ -123,16 +106,41 @@ public class PracticeTests : WebTestContext
     }
 
     [Fact]
-    public void Switching_the_room_leaves_the_old_one_before_entering_the_new_one()
+    public async Task Practice_page_on_a_touch_device_starts_the_guide_and_disposes_with_the_same_id()
     {
-        var entry = Entry();
+        var entry = TouchEntry();
+        var cut = Render<Web.Pages.Practice>();
+        cut.WaitForAssertion(() => Assert.Single(entry.Invocations["start"]));
+        var call = entry.Invocations["start"].Single();
+        Assert.Null(call.Arguments[1]);                                     // 案内の入口だけ（PC の 3D は C# 版）
+        await DisposeComponentsAsync();
+        Assert.Equal(Id(call), Id(Assert.Single(entry.Invocations["dispose"])));
+    }
+
+    [Fact]
+    public async Task Unity_practice_page_on_a_touch_device_starts_the_guide_and_disposes_with_the_same_id()
+    {
+        var entry = TouchEntry();
+        Render<PracticeUnity>();
+        Assert.Single(entry.Invocations["start"]);
+        var call = entry.Invocations["start"].Single();
+        await DisposeComponentsAsync();
+        Assert.Equal(Id(call), Id(Assert.Single(entry.Invocations["dispose"])));
+    }
+
+    [Fact]
+    public void Switching_the_room_on_a_touch_device_disposes_the_old_one_by_its_own_id()
+    {
+        // 部屋が替わると、前の案内を、始めたときと同じ id で解放し、次を始める。
+        // 注意: 二つの描画（OnAfterRender）が重なると、前の部屋の解放が次の開始より後に届くことがある（JS 側は dispose(id) を id で見分けるので、どちらでも安全）。
+        // そのため、並びは確かめず、解放が一度だけ・始めたものと同じ id であること、次が始まっていることを確かめる。
+        var entry = TouchEntry();
         var cut = RenderRoom("aaaaaa111111");
         Assert.Single(entry.Invocations["start"]);
         GoToRoom("bbbbbb222222");
         cut.Render();
         cut.WaitForAssertion(() => Assert.Equal(2, entry.Invocations["start"].Count));
-        Assert.Equal("bbbbbb222222", entry.Invocations["start"][1].Arguments[2]);
-        Assert.Single(entry.Invocations["dispose"]);                         // 前の部屋の解放
+        cut.WaitForAssertion(() => Assert.Single(entry.Invocations["dispose"]));
         Assert.Equal(Id(entry.Invocations["start"][0]), Id(entry.Invocations["dispose"][0]));
     }
 
@@ -227,21 +235,24 @@ public class PracticeTests : WebTestContext
     [Fact]
     public void The_unmodified_3d_scripts_are_in_the_web_project()
     {
-        // 3D の本体(viewport・editmesh・unity・scenarios・bgscene)は、旧 SSR 版から書き換えずに持ってきたもの(計画書 4.5)。SSR 版を消したので、これが唯一の本体(元は Git の履歴)。
+        // 残る JavaScript（scenarios・bgscene。3D の本体は C# 版。three.js は S7 で消した）。
         // 比べる相手はもう無いので、置いてあることだけを確かめる(中身は tools/verify/practice.mjs が、実際の操作で確かめる)
         var dir = Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "js");
-        foreach (var name in new[] { "viewport.js", "editmesh.js", "unity.js", "scenarios.js", "bgscene.js" })
+        foreach (var name in new[] { "scenarios.js", "bgscene.js", "tutorial.js" })
             Assert.True(File.Exists(Path.Combine(dir, name)), name);
+        foreach (var gone in new[] { "room.js", "viewport.js", "editmesh.js", "practice.js", "unity.js", "unity-practice.js" })
+            Assert.False(File.Exists(Path.Combine(dir, gone)), gone + " は C# 版に置き換えた（Phase 3b S7）");
+        Assert.False(Directory.Exists(Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "lib", "three")), "three.js は S7 で消した");
         Assert.False(Directory.Exists(Path.Combine(TestData.Root, "wwwroot", "js")), "ルートの wwwroot/js(旧 SSR 版)は消した");
     }
 
     [Fact]
     public void Modified_scripts_export_start_and_dispose_and_do_nothing_when_only_loaded()
     {
-        // 書き換えた 4 つ(practice.js・unity-practice.js・room.js・tutorial.js)は、読み込んだだけでは動かず、start / mount と dispose を出す。
+        // 書き換えた tutorial.js は、読み込んだだけでは動かず、mount と dispose を出す。
         // ページ上の DOM を探す処理がモジュールの先頭(読み込み時)に残っていないこと
         var dir = Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "js");
-        foreach (var (name, entry) in new[] { ("practice.js", "export function start("), ("unity-practice.js", "export function start("), ("room.js", "export function start("), ("tutorial.js", "export function mount(") })
+        foreach (var (name, entry) in new[] { ("tutorial.js", "export function mount(") })
         {
             var text = File.ReadAllText(Path.Combine(dir, name));
             Assert.Contains(entry, text);

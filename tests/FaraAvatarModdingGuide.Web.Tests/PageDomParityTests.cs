@@ -66,6 +66,15 @@ public class PageDomParityTests : WebTestContext
         return $"静的「{a[Math.Max(0, i - 10)..Math.Min(a.Length, i + 30)]}」 / WebAssembly「{b[Math.Max(0, i - 10)..Math.Min(b.Length, i + 30)]}」";
     }
 
+    private void TouchDeviceEntry()
+    {
+        var module = JSInterop.SetupModule("./js/practice-entry.js");
+        module.Setup<bool>("isTouchOnly", _ => true).SetResult(true);
+        module.SetupVoid("start", _ => true).SetVoidResult();
+        module.SetupVoid("startArticle", _ => true).SetVoidResult();
+        module.SetupVoid("dispose", _ => true).SetVoidResult();
+    }
+
     private IRenderedComponent<T> Page<T>(string path, Action<ComponentParameterCollectionBuilder<T>>? parameters = null) where T : IComponent
     {
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost" + path);
@@ -88,9 +97,12 @@ public class PageDomParityTests : WebTestContext
     [Fact]
     public void Practice_pages_have_the_same_dom_as_the_static_pages()
     {
-        // 練習 3 ページ(フェーズ 3)。3D とお題の中身は JavaScript が入れるので、どちらも空の枠。みんなで練習は、部屋に入っていない(ロビー)状態
+        // 練習 2 ページ（タッチだけの端末の模擬）。PC の 3D（C# 版）は bUnit では始まらないので、タッチの端末として開き（isTouchOnly = true）、案内の入口だけが呼ばれる形で比べる。
+        // 静的 HTML（PageBodies）と、起動後の初期の DOM が同じことを確かめる。PC の 3D の実際の動きは tools/verify/dom-diff.mjs・practice.mjs（ブラウザ）で見る
+        TouchDeviceEntry();
         AssertSame("/practice", Page<Web.Pages.Practice>("/practice"));
         AssertSame("/practice/unity", Page<PracticeUnity>("/practice/unity"));
+        // みんなで練習は、部屋に入っていない（ロビー）状態
         AssertSame("/practice/room", Page<PracticeRoom>("/practice/room"));
     }
 

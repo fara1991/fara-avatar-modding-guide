@@ -1,0 +1,25 @@
+{
+ "count": "17 / 18",
+ "bubble": "17\nマウスを動かすと辺が滑ります。クリックで確定、右クリック だとちょうど真ん中に入ります。",
+ "keys": "動かしてクリック / 右クリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "辺をスライド: 0.000（右クリックで中央）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "88.8889%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

@@ -16,12 +16,12 @@
 <p class="text-body-secondary small">本物の Unity ではなく、ブラウザで動く練習用の画面です。人形は練習用に作った簡単なもので、VRChat SDK の画面や数値も目安のシミュレーションです。手順を 1 つずつ案内付きで試すなら <a href="/learn/unity/modular-avatar-outfit">Modular Avatar で衣装を着せる</a> へ。</p>
 </div>
 
-@* 本体は wwwroot/js/unity.js（Three.js）と unity-practice.js（お題）。中身は JS が作る(PracticeHost が始めて、ページを離れるときに解放する)。静的 HTML(Build の PageBodies.PracticeUnity)と同じ構造 *@
+@* Unity 風の画面（Phase 3b S5・S7）は C#（UnityEditorView・Services/UnityCsEngine.cs）。three.js は使わない。静的 HTML（Build の PageBodies.PracticeUnity）と同じ構造にする（Web.Tests が突き合わせる） *@
 <div class="row g-4 practice-pc-only">
     <div class="col-xl-9">
-        @if (csMode && cs is not null)
+        @if (cs is not null)
         {
-            @* C# 版(?engine=cs。Phase 3b S5)。unity.js が root.innerHTML に作っていた構造・クラス名と同じ(UnityEditorView) *@
+            @* unity.js が root.innerHTML に作っていた構造・クラス名と同じ(UnityEditorView) *@
             <UnityEditorView Engine="cs" RootId="unity-practice" RootClass="unity-practice-host unity-editor" SceneViewId="unity-scene-view" GlHostId="unity-gl" />
         }
         else
@@ -37,9 +37,8 @@
         <div class="card mb-3">
             <div class="card-header fw-semibold">お題</div>
             <div class="card-body">
-                @if (csMode)
+                @if (cs is not null)
                 {
-                    @* C# 版(?engine=cs): 一覧は Razor が描く(JS 版は unity-practice.js が中身を入れるので、ここは空のまま) *@
                     <ol class="practice-tasks mb-2" id="unity-tasks">
                         @for (var i = 0; i < hud.TaskTexts.Count; i++)
                         {
@@ -50,6 +49,7 @@
                 }
                 else
                 {
+                    @* 3D（C#）が始まる前・タッチだけの端末は、静的 HTML（PageBodies.PracticeUnity）と同じ空の一覧 *@
                     <ol class="practice-tasks mb-2" id="unity-tasks"></ol>
                     <div id="unity-tasks-done" class="small text-body-secondary" hidden>すべてできました。あとは自由に試してください。</div>
                 }
@@ -83,42 +83,22 @@
     private PracticeHost? host;
     private IUnityCs? cs;
     private UnityHud hud = new();
-    private bool csMode;
     private bool csFailed;
     private bool disposed;
 
     private static readonly IReadOnlyList<(string? Href, string Text)> Crumbs = [("/practice", "操作の練習"), (null, "Unity の練習")];
 
-    protected override void OnInitialized()
-    {
-        // 同じページのまま ?engine= だけが変わる移動（アドレスの書き換え・戻る）は、ページを読み込み直す（エンジンの切り替えは、始め直しが要るため）
-        Nav.LocationChanged += OnLocationChanged;
-        // ?engine=cs で、Unity 風の画面を C#(Practice・Render)+ 薄い WebGL 層で動かす(Phase 3b S5。既定は今までの Three.js 版)
-        csMode = Nav.IsCsEngine();
-    }
-
-    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
-    {
-        if (disposed || !new Uri(e.Location).AbsolutePath.TrimEnd('/').EndsWith("/practice/unity", StringComparison.Ordinal)) return;
-        if (Nav.IsCsEngine() != csMode) Nav.NavigateTo(e.Location, forceLoad: true);
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
         host = new PracticeHost(JS);
-        if (csMode)
+        // タッチだけの端末は、案内の画面（記事内チュートリアルの「画像で見る」）。PC は C# 版の Unity 風の画面
+        if (!await host.IsTouchOnlyAsync())
         {
-            // タッチだけの端末は、案内の画面(JS 版の入口)にする
-            if (!await host.IsTouchOnlyAsync())
-            {
-                await StartCsAsync();
-                return;
-            }
-            csMode = false;
-            StateHasChanged();
+            await StartCsAsync();
+            return;
         }
-        await host.StartAsync("unity-practice.js", "");
+        await host.StartGuideAsync();
     }
 
     private async Task StartCsAsync()
@@ -126,7 +106,7 @@
         IUnityCs? created = null;
         try
         {
-            // 操作のロジックと描画の命令（Practice・Render）は、?engine=cs のときだけ読み込む（通常のページの読み込みを増やさない）
+            // 操作のロジックと描画の命令（Practice・Render）は、PC の練習を始めるときに遅れて読み込む（通常のページの読み込みを増やさない）
             await PracticeCsAssemblies.LoadAsync(Services);
             if (disposed) return;                    // 読み込んでいるあいだにページを離れた
             created = await UnityCsLoader.CreateAsync("unity-practice", "unity-scene-view", "unity-gl", false, ["Avatar"], Nav.Get("debug") == "1");
@@ -161,7 +141,6 @@
     public async ValueTask DisposeAsync()
     {
         disposed = true;
-        Nav.LocationChanged -= OnLocationChanged;
         if (cs is not null)
         {
             cs.Changed -= OnCsChanged;

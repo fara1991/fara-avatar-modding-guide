@@ -1,0 +1,23 @@
+{
+ "count": "9 / 14",
+ "bubble": "9\n追加したものが選択されたままです。X を押して削除メニューを出してください。",
+ "keys": "X",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "UV球を追加",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "57.1429%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

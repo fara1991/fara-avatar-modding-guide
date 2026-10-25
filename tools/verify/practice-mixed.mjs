@@ -1,6 +1,6 @@
 // Unity と Blender の記事内チュートリアルが同じページにあるときの、WebGL の切り替えの確認(Phase 3b S5 のレビュー M2)。  node practice-mixed.mjs
 //   NEW=http://127.0.0.1:8787
-// /learn/unity/modular-avatar-outfit(Unity の ma-outfit)の本文に、Blender の transform の埋め込みを足したページ(data/content.json を書き換えて作る。実際の記事は変えない)を、?engine=cs で開き、
+// /learn/unity/modular-avatar-outfit(Unity の ma-outfit)の本文に、Blender の transform の埋め込みを足したページ(data/content.json を書き換えて作る。実際の記事は変えない)を、 で開き、
 // 2 つを交互に始めて、そのたびに「WebGL の canvas は 1 つだけ・始めたほうにだけ 3D ビューがある・Unity の DOM（.ue-menubar）は Unity が持っているときだけ」を確かめる。
 // WebGL を使うのはページ内で 1 つだけ(gl.js の start() が前のものを壊す)なので、「アクティブなビュー」の登録が Unity と Blender で別だと、前のものが手放されず、DOM だけが残る。
 import { launch, newPage } from "./lib.mjs";
@@ -21,7 +21,7 @@ await page.route("**/data/content.json", async (route) => {
   const patched = text.replaceAll(unity, unity + '<div class=\\"practice-embed\\" data-scenario=\\"transform\\"></div>');
   await route.fulfill({ response: res, body: patched });
 });
-await page.goto(`${NEW}/learn/unity/modular-avatar-outfit?engine=cs`, { waitUntil: "load" });
+await page.goto(`${NEW}/learn/unity/modular-avatar-outfit`, { waitUntil: "load" });
 await page.waitForSelector(".mud-layout", { timeout: 90000 });
 await page.waitForSelector(`${UNITY}.is-ready`, { timeout: 60000 });
 await page.waitForSelector(`${BLENDER}.is-ready`, { timeout: 60000 });

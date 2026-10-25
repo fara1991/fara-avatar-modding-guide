@@ -1,0 +1,23 @@
+{
+ "count": "完了",
+ "bubble": "「ベベル・マージ・面を張る」の手順はすべて終わりです。",
+ "keys": null,
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "オブジェクトモード",
+ "numeric": "",
+ "stats": null,
+ "complete": "すべてできました\nこのページを「完了」にしました。\n もう一度\n 自由に試す",
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "100%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

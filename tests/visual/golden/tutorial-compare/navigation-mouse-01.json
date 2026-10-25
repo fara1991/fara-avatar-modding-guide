@@ -1,0 +1,23 @@
+{
+ "count": "2 / 4",
+ "bubble": "2\nShift を押しながらホイールボタンでドラッグして、視点を平行移動してください。",
+ "keys": "Shift\n ホイールボタンでドラッグ",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "案内にしたがって操作してください",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "25%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

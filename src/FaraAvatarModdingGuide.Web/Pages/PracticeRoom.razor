@@ -13,10 +13,10 @@
 <TouchPracticeGuide Embed="false" Items="TouchItems" Message="部屋の 3D ビューはキーボードとマウスで操作します。スマートフォンでは操作できないので、パソコンで開いてください。操作の流れは、次の記事で画像を見られます。" />
 <p class="lead practice-pc-only">URL を共有すると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
 
-@* 本体は wwwroot/js/room.js（3D ビューは viewport.js）。?engine=cs のときは、部屋の規則を C#（Practice の RoomSession）・3D を C#（RoomCsEngine）・WebSocket などを room-cs.js が持つ。
+@* 3D（C#）は、部屋の規則を Practice の RoomSession・3D を RoomCsEngine（Practice・Render）・WebSocket などを room-cs.js が持つ（Phase 3b S6・S7。three.js は使わない）。
    部屋の同期は worker/index.js の Durable Object(/api/rooms/<ID>/ws。このページが持つのは、部屋に入っているか(?room=<ID>)・ロビーに戻るかだけ)。
    部屋を作る = ?room=<新しい ID> へ移動(Blazor の移動。再読み込みなし)。部屋が替わる・ロビーに戻るときは、前の部屋を退室して解放してから、次を始める。
-   静的 HTML(Build の PageBodies.PracticeRoom)と同じ構造(?room= の無いロビーの状態)。?engine=cs の中身は、JavaScript 版の初期の DOM と同じ構造・クラス名にする *@
+   静的 HTML(Build の PageBodies.PracticeRoom)と同じ構造(?room= の無いロビーの状態)。 *@
 <div id="room-lobby" class="card mb-4 practice-pc-only" hidden="@inRoom">
     <div class="card-body">
         <h2 class="h5">部屋を作る</h2>
@@ -30,7 +30,7 @@
         <div class="practice-viewport" id="room-viewport" tabindex="0" aria-label="3D ビューポート">
             @if (csActive)
             {
-                @* C# 版(?engine=cs)。HUD は PracticeHudView(練習と同じ)。ほかの人のカーソルは、room-cs.js が位置を置く（hidden と transform だけ）。 *@
+                @* HUD は PracticeHudView(練習と同じ)。ほかの人のカーソルは、room-cs.js が位置を置く（hidden と transform だけ）。 *@
                 <PracticeHudView Hud="hud" GlHostId="room-gl" RootId="room-viewport" Failed="csFailed" OnTool="ClickTool" OnMenu="ChooseMenu" OnNPanel="OnNPanel" />
                 <div class="vp-remote" id="room-remote">
                     @foreach (var p in room.Peers.Where(p => !p.Self))
@@ -99,7 +99,7 @@
 <noscript><div class="alert alert-warning">この機能には JavaScript が必要です。</div></noscript>
 
 @code {
-    /// <summary>部屋の ID の形(room.js・worker/index.js と同じ。小文字の英数字 6〜32 字。末尾は \z: .NET の $ は末尾の改行の前にも一致するので、"abcdef12\n" を通してしまい、JS の /^…$/ と食い違う)</summary>
+    /// <summary>部屋の ID の形(worker/index.js と同じ。小文字の英数字 6〜32 字。末尾は \z: .NET の $ は末尾の改行の前にも一致するので、"abcdef12\n" を通してしまい、JS の /^…$/ と食い違う)</summary>
     private static readonly System.Text.RegularExpressions.Regex RoomRe = new("^[a-z0-9]{6,32}\\z", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     private static readonly IReadOnlyList<(string? Href, string Text)> Crumbs = [("/practice", "操作の練習"), (null, "みんなで練習")];
@@ -117,8 +117,7 @@
     private string? startedRoom;   // 3D を始めている部屋(null = ロビー。ロビーでも、スマートフォンの案内を出すために、入口(practice-entry.js)は始める)
     private bool inRoom;
 
-    // ?engine=cs（C# 版の部屋）。csActive は、C# 版の部屋を実際に始めているとき(タッチだけの端末・ロビーでは false)。
-    private bool csMode;
+    // csActive は、部屋を実際に始めているとき(タッチだけの端末・ロビーでは false)。
     private bool csActive;
     private bool csFailed;
     private bool copied;
@@ -136,21 +135,6 @@
 
     protected override void OnParametersSet() => inRoom = RoomId is not null;
 
-    protected override void OnInitialized()
-    {
-        // 同じページのまま ?engine= だけが変わる移動は、ページを読み込み直す（エンジンの切り替えは、始め直しが要るため。Practice.razor と同じ）
-        Nav.LocationChanged += OnLocationChanged;
-        // ?engine=cs で、部屋の 3D を C#(Practice・Render)+ 薄い層で動かす(Phase 3b S6。既定は今までの room.js)
-        csMode = Query("engine") == "cs";
-    }
-
-    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
-    {
-        if (disposed || !new Uri(e.Location).AbsolutePath.TrimEnd('/').EndsWith("/practice/room", StringComparison.Ordinal)) return;
-        var wantCs = Query("engine") == "cs";
-        if (wantCs != csMode) Nav.NavigateTo(e.Location, forceLoad: true);
-    }
-
     private string? Query(string name) => Nav.Get(name);
 
     /// <summary>最初の描画のあと、そして部屋が替わったとき(ロビー→部屋・部屋→別の部屋・部屋→ロビー)に、前の部屋を退室・解放して、次を始める。</summary>
@@ -163,12 +147,13 @@
         if (csActive) { StopCs(); StateHasChanged(); }
         if (host is not null) await host.DisposeAsync();
         host = new PracticeHost(JS);
-        if (csMode && wanted is not null && !await host.IsTouchOnlyAsync())
+        // PC で部屋に入っているときだけ、C# 版の 3D を始める。タッチだけの端末と、ロビーでは、案内（の入口）だけ
+        if (wanted is not null && !await host.IsTouchOnlyAsync())
         {
             await StartCsAsync(wanted);
             return;
         }
-        await host.StartAsync("room.js", wanted);   // wanted が null(ロビー)のときは、PC の 3D は始めない
+        await host.StartGuideAsync();
     }
 
     /// <summary>C# 版の部屋を始める(Practice・Render と room-cs.js を、必要になったときに読み込む)。</summary>
@@ -238,10 +223,10 @@
 
     private void ToggleFollow(string id) => cs?.ToggleFollow(id);
 
-    /// <summary>URL をコピーする。ラベルは 1.5 秒のあと「コピー」に戻る(room.js と同じ)。C# 版の描画の中では、JavaScript のタイマーで待つ。</summary>
+    /// <summary>URL をコピーする。ラベルは 1.5 秒のあと「コピー」に戻る。C# 版の描画の中では、JavaScript のタイマーで待つ。</summary>
     private async Task CopyUrl()
     {
-        if (cs is null) return;   // JavaScript 版は room-cs のボタンではなく room.js の処理が動く
+        if (cs is null) return;
         await cs.CopyUrlAsync();
         copied = true;
         StateHasChanged();
@@ -255,15 +240,14 @@
     {
         var bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(10);
         var id = new string(bytes.Select(b => "0123456789abcdefghijklmnopqrstuvwxyz"[b % 36]).ToArray());
-        // ?engine=cs（と ?debug=1）は、作った部屋へも引き継ぐ
-        var extra = (csMode ? "&engine=cs" : "") + (Query("debug") == "1" ? "&debug=1" : "");
+        // ?debug=1 は、作った部屋へも引き継ぐ
+        var extra = Query("debug") == "1" ? "&debug=1" : "";
         Nav.NavigateTo($"/practice/room?room={id}{extra}");
     }
 
     public async ValueTask DisposeAsync()
     {
         disposed = true;
-        Nav.LocationChanged -= OnLocationChanged;
         initialized = false;
         StopCs();
         if (host is not null) await host.DisposeAsync();

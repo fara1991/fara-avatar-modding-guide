@@ -1,0 +1,23 @@
+{
+ "count": "2 / 7",
+ "bubble": "2\nNumpad 3 で右から見てください。",
+ "keys": "Numpad 3",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "前・平行投影",
+ "status": "案内にしたがって操作してください",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": true,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "14.2857%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

@@ -1,0 +1,26 @@
+{
+ "count": "8 / 11",
+ "bubble": "8\n今入れた辺（手前の真ん中の横の辺）を Alt+クリックして、ループを一周選んでください。",
+ "keys": "Alt\n Alt+左クリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "辺選択モード",
+ "numeric": "",
+ "stats": "Cube\n頂点 4/12\n辺 4/20\n面 0/10\n三角形 20",
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "Alt+クリック",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge",
+  "stats"
+ ],
+ "progress": "63.6364%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}
