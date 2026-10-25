@@ -112,17 +112,18 @@ jobs:
           rm -rf dist && cp -r site-develop dist
           npx --yes wrangler@4.149.0 deploy --dry-run --env dev
 
+      # 保存期間は 3 日。deploy ジョブが同じ実行で取り出すほか、失敗した deploy の「再実行」にも使うため（容量の節約のため 7 日から短縮）
       - uses: actions/upload-artifact@v4
         with:
           name: site-production
           path: site-production
-          retention-days: 7
+          retention-days: 3
 
       - uses: actions/upload-artifact@v4
         with:
           name: site-develop
           path: site-develop
-          retention-days: 7
+          retention-days: 3
 
   deploy:
     name: Deploy to Cloudflare
