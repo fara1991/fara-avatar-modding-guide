@@ -28,12 +28,7 @@ function cspFromHeaders(file) {
 }
 const CSP = cspFromHeaders(process.env.HEADERS);
 
-const files = {
-  "/ref.html": join(here, "gl-ref.html"),
-  "/ref.js": join(here, "gl-ref.js"),
-  "/probe.html": join(here, "gl-probe.html"),
-  "/probe.js": join(here, "gl-probe.js"),
-};
+const files = {};   // S7: three.js の参照ページ（ref・probe）は消した（レンダーラボだけ）
 
 function resolveUnder(root, rel) {
   const p = normalize(join(root, rel));

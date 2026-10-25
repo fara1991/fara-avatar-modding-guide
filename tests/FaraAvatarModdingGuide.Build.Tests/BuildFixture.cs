@@ -53,7 +53,6 @@ internal static class TestTemplate
             <!-- STATIC-ONLY:END -->
             <!-- WASM-ONLY:START -->
             <style>#boot-indicator { position: fixed; }</style>
-            <script type="importmap">{"imports":{"three":"/lib/three/three.module.js"}}</script>
             <!-- WASM-ONLY:END -->
         </head>
         <body>

@@ -716,3 +716,13 @@ S6 のあとに消せる分（見込み。同じ方法）: `room.js` 4,986 + `vi
 - 本番での実績がないまま three.js の 1 人用の練習を消した（ユーザーの指示）。問題が見つかったときの戻し方は、この PR を戻す（`git revert`）か、8262089 の JS を取り戻す。`?engine=js` は無い。
 - 比較の基準は SwiftShader（DPR 1）前提。実 GPU・小数の DPR の差は、`tools/verify/README.md`（§15.5）のとおり。
 - S6（共有ルーム）: `room.js` を C# にしたら、`viewport.js`・`editmesh.js`・`lib/three`・importmap・CSP のハッシュ・README の一文を消す（S7 の完了）。
+
+### 17.6 S7 の後半（共有ルームの three.js を外した。S6 の取り込みのあと）
+
+- **共有ルーム**（`/practice/room`）は C# 版だけになった（`?engine=cs` は無くなり、`?engine=js` は無視）。`room.js`・`viewport.js`・`editmesh.js`・`lib/three/`（three.module.js・LICENSE）・index.html の importmap・CSP のハッシュ（Build の `AddImportMapHashes`）を消した。`tests/js/practice-dom.mjs`・`practice-hooks.mjs` と `tools/verify/gl-*`（three.js の参照ページ）・`room-mixed.mjs`（JS 版と C# 版を同じ部屋に入れる比較。JS 版が無いので消した）も消した。
+- **比較の基準**（room.js の版から作った）: `tests/visual/golden/room-compare/`（9 場面の画像・DOM の文字・送った文字の件数・meta.json）。`room-compare.mjs` は既定で基準と C# 版を比べる。部屋の WebSocket は Worker が要るので、確かめは `npx wrangler@4.149.0 dev --env dev --local` で行った（静的サーバーでは動かない）。
+- **確かめ**（wrangler dev。`dist` は Build の develop 出力。クリーンな publish から）: `room-compare` 基準と C# 版 9 場面 ok（画素 0.000 %、最大 1）・送った文字の一致・ページのエラー 0。`room-race` ok。`practice.mjs`（ENGINE=cs。部屋の往復を含む）76 件 ok。`csp-check` 全件 ok（CSP 違反 0。wrangler で Worker が動くので、部屋の WebSocket も通った）。`practice-compare` 9/9・`practice-details` 25/25・`unity-compare`・`tutorial-input-compare`・`tutorial-compare` 156・`tutorial-dom` ok。`dom-diff` 差なし。
+- **スマートフォン幅**（390・タッチ）: 記事 3 本の「画像で見る」の 6 枚が読め、`/practice`・`/practice/unity`・`/practice/room` は案内だけで、Practice・Render・canvas を読まない（部屋の canvas は 0）。
+- **テスト**: `dotnet test -c Release` 26 + 44 + 199 + 392 + 226 件すべて成功。`node --test`（CLAUDE.md の一覧）117 件すべて成功。
+- **配信量**（brotli q11。前 = fd6a94a（S6 を取り込んだ develop）、後 = この PR の最終形。js・css・dll・wasm・json・html）: 3,526,495 B → 3,261,657 B（**−264,838 B。約 265 KB**）。内訳: `lib/three/three.module.js` −207,048、`viewport.js` −20,575、`unity.js` −17,614、`room.js` −4,986、`editmesh.js` −8,860、`practice.js` −2,168、`unity-practice.js` −1,591、`tutorial.js` −917、`practice-entry.js` −465。JS（`js/*.js`）は 109,984 B → 52,808 B。
+- **残り**: `tutorial.js` の手順の処理（`this.vp` が無いので到達しない）・`tools/tutorial-images` と `captureStep`（画像は作り直せない）・`Maths.cs` などの three.js に倣った数式の注釈（コードの仕様としての説明。消さない）・`docs/wasm-migration-plan.md` の計画（歴史の記録）。

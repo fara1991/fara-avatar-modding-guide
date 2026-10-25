@@ -18,10 +18,8 @@
   - `csp-check.mjs` の注意(Web Analytics): ビーコン(`static.cloudflareinsights.com/beacon.min.js`)は、Cloudflare がゾーンの設定で本番・確認用の配信にだけ差し込む。`wrangler dev --local` では差し込まれないので、この検査では見えない。CSP の許可(script-src `static.cloudflareinsights.com`・connect-src `cloudflareinsights.com`)は `tools/site.json` と `SiteBuilderTests` で確かめ、実際の配信(avatar-dev)のコンソールで違反が無いことを目で確かめる
   - `csp-check.mjs` の注意: `requestfailed: …/api/maintenance` は、kit の `MaintenanceInfo` が 2 秒で打ち切る(仕様。読めなければ通常表示)ので、配信(wrangler dev)が重いとき(別の作業・別のスクリプトと**並列**に動かしたとき)に、ページを開いた直後に出ることがある。CSP の違反ではなく、実際の不具合でもない。このスクリプトは、その失敗だけのときに 1 回やり直す。それでも出るときは、配信を単独にして直列で再実行する
 - Phase 3b S2（レンダーラボ。docs/phase3b-design.md の §11）: `dotnet publish src/FaraAvatarModdingGuide.RenderLab -c Release -o publish-lab` のあと、`LAB=<publish-lab/wwwroot> [HEADERS=<dist/_headers>] node gl-serve.mjs 8790` で `/lab/`（C# + 薄い WebGL 層）・`/ref.html`（現行の three.js 版だけ）・`/probe.html` を出す。`CHROME_PATH` は Playwright 同梱の Chromium（システムの Edge/Chrome に SwiftShader のフラグを付けると WebGL を作れない）
-  - `gl-compare.mjs` … 同じシーン・操作で、three.js 版とレンダーラボの画素を比べる（面の明るさ ±3・画素の差。`WIDTH=390` でスマホ幅）。3 枚組を `OUT` に書く
   - `gl-measure.mjs` … AOT なしの WebAssembly の計測（起動・フレーム・重い操作・新しいコンテキスト 20 回・開始と停止 20 回・コンテキスト喪失からの復帰）
   - `gl-csp.mjs` … 本番と同じ CSP（`HEADERS=`）で、PC・スマホ幅の描画と CSP 違反 0
-  - `gl-context-matrix.mjs`（`gl-probe.*`）… 「新しいコンテキストで描画が始まらない」の切り分け。ブラウザを CDP で直接操作し、隠れた（最小化・覆われた）ウィンドウで rAF が止まることを確かめる
 - Phase 3b S3（`/practice` の C# 版 `?engine=cs`。docs/phase3b-design.md の §13）: `ENGINE=cs node practice.mjs`（`/practice` の操作・往復を C# 版で。基準は JS 版と同じ `practice-baseline.json`）、`practice-compare.mjs`（同じ操作で、Three.js 版と C# 版のビューポート（3D + HUD）の画素を比べる。`NEW=` はサイトの配信（wrangler dev など）、閾値 0.001 % / 8。S4 で厳しくした）
 - Phase 3b S4（記事内チュートリアルの C# 版 `?engine=cs`。docs/phase3b-design.md の §14）: Three.js 版と C# 版の差を 0 にするための比較。`NEW=` はサイトの配信（wrangler dev など）。`CHROME_PATH` は Playwright 同梱の Chromium
   - `tutorial-compare.mjs` … 9 本を「次へ（スキップ）」で 1 手順ずつ進めながら、毎回、埋め込み全体（題・進み・吹き出し・3D + HUD・キー表示・ボタン）の画素と文字を比べる（閾値は 0 % / 8。`ONLY=`・`STEPS=`・`OUT=`）。背景の 3D を隠し、CSS アニメーションを止める（始まった時刻で位相が決まるため）
@@ -30,8 +28,7 @@
   - `practice-details.mjs` … `/practice` の細部（カーソル・フォーカス・枠・ボックス選択の枠・メニューの位置・HUD の文字・ツールの点灯・N パネル）を、25 の場面（ドラッグ中・数値入力中・メニューを開いたまま）で値で比べる
   - `practice-race.mjs` … 低速な読み込み中に「離れて戻る」（`Practice`・`Render` の wasm を 3.5 秒遅らせ、`/practice?engine=cs` → `/learn` → 戻る）。wasm を二重に読まず、エラーが出ないこと
 - Phase 3b S6（共有ルームの C# 版 `?engine=cs`。docs/phase3b-design.md の §16）:
-  - `room-compare.mjs` … `/practice/room` を、room.js（JS 版）と C# 版で、同じ台本（もう一人の参加者を生の WebSocket で動かす）に通す。A の画素（9 場面。背景の 3D は隠す。閾値 `MAX_OVER_PCT=0` `MAX_DIFF=8`）・状態と参加者の文字・A が送った文字（hello・name・select・lock・unlock・ops を完全に比べる。cursor・preview・view は数だけ）を比べる。`NEW=` は wrangler dev など
-  - `room-mixed.mjs` … JS 版の A と C# 版の B を同じ部屋に入れ、互いの変更が届くことを、3D ビューの画素（ステータスの行とほかの人のカーソルを除く）で比べる
+  - `room-compare.mjs` … `/practice/room` を、凍結した基準（`tests/visual/golden/room-compare`。room.js の版で作った。`GOLDEN_MODE=capture`）と C# 版（既定）で、同じ台本（もう一人の参加者を生の WebSocket で動かす）に通して比べる。部屋の WebSocket は Worker が要る（`wrangler dev --env dev --local`）。画素の閾値 `MAX_OVER_PCT=0` `MAX_DIFF=8`
   - `practice.mjs` の room（`ENGINE=cs` と `ENGINE=js`）と `ONLY=trips`（`ENGINE=cs` は部屋も往復する）・`csp-check.mjs`（`?engine=cs` の部屋 2 画面を含む）
 - Phase 3b S5（Unity 風の画面。docs/phase3b-design.md の §15）:
   - `unity-compare.mjs` … `/practice/unity` を、Three.js 版と C# 版（`?engine=cs`）で、同じ本物のマウス・キーの 38 操作（Hierarchy・Scene・ギズモ・Project のドラッグ・右クリック・Inspector・SDK・Build & Test…）で操作して、毎回、画素・DOM の骨格・お題・ステータス・状態（`window.__unity` と `window.__unityCs`）を比べる。閾値は `MAX_OVER_PCT=0` `MAX_DIFF=8`

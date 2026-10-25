@@ -1,4 +1,4 @@
-// Phase 3b S6（共同練習の部屋の C# 版。docs/phase3b-design.md の §16）: /practice/room を、現行の room.js（JavaScript 版）と C# 版（?engine=cs）で、
+// Phase 3b S6（共同練習の部屋の C# 版。docs/phase3b-design.md の §16）・S7: /practice/room を、凍結した基準（room.js の版。GOLDEN_MODE=capture で作る）と C# 版で、
 // 同じ台本（もう一人の参加者を生の WebSocket で動かす）に通して比べる。
 //   ・A（確かめる人）: 本物のマウス・キーで操作する。B（台本の人）: 生の WebSocket で、固定した文字を送る（worker/index.js の Durable Object と同じ）
 //   ・毎回の場面で、A の 3D ビュー＋パネル（#room-main。部屋の URL の欄は、部屋の ID が違うので隠す）の画素を比べる（閾値 MAX_OVER_PCT=0 / MAX_DIFF=8）
@@ -10,8 +10,10 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { PNG } from "pngjs";
 import { launch, newPage } from "./lib.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
+const GROUP = "room-compare";
 
-const NEW = process.env.NEW || "http://127.0.0.1:8787";
+const NEW = process.env.NEW || "http://127.0.0.1:8787";   // wrangler dev（部屋の WebSocket は Worker が要る）
 const OUT = process.env.OUT || path.join(process.cwd(), "room-compare-out");
 const MAX_OVER_PCT = Number(process.env.MAX_OVER_PCT ?? 0);
 const MAX_DIFF = Number(process.env.MAX_DIFF ?? 8);
@@ -172,7 +174,16 @@ async function run(browser, cs) {
 
 const browser = await launch();
 try {
-  const js = await run(browser, false);
+  // 基準（JavaScript 版の room.js）: GOLDEN_MODE=capture で作る（room.js があるうちだけ）。既定は保存した基準を読む（room.js は無くなった）
+  let js;
+  if (GOLDEN_MODE === "capture") {
+    js = await run(browser, false);
+    saveGolden(GROUP, "meta", "json", JSON.stringify({ semantic: js.semantic, counts: js.counts, errors: js.errors, shots: js.shots.map(s => ({ name: s.name, dom: s.dom })) }, null, 1));
+    for (const s of js.shots) saveGolden(GROUP, s.name, "png", s.buf);
+  } else {
+    const meta = JSON.parse(loadGolden(GROUP, "meta", "json"));
+    js = { semantic: meta.semantic, counts: meta.counts, errors: meta.errors, shots: meta.shots.map(s => ({ name: s.name, dom: s.dom, buf: loadGolden(GROUP, s.name, "png") })) };
+  }
   const cs = await run(browser, true);
 
   // 1) 台本への反応（C# 版が JS 版と同じ文字を送るか）
@@ -194,7 +205,7 @@ try {
     ok(JSON.stringify(a.dom) === JSON.stringify(b.dom), `場面 ${a.name}: 状態・参加者・追従の文字が一致`, a.dom.status);
   }
   ok(cs.errors.length === 0, "C# 版: ページのエラー・想定外の警告が無い", cs.errors.slice(0, 3).join(" / "));
-  ok(js.errors.length === 0, "JS 版: ページのエラー・想定外の警告が無い", js.errors.slice(0, 3).join(" / "));
+  ok(js.errors.length === 0, "基準（JS 版）: ページのエラー・想定外の警告が無い", js.errors.slice(0, 3).join(" / "));
 } finally {
   await browser.close();
 }

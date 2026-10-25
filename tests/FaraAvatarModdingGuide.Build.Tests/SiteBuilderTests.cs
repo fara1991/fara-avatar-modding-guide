@@ -72,7 +72,7 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
         var headers = Read(fx.Production, "_headers");
         Assert.EndsWith("\n", headers);
         var csp = headers.Split('\n').Single(l => l.TrimStart().StartsWith("Content-Security-Policy:", StringComparison.Ordinal));
-        Assert.Matches("script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com 'sha256-[A-Za-z0-9+/]{43}=';", csp);   // Web Analytics のビーコン・Turnstile と、importmap のハッシュ(Build が計算)
+        Assert.Contains("script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com;", csp);   // Web Analytics のビーコン・Turnstile（S7 から importmap のハッシュは無い）
         Assert.Contains("connect-src 'self' https://cloudflareinsights.com https://challenges.cloudflare.com", csp);   // ビーコンの送信先
         Assert.DoesNotContain("'unsafe-eval'", csp.Replace("'wasm-unsafe-eval'", ""));
         var script = Regex.Match(csp, "script-src [^;]*;").Value;
@@ -181,7 +181,6 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
             {
                 var attrs = m.Groups["attrs"].Value;
                 if (attrs.Contains("application/ld+json")) continue;
-                if (attrs.Contains("type=\"importmap\"")) continue;   // importmap だけは外部ファイルにできない。CSP はハッシュで許可する(別のテストで確かめる)
                 Assert.Contains("src=", attrs);
             }
         }
@@ -228,57 +227,5 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
     {
         Assert.Equal("index.html", SiteBuilder.FileFor("/"));
         Assert.Equal("learn/basics/select.html", SiteBuilder.FileFor("/learn/basics/select"));
-    }
-
-    // ---- importmap(three.js の読み込み元)と CSP ------------------------------------------------
-
-    private static string Sha256(string text) => "'sha256-" + Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))) + "'";
-
-    [Fact]
-    public void Import_map_hash_is_taken_from_the_exact_text_between_the_tags_and_ignores_comments()
-    {
-        const string map = "{\"imports\":{\"three\":\"/lib/three/three.module.js\"}}";
-        Assert.Equal([Sha256(map)], SiteBuilder.ImportMapHashes($"<head><script type=\"importmap\">{map}</script></head>"));
-        // 空白・改行も数える（ブラウザは、タグの間の文字をそのまま CSP のハッシュに使う）
-        Assert.Equal([Sha256($"\n{map}\n")], SiteBuilder.ImportMapHashes($"<script type=\"importmap\">\n{map}\n</script>"));
-        Assert.NotEqual(SiteBuilder.ImportMapHashes($"<script type=\"importmap\">{map}</script>"), SiteBuilder.ImportMapHashes($"<script type=\"importmap\"> {map}</script>"));
-        // コメントの中の記述と、importmap ではない script は数えない。同じ中身の重複は 1 つ
-        Assert.Empty(SiteBuilder.ImportMapHashes($"<!-- <script type=\"importmap\">{map}</script> --><script src=\"a.js\"></script><script>var x = 1;</script>"));
-        Assert.Single(SiteBuilder.ImportMapHashes($"<script type=\"importmap\">{map}</script><script type=\"importmap\">{map}</script>"));
-    }
-
-    [NodeFact]
-    public void Csp_allows_the_import_map_by_hash_only_and_no_cdn_for_three()
-    {
-        var map = Regex.Match(Read(fx.Production, "practice.html"), "<script type=\"importmap\">(?<body>.*?)</script>", RegexOptions.Singleline).Groups["body"].Value;
-        Assert.Contains("/lib/three/three.module.js", map);
-        var csp = Read(fx.Production, "_headers").Split('\n').Single(l => l.TrimStart().StartsWith("Content-Security-Policy:", StringComparison.Ordinal));
-        var script = Regex.Match(csp, "script-src [^;]*;").Value;
-        Assert.Contains(Sha256(map), script);                           // ページに実際に出た importmap の中身のハッシュ
-        Assert.DoesNotContain("jsdelivr", csp);                         // three.js は同梱(自己ホスト)。CDN は許可しない
-        Assert.DoesNotContain("unsafe-inline", script);
-        Assert.Equal(1, Regex.Matches(script, "'sha256-").Count);       // 余計なハッシュは許可しない
-    }
-
-    [NodeFact]
-    public void Real_template_has_the_import_map_in_every_page_and_its_hash_is_in_the_headers()
-    {
-        var headers = Read(fx.Real, "_headers");
-        var csp = headers.Split('\n').Single(l => l.TrimStart().StartsWith("Content-Security-Policy:", StringComparison.Ordinal));
-        var script = Regex.Match(csp, "script-src [^;]*;").Value;
-        var hashes = Regex.Matches(script, "'sha256-[A-Za-z0-9+/]{43}='").Select(m => m.Value).ToList();
-        Assert.Single(hashes);
-        var pages = Directory.EnumerateFiles(fx.Real, "*.html", SearchOption.AllDirectories).Where(f => !f.Contains(Path.DirectorySeparatorChar + "images" + Path.DirectorySeparatorChar)).ToList();
-        Assert.Equal(77, pages.Count);
-        foreach (var file in pages)
-        {
-            var html = File.ReadAllText(file);
-            var maps = Regex.Matches(html, "<script type=\"importmap\">(?<body>.*?)</script>", RegexOptions.Singleline).Select(m => m.Groups["body"].Value).ToList();
-            Assert.Single(maps);                                         // 1 ページに importmap は 1 つ(複数あると、後のものは無視される)
-            Assert.Equal(hashes[0], Sha256(maps[0]));                    // kit と Build の書き換えを通っても、中身が変わっていない
-            // importmap は、最初の module が読まれる前(blazor.webassembly.js・練習の module より前)にある
-            Assert.True(html.IndexOf("type=\"importmap\"", StringComparison.Ordinal) < html.IndexOf("_framework/blazor.webassembly.js", StringComparison.Ordinal), file);
-        }
-        Assert.DoesNotContain("jsdelivr", headers);
     }
 }

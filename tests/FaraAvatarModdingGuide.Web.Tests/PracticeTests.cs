@@ -46,8 +46,7 @@ public class PracticeTests : WebTestContext
         Assert.False(cut.Find("#room-lobby").HasAttribute("hidden"));
         Assert.True(cut.Find("#room-main").HasAttribute("hidden"));
         var call = entry.Invocations["start"].Single();
-        Assert.Equal("room.js", call.Arguments[1]);
-        Assert.Null(call.Arguments[2]);                                     // null = ロビー(PC の 3D は始めない。スマートフォンの案内だけ)
+        Assert.Null(call.Arguments[1]);                                     // 案内の入口だけ（PC の 3D は C# 版。スマートフォンの案内だけ）
         await DisposeComponentsAsync();
         Assert.Single(entry.Invocations["dispose"]);
     }
@@ -56,13 +55,13 @@ public class PracticeTests : WebTestContext
     [InlineData("abcdef123456", "abcdef123456")]
     [InlineData("ABCDEF123456", "abcdef123456")]                            // 小文字にそろえる(room.js・Worker と同じ)
     [InlineData("abcdefghijklmnopqrstuvwxyz012345", "abcdefghijklmnopqrstuvwxyz012345")]   // 32 字
-    public void Room_page_with_a_valid_room_shows_the_room_and_starts_it(string parameter, string expectedRoom)
+    public void Room_page_with_a_valid_room_shows_the_room_without_a_javascript_3d(string parameter, string expectedRoom)
     {
         var entry = Entry();
         var cut = RenderRoom(parameter);
         Assert.True(cut.Find("#room-lobby").HasAttribute("hidden"));
         Assert.False(cut.Find("#room-main").HasAttribute("hidden"));
-        Assert.Equal(expectedRoom, entry.Invocations["start"].Single().Arguments[2]);
+        Assert.Empty(entry.Invocations["start"]);                             // PC の 3D は C# 版（bUnit では始まらない）。JavaScript は案内の入口だけ
     }
 
     [Theory]
@@ -79,7 +78,7 @@ public class PracticeTests : WebTestContext
         var entry = Entry();
         var cut = RenderRoom(parameter);
         Assert.False(cut.Find("#room-lobby").HasAttribute("hidden"));
-        Assert.Null(entry.Invocations["start"].Single().Arguments[2]);
+        Assert.Null(entry.Invocations["start"].Single().Arguments[1]);     // 案内の入口だけ（PC の 3D は C# 版）
     }
 
     [Fact]
@@ -93,20 +92,6 @@ public class PracticeTests : WebTestContext
         var uri = new Uri(nav.Uri);
         Assert.Equal("/practice/room", uri.AbsolutePath);
         Assert.Matches("^\\?room=[a-z0-9]{10}$", uri.Query);                 // room.js の randomRoomId と同じ形(10 字)
-    }
-
-    [Fact]
-    public void Switching_the_room_leaves_the_old_one_before_entering_the_new_one()
-    {
-        var entry = Entry();
-        var cut = RenderRoom("aaaaaa111111");
-        Assert.Single(entry.Invocations["start"]);
-        GoToRoom("bbbbbb222222");
-        cut.Render();
-        cut.WaitForAssertion(() => Assert.Equal(2, entry.Invocations["start"].Count));
-        Assert.Equal("bbbbbb222222", entry.Invocations["start"][1].Arguments[2]);
-        Assert.Single(entry.Invocations["dispose"]);                         // 前の部屋の解放
-        Assert.Equal(Id(entry.Invocations["start"][0]), Id(entry.Invocations["dispose"][0]));
     }
 
     [Fact]
@@ -200,23 +185,24 @@ public class PracticeTests : WebTestContext
     [Fact]
     public void The_unmodified_3d_scripts_are_in_the_web_project()
     {
-        // 3D の本体(viewport・editmesh・unity・scenarios・bgscene)は、旧 SSR 版から書き換えずに持ってきたもの(計画書 4.5)。SSR 版を消したので、これが唯一の本体(元は Git の履歴)。
+        // 残る JavaScript（scenarios・bgscene。3D の本体は C# 版。three.js は S7 で消した）。
         // 比べる相手はもう無いので、置いてあることだけを確かめる(中身は tools/verify/practice.mjs が、実際の操作で確かめる)
         var dir = Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "js");
-        foreach (var name in new[] { "viewport.js", "editmesh.js", "scenarios.js", "bgscene.js" })   // viewport・editmesh は、みんなで練習（room.js）が使うので S6 まで残る
+        foreach (var name in new[] { "scenarios.js", "bgscene.js", "tutorial.js" })
             Assert.True(File.Exists(Path.Combine(dir, name)), name);
-        Assert.False(File.Exists(Path.Combine(dir, "unity.js")), "unity.js は C# 版に置き換えた（Phase 3b S7）");
-        Assert.False(File.Exists(Path.Combine(dir, "practice.js")), "practice.js は C# 版に置き換えた（Phase 3b S7）");
+        foreach (var gone in new[] { "room.js", "viewport.js", "editmesh.js", "practice.js", "unity.js", "unity-practice.js" })
+            Assert.False(File.Exists(Path.Combine(dir, gone)), gone + " は C# 版に置き換えた（Phase 3b S7）");
+        Assert.False(Directory.Exists(Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "lib", "three")), "three.js は S7 で消した");
         Assert.False(Directory.Exists(Path.Combine(TestData.Root, "wwwroot", "js")), "ルートの wwwroot/js(旧 SSR 版)は消した");
     }
 
     [Fact]
     public void Modified_scripts_export_start_and_dispose_and_do_nothing_when_only_loaded()
     {
-        // 書き換えた 2 つ（room.js・tutorial.js）は、読み込んだだけでは動かず、start / mount と dispose を出す。
+        // 書き換えた tutorial.js は、読み込んだだけでは動かず、mount と dispose を出す。
         // ページ上の DOM を探す処理がモジュールの先頭(読み込み時)に残っていないこと
         var dir = Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "js");
-        foreach (var (name, entry) in new[] { ("room.js", "export function start("), ("tutorial.js", "export function mount(") })
+        foreach (var (name, entry) in new[] { ("tutorial.js", "export function mount(") })
         {
             var text = File.ReadAllText(Path.Combine(dir, name));
             Assert.Contains(entry, text);
