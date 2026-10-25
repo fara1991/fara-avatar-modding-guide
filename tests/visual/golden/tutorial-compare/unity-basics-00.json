@@ -1,0 +1,25 @@
+{
+ "count": "1 / 13",
+ "bubble": "1\nHierarchy の「Avatar」の左にある ▶ をクリックして、中身を開いてください。",
+ "keys": "▶ をクリック",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": false,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": false,
+ "toolsOn": [],
+ "progress": "0%",
+ "ueStatus": "案内にしたがって操作してください",
+ "ueInfo": "Move Tool",
+ "ueLabel": "▶ をクリック",
+ "ueTools": [
+  "move"
+ ]
+}

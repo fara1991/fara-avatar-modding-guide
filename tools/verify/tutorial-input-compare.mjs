@@ -1,5 +1,6 @@
 // 記事内チュートリアルを、Three.js 版と C# 版(?engine=cs)で、同じ「実際の入力」(マウス・キー)で操作して、毎回、画素と文字(と、Unity は状態)を比べる(Phase 3b S4・S5)。
 //   node tutorial-input-compare.mjs      NEW=http://127.0.0.1:8787  OUT=<画像の出力先>  MAX_OVER_PCT=0  MAX_DIFF=8  ONLY=<シナリオ名の一部>
+//   基準: GOLDEN_MODE=capture で Three.js 版（?engine=js）の各スナップショット（画像・文字・Unity の状態）を tests/visual/golden/tutorial-input-compare に保存する。既定の compare は、保存した基準と C# 版を比べる（golden.mjs）
 // tutorial-compare.mjs は「次へ（スキップ）」で進めるので、手順の skip の処理を通る。ここは、本物のイベントの経路(ポインター・キー → gl.js / viewport.js / unity.js → 達成の判定 → 次の手順・メッセージ・キーの光り)を通す。
 // 操作の列(シナリオごと):
 //   transform    … 覆いをクリックして始める → 立方体をクリック → G → マウスを動かす → Esc → G Z 2 Enter → R Z 45 Enter → S 0.5 Enter → N → Ctrl+Z(23 のスナップショット)
@@ -12,6 +13,9 @@ import { PNG } from "pngjs";
 import { launch } from "./lib.mjs";
 import { open, texts, shot, pixelDiff, sleep, realProblems, UNITY } from "./tutorial-lib.mjs";
 import { drag, dragTo, handlePoint, stateOf, stateDiff } from "./unity-lib.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
+const GROUP = "tutorial-input-compare";
+const capture = GOLDEN_MODE === "capture";
 
 const OUT = process.env.OUT || "./tutorial-input-compare-out";
 const MAX_OVER_PCT = Number(process.env.MAX_OVER_PCT || 0);
@@ -114,19 +118,33 @@ const only = process.env.ONLY;
 for (const [name, actions] of Object.entries(SCENARIOS)) {
   if (only && !name.includes(only)) continue;
   const unity = UNITY.includes(name);
-  const a = await open(browser, name, false);
+  const a = capture ? await open(browser, name, false) : null;   // 基準（three.js の版）
   const b = await open(browser, name, true);
+  let snap = 0;
   try {
     const snapshot = async (label) => {
       await sleep(900);   // キーの光り(250 ms)・できましたの丸(0.7 秒)が終わり、「できました！」(1.5 秒)がまだ出ている間
-      for (const t of [a, b]) await t.page.mouse.move(2, 2);
+      for (const t of [a, b].filter(Boolean)) await t.page.mouse.move(2, 2);
       // 「できました！」の吹き出し(1.5 秒で消える)と丸・吹き出しのアニメーション(約 1 秒)が、両方で終わってから撮る(途中で撮ると、始まった時刻のずれで画素が違う)
-      for (const t of [a, b]) await t.embed.evaluate((el) => new Promise((res) => { const tick = () => (!el.querySelector(".tut-msg.is-ok") && el.getAnimations({ subtree: true }).length === 0 ? res() : setTimeout(tick, 50)); tick(); setTimeout(res, 4000); }));
+      for (const t of [a, b].filter(Boolean)) await t.embed.evaluate((el) => new Promise((res) => { const tick = () => (!el.querySelector(".tut-msg.is-ok") && el.getAnimations({ subtree: true }).length === 0 ? res() : setTimeout(tick, 50)); tick(); setTimeout(res, 4000); }));
       await sleep(200);
-      if (process.env.DBG) for (const t of [a, b]) console.log(label, await t.embed.evaluate((el) => `${getComputedStyle(el.querySelector('.tut-ok')).opacity} anims=${el.getAnimations({ subtree: true }).map((x) => x.animationName + ':' + x.playState + ':' + x.currentTime).join(',')} vis=${document.visibilityState}`));
-      const shotA = PNG.sync.read(await shot(a.page, a.embed));
+      const key = `${name}-${String(snap++).padStart(2, "0")}-${label}`;
+      const tb = await texts(b.embed);
       const shotB = PNG.sync.read(await shot(b.page, b.embed));
-      const ta = await texts(a.embed), tb = await texts(b.embed);
+      const sb = unity ? await stateOf(b.page, true) : null;
+      let shotA, ta, sa;
+      if (a) {
+        const buf = await shot(a.page, a.embed);
+        ta = await texts(a.embed);
+        sa = unity ? await stateOf(a.page, false) : null;
+        saveGolden(GROUP, key, "png", buf);
+        saveGolden(GROUP, key, "json", JSON.stringify({ texts: ta, state: sa }, null, 1));
+        shotA = PNG.sync.read(buf);
+      } else {
+        shotA = PNG.sync.read(loadGolden(GROUP, key, "png"));
+        const g = JSON.parse(loadGolden(GROUP, key, "json"));
+        ta = g.texts; sa = g.state;
+      }
       const textDiff = Object.keys(ta).filter((k) => JSON.stringify(ta[k]) !== JSON.stringify(tb[k]));
       let ok = true, note;
       if (shotA.width !== shotB.width || shotA.height !== shotB.height) { ok = false; note = "大きさが違う"; }
@@ -137,35 +155,38 @@ for (const [name, actions] of Object.entries(SCENARIOS)) {
           ok = false;
           const triple = new PNG({ width: shotA.width * 3, height: shotA.height });
           [shotA, shotB, diff].forEach((img, i) => PNG.bitblt(img, triple, 0, 0, img.width, img.height, i * img.width, 0));
-          writeFileSync(`${OUT}/${name}-${String(compared).padStart(2, "0")}-${label}.png`, PNG.sync.write(triple));
+          writeFileSync(`${OUT}/${key}.png`, PNG.sync.write(triple));
         }
       }
-      if (textDiff.length) { ok = false; note += `  文字の差: ${textDiff.map((k) => `${k}[JS=${JSON.stringify(ta[k])} / C#=${JSON.stringify(tb[k])}]`).join(" ")}`; }
+      if (textDiff.length) { ok = false; note += `  文字の差: ${textDiff.map((k) => `${k}[基準=${JSON.stringify(ta[k])} / C#=${JSON.stringify(tb[k])}]`).join(" ")}`; }
       if (unity) {
-        const sd = stateDiff(await stateOf(a.page, false), await stateOf(b.page, true));
+        const sd = stateDiff(sa, sb);
         if (sd.length) { ok = false; note += "  状態の違い " + sd.join(" | "); }
       }
       compared++;
-      if (!ok) { failed++; console.log(`NG  ${name} / ${label}: ${note}`); } else if (process.env.VERBOSE) console.log(`ok  ${name} / ${label}: ${note}  [${ta.count}]`);
-      return ta.count;
+      if (!ok) { failed++; console.log(`NG  ${name} / ${label}: ${note}`); } else if (process.env.VERBOSE) console.log(`ok  ${name} / ${label}: ${note}  [${tb.count}]`);
+      return tb.count;
     };
 
     await snapshot("initial");
-    // 覆いをクリックして始める(フォーカスが入る)
-    for (const t of [a, b]) await t.embed.locator(".tut-overlay").click();
+    // 覆いをクリックして始める（フォーカスが入る）
+    for (const t of [a, b].filter(Boolean)) await t.embed.locator(".tut-overlay").click();
     await snapshot("after-overlay-click");
     let last = "";
-    const ctx = { handle: (i) => handlePoint(a.page, i) };
+    // ギズモの位置は JS 版（window.__unity）から求める。基準の作成では求めて保存し、比べるときは保存したものを読む（C# 版には window.__unity が無い）
+    let curLabel = "";
+    const ctx = { handle: async (i) => { const key = `${name}-handle-${curLabel}-${i}`; if (a) { const h = await handlePoint(a.page, i); saveGolden(GROUP, key, "json", JSON.stringify(h)); return h; } return JSON.parse(loadGolden(GROUP, key, "json")); } };
     for (const [label, action] of actions) {
-      await action(a, ctx);
+      curLabel = label;
+      if (a) await action(a, ctx);   // 基準の版でも、同じ入力を入れる（基準の画像は、ここで撮ったもの）
       await action(b, ctx);
       last = await snapshot(label);
     }
     console.log(`${failed ? "NG" : "ok"}  ${name}: 実入力 ${actions.length} 操作 + 2 = ${actions.length + 2} スナップショットを比べた(最後の進み: ${last})`);
-    const problems = [...realProblems(a.page), ...realProblems(b.page)];
+    const problems = [...(a ? realProblems(a.page) : []), ...realProblems(b.page)];
     if (problems.length) { failed++; console.log(`NG  ${name}: ${problems.join(" | ")}`); }
   } finally {
-    await a.page.context().close();
+    if (a) await a.page.context().close();
     await b.page.context().close();
   }
 }

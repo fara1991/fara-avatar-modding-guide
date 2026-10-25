@@ -1,0 +1,25 @@
+{
+ "count": "完了",
+ "bubble": "「統計を見ながら辺を足す・溶解する」の手順はすべて終わりです。",
+ "keys": null,
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "オブジェクトモード",
+ "numeric": "",
+ "stats": "オブジェクト 1/1\n頂点 8\n辺 12\n面 6\n三角形 12",
+ "complete": "すべてできました\nこのページを「完了」にしました。\n もう一度\n 自由に試す",
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "stats"
+ ],
+ "progress": "100%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

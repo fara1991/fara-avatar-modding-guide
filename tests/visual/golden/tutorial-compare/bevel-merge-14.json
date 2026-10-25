@@ -1,0 +1,25 @@
+{
+ "count": "15 / 23",
+ "bubble": "15\n「距離で」をクリックしてください。重なった頂点がまとめられ、下に消えた数が出ます。",
+ "keys": "メニューをクリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "全選択",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "vert"
+ ],
+ "progress": "60.8696%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

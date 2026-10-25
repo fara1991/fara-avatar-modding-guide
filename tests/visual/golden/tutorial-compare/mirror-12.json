@@ -1,0 +1,27 @@
+{
+ "count": "13 / 13",
+ "bubble": "13\n上の「ミラー」ボタンを押して、ミラー モディファイアーを付けてください（Blender ではプロパティのモディファイアーから追加します）。左半分が鏡写しで表示されます。",
+ "keys": "上の「ミラー」をクリック",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "前・平行投影",
+ "status": "オブジェクトモード",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [
+  "mirror"
+ ],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "xray"
+ ],
+ "progress": "92.3077%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

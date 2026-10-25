@@ -1,0 +1,25 @@
+{
+ "count": "13 / 23",
+ "bubble": "13\nA ですべての頂点を選択してください。",
+ "keys": "A",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "頂点選択モード",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "vert"
+ ],
+ "progress": "52.1739%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

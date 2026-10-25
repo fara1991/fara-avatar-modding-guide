@@ -1,0 +1,25 @@
+{
+ "count": "9 / 18",
+ "bubble": "9\n数字で 0.3 と入力してください（差し込みの幅が 0.3 m になります）。",
+ "keys": "0\n.\n3",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "差し込み 厚さ: 0.000 m",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "44.4444%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

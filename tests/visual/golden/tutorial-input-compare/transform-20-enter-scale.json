@@ -1,0 +1,26 @@
+{
+ "texts": {
+  "count": "15 / 16",
+  "bubble": "15\nN でサイドバーを開いてください。位置 Z が 2、回転 Z が 45°、スケールが 0.5 になっているはずです。",
+  "keys": "N",
+  "msg": null,
+  "mode": "オブジェクトモード",
+  "view": "ユーザー・透視投影",
+  "status": "確定",
+  "numeric": "",
+  "stats": null,
+  "complete": null,
+  "overlayHidden": true,
+  "marker": null,
+  "highlightedTools": [],
+  "viewHighlight": false,
+  "focused": true,
+  "toolsOn": [],
+  "progress": "87.5%",
+  "ueStatus": null,
+  "ueInfo": null,
+  "ueLabel": null,
+  "ueTools": []
+ },
+ "state": null
+}

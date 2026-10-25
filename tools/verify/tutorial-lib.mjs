@@ -27,7 +27,7 @@ export async function open(browser, name, cs) {
   await page.context().addInitScript(() => { performance.now = () => 1000; });   // 点線の点滅を止める
   await page.addInitScript(() => { const st = document.createElement("style"); st.textContent = "#site-scene{display:none !important}"; document.addEventListener("DOMContentLoaded", () => document.head.appendChild(st)); });   // 背景の 3D(動く)が、半透明の部分に透けるので隠す
   // Unity 風の画面は、?debug=1 で状態(JS 版は window.__unity、C# 版は window.__unityCs)を読める(実入力の比較が、ギズモの位置・状態の比べに使う)
-  const query = [UNITY.includes(name) ? "debug=1" : null, cs ? "engine=cs" : null].filter(Boolean).join("&");
+  const query = [UNITY.includes(name) ? "debug=1" : null, `engine=${cs ? "cs" : "js"}`].filter(Boolean).join("&");
   await page.goto(`${NEW}${ARTICLES[name]}${query ? "?" + query : ""}`, { waitUntil: "load" });
   await page.waitForSelector(".mud-layout", { timeout: 90000 });
   const embed = page.locator(`.practice-embed[data-scenario="${name}"]`);

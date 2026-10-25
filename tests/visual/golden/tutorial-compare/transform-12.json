@@ -1,0 +1,23 @@
+{
+ "count": "13 / 16",
+ "bubble": "13\n数字で 0.5 と入力してください。スケールの量がちょうど 0.5 倍 になります。",
+ "keys": "0\n.\n5",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "スケール : X 1.000 Y 1.000 Z 1.000　（X / Y / Z で軸固定）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "Cube",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "75%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

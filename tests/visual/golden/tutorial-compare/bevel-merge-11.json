@@ -1,0 +1,27 @@
+{
+ "count": "12 / 23",
+ "bubble": "12\n1 を押して頂点選択モードにしてください（上の「頂点」ボタンでも切り替えられます）。",
+ "keys": "1",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "キャンセル（押し出した面は同じ位置に残っています。Ctrl+Z で取り消し）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [
+  "vert"
+ ],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "47.8261%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

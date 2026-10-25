@@ -6,55 +6,17 @@ using System.Text.Json.Nodes;
 namespace FaraAvatarModdingGuide.Practice.Tests;
 
 /// <summary>
-/// 現行の unity.js(Node で本物のまま動かした結果。tests/js/unity-reference.mjs)。入力は tests/js/unity-cases.json(C# も同じものを読む)。Node が無いと失敗する(飛ばさない)。
+/// 現行の unity.js（Node で本物のまま動かした結果）の凍結した基準（tests/js/golden/unity.json.gz。作ったのは tests/js/unity-reference.mjs。commit 8262089）。
+/// 入力は tests/js/unity-cases.json（C# も同じものを読む）。
 /// </summary>
 internal static class UnityReference
 {
-    private static readonly Lazy<JsonElement> output = new(Run);
+    private static readonly Lazy<JsonElement> output = new(() => JsGolden.Read("unity"));
     private static readonly Lazy<JsonElement> cases = new(() => JsonDocument.Parse(File.ReadAllText(Path.Combine(JsReference.JsDir, "unity-cases.json"), Encoding.UTF8)).RootElement);
 
     public static JsonElement Output => output.Value;
     public static JsonElement Cases => cases.Value;
-
-    private static JsonElement Run()
-    {
-        for (var attempt = 1; ; attempt++)
-        {
-            var (ok, error, result) = RunOnce();
-            if (ok) return result;
-            if (attempt == 3) throw new Xunit.Sdk.XunitException(error);
-            Thread.Sleep(500);
-        }
-    }
-
-    private static (bool Ok, string Error, JsonElement Result) RunOnce()
-    {
-        var work = Path.Combine(Path.GetTempPath(), "avatar-unity-" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(work);
-        try
-        {
-            var outFile = Path.Combine(work, "unity.json");
-            var info = new ProcessStartInfo("node")
-            {
-                RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false,
-                StandardOutputEncoding = Encoding.UTF8, StandardErrorEncoding = Encoding.UTF8,
-            };
-            info.ArgumentList.Add("--max-old-space-size=4096");
-            foreach (var arg in new[] { Path.Combine(JsReference.JsDir, "unity-reference.mjs"), Path.Combine(JsReference.JsDir, "unity-cases.json"), outFile }) info.ArgumentList.Add(arg);
-            using var process = Process.Start(info) ?? throw new InvalidOperationException("node を起動できません(CI では actions/setup-node が要ります)");
-            var stdout = process.StandardOutput.ReadToEndAsync();
-            var stderr = process.StandardError.ReadToEndAsync();
-            process.WaitForExit();
-            if (process.ExitCode != 0) return (false, $"unity-reference.mjs が失敗しました(終了コード {process.ExitCode}):" + Environment.NewLine + stderr.Result + stdout.Result, default);
-            return (true, "", JsonDocument.Parse(File.ReadAllText(outFile, Encoding.UTF8)).RootElement.Clone());
-        }
-        finally
-        {
-            try { Directory.Delete(work, recursive: true); } catch (IOException) { }
-        }
-    }
 }
-
 /// <summary>仮想の時計(unity-reference.mjs の setTimeout / performance.now と同じ式)。</summary>
 internal sealed class FakeClock
 {

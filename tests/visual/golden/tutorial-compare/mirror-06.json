@@ -1,0 +1,25 @@
+{
+ "count": "7 / 13",
+ "bubble": "7\nNumpad 1 で正面から見てください（テンキーがなければ下の「テンキーを模倣」をオンにして 1）。",
+ "keys": "Numpad 1",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "面選択モード",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": true,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "46.1538%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

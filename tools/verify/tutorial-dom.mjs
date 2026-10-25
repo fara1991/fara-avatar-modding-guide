@@ -1,16 +1,20 @@
 // 記事内チュートリアルの埋め込みの DOM の骨格(タグ・クラス・data-*・aria-*・hidden・disabled・type・href・id)を、Three.js 版と C# 版で並べて比べる(S4)
 import { launch, newPage } from "./lib.mjs";
 import { skeleton } from "./tutorial-lib.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
+const GROUP = "tutorial-dom";
+const capture = GOLDEN_MODE === "capture";
+const STATES = ["initial", "focused", "skipped", "images", "complete"];
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const cases = [["navigation-numpad", "/learn/getting-started/navigation"], ["transform", "/learn/basics/transform"], ["extrude-inset-loopcut", "/learn/modeling/extrude-inset-loopcut"], ["unity-basics", "/learn/unity/editor-overview"], ["ma-outfit", "/learn/unity/modular-avatar-outfit"]];
 let failed = 0;
 const browser = await launch();
 for (const [name, url] of cases) {
   const res = {};
-  for (const cs of [false, true]) {
+  for (const cs of capture ? [false, true] : [true]) {   // 基準（three.js の版）は、基準の作成のときだけ開く
     const page = await newPage(browser, { width: 1280, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto(`${NEW}${url}${cs ? "?engine=cs" : ""}`, { waitUntil: "load" });
+    await page.goto(`${NEW}${url}${url.includes("?") ? "&" : "?"}engine=${cs ? "cs" : "js"}`, { waitUntil: "load" });
     const sel = `.practice-embed[data-scenario="${name}"]`;
     await page.waitForSelector(sel + ".is-ready", { timeout: 60000 });
     const embed = page.locator(sel);
@@ -34,8 +38,10 @@ for (const [name, url] of cases) {
     await page.waitForTimeout(400);
     states.complete = await embed.evaluate(skeleton);
     res[cs ? "cs" : "js"] = states;
+    if (!cs && capture) for (const st of STATES) saveGolden(GROUP, `${name}-${st}`, "json", JSON.stringify(states[st], null, 1));
     await page.context().close();
   }
+  if (!capture) res.js = Object.fromEntries(STATES.map((st) => [st, JSON.parse(loadGolden(GROUP, `${name}-${st}`, "json"))]));
   for (const st of Object.keys(res.js)) {
     const a = res.js[st], b = res.cs[st];
     const diffs = [];

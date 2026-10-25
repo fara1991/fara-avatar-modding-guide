@@ -1,0 +1,25 @@
+{
+ "count": "6 / 23",
+ "bubble": "6\n数字で 0.3 と入力してください（面取りの幅が 0.3 m になります）。",
+ "keys": "0\n.\n3",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "ベベル 幅: 0.000 m セグメント: 1",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge"
+ ],
+ "progress": "21.7391%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

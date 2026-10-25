@@ -1,0 +1,25 @@
+{
+ "count": "3 / 13",
+ "bubble": "3\nCtrl+R を押して、上の面の手前の辺（左右にのびる辺）にマウスを置いてください。黄色い線でカットの位置が表示されます。",
+ "keys": "Ctrl\n+\nR",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "編集モード（頂点選択）。1 / 2 / 3 で頂点・辺・面",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "ここに置く",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "vert"
+ ],
+ "progress": "15.3846%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

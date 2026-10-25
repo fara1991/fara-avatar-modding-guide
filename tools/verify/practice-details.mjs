@@ -4,6 +4,7 @@
 //   ボックス選択の枠(.practice-box の位置・大きさ)・メニュー(位置・大きさ・中身)・HUD の文字(モード・視点・ステータス・数値入力・統計・マーカー)・ツールの点灯・N パネルの入力値。
 // 操作の途中(ドラッグ中・数値入力中・メニューを開いたまま)も比べる。値が違えば、その項目を出す。
 import { launch } from "./lib.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
 
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -116,19 +117,22 @@ function diffKeys(a, b) {
 const browser = await launch();
 let failed = 0;
 const only = process.env.ONLY;
+const GROUP = "practice-details";
 for (const s of SCENES) {
   if (only && !s.name.includes(only)) continue;
-  const a = await open(browser, "/practice");
+  const a = GOLDEN_MODE === "capture" ? await open(browser, "/practice?engine=js") : null;   // 基準の作成は、three.js の版（?engine=js）で
   const b = await open(browser, "/practice?engine=cs");
   try {
-    await run(a.page, s.steps);
+    if (a) await run(a.page, s.steps);
     await run(b.page, s.steps);
-    const da = await collect(a.page), db = await collect(b.page);
+    const da = a ? await collect(a.page) : JSON.parse(loadGolden(GROUP, s.name, "json"));
+    if (a) saveGolden(GROUP, s.name, "json", JSON.stringify(da, null, 1));
+    const db = await collect(b.page);
     const diffs = diffKeys(da, db);
-    const problems = [...a.page.problems, ...b.page.problems];
+    const problems = [...(a ? a.page.problems : []), ...b.page.problems];
     if (diffs.length || problems.length) { failed++; console.log(`NG  ${s.name}: ${[...diffs, ...problems].join("  ")}`); } else console.log(`ok  ${s.name}`);
   } finally {
-    await a.ctx.close();
+    if (a) await a.ctx.close();
     await b.ctx.close();
   }
 }
