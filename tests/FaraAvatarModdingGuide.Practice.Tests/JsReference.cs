@@ -9,7 +9,7 @@ namespace FaraAvatarModdingGuide.Practice.Tests;
 /// 現行の JavaScript（wwwroot/js/viewport.js・editmesh.js・practice.js）を Node で動かした結果の、凍結した基準（tests/js/golden/*.json.gz）。
 /// 入力は tests/js/practice-cases.json（S0）と practice-edit-cases.json（S1）（C# も同じものを読む）。
 /// 基準は、three.js の版が残っていた commit 8262089 で tests/js/practice-reference.mjs が作った出力（S7 で three.js を外したあとも比べられるように、ファイルにした）。
-/// 作り直すときは、その commit の tests/js/practice-reference.mjs を使う（docs/phase3b-design.md の §16）。
+/// 作り直すときは、その commit の tests/js/practice-reference.mjs を使う（docs/phase3b-design.md の §17）。
 /// </summary>
 internal static class JsReference
 {
@@ -44,7 +44,7 @@ internal static class JsGolden
     public static JsonElement Read(string name)
     {
         var path = Path.Combine(JsReference.JsDir, "golden", name + ".json.gz");
-        if (!File.Exists(path)) throw new XunitException($"基準がありません: {path}（作り方は docs/phase3b-design.md の §16）");
+        if (!File.Exists(path)) throw new XunitException($"基準がありません: {path}（作り方は docs/phase3b-design.md の §17）");
         using var file = File.OpenRead(path);
         using var gzip = new GZipStream(file, CompressionMode.Decompress);
         using var doc = JsonDocument.Parse(gzip);

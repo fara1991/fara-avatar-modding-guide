@@ -249,7 +249,9 @@ async function roundTrips(browser) {
     await visit("/learn", "h1");
     await visit("/practice/unity", ".unity-editor canvas");
     await visit("/learn", "h1");
-    await visit("/practice/room", "#room-create");
+    // ENGINE=cs: 部屋も C# 版で往復する（Phase 3b S6）。ナビのリンクに ?engine が無いので、Blazor の移動で開く
+    if (ENGINE === "cs") { await page.evaluate(() => window.Blazor.navigateTo("/practice/room?engine=cs")); await page.locator("#room-create").waitFor({ timeout: 30000 }); }   // 画面内の移動（再読み込みしない）
+    else await visit("/practice/room", "#room-create");
     await page.locator("#room-create").click();
     await page.locator("#room-viewport canvas").first().waitFor({ timeout: 30000 });
     await page.waitForFunction(() => document.querySelector("#room-status")?.textContent.includes("接続しました"), null, { timeout: 30000 });

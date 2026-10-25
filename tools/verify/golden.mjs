@@ -1,4 +1,4 @@
-// 基準（golden）の読み書き。Phase 3b S7 で three.js を外すための仕組み（docs/phase3b-design.md の §16）。
+// 基準（golden）の読み書き。Phase 3b S7 で three.js を外すための仕組み（docs/phase3b-design.md の §17）。
 //   GOLDEN_MODE=capture … 現行の JavaScript 版（three.js。?engine=js）を動かして、その結果を tests/visual/golden/ に保存する（three.js を残した版でだけ動く）
 //   GOLDEN_MODE=compare … 既定。保存した基準を読んで、C# 版（?engine=cs）と比べる（three.js が無くても動く）
 //   GOLDEN_DIR=<フォルダ> … 既定はリポジトリの tests/visual/golden（別の場所から実行するときは、絶対パスで指定する）

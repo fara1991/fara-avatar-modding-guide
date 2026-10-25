@@ -29,6 +29,10 @@
   - `tutorial-dom.mjs` … 埋め込みの DOM の骨格（タグ・クラス・data-*・aria-*）を、5 つの状態（最初・フォーカス後・スキップ後・画像で見る・完了）で比べる
   - `practice-details.mjs` … `/practice` の細部（カーソル・フォーカス・枠・ボックス選択の枠・メニューの位置・HUD の文字・ツールの点灯・N パネル）を、25 の場面（ドラッグ中・数値入力中・メニューを開いたまま）で値で比べる
   - `practice-race.mjs` … 低速な読み込み中に「離れて戻る」（`Practice`・`Render` の wasm を 3.5 秒遅らせ、`/practice?engine=cs` → `/learn` → 戻る）。wasm を二重に読まず、エラーが出ないこと
+- Phase 3b S6（共有ルームの C# 版 `?engine=cs`。docs/phase3b-design.md の §16）:
+  - `room-compare.mjs` … `/practice/room` を、room.js（JS 版）と C# 版で、同じ台本（もう一人の参加者を生の WebSocket で動かす）に通す。A の画素（9 場面。背景の 3D は隠す。閾値 `MAX_OVER_PCT=0` `MAX_DIFF=8`）・状態と参加者の文字・A が送った文字（hello・name・select・lock・unlock・ops を完全に比べる。cursor・preview・view は数だけ）を比べる。`NEW=` は wrangler dev など
+  - `room-mixed.mjs` … JS 版の A と C# 版の B を同じ部屋に入れ、互いの変更が届くことを、3D ビューの画素（ステータスの行とほかの人のカーソルを除く）で比べる
+  - `practice.mjs` の room（`ENGINE=cs` と `ENGINE=js`）と `ONLY=trips`（`ENGINE=cs` は部屋も往復する）・`csp-check.mjs`（`?engine=cs` の部屋 2 画面を含む）
 - Phase 3b S5（Unity 風の画面。docs/phase3b-design.md の §15）:
   - `unity-compare.mjs` … `/practice/unity` を、Three.js 版と C# 版（`?engine=cs`）で、同じ本物のマウス・キーの 38 操作（Hierarchy・Scene・ギズモ・Project のドラッグ・右クリック・Inspector・SDK・Build & Test…）で操作して、毎回、画素・DOM の骨格・お題・ステータス・状態（`window.__unity` と `window.__unityCs`）を比べる。閾値は `MAX_OVER_PCT=0` `MAX_DIFF=8`
   - `unity-lib.mjs` … ドラッグ・ギズモの位置・状態の読み取りと比べ（`unity-compare.mjs`・`tutorial-input-compare.mjs` の共通部品）
@@ -36,7 +40,7 @@
   - `practice.mjs` の `ENGINE=cs` は、`/practice/unity` の操作も C# 版で動かす。`csp-check.mjs` は `?engine=cs` の Unity 3 画面も見る
   - **画像比較の 0.000 % は SwiftShader（既定。DPR 1）が前提**。実 GPU で描くときは `GPU=1`、画面の拡大率は `DPR=1.25` など、ウィンドウ付きは `HEADED=1`（`lib.mjs`）。実 GPU・小数の DPR では、案内の枠のある Unity の手順で、小さな差（0.003〜0.012 %。実行によっては Scene の上端・下端の 1 行 0.1 %）が出ることがある既知の差。`tutorial-compare.mjs` の `GPU_TOLERANT=1` が、案内の枠（`.ue-hl`）の中の画素の差を無視し、閾値を 0.2 % / 40 に緩める（DOM の文字は比べる。通常の厳しさは変わらない）。`MOTION=1` は動きを減らす設定を外す（枠の脈動の位相が違うので、比べる用ではない）
   - `practice-mixed.mjs` … Unity と Blender の記事内チュートリアルが同じページにあるとき（`ma-outfit` の記事に `transform` を足して作る）、WebGL の切り替えで canvas が 1 つだけ・もう一方に 3D ビューが残らない
-- Phase 3b S7（three.js を外す。docs/phase3b-design.md の §16）: 比べる相手（three.js の版）は消したので、基準を `tests/visual/golden/`（画像・DOM・文字・状態の JSON）に凍結した。`golden.mjs`:
+- Phase 3b S7（three.js を外す。docs/phase3b-design.md の §17）: 比べる相手（three.js の版）は消したので、基準を `tests/visual/golden/`（画像・DOM・文字・状態の JSON）に凍結した。`golden.mjs`:
   - 既定（`GOLDEN_MODE` なし）は、保存した基準と C# 版（`?engine=cs` の指定は無くても、既定が C#）を比べる。three.js は要らない
   - `GOLDEN_MODE=capture` は、three.js の版が残っている commit（8262089。`git worktree add <dir> 8262089` で作り、`dotnet publish` と Build をしてから、その配信に対して）でだけ動く。基準を上書きするので、必要なときだけ
   - `GOLDEN_DIR=<フォルダ>` … 既定は `tests/visual/golden`。別の場所から（`pw/verify` などに写して）実行するときは絶対パスで指定する

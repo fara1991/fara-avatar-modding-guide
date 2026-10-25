@@ -235,6 +235,7 @@ public sealed class SceneRenderer : IDisposable
         Add(new DrawItem(axisY, Primitive.LineStrip, Shading.Flat, axisWorld, yr, yg, yb, 1, depth, 0, 0, 0, 0, false, "axis-y"));
 
         var (mr, mg, mb) = Rgb.FromHex(BaseColor);
+        var remote = core.RemoteColors();   // 共同練習: ほかの人の選択・操作中の枠(room.js の updateRemoteSelection)
         foreach (var obj in core.Objects)
         {
             var b = Ensure(obj);
@@ -253,6 +254,16 @@ public sealed class SceneRenderer : IDisposable
             {
                 var (r, g, bl) = Rgb.FromHex(core.OutlineIsActive(obj) ? OutlineActiveColor : OutlineColor);
                 Add(new DrawItem(b.Outline, Primitive.Lines, Shading.Flat, world, r, g, bl, 1, depth, 0, 0, 0, 0, false, obj.Name + ":outline"));
+            }
+            // ほかの人の枠: その人の色の線。深度テストなし・半透明・renderOrder 8(room.js の remote-sel)
+            if (remote.TryGetValue(obj.Rid, out var peerHex))
+            {
+                EnsureOutline(obj, b);
+                if (b.Outline.VertexCount > 0)
+                {
+                    var (r, g, bl) = Rgb.FromHex(Convert.ToInt32(peerHex.TrimStart('#'), 16));
+                    Add(new DrawItem(b.Outline, Primitive.Lines, Shading.Flat, world, r, g, bl, 0.9f, DrawFlags.Blend | DrawFlags.DepthWrite, 0, 0, 0, 8, true, obj.Name + ":remote"), center);
+                }
             }
             if (obj.Mirror && b.Mesh.VertexCount > 0)
             {
