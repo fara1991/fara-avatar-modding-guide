@@ -113,7 +113,7 @@
 | **S3**（**済**。§13）`/practice` を C# で（フラグ付き） | ページ（Razor）+ HUD + お題の一覧を Razor で。`?engine=cs` で C# 版。`tools/verify/practice.mjs` を両エンジンで通す（`practice-baseline.json` と一致）。往復 20 回でリスナー・コンテキストが増えない。画像比較の結果を PR に載せる | Phase 3 と同じ操作（キー・マウス）ができる。**描画の差はユーザーが受け入れる**（画像で提示）。既定は JS のまま | 6〜9 |
 | **S4**（**済**。§14）記事内チュートリアル | `scenarios.js` の Blender 9 本と `tutorial.js` を C# に（`?engine=cs`。フラグ付き）。シナリオは C# のデータ + 述語（イベント → 達成）。「画像で見る」とタッチ端末の扱いは維持。Unity 2 本は S5（`unity.js` の画面に載っているため。**S5 で済**）。`guideLine`（案内の点線）の描画も S4 | 9 本を JS 版と C# 版で同じイベント列に通して、手順の定義・再生後の状態・案内・達成/失敗/ヒントの答えが一致するテスト。記事を画面で確認し、**Three.js 版と C# 版の画素・文字・DOM の差を 0 にする**（§14.3） | 8〜12 |
 | **S5**（**済**。§15）Unity 風 | `unity.js` を Razor（Hierarchy・Inspector・Project・メニュー・SDK パネル）+ Scene ビュー（②の描画層）に。`unity-practice.js` のお題 7 件。ツリー操作・Setup Outfit・タグ・マテリアルのロジックは①に | `practice.mjs` の `unity` の基準と一致。階層・お題の状態をイベント列で JS と突き合わせ | 12〜18 |
-| **S6** 共有ルーム | `room.js` を C#（`ClientWebSocket`）に。差分の送受信・ロック・カーソル・選択・視点の共有。`tools/room-check` と画面からの二人の確認 | 二人が入れる・追加/移動が届く・退室が消える。プロトコルは変えない | 5〜8 |
+| **S6**（**済**。§16）共有ルーム | `room.js` を C#（規則は `RoomSession`。WebSocket などは `room-cs.js`。§16.2 の変更点）に。差分の送受信・ロック・カーソル・選択・視点の共有。`tools/room-check` と画面からの二人の確認 | 二人が入れる・追加/移動が届く・退室が消える。プロトコルは変えない | 5〜8 |
 | **S7** three.js を外す | 既定を C# に。JS の `viewport.js`・`editmesh.js`・`unity.js`・`room.js`・`tutorial.js`・`scenarios.js`・`practice*.js`、`lib/three`、importmap、CSP のハッシュ、README/プライバシーの記述を消す | 全ページで違反ゼロ（CSP）。配信量の前後比較。ユーザーの承認（戻せない変更） | 2〜3 |
 | FBX（別枠） | 新機能。読み込み方式（外部ライブラリ or 自前）の調査から | 別途 | 5〜15 |
 
@@ -612,3 +612,56 @@ SwiftShader の Chromium・AOT なし・localhost（wrangler dev）。前は `de
 - **L3**: `AssignMaterial` は、番号が 0..枚数の外なら何もしない（`unity.js` は範囲外でも配列を広げる（穴ができる）が、Inspector の欄からは起こせない。1e9 で固まらないための意図した差）。`UnityRobustnessTests`。
 - **L5**: JS モジュールの読み込み（`gl.js`・`practice-cs.js`・`unity-ui.js`）は、失敗した Task を static に残さず、次の呼び出しでやり直す（`RetryableTask`。`PracticeCsAssemblies` と同じ決まり）。`RetryableTaskTests`。
 - **L2**・**L4**: §15.5・§15.4。
+
+## 16. S6（共有ルーム `/practice/room` を C# で。`?engine=cs`）の記録
+
+印: **[実測]** はこの作業で測った値。既定は今までの room.js のまま（`?engine=cs` を付けたときだけ C# 版。タッチだけの端末は、今までの案内の画面）。
+
+### 16.1 作ったもの
+
+- **`Practice`（純粋。`RoomSession.cs`・`RoomWire.cs`・`ViewportCore.Room.cs`）**: `RoomSession` は `room.js` の状態と規則（参加者・差分（`server` の対応表）・ロック・追従・途中経過・カーソル・視点の間引き・名前の入力の 500 ms・切断の再試行 6 回・退室）。`room.js` の関数と同じ順で書いた（`onMessage`・`onLocal`・`syncOut`・`tick`・`connect` の `close`）。通信とタイマーは `IRoomTransport`（テストでは仮想の時計）。`RoomWire` は JSON.stringify と同じ文字（キーの順・数の表記・非 ASCII はそのまま）を作る。`ViewportCore.Room.cs` は、参加者の枠の色（選択は先の人、操作中は後で上書き）・カーソルの画面の位置（`room.js` の hidden の条件と同じ）・途中経過の適用。
+- **`Render`**: `SceneRenderer` が、ほかの人の選択・操作中のオブジェクトに、その人の色の枠（深度テストなし・半透明 0.9・renderOrder 8。`room.js` の `remote-sel`）を描く。ほかの人がいないときは描かない（練習の描画は変わらない）。
+- **`Web`**: `Services/RoomCs.cs`（`RoomCsEngine : CsViewEngine`。ビューと HUD は練習と同じ `PracticeHudView`。`IRoomTransport` の実装 `RoomTransport` は `RoomJs`（JSImport））、`wwwroot/js/room-cs.js`（WebSocket・タイマー・localStorage・ポインター・クリップボード・`window.__room`。規則は持たない）、`Pages/PracticeRoom.razor`（`?engine=cs` の分岐。参加者の一覧とステータスの markup は JavaScript 版と同じ構造・クラス名）。`CsViewEngine` に `OnAfterFrame` の口を 1 つ足した（既定は何もしない）。
+- **確認**: `tools/verify/room-compare.mjs`（JS 版と C# 版に、同じ台本を通す）、`tools/verify/room-mixed.mjs`（JS 版と C# 版の二人を同じ部屋に入れる）、`practice.mjs` の room（`ENGINE=cs` と `ENGINE=js`）と `ONLY=trips`（C# の部屋も往復に入れた）、`csp-check.mjs`（C# の部屋の 2 画面を追加）、`RoomSessionTests`（34 件）。
+
+### 16.2 JavaScript 版からの変更点（意図した差）
+
+1. **通信の層だけ JavaScript（`room-cs.js`）に残した**。設計 §2 の表は `ClientWebSocket` と書いたが、WebSocket・`setInterval`・`setTimeout`・`pagehide` は JavaScript のコールバックで動かし、規則だけ C# に置いた。理由: 練習の `Task.Delay` が JavaScript のコールバックの中で再開しなかった問題（§14）と同じ経路を避けるため。WebSocket の close コード（4001・1008・1006・4000）の扱いは `RoomSession` が決めるので、JavaScript 側は文字を渡すだけ。
+2. **`window.__room` は形だけ同じ**（`vp.objects[].userData.kind`。確認用。`?debug=1` のときだけ）。
+3. **表示名の確定は、入力のたびに「最後の入力の値」を記録し、最後の入力から 500 ms のあとに決める**（room.js は、タイマーの時点で入力欄の値を読む。結果は同じ）。タイマーは 1 本（100 ms ごとの確認）で、入力のたびにタイマーを作らない。入力欄の `value` は初期値だけを渡し、以後は Blazor が書き換えない（入力中の文字を戻さない）。
+4. **`-.` の NaN**: JS 版は S1 で直し済み（`viewport.js` の数値入力は、`parseFloat` が NaN のあいだ「数値入力なし」）。C# 版も `TransformOp` の数値入力で、数値にならないあいだは「数値入力なし」。ここでは直していない。`room-compare.mjs` の `minus-dot` の場面は、G の中で `-` と `.` を打った後の画面が JS 版と一致することを確かめる（NaN で対象が消える不具合が起きれば、この場面の画素が違う）。
+
+### 16.3 受け入れ（§4.2 の S6）の結果
+
+| 基準 | 結果 [実測] |
+| --- | --- |
+| 二人が入れる・追加/移動が届く・退室が消える | `room-mixed.mjs`: JS 版（A）と C# 版（B）を同じ部屋に入れ、A が動かした立方体が B に、B が動かした立方体が A に、画素 **0.000 % / 最大 0**。参加者の一覧が一致 |
+| プロトコルは変えない | 変更なし（`worker/` は触っていない）。C# 版が送る文字は、同じ台本で JS 版と **hello・name・select・lock・unlock・ops が完全に一致**（`room-compare.mjs`。2 回実行で一致）。cursor・preview・view は timing で数が変わるので数だけ比べる（cursor 8〜11・view 2） |
+| 比較（閾値 0 % / 8） | `room-compare.mjs`: 9 場面（ほかの人の選択・ロック中の G・`-`/`.` の G・ほかの人のカーソル・球の追加・こちらの移動中・確定・視点に合わせる・退室）で、**どの場面も画素 0.000 % / 最大 1**、状態・参加者・追従の文字が一致（2 回実行） |
+| そのほか | `practice.mjs` の room（`ENGINE=cs`・`ENGINE=js`）すべて ok。`ONLY=trips`（20 往復。C# の部屋を含む）: gl・ResizeObserver・IntersectionObserver・interval・WebSocket・canvas・listeners が増えない。`csp-check.mjs` 54 画面（C# の部屋 2 画面を含む）で CSP 違反 0・コンソール 0。`practice-compare.mjs`（Blender の練習。共有の描画を触ったため）0.000 % / 最大 1 |
+| テスト | `dotnet test -c Release` 全件成功（Practice.Tests は RoomSessionTests 34 件を含む）。`node --test`（worker・tests/js。`SEARCH_INDEX_FILE=dist/data/search.json`）106 件成功 |
+
+### 16.4 計測 [実測]
+
+- 配信物（brotli q11。`origin/develop` と同じ方法で、同じ設定の publish。`/practice/room` を含む全ページが読むのは `Web` のみ）:
+  - `Web`（主のアセンブリ）120,445 → **127,628 バイト（+7,183 = +7.0 KB）**。S5 の +24.8 KB の後の上乗せ（`PracticeRoom.razor`・`RoomCs.cs`）。全ページに効く
+  - `Practice`（`?engine=cs` のときだけ読む）138,553 → 147,713（+9,160）。`Render` 21,899 → 21,933（+34）
+  - `room-cs.js` 2,096（`?engine=cs` の部屋だけ）。`gl.js`・`practice-cs.js` は変えていない
+- 本体は、`?engine=cs` の部屋の起動の時間は測っていない（S5 までの測り方は、Blender の練習と Unity の画面。部屋は時間ではなく同期の正しさを優先した）。
+
+### 16.5 確証が持てない点・申し送り
+
+- **Node の突き合わせ（room.js と `RoomSession` を、仮想の時計と偽物の WebSocket で同じ入力に通す）は作っていない**。同じ台本を、本物の二つの画面（JS 版と C# 版）に通す比較（`room-compare`）と、`RoomSessionTests` 34 件（room.js を読んで書いた期待値）で代えた。`lockdenied`・`rejected`・4001・1008・再試行 6 回・名前の 20 字・stale な接続は単体テストで確かめた。網羅は Node の突き合わせより弱い（次の段階で必要なら作る）。
+- 比べたのは SwiftShader の Chromium だけ。実機の GPU・Firefox・Safari・二台の実機の回線は未確認。dev サイト（avatar-dev）で、二人の PC（Chrome）から、追加・移動・ロック・追従・退室・Ctrl+Z・表示名の変更・切断（オフラインにして戻す）を確認してほしい。
+- 切断・再接続の文言（4000・1006）は、単体テストで規則を確かめただけで、実際に切ったところは `room-compare` では見ていない。
+- 参加者の一覧（`Razor`）は、JavaScript 版と同じ文字・クラス名だが、タグ単位の DOM 差は比べていない（`dom-diff` は練習 3 ページの静的 HTML が対象）。
+- S7 への申し送り: `room.js` は `?engine=js` のための既定として残す（S7 で消す）。`viewport.js` の `roomState`・`applyRemote`・`setRemotePeers` も、S7 で消える。`RoomSession` は three.js に依存しない（S7 のあとも残る）。
+
+### 16.6 レビュー指摘への対応（PR #120 の独立レビュー）
+
+- **M1（部屋の切り替えと読み込みの並走）**: `StartCsAsync` は、読み込みの前と後に「ページを離れた・部屋が替わった」を確かめ、古ければ作ったエンジンを破棄して戻る。代入の前に既存の C# 版を `StopCs` で解放する。確認: `tools/verify/room-race.mjs`（Practice の wasm を 4 秒遅らせ、読み込みの途中で部屋を替える。開いている WebSocket は B の 1 本だけ・canvas は 1 つ）。
+- **M2（不正な文字）**: サーバーの文字は、形（欠けた項目・数でない要素・短い配列・想定外の型）を全部確かめてから適用する。不正なものは、状態を 1 つも変えずに捨てる（`OnMessage` は JSON の失敗と想定外の例外も捨てる）。`ApplyPreview` は長さも確かめる。
+- **M3（テスト）**: `RoomSessionTests` を 34 件に（不正な JSON・欠けた項目・壊れた配列、preview が操作中のものを飛ばす条件、取り消しのときに途中経過のものを最後の形で送る（force）、join での置き換え、peer で自分の名前が変わる、too many objects、今の接続でない socket、rejected の真偽、ロックの値が文字でない場合）。`room-compare.mjs` の固定の待ちは、名前の確定（相手の `peer` の受信）とロックの反映（「操作中のため」の文字）を条件待ちにした。残りの固定の待ち（解除の受信・描画の落ち着き）は、観測できる文字が無いので短い待ちのまま。
+- **L1**: `OnOpen` は今の接続のものだけ扱う（古い接続の hello は送らない）。**L2**: `rejected` は JavaScript の真偽（0・空の文字・null は偽）。**L3**: `locks` は値が文字のものだけ使う。**L4**: コメント（`RoomCsEngine.Dispose` の説明）を、実際の順序に合わせた。**L7**: 名前の入力欄の `value` は初期値だけ（上記 3）。**L8**: §16.2 の 3・4 を、実際に確かめた範囲に書き直した。
+- **L5（JSMarshalAs<JSType.Function> の寿命）**: 調べた範囲: JSImport の関数引数は、JavaScript 側の関数（クロージャ）が managed の delegate を保持し、関数が解放されると managed 側の参照も解ける。JavaScript 側の保持は `room-cs.js` の `timers`（繰り返しのタイマー・`cancelTimer` まで）と、`attach`・`setHandlers` の登録。一回限りのタイマーは発火後に `timers` から外れる。名前の入力は、入力のたびにタイマーを作っていたので、1 本の繰り返しの確認（100 ms）に変えた。.NET の仕様の細部（解放の時点）は、この作業では確かめていない。実際の動作は `room-compare`・`room-mixed`・`room-race`・`practice.mjs` の往復（gl・ws・interval・listeners が増えない）で確かめた。
+- **L6**: 対応不要（指摘どおり）。

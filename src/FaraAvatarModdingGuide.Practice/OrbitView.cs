@@ -237,6 +237,13 @@ public sealed class OrbitView
         return (p.X, p.Y);
     }
 
+    /// <summary>ワールドの点を NDC の 3 成分(z も要る: 奥に隠れたかの判定)へ。</summary>
+    public Vec3 ProjectPoint(Vec3 worldPoint)
+    {
+        var (_, inverse, projection, _) = CameraMatrices();
+        return projection.ApplyToPoint(inverse.ApplyToPoint(worldPoint));
+    }
+
     /// <summary>ワールドの点を、ビューポート内のピクセル(左上が原点)へ。</summary>
     public (double X, double Y) ToScreen(Vec3 world, double widthPx, double heightPx)
     {

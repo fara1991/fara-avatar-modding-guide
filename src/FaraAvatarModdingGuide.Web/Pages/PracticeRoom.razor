@@ -3,6 +3,7 @@
 @implements IAsyncDisposable
 @inject SiteSettings Settings
 @inject IJSRuntime JS
+@inject IServiceProvider Services
 
 <PageTitle>みんなで練習 - @Settings.Title</PageTitle>
 
@@ -12,9 +13,10 @@
 <TouchPracticeGuide Embed="false" Items="TouchItems" Message="部屋の 3D ビューはキーボードとマウスで操作します。スマートフォンでは操作できないので、パソコンで開いてください。操作の流れは、次の記事で画像を見られます。" />
 <p class="lead practice-pc-only">URL を共有すると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
 
-@* 本体は wwwroot/js/room.js（3D ビューは viewport.js）。部屋の同期は worker/index.js の Durable Object(/api/rooms/<ID>/ws。このページが持つのは、部屋に入っているか(?room=<ID>)・ロビーに戻るかだけ)。
+@* 本体は wwwroot/js/room.js（3D ビューは viewport.js）。?engine=cs のときは、部屋の規則を C#（Practice の RoomSession）・3D を C#（RoomCsEngine）・WebSocket などを room-cs.js が持つ。
+   部屋の同期は worker/index.js の Durable Object(/api/rooms/<ID>/ws。このページが持つのは、部屋に入っているか(?room=<ID>)・ロビーに戻るかだけ)。
    部屋を作る = ?room=<新しい ID> へ移動(Blazor の移動。再読み込みなし)。部屋が替わる・ロビーに戻るときは、前の部屋を退室して解放してから、次を始める。
-   静的 HTML(Build の PageBodies.PracticeRoom)と同じ構造(?room= の無いロビーの状態) *@
+   静的 HTML(Build の PageBodies.PracticeRoom)と同じ構造(?room= の無いロビーの状態)。?engine=cs の中身は、JavaScript 版の初期の DOM と同じ構造・クラス名にする *@
 <div id="room-lobby" class="card mb-4 practice-pc-only" hidden="@inRoom">
     <div class="card-body">
         <h2 class="h5">部屋を作る</h2>
@@ -25,7 +27,21 @@
 
 <div id="room-main" class="row g-4 practice-pc-only" hidden="@(!inRoom)">
     <div class="col-lg-8">
-        <div class="practice-viewport" id="room-viewport" tabindex="0" aria-label="3D ビューポート"></div>
+        <div class="practice-viewport" id="room-viewport" tabindex="0" aria-label="3D ビューポート">
+            @if (csActive)
+            {
+                @* C# 版(?engine=cs)。HUD は PracticeHudView(練習と同じ)。ほかの人のカーソルは、room-cs.js が位置を置く（hidden と transform だけ）。 *@
+                <PracticeHudView Hud="hud" GlHostId="room-gl" RootId="room-viewport" Failed="csFailed" OnTool="ClickTool" OnMenu="ChooseMenu" OnNPanel="OnNPanel" />
+                <div class="vp-remote" id="room-remote">
+                    @foreach (var p in room.Peers.Where(p => !p.Self))
+                    {
+                        <div class="vp-remote-cursor" data-peer="@p.Id" style="--peer: @p.Color" hidden @key="p.Id">
+                            <span class="dot"></span><span class="name">@p.Name</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
         <div class="d-flex flex-wrap gap-2 align-items-center mt-2 small text-body-secondary">
             <span>ビューをクリックしてからキーを押してください。使えるキーは <a href="/practice">操作の練習</a> と同じです。</span>
         </div>
@@ -34,18 +50,34 @@
         <div class="card mb-3">
             <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
                 <span>部屋</span>
-                <span class="room-status small" id="room-status" role="status">接続中…</span>
+                @if (csActive)
+                {
+                    <span class="room-status small @StatusClass" id="room-status" role="status">@room.Status</span>
+                }
+                else
+                {
+                    <span class="room-status small" id="room-status" role="status">接続中…</span>
+                }
             </div>
             <div class="card-body">
                 <label class="form-label small" for="room-url">この URL を送ると、同じ部屋に入れます</label>
                 <div class="input-group input-group-sm mb-3">
-                    <input type="text" class="form-control" id="room-url" readonly />
-                    <button type="button" class="btn btn-outline-primary" id="room-copy">コピー</button>
+                    <input type="text" class="form-control" id="room-url" readonly value="@(csActive ? roomUrl : null)" />
+                    <button type="button" class="btn btn-outline-primary" id="room-copy" @onclick="CopyUrl">@(copied ? "コピーしました" : "コピー")</button>
                 </div>
                 <label class="form-label small" for="room-name">表示名（ほかの人に見えます。20 文字まで）</label>
-                <input type="text" class="form-control form-control-sm mb-3" id="room-name" maxlength="20" autocomplete="nickname" />
+                <input type="text" class="form-control form-control-sm mb-3" id="room-name" maxlength="20" autocomplete="nickname" value="@(csActive ? nameInitial : null)" @oninput="OnNameInput" />
                 <h3 class="h6">参加している人</h3>
-                <ul class="room-peers mb-0" id="room-peers"></ul>
+                <ul class="room-peers mb-0" id="room-peers">
+                    @if (csActive)
+                    {
+                        @foreach (var p in room.Peers)
+                        {
+                            <li style="--peer: @p.Color" @key="p.Id"><span class="swatch"></span><span class="peer-name flex-grow-1">@(p.Self ? $"{p.Name}（あなた）" : p.Name)</span>@if (!p.Self)
+                            {<button type="button" class="btn btn-sm @(p.Following ? "btn-primary" : "btn-outline-secondary")" data-follow="@p.Id" @onclick="() => ToggleFollow(p.Id)">@(p.Following ? "合わせるのをやめる" : "視点に合わせる")</button>}</li>
+                        }
+                    }
+                </ul>
             </div>
         </div>
         <div class="card">
@@ -85,10 +117,41 @@
     private string? startedRoom;   // 3D を始めている部屋(null = ロビー。ロビーでも、スマートフォンの案内を出すために、入口(practice-entry.js)は始める)
     private bool inRoom;
 
+    // ?engine=cs（C# 版の部屋）。csActive は、C# 版の部屋を実際に始めているとき(タッチだけの端末・ロビーでは false)。
+    private bool csMode;
+    private bool csActive;
+    private bool csFailed;
+    private bool copied;
+    private bool disposed;
+    private IRoomCs? cs;
+    private PracticeHud hud = new();
+    private RoomHud room = new("", "", "", [], null);
+    private string roomUrl = "";
+    private string nameInitial = "";
+
     /// <summary>入っている部屋の ID(小文字にそろえる)。?room= が無い・形が違うときは null(ロビー)。</summary>
     private string? RoomId => (RoomParameter ?? "").ToLowerInvariant() is { } id && RoomRe.IsMatch(id) ? id : null;
 
+    private string StatusClass => string.IsNullOrEmpty(room.StatusKind) ? "" : $"is-{room.StatusKind}";
+
     protected override void OnParametersSet() => inRoom = RoomId is not null;
+
+    protected override void OnInitialized()
+    {
+        // 同じページのまま ?engine= だけが変わる移動は、ページを読み込み直す（エンジンの切り替えは、始め直しが要るため。Practice.razor と同じ）
+        Nav.LocationChanged += OnLocationChanged;
+        // ?engine=cs で、部屋の 3D を C#(Practice・Render)+ 薄い層で動かす(Phase 3b S6。既定は今までの room.js)
+        csMode = Query("engine") == "cs";
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (disposed || !new Uri(e.Location).AbsolutePath.TrimEnd('/').EndsWith("/practice/room", StringComparison.Ordinal)) return;
+        var wantCs = Query("engine") == "cs";
+        if (wantCs != csMode) Nav.NavigateTo(e.Location, forceLoad: true);
+    }
+
+    private string? Query(string name) => Nav.Get(name);
 
     /// <summary>最初の描画のあと、そして部屋が替わったとき(ロビー→部屋・部屋→別の部屋・部屋→ロビー)に、前の部屋を退室・解放して、次を始める。</summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -97,21 +160,112 @@
         if (initialized && wanted == startedRoom) return;
         initialized = true;
         startedRoom = wanted;
+        if (csActive) { StopCs(); StateHasChanged(); }
         if (host is not null) await host.DisposeAsync();
         host = new PracticeHost(JS);
+        if (csMode && wanted is not null && !await host.IsTouchOnlyAsync())
+        {
+            await StartCsAsync(wanted);
+            return;
+        }
         await host.StartAsync("room.js", wanted);   // wanted が null(ロビー)のときは、PC の 3D は始めない
+    }
+
+    /// <summary>C# 版の部屋を始める(Practice・Render と room-cs.js を、必要になったときに読み込む)。</summary>
+    private async Task StartCsAsync(string roomId)
+    {
+        IRoomCs? created = null;
+        try
+        {
+            await PracticeCsAssemblies.LoadAsync(Services);
+            // 読み込んでいるあいだに、ページを離れた・部屋が替わった(この始め方は古い)。次の部屋の始め方に任せる
+            if (disposed || startedRoom != roomId) return;
+            roomUrl = Nav.Uri;
+            created = await RoomCsLoader.CreateAsync(roomId, roomUrl, Query("debug") == "1");
+            if (disposed || startedRoom != roomId) return;   // created は finally で破棄する
+            StopCs();                                        // 同じ画面に、前の部屋が残っていれば先に解放する
+            cs = created;
+            created = null;
+            cs.Changed += OnCsChanged;
+            csActive = true;
+            if (!cs.Start())
+            {
+                csFailed = true;
+                Console.Error.WriteLine("[avatar] WebGL 2 が使えません");
+            }
+            hud = cs.Hud;
+            room = cs.Room;
+            nameInitial = room.Name;   // 入力欄の初期値(以後は変えない。入力中の文字を Blazor が戻さないように)
+        }
+        catch (Exception e)
+        {
+            csFailed = true;
+            Console.Error.WriteLine($"[avatar] みんなで練習（C# 版）を始められません: {e.Message}");
+        }
+        finally
+        {
+            created?.Dispose();
+        }
+        if (!disposed) StateHasChanged();
+    }
+
+    private void StopCs()
+    {
+        csActive = false;
+        csFailed = false;
+        copied = false;
+        if (cs is null) return;
+        cs.Changed -= OnCsChanged;
+        cs.Dispose();
+        cs = null;
+        hud = new PracticeHud();
+        room = new RoomHud("", "", "", [], null);
+    }
+
+    private void OnCsChanged()
+    {
+        if (cs is null) return;
+        hud = cs.Hud;
+        room = cs.Room;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void ClickTool(string tool) => cs?.ClickTool(tool);
+    private void ChooseMenu(int index) => cs?.ChooseMenu(index);
+    private void OnNPanel((string Prop, string Axis, string Value) a) => cs?.ChangeNPanel(a.Prop, a.Axis, a.Value);
+
+    private void OnNameInput(ChangeEventArgs e) => cs?.NameTyped(e.Value?.ToString() ?? "");
+
+    private void ToggleFollow(string id) => cs?.ToggleFollow(id);
+
+    /// <summary>URL をコピーする。ラベルは 1.5 秒のあと「コピー」に戻る(room.js と同じ)。C# 版の描画の中では、JavaScript のタイマーで待つ。</summary>
+    private async Task CopyUrl()
+    {
+        if (cs is null) return;   // JavaScript 版は room-cs のボタンではなく room.js の処理が動く
+        await cs.CopyUrlAsync();
+        copied = true;
+        StateHasChanged();
+        await PracticeCsJsTutorial.DelayAsync(1500);
+        if (disposed) return;
+        copied = false;
+        StateHasChanged();
     }
 
     private void CreateRoom()
     {
         var bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(10);
         var id = new string(bytes.Select(b => "0123456789abcdefghijklmnopqrstuvwxyz"[b % 36]).ToArray());
-        Nav.NavigateTo($"/practice/room?room={id}");
+        // ?engine=cs（と ?debug=1）は、作った部屋へも引き継ぐ
+        var extra = (csMode ? "&engine=cs" : "") + (Query("debug") == "1" ? "&debug=1" : "");
+        Nav.NavigateTo($"/practice/room?room={id}{extra}");
     }
 
     public async ValueTask DisposeAsync()
     {
+        disposed = true;
+        Nav.LocationChanged -= OnLocationChanged;
         initialized = false;
+        StopCs();
         if (host is not null) await host.DisposeAsync();
         host = null;
     }
