@@ -624,7 +624,7 @@ three.js の版（commit `8262089`）から作った基準を、ファイルに�
 
 - 画像・DOM・文字・状態（`tests/visual/golden/`）: `practice-compare`・`practice-details`・`tutorial-compare`・`tutorial-input-compare`・`unity-compare`・`tutorial-dom`。PNG と JSON。約 25 MB（PNG は圧縮のまま。`tutorial-compare` が 12 MB）。
 - Node の基準（`tests/js/golden/*.json.gz`）: `practice-basic`・`practice-edit`（C# の `ParityTests`・`EditParityTests`）、`practice-tutorial-render`・`render-basic`・`render-edit`・`render-tutorial`（描画の突き合わせ）、`unity`（`UnityParityTests`）、`tutorial`（`TutorialParityTests`）。gzip で約 17 MB。C# のテストは Node を動かさず、これを読む。
-- 作り方（three.js の版が要る。今は作れない）: `git worktree add <dir> 8262089`、`dotnet publish` と Build（CLAUDE.md の手順）で配信し、`GOLDEN_MODE=capture` で `tools/verify/*` を動かす（`tools/verify/README.md`）。Node の基準は `tests/js/*-reference.mjs`（8262089 にある）を `node` で動かして `.json.gz` にする。
+- 作り方（three.js の版が要る。今は作れない）: `git worktree add <dir> 8262089`、`dotnet publish` と Build（CLAUDE.md の手順）で、リポジトリの外に配信する（作業用の静的サーバーで配った。CSP は `_headers` の `/*` を付ける）。その配信に対して、`GOLDEN_MODE=capture` で `tools/verify/*` を動かす（`tools/verify/README.md`）。Node の基準は `tests/js/*-reference.mjs`（8262089 にある）を `node` で動かして `.json.gz` にする。
 - 確かめ: 8262089 の基準に対して、C# 版の `tutorial-compare`（既定の比べ方）が、一時的に変えた C# の文言（「左クリック」→「右クリック」）で NG になることを確かめた（3 手順で、文字の差と画素の差 0.023 %・最大 217）。変えた文言は戻した。
 - 併せて直したもの: `UnityData.PartMesh` の形のキャッシュ（`Dictionary` → `ConcurrentDictionary`）。テストが並列に動くと壊れた（ブラウザは 1 スレッドなので、本番では起きない）。
 
@@ -649,12 +649,13 @@ S6 のあとに消せる分（見込み。同じ方法）: `room.js` 4,986 + `vi
 - 基準との比較（既定の比べ方。C# 版と凍結した基準）: `practice-compare` 9/9、`practice-details` 25/25、`unity-compare` 44 件、`tutorial-input-compare` 66 件、`tutorial-compare` 156 件、`tutorial-dom` 25 件（うち 1 回目は待ちがタイムアウト。単独でやり直して通った。環境の揺れとして記録）。すべて ok。
 - `dom-diff`（静的 HTML と起動後）: `/practice`・`/practice/unity`・`/practice/room` の 3 ページで差なし。
 - `csp-check`（`_headers` の CSP を付けた配信）: CSP 違反 0。NG は `/report`（Worker の API が無い）と `/practice/room`（WebSocket が無い）の 404。Worker の無い静的サーバーのため。
+- スマートフォン幅（390・タッチ。`probe-touch` の手順）: 記事（`transform`・`editor-overview`・`edit-mode`）と `/practice` の「画像で見る」は、画像 6 枚が読め、Practice・Render の wasm は読まれない（base と同じ）。**一度、C# 版の記事内チュートリアルを読んでしまう不具合があった（`startArticle` が常に C# 版を始めたため）。タッチだけの端末では C# 版を始めないように直した。** 差: 3D に切り替える「3D ビューで操作する」ボタンは、スマートフォンでは出ない（base では出て、押すと 3D が始まった。この版の tutorial.js は画像だけ）。
 - `practice.mjs`（`ENGINE=cs`）: 基準（`practice-baseline.json`）との 49 件が ok。**共有ルームの部分は、Worker の WebSocket が無いため動かせなかった（S6 のあとに、wrangler の配信で確かめる）**。
 
 ### 16.4 この PR で消したもの・残したもの
 
 - 消した: `wwwroot/js/practice.js`・`unity.js`・`unity-practice.js`。Node の基準を作る `tests/js/` の生成スクリプト（`practice-reference.mjs`・`practice-render-reference.mjs`・`unity-reference.mjs`・`tutorial-reference.mjs`・`practice-dom.mjs`・`practice-hooks.mjs`・`*-cases.generate.mjs`・`practice-fragile.mjs`・`practice-noise.mjs`・`practice-numeric.test.mjs`。作り方は 8262089 にある）。`PageDomParityTests` の `/practice`・`/practice/unity` は、bUnit では C# 版が始まらない（WebGL も WASM も無い）ので外し、`dom-diff`（ブラウザ）で見る。
-- 残したもの（S6 で消す）: `room.js`・`viewport.js`・`editmesh.js`・`lib/three`・importmap・CSP のハッシュ・README の Three.js の一文。`tests/js/practice-render-reference` 以外の viewport 用の参照（凍結済み）。
+- 残したもの（S6 で消す）: `room.js`・`viewport.js`・`editmesh.js`・`lib/three`・importmap・CSP のハッシュ・README の Three.js の一文。`tests/js/practice-dom.mjs`・`practice-hooks.mjs` は、今は使われていない（S6 の Node の突き合わせが使うので残した。S6 がマージされたら消す）。
 - 残した（後で整理する）: `tutorial.js` の手順の処理（`replayTo`・`onEvent`・`skip` など）は、3D（`this.vp`）が無いので到達しない。画像の作成（`tools/tutorial-images`・`captureStep`）は、3D の版が無いので動かない（作成済みの画像は残る）。`tools/verify/practice.mjs` の `ENGINE=js` は、もう JS 版を作らない（`ENGINE=cs` と同じ）。
 
 ### 16.5 確証が持てない点・S6 への申し送り

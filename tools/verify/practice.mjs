@@ -15,7 +15,7 @@ const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const BASELINE = JSON.parse(readFileSync(new URL("./practice-baseline.json", import.meta.url), "utf8"));
 const ROUNDS = Number(process.env.ROUNDS || 20);
 // ENGINE=cs: /practice を C# 版(?engine=cs。Phase 3b S3)で動かす。操作の結果は同じ基準(practice-baseline.json)と一致するはず。既定は Three.js 版
-const ENGINE = process.env.ENGINE === "cs" ? "cs" : "js";
+const ENGINE = "cs";   // S7 から JS 版は無い（ENGINE は効かない。既定も C#）
 const ENGINE_QUERY = ENGINE === "cs" ? "&engine=cs" : "";
 const ARTICLE = "/learn/basics/transform";   // 記事内チュートリアル(::: practice transform)がある記事
 const ARTICLE2 = "/learn/basics/select";

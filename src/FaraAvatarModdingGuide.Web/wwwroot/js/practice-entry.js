@@ -46,7 +46,7 @@ export async function start(id, pcScript, options) {
 
 /**
  * 記事の本文(selector)の中の記事内チュートリアル(::: practice が出す空の .practice-embed[data-scenario])を始める(ArticlePage から)。
- * 3D は C# 版（practice-cs.js の mount。Blazor のコンポーネント）。C# 版にないもの・タッチの「画像で見る」は tutorial.js（画像だけ）。
+ * PC の 3D は C# 版（practice-cs.js の mount。Blazor のコンポーネント）。タッチだけの端末と、C# 版にないものは tutorial.js（画像だけ）。
  */
 export async function startArticle(id, selector) {
   disposeCurrent();
@@ -54,7 +54,8 @@ export async function startArticle(id, selector) {
   current = mine;
   const container = document.querySelector(selector);
   if (!container) return;
-  const csHandle = await (await import("./practice-cs.js")).mount(container);
+  // タッチだけの端末は、3D を読まない（C# 版の読み込みは Practice・Render を取りに行く）。画像で見るだけの tutorial.js にする（今までどおり）
+  const csHandle = touchOnly() ? null : await (await import("./practice-cs.js")).mount(container);
   const handle = (await import("./tutorial.js")).mount(container);
   if (current !== mine) { handle.dispose(); csHandle?.dispose(); return; }
   mine.dispose = () => { handle.dispose(); csHandle?.dispose(); };
