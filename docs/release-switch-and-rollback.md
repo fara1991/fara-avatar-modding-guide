@@ -1,6 +1,6 @@
 # 切り替え（develop への統合）と、戻し方
 
-Blazor WebAssembly + MudBlazor への移行（[wasm-migration-plan.md](wasm-migration-plan.md)）の Phase 5。この文書は、(1) 本番に届く経路、(2) 統合から本番の初公開までの手順（ユーザーの作業）、(3) 戻し方、をまとめる。公開の仕組み（deploy.yml）は README の「デプロイ（Cloudflare）」。
+Blazor WebAssembly + MudBlazor への移行（[wasm-migration-plan.md](wasm-migration-plan.md)）の Phase 5。この文書は、(1) 本番に届く経路、(2) 統合から本番の初公開までの手順（ユーザーの作業）、(3) 戻し方、をまとめる。公開の仕組み（build.yml・deploy-develop.yml・deploy.yml）は README の「デプロイ（Cloudflare）」。
 
 ## 1. 本番に届く経路
 
@@ -16,10 +16,10 @@ Blazor WebAssembly + MudBlazor への移行（[wasm-migration-plan.md](wasm-migr
 この Phase 5 の作業（`migration/wasm` 向けの 3 つの PR と、`migration/wasm` → `develop` の統合 PR）は、どれも `master` に触れない。`develop` に入ると確認用（avatar-dev）に出るところまで。`develop` → `master` の PR を作る・マージするのは、統合のあと、ユーザーが判断する。
 
 守りは 4 重:
-1. `deploy.yml` の `deploy` ジョブの `if`（master / develop の push と手動実行だけ）
+1. 公開のワークフローの `on` と `if`（`deploy.yml` は master、`deploy-develop.yml` は develop の push と手動実行だけ）
 2. 公開のステップの先頭で、`production` は master から、`dev` は develop からしか公開しない（それ以外は wrangler を呼ぶ前に止まる）
-3. `verify-site.mjs`: 公開先の環境の出力か（本番用: noindex なし・`sitemap.xml` あり・canonical が avatar.fara-labs.com。確認用: その逆）を、build ジョブと deploy ジョブ（公開の直前）で確かめる
-4. `Web.Tests` の `DeployWorkflowTests`: 上の 1〜3 と、`wrangler deploy` が必ず `--env` を付けること、本番の式がすべて master の判定とセットであること、公開のステップを実際に bash で動かした引数（`MAINTENANCE_MODE:true` が付く場面・付かない場面）を確かめる
+3. `verify-site.mjs`: 公開先の環境の出力か（本番用: noindex なし・`sitemap.xml` あり・canonical が avatar.fara-labs.com。確認用: その逆）を、build.yml と公開のワークフロー（公開の直前）で確かめる
+4. `Web.Tests` の `DeployWorkflowTests`: 上の 1〜3 と、`wrangler deploy` が必ず `--env` を付けること、本番のファイルに確認用の名前が、確認用のファイルに本番の名前が出てこないこと、公開のステップを実際に bash で動かした引数（`MAINTENANCE_MODE:true` が付く場面・付かない場面）を確かめる
 
 ## 2. 統合から本番の初公開まで（ユーザーの作業）
 
