@@ -1,0 +1,92 @@
+name: Build and test
+
+# FaraAvatarModdingGuide（Blazor WebAssembly + MudBlazor）のビルドとテスト。すべてのブランチへの push と Pull Request で動く。
+# 公開はしない（Cloudflare のシークレットも使わない）。wrangler は dry-run だけ。
+# 公開は、deploy-develop.yml（develop → 確認用）と deploy.yml（master → 本番）がそれぞれ自分でビルドして行う。成果物（artifact）は保存しない。
+# fara-pokemon-battle-assistant と同じ形（build.yml / deploy-develop.yml / deploy.yml）。
+
+on:
+  push:
+    branches-ignore: [gh-pages]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      # external/fara-site-kit（共通部品。Web・Build・Worker が使う）を取得する
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # Build.Tests が kit の Node ツール（build/build-pages.mjs）を実際に呼ぶ
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build
+        run: dotnet build -c Release --nologo
+
+      - name: Test
+        run: dotnet test -c Release --no-build --nologo
+
+      # 報告の受け口・メンテナンスの判定は共通部品（external/fara-site-kit/worker）。Worker の入口（worker/index.js）のテストと一緒に動かす
+      - name: Worker tests (report, maintenance, entry)
+        run: node --test external/fara-site-kit/worker/report.test.mjs external/fara-site-kit/worker/maintenance.test.mjs worker/index.test.mjs
+
+      - name: Deploy gate tests (maintenance, site verification)
+        run: node --test .github/scripts/require-maintenance.test.mjs .github/scripts/verify-site.test.mjs
+
+      - name: Browser script tests (storage migration, default theme, search normaliser, notice banner, practice entry, head sync)
+        run: node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/search-norm-fn.test.mjs tests/js/notice.test.mjs tests/js/practice-entry.test.mjs tests/js/head-sync.test.mjs
+
+      - name: Publish web (WebAssembly)
+        run: dotnet publish src/FaraAvatarModdingGuide.Web -c Release --nologo -o publish
+
+      # 本番用と確認用の両方の出力を作って確かめる（公開のワークフローは、どちらか一方だけを作る）。
+      # 確認用のホスト名（canonical など）は tools/site.json の devOrigin（avatar-dev.fara-labs.com）
+      - name: Build static pages (production)
+        run: |
+          cp -r publish/wwwroot site-production
+          dotnet run --project src/FaraAvatarModdingGuide.Build -c Release --no-launch-profile -- --template publish/wwwroot/index.html --out site-production --env production
+
+      - name: Build static pages (develop)
+        run: |
+          cp -r publish/wwwroot site-develop
+          dotnet run --project src/FaraAvatarModdingGuide.Build -c Release --no-launch-profile -- --template publish/wwwroot/index.html --out site-develop --env develop
+
+      # 出力が、その環境のものか（本番: noindex なし・sitemap あり・canonical が avatar.fara-labs.com / 確認用: その逆）
+      - name: Verify the outputs (production, develop)
+        run: |
+          node .github/scripts/verify-site.mjs site-production production
+          node .github/scripts/verify-site.mjs site-develop develop
+
+      # 検索の索引が、現行の検索（searchcore.js）と同じ正規化であること。実際の索引での検索の回帰テスト
+      - name: Search tests with the built index
+        run: |
+          node tests/js/search-norm.mjs site-production/data/search.json
+          SEARCH_INDEX_FILE=site-production/search-index.json node --test tests/js/search.test.mjs
+
+      # wrangler の設定（本番・確認用）が通ること。dry-run は公開しない（Cloudflare の認証も使わない）。assets は ./dist
+      - name: Wrangler dry-run (production)
+        run: |
+          rm -rf dist && cp -r site-production dist
+          npx --yes wrangler@4.149.0 deploy --dry-run --env production
+
+      - name: Wrangler dry-run (dev)
+        run: |
+          rm -rf dist && cp -r site-develop dist
+          npx --yes wrangler@4.149.0 deploy --dry-run --env dev

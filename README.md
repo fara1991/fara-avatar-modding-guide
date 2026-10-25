@@ -51,7 +51,7 @@ cd fara-avatar-modding-guide
 
 ### ビルドと確認
 
-公開物は 3 段で作ります（CI の `.github/workflows/deploy.yml` も同じ手順）。
+公開物は 3 段で作ります（CI の `.github/workflows/build.yml`・`deploy-develop.yml`・`deploy.yml` も同じ手順）。
 
 ```bash
 # 1. WebAssembly のアプリ（publish/wwwroot）
@@ -117,7 +117,7 @@ fara-avatar-modding-guide/
 ├── worker/index.js           # Cloudflare Worker（/api/* と共同練習の部屋の Durable Object）。報告・メンテナンスの判定は kit の共有 JS
 ├── external/fara-site-kit/   # 共通部品（git submodule）
 ├── .github/
-│   ├── workflows/deploy.yml  # ビルド・テスト・公開（master = 本番、develop = 確認用）
+│   ├── workflows/            # build.yml（ビルド・テスト）・deploy-develop.yml（develop → 確認用）・deploy.yml（master → 本番）
 │   └── scripts/              # require-maintenance.mjs（本番の公開のゲート）・verify-site.mjs（環境の取り違えを止める）
 ├── docs/                     # wasm-migration-plan.md（移行の計画と記録）・release-switch-and-rollback.md（切り替えと戻し方）
 ├── wrangler.toml
@@ -182,18 +182,17 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 
 > **本番（avatar.fara-labs.com）に届く経路は 1 つだけ: `master` への push（`develop` → `master` の PR のマージ）と、`master` を選んだ手動実行（Actions の Run workflow）。**
 > develop への push は確認用（avatar-dev）にしか届きません。ほかのブランチ・Pull Request は、ビルドとテスト、`wrangler deploy --dry-run` だけで、公開しません。
-> `develop` → `master` の PR のマージは、中身（特に `deploy.yml`・`wrangler.toml`・Worker）を確かめてからユーザーが行います。Claude は PR の作成までで、master にはマージしません。
+> `develop` → `master` の PR のマージは、中身（特に `deploy.yml`・`deploy-develop.yml`・`wrangler.toml`・Worker）を確かめてからユーザーが行います。Claude は PR の作成までで、master にはマージしません。
 
-`.github/workflows/deploy.yml` が、1 つのファイルで本番と確認用を担います。
+ワークフローは 3 つです（fara-pokemon-battle-assistant・fara-portfolio-site と同じ形）。公開の 2 つは自分でビルドして公開し、成果物（artifact）は使いません。
 
-| きっかけ | build | deploy 先 |
+| ファイル（Actions での名前） | 動くとき | 内容 |
 | --- | --- | --- |
-| Pull Request / 他のブランチ | ビルド・テスト・本番用と確認用の両方の出力・環境の確認・dry-run | 公開しない |
-| `develop` への push | 同上 | `fara-avatar-dev`（`--env dev`）に、確認用の出力を公開 |
-| `master` への push | 同上 | `fara-avatar`（`--env production`）に、本番用の出力を公開（下の「本番の公開とメンテナンス」） |
-| 手動実行（master / develop を選んだときだけ） | 同上 | 選んだブランチの環境へ。入力でメンテナンス表示を切り替えられる |
+| `build.yml`（Build and test） | すべての push と Pull Request | ビルド・テスト・本番用と確認用の両方の出力・環境の確認・dry-run。公開しない |
+| `deploy-develop.yml`（Deploy (develop)） | `develop` への push と、develop を選んだ手動実行 | 確認用の出力を作り、`fara-avatar-dev`（`--env dev`）に公開 |
+| `deploy.yml`（Deploy (production)） | `master` への push と、master を選んだ手動実行 | 本番用の出力を作り、`fara-avatar`（`--env production`）に公開（下の「本番の公開とメンテナンス」） |
 
-build ジョブは、本番用（`--env production`）と確認用（`--env develop`）の出力を別のフォルダに作り、`verify-site.mjs` で「本番用は noindex なし・`sitemap.xml` あり・canonical が `https://avatar.fara-labs.com/`、確認用はその逆」を確かめ、`wrangler deploy --dry-run` を両方の環境で実行します。deploy ジョブは公開先の環境の出力だけを取り出し、公開の直前に `verify-site.mjs` でもう一度確かめます（取り違えていれば止まります）。さらに、`production` へは master 以外から、`dev` へは develop 以外からは、公開のステップが止まります。
+`build.yml` は、本番用（`--env production`）と確認用（`--env develop`）の出力を別のフォルダに作り、`verify-site.mjs` で「本番用は noindex なし・`sitemap.xml` あり・canonical が `https://avatar.fara-labs.com/`、確認用はその逆」を確かめ、`wrangler deploy --dry-run` を両方の環境で実行します。公開の 2 つは、その環境の出力だけを作り、公開の直前に `verify-site.mjs` で確かめます（取り違えていれば止まります）。さらに、`production` へは master 以外から、`dev` へは develop 以外からは、公開のステップが止まります。
 
 ### 初回設定
 
@@ -207,14 +206,14 @@ build ジョブは、本番用（`--env production`）と確認用（`--env deve
 ### 本番の公開とメンテナンス（MAINTENANCE_MODE）
 
 - Worker の変数 `MAINTENANCE_MODE`（`true` = 全体メンテナンス・全ページ 503 / `notice` = お知らせ帯 / `false` または未設定 = 通常）と `MAINTENANCE_MESSAGE`（文面）で切り替えます。旧名 `MAINTENANCE` は読みません（残っていても無視。ダッシュボードで削除してかまいません）。
-- 切り替えは **Actions → Deploy → Run workflow**（本番は Use workflow from を `master`、確認用は `develop`）で、`maintenance_mode`（true / notice / false / 空）と `maintenance_message`（空 = 変更しない）を入れて実行します。4 サイトまとめては `external/fara-site-kit/tools/maintenance.mjs`（`external/fara-site-kit/docs/maintenance-cli.md`）。実行ページ下部のジョブサマリーに、設定した値と反映後の現在値が出ます。
+- 切り替えは **Actions → Deploy (production) → Run workflow**（Use workflow from = `master`）、確認用は **Actions → Deploy (develop) → Run workflow**（`develop`）で、`maintenance_mode`（true / notice / false / 空）と `maintenance_message`（空 = 変更しない）を入れて実行します。4 サイトまとめては `external/fara-site-kit/tools/maintenance.mjs`（`external/fara-site-kit/docs/maintenance-cli.md`）。実行ページ下部のジョブサマリーに、設定した値と反映後の現在値が出ます。
 - **本番の push（master）と、何も指定しない手動実行**は、公開の前に `MAINTENANCE_MODE` が `notice` か `true` かをゲート（`.github/scripts/require-maintenance.mjs`）で確かめ、公開と同時に `--var MAINTENANCE_MODE:true`（メンテナンス画面）にします。作業が終わったら `maintenance_mode` に `false` を入れて Run workflow（master）で通常に戻します（お知らせも一緒に消える。このとき、その時点の master の内容がすべて公開されます）。
   - `maintenance_mode` を指定した手動実行はゲートを飛ばし、その値を渡します。`maintenance_message` だけの手動実行は `MAINTENANCE_MODE` を変えません。
   - `skip_maintenance_check` は確認を飛ばし、`MAINTENANCE_MODE` を作りも変えもしません（**お知らせなし・メンテナンス画面なしで、すぐ公開されます**。緊急の修正用）。
 - **本番の初回の公開**（Worker `fara-avatar` がまだ無い）: ゲートは Worker の不在（Cloudflare API が 404）を「初回の公開」として通します。master への push（または `maintenance_mode` を空にした手動実行）で `--var MAINTENANCE_MODE:true` が付くので、**Worker・カスタムドメイン・Durable Object が作られ、全ページがメンテナンス画面（503）のまま公開されます**。
   1. 公開前の確認は avatar-dev で行う（同じコードの確認用ビルド。本番は 503 で、中身は見えない）
   2. master への初回の push のあと、ダッシュボードで `fara-avatar` に報告の変数（上の初回設定の 4）を設定する
-  3. Actions → Deploy → Run workflow（Use workflow from: `master`）で `maintenance_mode` に `false`（先にお知らせを見せるなら `notice`）を入れて実行 → 通常公開になる
+  3. Actions → Deploy (production) → Run workflow（Use workflow from: `master`）で `maintenance_mode` に `false`（先にお知らせを見せるなら `notice`）を入れて実行 → 通常公開になる
   - `skip_maintenance_check` は初回には使わない（メンテナンス画面を経由せず、すぐ公開されてしまう）。
 - 切り替えの手順・戻し方・Cloudflare 側の後始末は [docs/release-switch-and-rollback.md](docs/release-switch-and-rollback.md)。
 
