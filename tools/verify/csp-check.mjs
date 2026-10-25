@@ -7,7 +7,7 @@ const NEW = (process.env.NEW || "http://127.0.0.1:8787").replace(/\/$/, "");
 const PAGES = [
   "/", "/learn", "/learn/basics", "/learn/getting-started/install", "/learn/basics/transform", "/learn/modeling/edit-mode", "/learn/unity/modular-avatar-outfit",
   "/shortcuts", "/glossary", "/howto", "/tips", "/qa", "/addons", "/links", "/changelog", "/privacy", "/report", "/search?q=blender",
-  "/practice", "/practice/unity", "/practice/unity?engine=cs", "/learn/unity/editor-overview?engine=cs", "/learn/unity/modular-avatar-outfit?engine=cs", "/practice/room", "/practice/room?room=cspcheck01", "/no-such-page-here",
+  "/practice", "/practice/unity", "/practice/unity?engine=cs", "/learn/unity/editor-overview?engine=cs", "/learn/unity/modular-avatar-outfit?engine=cs", "/practice/room", "/practice/room?room=cspcheck01", "/practice/room?room=cspcheck01&engine=cs", "/no-such-page-here",
 ];
 const b = await launch();
 const rows = [];

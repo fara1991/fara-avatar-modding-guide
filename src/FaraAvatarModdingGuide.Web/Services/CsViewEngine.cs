@@ -118,7 +118,11 @@ public abstract class CsViewEngine : IDisposable
         if (packed.Length < length) packed = new float[length * 2];
         FramePacker.Pack(frame, packed);
         PracticeGl.Draw(MemoryMarshal.AsBytes(packed.AsSpan(0, length)));
+        OnAfterFrame();
     }
+
+    /// <summary>1 フレームの描画のあと(部屋のカーソルの位置など、描画と同じ時刻に DOM を合わせるもの)。</summary>
+    protected virtual void OnAfterFrame() { }
 
     /// <summary>button の下位 4 ビットがボタン、その上が修飾キー(1 Shift・2 Ctrl・4 Alt・8 Meta)。</summary>
     private bool OnPointerDown(int buttonAndMods, double x, double y)
