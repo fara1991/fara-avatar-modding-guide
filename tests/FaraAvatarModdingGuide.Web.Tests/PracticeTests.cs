@@ -42,6 +42,7 @@ public class PracticeTests : WebTestContext
     public async Task Practice_page_starts_its_script_once_and_disposes_with_the_same_id()
     {
         var entry = Entry();
+        Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost/practice?engine=js");   // JS 版（?engine=js）の入口を確かめる
         var cut = Render<Web.Pages.Practice>();
         cut.WaitForAssertion(() => Assert.Single(entry.Invocations["start"]));
         var call = entry.Invocations["start"].Single();
@@ -59,6 +60,7 @@ public class PracticeTests : WebTestContext
     public async Task Unity_practice_page_starts_the_unity_script_and_disposes()
     {
         var entry = Entry();
+        Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost/practice/unity?engine=js");   // JS 版（?engine=js）の入口を確かめる
         Render<PracticeUnity>();
         Assert.Equal("unity-practice.js", entry.Invocations["start"].Single().Arguments[1]);
         await DisposeComponentsAsync();

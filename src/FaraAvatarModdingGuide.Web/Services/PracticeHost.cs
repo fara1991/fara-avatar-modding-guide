@@ -16,7 +16,7 @@ public sealed class PracticeHost(IJSRuntime js) : IAsyncDisposable
     /// <summary>PC 用の練習(pcScript: 例 "practice.js")を始める。タッチだけの端末では、案内を出して、記事内チュートリアルの「画像で見る」を始める。</summary>
     public Task StartAsync(string pcScript, object? options) => starting = StartCoreAsync(pcScript, options);
 
-    /// <summary>タッチだけの端末か(?engine=cs の C# 版は PC 用。タッチの端末は、これまでの案内の画面にする)。</summary>
+    /// <summary>タッチだけの端末か(C# 版は PC 用。タッチの端末は、これまでの案内の画面にする)。</summary>
     public async Task<bool> IsTouchOnlyAsync()
     {
         try

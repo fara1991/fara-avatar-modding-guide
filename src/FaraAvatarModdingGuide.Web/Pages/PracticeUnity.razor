@@ -93,7 +93,7 @@
     {
         // 同じページのまま ?engine= だけが変わる移動（アドレスの書き換え・戻る）は、ページを読み込み直す（エンジンの切り替えは、始め直しが要るため）
         Nav.LocationChanged += OnLocationChanged;
-        // ?engine=cs で、Unity 風の画面を C#(Practice・Render)+ 薄い WebGL 層で動かす(Phase 3b S5。既定は今までの Three.js 版)
+        // 既定は C#(Practice・Render)+ 薄い WebGL 層で、Unity 風の画面を動かす(Phase 3b S5・S7。?engine=js は今までの Three.js 版)
         csMode = Nav.IsCsEngine();
     }
 

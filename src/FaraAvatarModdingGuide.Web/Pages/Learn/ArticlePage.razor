@@ -178,7 +178,7 @@ else
         tutorials = null;
         if (url is null) return;
         tutorials = new PracticeHost(JS);
-        await tutorials.StartArticleAsync(".article-body", cs: Nav.IsCsEngine());   // ?engine=cs: C# 版(Phase 3b S4)
+        await tutorials.StartArticleAsync(".article-body", cs: Nav.IsCsEngine());   // 既定は C# 版(Phase 3b S4・S7。?engine=js で今までの tutorial.js)
     }
 
     private async Task SyncTocAsync()
