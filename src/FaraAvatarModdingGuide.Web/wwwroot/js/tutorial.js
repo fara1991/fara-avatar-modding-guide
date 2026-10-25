@@ -1,23 +1,16 @@
-// 記事内チュートリアル。Markdown の「::: practice <名前>」から生成された .practice-embed に 3D ビューを埋め込み、
-// scenarios.js の手順を 1 つずつ案内する（ゲームのチュートリアルのように、達成すると自動で次へ進む）。
+// 記事内チュートリアルの「画像で見る」（手順ごとの画像を横にめくるカード）。Markdown の「::: practice <名前>」から生成された .practice-embed に出す。
+// 3D ビューは C# 版（practice-cs.js・Services/TutorialController.cs・Components/TutorialEmbed.razor）だけが動かす（Phase 3b S7）。
+// この版は、3D のための読み込み（three.js・viewport.js・unity.js）を持たない。タッチだけの端末（スマートフォンなど）の案内も、この画像を見せる。
+// 旧版（three.js の 3D ビューと手順の進行）は commit 8262089 の wwwroot/js/tutorial.js にある。
 //
-// - three.js と viewport.js は、埋め込みが画面に入ったときに初めて読み込む
-// - WebGL を使うビューはページ内で 1 つだけ。別のものを始めると、前のものは一時停止して「クリックして再開」になる
-// - 最後まで進むと、ページ内のチュートリアルがすべて終わっていればページを完了にする（progress.js）
-// - タッチだけの端末（スマートフォンなど）では 3D ビューを出さず、手順ごとの画像を横にめくるカードで見せる。
-//   PC でも「画像で見る」で切り替えられる。画像は tools/tutorial-images/ のスクリプトで作る（/images/tutorials/<名前>/NN.webp）
-//
-// WebAssembly 版(Blazor のページから呼ぶ)での変更点(旧 SSR 版の tutorial.js との差):
-//   ・読み込んだだけでは動かない。mount(container) で、その中の .practice-embed に始め、返った dispose() で後始末をする
-//     (記事を離れるとき・記事が替わるとき。WebGL のコンテキスト・IntersectionObserver・ResizeObserver・イベントを全部解放する)
-//   ・画像が無いときの「画像は準備中です」は、HTML の onerror 属性(CSP の script-src で止まる)ではなく、イベントの待ち受けで差し替える
+// - mount(container) で、その中の .practice-embed に始め、返った dispose() で後始末をする（記事を離れるとき・記事が替わるとき）
+// - 画像が無いときの「画像は準備中です」は、HTML の onerror 属性(CSP の script-src で止まる)ではなく、イベントの待ち受けで差し替える
 import { SCENARIOS } from "./scenarios.js";
 
 const DONE_KEY = "avatar-modding-guide.tutorials"; // { シナリオ名: 完了日時 }
 const touchOnly = matchMedia("(hover: none) and (pointer: coarse)").matches;
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const tutorials = new Map();
-let active = null; // WebGL を使っている Tutorial
 
 function loadDone() {
   try {
@@ -102,7 +95,7 @@ class Tutorial {
     el.dataset.engine = this.unity ? "unity" : "blender";
     this.build();
     this.renderStep();
-    this.setImageMode(touchOnly, true);
+    this.setImageMode();
   }
 
   build() {
@@ -165,7 +158,6 @@ class Tutorial {
     }, { capture: true, signal });
     this.el.addEventListener("click", e => {
       const act = e.target.closest("[data-act]")?.dataset.act;
-      if (act === "images") { this.setImageMode(!this.imageMode); return; }
       if (act === "prev" || act === "next") { this.goCard(this.card + (act === "next" ? 1 : -1)); return; }
       if (act === "retry") this.retry();
       else if (act === "skip") this.skip();
@@ -201,7 +193,6 @@ class Tutorial {
     clearTimeout(this.failTimer);
     clearTimeout(this.msgTimer);
     this.suspend();
-    if (active === this) active = null;
   }
 
   // ---------------------------------------------------------------- 画像で見る（スマートフォン・「画像で見る」）
@@ -247,18 +238,14 @@ class Tutorial {
     b.style.minHeight = `${Math.ceil(max)}px`;
   }
 
-  /** 画像で見る（on）/ 3D ビューで操作する（off） */
-  setImageMode(on, initial = false) {
-    this.imageMode = on;
-    this.el.classList.toggle("is-images", on);
-    this.el.querySelector(".tut-steps").hidden = !on;
-    const btn = this.ui.modeBtn;
-    btn.innerHTML = on
-      ? `<i class="bi bi-badge-3d" aria-hidden="true"></i> 3D ビューで操作する${touchOnly ? "（キーボードとマウスが必要）" : ""}`
-      : '<i class="bi bi-images" aria-hidden="true"></i> 画像で見る';
-    btn.setAttribute("aria-pressed", on ? "true" : "false");
-    if (on) { this.suspend(); this.updateCards(); }
-    else { if (!initial) this.activate(); this.fitBubble(); }
+  /** 画像で見る（この版は画像だけ。3D は C# 版（practice-cs.js）が動かす） */
+  setImageMode() {
+    this.imageMode = true;
+    this.el.classList.add("is-images");
+    this.el.querySelector(".tut-steps").hidden = false;
+    this.ui.modeBtn.hidden = true;
+    this.suspend();
+    this.updateCards();
     this.renderStep();
   }
 
@@ -285,57 +272,21 @@ class Tutorial {
    * 画像を作るとき用（tools/tutorial-images/）: k 番目の手順を終えた状態にして、その手順の案内（矢印など）を出す。
    * ?debug=1 のときだけ window.__tutorials から呼べる
    */
-  async captureStep(k) {
-    if (this.imageMode) this.setImageMode(false, true);
-    if (!this.vp) await this.activate();
-    this.el.classList.add("is-capturing");
-    this.replayTo(k + 1, true);
-    this.vp.setHighlight(this.scenario.steps[k].highlight ?? {});
-    return this.ui.vp.getBoundingClientRect().toJSON();
-  }
-
-  // ---------------------------------------------------------------- ビューの用意
-  async activate() {
-    if (this.vp || this.loading || !this.scenario) return;
-    if (active && active !== this) active.suspend();
-    active = this;
-    this.loading = true;
-    this.ui.overlayText.textContent = "読み込み中…";
-    try {
-      // Unity の練習（engine: "unity"）と Blender の 3D ビューで、読み込むものを変える
-      const Editor = this.unity ? (await import("./unity.js")).UnityEditor : (await import("./viewport.js")).Viewport;
-      if (active !== this || this.disposed) return; // 読み込み中に別のものが始まった・ページを離れた
-      this.vp = new Editor(this.ui.vp, {
-        scene: this.scenario.scene,
-        view: this.scenario.view,
-        emulateNumpad: () => this.ui.numpad?.checked ?? false,
-        wheelNeedsFocus: true,
-      });
-      this.vp.on("*", e => this.onEvent(e));
-      if (this.unity && new URLSearchParams(location.search).get("debug") === "1") window.__unity = this.vp; // 確認用(tools/verify/tutorial-input-compare.mjs)
-      this.replayTo(this.finished ? this.scenario.steps.length : this.groupStart(this.index));
-    } catch (err) {
-      console.error(err);
-      this.ui.vp.innerHTML = `<div class="tut-error">3D ビューを表示できません。WebGL が有効なブラウザで開いてください。</div>`;
-    } finally {
-      this.loading = false;
-      this.updateOverlay();
-    }
+  /** 画像を作るとき用（tools/tutorial-images/）は、3D を動かす版でだけ作れた。この版では作れない（旧版は commit 8262089） */
+  async captureStep() {
+    throw new Error("画像は 3D の版（commit 8262089）で作る。この版は画像で見る専用");
   }
 
   /** 別のチュートリアルにビューを譲る */
   suspend() {
     if (!this.vp) return;
-    if (window.__unity === this.vp) delete window.__unity;
     this.vp.dispose();
     this.vp = null;
-    if (active === this) active = null;
     this.updateOverlay();
   }
 
   focusViewport() {
     if (this.vp) this.ui.vp.focus({ preventScroll: true });
-    else this.activate().then(() => this.vp && this.ui.vp.focus({ preventScroll: true }));
   }
 
   onOverlay() {
@@ -344,7 +295,7 @@ class Tutorial {
 
   updateOverlay() {
     const focused = this.ui.stage.contains(document.activeElement) && document.activeElement !== this.ui.overlay;
-    const show = !this.finished && (!this.vp || !focused);
+    const show = !this.imageMode && !this.finished && (!this.vp || !focused);
     this.ui.overlay.hidden = !show;
     this.ui.overlayText.textContent = this.loading ? "読み込み中…" : !this.vp ? (this.started ? "クリックして再開" : "クリックして始める") : "クリックして操作する";
     this.ui.overlay.classList.toggle("is-light", !!this.vp);
@@ -512,22 +463,11 @@ class Tutorial {
  */
 export function mount(container = document) {
   const mine = [];
-  const observer = new IntersectionObserver(entries => {
-    for (const entry of entries) {
-      const t = tutorials.get(entry.target);
-      if (!t) continue;
-      t.visible = entry.isIntersecting;
-      // 画面に入ったら読み込む。ほかのビューが見えているあいだは奪わない（クリックで切り替え）。画像で見ているときは読み込まない
-      if (entry.isIntersecting && !t.vp && !t.imageMode && (!active || !active.visible)) t.activate();
-    }
-  }, { rootMargin: "200px 0px" });
-
   for (const el of container.querySelectorAll(".practice-embed[data-scenario]:not([data-cs])")) {
     if (tutorials.has(el)) continue;
     const t = new Tutorial(el);
     tutorials.set(el, t);
     mine.push(t);
-    if (t.scenario) observer.observe(el);
   }
 
   // 確認用（?debug=1）: コンソールや自動テストから状態を見られるようにする
@@ -535,7 +475,6 @@ export function mount(container = document) {
 
   return {
     dispose() {
-      observer.disconnect();
       for (const t of mine) {
         t.dispose();
         tutorials.delete(t.el);

@@ -95,7 +95,7 @@ test("touch-only devices with embeds mount the tutorials in the guide, and dispo
 test("startArticle mounts the tutorials of the article body and disposes by id", async () => {
     reset();
     await entry.startArticle("a", ".article-body");
-    assert.deepEqual(queried, [["article", ".practice-embed[data-scenario]:not([data-cs])"]]);
+    assert.deepEqual(queried, [["article", ".practice-embed[data-scenario]:not([data-cs])"], ["article", ".practice-embed[data-scenario]:not([data-cs])"]]);   // C# 版（practice-cs）と、画像だけの tutorial.js の 2 つが探す
     entry.dispose("b");   // 別の id では解放されない
     entry.dispose("a");
     entry.dispose("a");   // 2 回目は何もしない(例外にならない)
@@ -111,11 +111,11 @@ test("a script that cannot be loaded shows a message in the empty frame and does
     reset();
     const frame = { childElementCount: 0, textContent: "" };
     const original = globalThis.document.querySelector;
-    globalThis.document.querySelector = (selector) => (selector.includes("#practice-viewport") ? frame : original(selector));
+    globalThis.document.querySelector = (selector) => (selector.includes("#room-viewport") ? frame : original(selector));
     const consoleError = console.error;
     console.error = () => { };
     try {
-        await entry.start("a", "no-such-file.mjs", "opt");
+        await entry.start("a", "no-such-file.mjs", "opt");   // みんなで練習（room.js）の読み込みが失敗したとき
     } finally {
         console.error = consoleError;
         globalThis.document.querySelector = original;

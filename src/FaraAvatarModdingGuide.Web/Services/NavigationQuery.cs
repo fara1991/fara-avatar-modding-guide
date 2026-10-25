@@ -15,7 +15,4 @@ internal static class NavigationQuery
         }
         return null;
     }
-
-    /// <summary>C# 版で動かすか(Phase 3b。既定は C# 版。?engine=js だけが今までの Three.js 版)。</summary>
-    public static bool IsCsEngine(this NavigationManager nav) => nav.Get("engine") != "js";
 }

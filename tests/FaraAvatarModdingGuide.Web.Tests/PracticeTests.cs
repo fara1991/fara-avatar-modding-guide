@@ -39,35 +39,6 @@ public class PracticeTests : WebTestContext
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost/practice/room" + (room is null ? "" : "?room=" + Uri.EscapeDataString(room)));
 
     [Fact]
-    public async Task Practice_page_starts_its_script_once_and_disposes_with_the_same_id()
-    {
-        var entry = Entry();
-        Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost/practice?engine=js");   // JS 版（?engine=js）の入口を確かめる
-        var cut = Render<Web.Pages.Practice>();
-        cut.WaitForAssertion(() => Assert.Single(entry.Invocations["start"]));
-        var call = entry.Invocations["start"].Single();
-        Assert.Equal("practice.js", call.Arguments[1]);
-        Assert.Empty(entry.Invocations["dispose"]);                         // 開いているあいだは解放しない
-
-        cut.Render();                                                       // 描き直しても、二重に始めない
-        Assert.Single(entry.Invocations["start"]);
-
-        await DisposeComponentsAsync();
-        Assert.Equal(Id(call), Id(Assert.Single(entry.Invocations["dispose"])));   // 離れるときに、始めたときと同じ id で解放する
-    }
-
-    [Fact]
-    public async Task Unity_practice_page_starts_the_unity_script_and_disposes()
-    {
-        var entry = Entry();
-        Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost/practice/unity?engine=js");   // JS 版（?engine=js）の入口を確かめる
-        Render<PracticeUnity>();
-        Assert.Equal("unity-practice.js", entry.Invocations["start"].Single().Arguments[1]);
-        await DisposeComponentsAsync();
-        Assert.Single(entry.Invocations["dispose"]);
-    }
-
-    [Fact]
     public async Task Room_page_in_the_lobby_shows_the_lobby_and_starts_only_the_phone_guide()
     {
         var entry = Entry();
@@ -232,18 +203,20 @@ public class PracticeTests : WebTestContext
         // 3D の本体(viewport・editmesh・unity・scenarios・bgscene)は、旧 SSR 版から書き換えずに持ってきたもの(計画書 4.5)。SSR 版を消したので、これが唯一の本体(元は Git の履歴)。
         // 比べる相手はもう無いので、置いてあることだけを確かめる(中身は tools/verify/practice.mjs が、実際の操作で確かめる)
         var dir = Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "js");
-        foreach (var name in new[] { "viewport.js", "editmesh.js", "unity.js", "scenarios.js", "bgscene.js" })
+        foreach (var name in new[] { "viewport.js", "editmesh.js", "scenarios.js", "bgscene.js" })   // viewport・editmesh は、みんなで練習（room.js）が使うので S6 まで残る
             Assert.True(File.Exists(Path.Combine(dir, name)), name);
+        Assert.False(File.Exists(Path.Combine(dir, "unity.js")), "unity.js は C# 版に置き換えた（Phase 3b S7）");
+        Assert.False(File.Exists(Path.Combine(dir, "practice.js")), "practice.js は C# 版に置き換えた（Phase 3b S7）");
         Assert.False(Directory.Exists(Path.Combine(TestData.Root, "wwwroot", "js")), "ルートの wwwroot/js(旧 SSR 版)は消した");
     }
 
     [Fact]
     public void Modified_scripts_export_start_and_dispose_and_do_nothing_when_only_loaded()
     {
-        // 書き換えた 4 つ(practice.js・unity-practice.js・room.js・tutorial.js)は、読み込んだだけでは動かず、start / mount と dispose を出す。
+        // 書き換えた 2 つ（room.js・tutorial.js）は、読み込んだだけでは動かず、start / mount と dispose を出す。
         // ページ上の DOM を探す処理がモジュールの先頭(読み込み時)に残っていないこと
         var dir = Path.Combine(TestData.Root, "src", "FaraAvatarModdingGuide.Web", "wwwroot", "js");
-        foreach (var (name, entry) in new[] { ("practice.js", "export function start("), ("unity-practice.js", "export function start("), ("room.js", "export function start("), ("tutorial.js", "export function mount(") })
+        foreach (var (name, entry) in new[] { ("room.js", "export function start("), ("tutorial.js", "export function mount(") })
         {
             var text = File.ReadAllText(Path.Combine(dir, name));
             Assert.Contains(entry, text);

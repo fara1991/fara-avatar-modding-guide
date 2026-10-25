@@ -36,3 +36,10 @@
   - `practice.mjs` の `ENGINE=cs` は、`/practice/unity` の操作も C# 版で動かす。`csp-check.mjs` は `?engine=cs` の Unity 3 画面も見る
   - **画像比較の 0.000 % は SwiftShader（既定。DPR 1）が前提**。実 GPU で描くときは `GPU=1`、画面の拡大率は `DPR=1.25` など、ウィンドウ付きは `HEADED=1`（`lib.mjs`）。実 GPU・小数の DPR では、案内の枠のある Unity の手順で、小さな差（0.003〜0.012 %。実行によっては Scene の上端・下端の 1 行 0.1 %）が出ることがある既知の差。`tutorial-compare.mjs` の `GPU_TOLERANT=1` が、案内の枠（`.ue-hl`）の中の画素の差を無視し、閾値を 0.2 % / 40 に緩める（DOM の文字は比べる。通常の厳しさは変わらない）。`MOTION=1` は動きを減らす設定を外す（枠の脈動の位相が違うので、比べる用ではない）
   - `practice-mixed.mjs` … Unity と Blender の記事内チュートリアルが同じページにあるとき（`ma-outfit` の記事に `transform` を足して作る）、WebGL の切り替えで canvas が 1 つだけ・もう一方に 3D ビューが残らない
+- Phase 3b S7（three.js を外す。docs/phase3b-design.md の §16）: 比べる相手（three.js の版）は消したので、基準を `tests/visual/golden/`（画像・DOM・文字・状態の JSON）に凍結した。`golden.mjs`:
+  - 既定（`GOLDEN_MODE` なし）は、保存した基準と C# 版（`?engine=cs` の指定は無くても、既定が C#）を比べる。three.js は要らない
+  - `GOLDEN_MODE=capture` は、three.js の版が残っている commit（8262089。`git worktree add <dir> 8262089` で作り、`dotnet publish` と Build をしてから、その配信に対して）でだけ動く。基準を上書きするので、必要なときだけ
+  - `GOLDEN_DIR=<フォルダ>` … 既定は `tests/visual/golden`。別の場所から（`pw/verify` などに写して）実行するときは絶対パスで指定する
+  - 対象: `practice-compare`・`practice-details`・`tutorial-compare`・`tutorial-input-compare`・`unity-compare`・`tutorial-dom`。`tutorial-input-compare` と `unity-compare` のギズモの位置は、基準の作成のときに求めて保存する（`handle-*.json`）
+  - 凍結しないもの（three.js の版を使わない）: `practice.mjs`（`practice-baseline.json` と比べる。`ENGINE=cs` は既定と同じ）・`practice-mixed.mjs`・`practice-race.mjs`・`dom-diff.mjs`・`csp-check.mjs`・`gl-*`（レンダーラボ）
+  - `practice-compare` の `ONLY=`・`tutorial-compare` の `ONLY=` などは従来どおり

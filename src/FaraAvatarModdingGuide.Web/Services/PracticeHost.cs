@@ -2,9 +2,8 @@ using Microsoft.JSInterop;
 
 namespace FaraAvatarModdingGuide.Web.Services;
 
-/// <summary>
-/// 練習ページ(/practice・/practice/unity・/practice/room)の 3D を、JavaScript(Three.js)で動かして、ページを離れるときに必ず解放する橋渡し。
-/// js/practice-entry.js を import して、start(PC 用のスクリプト, 引数) と dispose() を呼ぶだけ。3D の中身(viewport.js・unity.js・room.js)は、Blazor は知らない(計画書 4.5)。
+/// 練習ページ(/practice・/practice/unity・/practice/room)と、記事内チュートリアルの JavaScript の橋渡し(js/practice-entry.js)。1 人用の練習の 3D は C#（Blazor）だけ（Phase 3b S7）。
+/// みんなで練習（room.js。three.js の 3D を含む）の開始・解放と、タッチの案内・記事内チュートリアルの入口を呼ぶ。引数は start(id, pcScript, 引数) と dispose(id)。
 /// ページは IAsyncDisposable で DisposeAsync を呼ぶ。始めている途中(import が済んでいない)でも、済むのを待ってから解放する。
 /// </summary>
 public sealed class PracticeHost(IJSRuntime js) : IAsyncDisposable
@@ -29,14 +28,14 @@ public sealed class PracticeHost(IJSRuntime js) : IAsyncDisposable
     }
 
     /// <summary>記事の本文(selector)の中の記事内チュートリアル(.practice-embed)を始める。PC は 3D ビュー、タッチだけの端末は「画像で見る」。</summary>
-    public Task StartArticleAsync(string selector, bool cs = false) => starting = StartCoreAsync(null, selector, cs);
+    public Task StartArticleAsync(string selector) => starting = StartCoreAsync(null, selector);
 
-    private async Task StartCoreAsync(string? pcScript, object? options, bool cs = false)
+    private async Task StartCoreAsync(string? pcScript, object? options)
     {
         try
         {
             module ??= await js.InvokeAsync<IJSObjectReference>("import", "./js/practice-entry.js");
-            if (pcScript is null) await module.InvokeVoidAsync("startArticle", id, options, cs);
+            if (pcScript is null) await module.InvokeVoidAsync("startArticle", id, options);
             else await module.InvokeVoidAsync("start", id, pcScript, options);
         }
         catch (JSException e)

@@ -612,3 +612,53 @@ SwiftShader の Chromium・AOT なし・localhost（wrangler dev）。前は `de
 - **L3**: `AssignMaterial` は、番号が 0..枚数の外なら何もしない（`unity.js` は範囲外でも配列を広げる（穴ができる）が、Inspector の欄からは起こせない。1e9 で固まらないための意図した差）。`UnityRobustnessTests`。
 - **L5**: JS モジュールの読み込み（`gl.js`・`practice-cs.js`・`unity-ui.js`）は、失敗した Task を static に残さず、次の呼び出しでやり直す（`RetryableTask`。`PracticeCsAssemblies` と同じ決まり）。`RetryableTaskTests`。
 - **L2**・**L4**: §15.5・§15.4。
+
+## 16. S7（three.js を外す）の記録
+
+- **決定（ユーザー 2026-10-25）**: S6 と S7 を並行で進め、本番（master）への反映はユーザーが行う。S7 の PR は develop 向け（`migration/wasm` は origin に無い。#119 も develop 向け）。**本番での実績（S3〜S6 を本番に出して一定期間の確認）の前に three.js を外した**。リスクは PR 本文に書く。
+- **段階**: (a) 既定を C# 版にする（`?engine=` の指定は無くなり、`engine=js` も効かない。`?engine=js` の JS 版は残さない）／ (b) three.js の 1 人用の練習を消す（`practice.js`・`unity.js`・`unity-practice.js`。`tutorial.js` は「画像で見る」だけにした）／ (c) **S6 まで残すもの**: 共有ルーム（`room.js`・`viewport.js`・`editmesh.js`）、`lib/three`・importmap・CSP のハッシュ（`SiteBuilder.ImportMapHashes`）、README の一文。S6 が入ったら、これらを消して S7 を完了する。
+
+### 16.1 基準の凍結（three.js の版を消す前）
+
+three.js の版（commit `8262089`）から作った基準を、ファイルにした。以後の比較は、基準と C# 版を比べる。
+
+- 画像・DOM・文字・状態（`tests/visual/golden/`）: `practice-compare`・`practice-details`・`tutorial-compare`・`tutorial-input-compare`・`unity-compare`・`tutorial-dom`。PNG と JSON。約 25 MB（PNG は圧縮のまま。`tutorial-compare` が 12 MB）。
+- Node の基準（`tests/js/golden/*.json.gz`）: `practice-basic`・`practice-edit`（C# の `ParityTests`・`EditParityTests`）、`practice-tutorial-render`・`render-basic`・`render-edit`・`render-tutorial`（描画の突き合わせ）、`unity`（`UnityParityTests`）、`tutorial`（`TutorialParityTests`）。gzip で約 17 MB。C# のテストは Node を動かさず、これを読む。
+- 作り方（three.js の版が要る。今は作れない）: `git worktree add <dir> 8262089`、`dotnet publish` と Build（CLAUDE.md の手順）で配信し、`GOLDEN_MODE=capture` で `tools/verify/*` を動かす（`tools/verify/README.md`）。Node の基準は `tests/js/*-reference.mjs`（8262089 にある）を `node` で動かして `.json.gz` にする。
+- 確かめ: 8262089 の基準に対して、C# 版の `tutorial-compare`（既定の比べ方）が、一時的に変えた C# の文言（「左クリック」→「右クリック」）で NG になることを確かめた（3 手順で、文字の差と画素の差 0.023 %・最大 217）。変えた文言は戻した。
+- 併せて直したもの: `UnityData.PartMesh` の形のキャッシュ（`Dictionary` → `ConcurrentDictionary`）。テストが並列に動くと壊れた（ブラウザは 1 スレッドなので、本番では起きない）。
+
+### 16.2 配信量（brotli q11。`publish/wwwroot` の js・css・dll・wasm・json・html。`data/` と画像は除く）
+
+| 対象 | 前（8262089） | 後（この PR） | 差 |
+| --- | --- | --- | --- |
+| 合計 | 3,505,743 B | 3,483,445 B | **−22,298 B（約 −22 KB）** |
+| `unity.js` | 17,614 B | 0 | −17,614 |
+| `practice.js` | 2,168 B | 0 | −2,168 |
+| `unity-practice.js` | 1,591 B | 0 | −1,591 |
+| `tutorial.js` | 7,773 B | 6,856 B | −917 |
+| `practice-entry.js` | 1,682 B | 1,730 B | +48 |
+| `lib/three/three.module.js` | 207,529 B | 207,529 B | 0（S6 まで残る） |
+
+S6 のあとに消せる分（見込み。同じ方法）: `room.js` 4,986 + `viewport.js` 20,575 + `editmesh.js` 8,860 + `three.module.js` 207,048 = **約 241 KB**（この PR の −22 KB と合わせると、three.js 系の JS は、この PR の前から約 264 KB 減る）。
+
+### 16.3 検証（この PR の状態。本番の配信ではなく、`publish` と Build の出力を `tests/` の静的サーバーで配った）
+
+- `dotnet test -c Release`: 857 件（Content 26・Build 47・Web 200・Practice 358・Render 226）すべて成功。
+- `node --test`（CLAUDE.md の一覧）: 121 件すべて成功（`SEARCH_INDEX_FILE` を Build の出力に向けた）。
+- 基準との比較（既定の比べ方。C# 版と凍結した基準）: `practice-compare` 9/9、`practice-details` 25/25、`unity-compare` 44 件、`tutorial-input-compare` 66 件、`tutorial-compare` 156 件、`tutorial-dom` 25 件（うち 1 回目は待ちがタイムアウト。単独でやり直して通った。環境の揺れとして記録）。すべて ok。
+- `dom-diff`（静的 HTML と起動後）: `/practice`・`/practice/unity`・`/practice/room` の 3 ページで差なし。
+- `csp-check`（`_headers` の CSP を付けた配信）: CSP 違反 0。NG は `/report`（Worker の API が無い）と `/practice/room`（WebSocket が無い）の 404。Worker の無い静的サーバーのため。
+- `practice.mjs`（`ENGINE=cs`）: 基準（`practice-baseline.json`）との 49 件が ok。**共有ルームの部分は、Worker の WebSocket が無いため動かせなかった（S6 のあとに、wrangler の配信で確かめる）**。
+
+### 16.4 この PR で消したもの・残したもの
+
+- 消した: `wwwroot/js/practice.js`・`unity.js`・`unity-practice.js`。Node の基準を作る `tests/js/` の生成スクリプト（`practice-reference.mjs`・`practice-render-reference.mjs`・`unity-reference.mjs`・`tutorial-reference.mjs`・`practice-dom.mjs`・`practice-hooks.mjs`・`*-cases.generate.mjs`・`practice-fragile.mjs`・`practice-noise.mjs`・`practice-numeric.test.mjs`。作り方は 8262089 にある）。`PageDomParityTests` の `/practice`・`/practice/unity` は、bUnit では C# 版が始まらない（WebGL も WASM も無い）ので外し、`dom-diff`（ブラウザ）で見る。
+- 残したもの（S6 で消す）: `room.js`・`viewport.js`・`editmesh.js`・`lib/three`・importmap・CSP のハッシュ・README の Three.js の一文。`tests/js/practice-render-reference` 以外の viewport 用の参照（凍結済み）。
+- 残した（後で整理する）: `tutorial.js` の手順の処理（`replayTo`・`onEvent`・`skip` など）は、3D（`this.vp`）が無いので到達しない。画像の作成（`tools/tutorial-images`・`captureStep`）は、3D の版が無いので動かない（作成済みの画像は残る）。`tools/verify/practice.mjs` の `ENGINE=js` は、もう JS 版を作らない（`ENGINE=cs` と同じ）。
+
+### 16.5 確証が持てない点・S6 への申し送り
+
+- 本番での実績がないまま three.js の 1 人用の練習を消した（ユーザーの指示）。問題が見つかったときの戻し方は、この PR を戻す（`git revert`）か、8262089 の JS を取り戻す。`?engine=js` は無い。
+- 比較の基準は SwiftShader（DPR 1）前提。実 GPU・小数の DPR の差は、`tools/verify/README.md`（§15.5）のとおり。
+- S6（共有ルーム）: `room.js` を C# にしたら、`viewport.js`・`editmesh.js`・`lib/three`・importmap・CSP のハッシュ・README の一文を消す（S7 の完了）。

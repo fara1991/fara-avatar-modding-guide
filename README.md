@@ -32,7 +32,7 @@
 - [MudBlazor](https://mudblazor.com/)（画面部品）
 - 共通部品: [fara-site-kit](https://github.com/fara1991/fara-site-kit)（`external/fara-site-kit`。git submodule。レイアウト・フッター・報告フォーム・メンテナンス表示・静的 HTML の生成・CSP・Worker の共有 JS）
 - [Markdig](https://github.com/xoofx/markdig)（Markdown → HTML）と [YamlDotNet](https://github.com/aaubry/YamlDotNet)（フロントマター・データ）は、ビルド時だけ使う（ブラウザには載らない）
-- Three.js（練習の 3D。`src/FaraAvatarModdingGuide.Web/wwwroot/lib/three/` に同梱）
+- Three.js（みんなで練習の 3D。`src/FaraAvatarModdingGuide.Web/wwwroot/lib/three/` に同梱。S6 で C# にするまで残す。1 人用の練習は C#）
 - Cloudflare Workers（Static Assets + Durable Objects）でホスティング
 
 ## セットアップ
@@ -98,7 +98,7 @@ fara-avatar-modding-guide/
 │   └── links.yml             # リンク集
 ├── src/
 │   ├── FaraAvatarModdingGuide.Web/      # Blazor WebAssembly + MudBlazor のアプリ（ページ・検索・進捗・練習の組み込み）
-│   │   └── wwwroot/          # index.html（Build のテンプレート）・css・js（練習の 3D = viewport.js など）・lib/three
+│   │   └── wwwroot/          # index.html（Build のテンプレート）・css・js（みんなで練習の 3D = room.js・viewport.js など）・lib/three
 │   ├── FaraAvatarModdingGuide.Build/    # 公開物の生成: 本文入りの静的 HTML・data/*.json・robots・sitemap・_headers（kit の Node ツールも使う）
 │   ├── FaraAvatarModdingGuide.Content/  # Content/ を読む（Markdown → HTML）。Build が使う
 │   ├── FaraAvatarModdingGuide.Shared/   # Build と Web が共有する型・サイドバーの項目

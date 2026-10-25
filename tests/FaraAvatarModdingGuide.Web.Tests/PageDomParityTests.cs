@@ -88,9 +88,8 @@ public class PageDomParityTests : WebTestContext
     [Fact]
     public void Practice_pages_have_the_same_dom_as_the_static_pages()
     {
-        // 練習 3 ページ(フェーズ 3)。3D とお題の中身は JavaScript が入れるので、どちらも空の枠。みんなで練習は、部屋に入っていない(ロビー)状態
-        AssertSame("/practice", Page<Web.Pages.Practice>("/practice?engine=js"));
-        AssertSame("/practice/unity", Page<PracticeUnity>("/practice/unity?engine=js"));
+        // みんなで練習は、部屋に入っていない（ロビー）状態。/practice と /practice/unity は、C# 版の 3D が始まると画面が変わる（bUnit には WebGL も WASM も無い）ので、
+        // 静的 HTML との比較は tools/verify/dom-diff.mjs（ブラウザ）で見る
         AssertSame("/practice/room", Page<PracticeRoom>("/practice/room"));
     }
 
