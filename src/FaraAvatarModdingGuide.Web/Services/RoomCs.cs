@@ -72,7 +72,7 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
     /// <summary>URL をコピーする(失敗したら、入力欄の文字を選ぶ)。</summary>
     public Task CopyUrlAsync() => RoomJs.Copy(url, "room-url");
 
-    /// <summary>JavaScript のタイマー・ポインターの通知の処理を止める前に、部屋を退出する。</summary>
+    /// <summary>退室して解放する。先に部屋を退出し(WebSocket を閉じる)、JavaScript からの通知は、この後は無視される(active を外す)。</summary>
     public override void Dispose()
     {
         if (IsDisposed) return;

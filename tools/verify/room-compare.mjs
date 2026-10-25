@@ -105,9 +105,10 @@ async function run(browser, cs) {
   // 2. ほかの人が cube0 を操作中（ロック）。こちらは選べるが、動かせない
   carol.send({ t: "lock", ids: ["cube0"] });
   await carol.until(m => m.t === "locks" && m.locks?.cube0);
-  await sleep(300);   // A が、ほかの人のロックを受け取って反映するまで待つ
   await page.locator("#room-viewport").click();   // 中央（立方体）
   await page.keyboard.press("KeyG");
+  // A がロックを受け取ると「操作中のため」の文字が出る（固定の待ちの代わりに、その文字を待つ）
+  await page.waitForFunction(() => document.querySelector("#room-viewport")?.textContent.includes("操作中のため"), null, { timeout: 5000 }).catch(() => {});
   await snap("remote-locked");
   // 3. 解除
   carol.send({ t: "unlock" });
@@ -146,7 +147,7 @@ async function run(browser, cs) {
 
   // 8. 名前を変える（500 ms のあと送る）
   await page.locator("#room-name").fill("Alicia");
-  await sleep(900);
+  await carol.until(m => m.t === "peer" && m.peer?.name === "Alicia", 5000);   // 500 ms の確定のあと、サーバーが相手に知らせる
 
   // 9. ほかの人が視点を送る → 「視点に合わせる」で、その視点に
   carol.send({ t: "view", view: { target: [1, 0, 0], dist: 5, theta: 0.5, phi: 1, ortho: false, name: "ユーザー" } });

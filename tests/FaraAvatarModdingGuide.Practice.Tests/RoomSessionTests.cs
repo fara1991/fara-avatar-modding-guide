@@ -305,6 +305,122 @@ public class RoomSessionTests
     }
 
     [Fact]
+    public void Broken_json_and_non_objects_change_nothing()
+    {
+        var (core, s, _) = Joined();
+        var before = s.StatusText;
+        s.OnMessage(1, "{not json");
+        s.OnMessage(1, Q("[1,2]"));
+        s.OnMessage(1, Q("{'t':5}"));
+        Assert.Equal(before, s.StatusText);
+        Assert.Single(core.Objects);
+    }
+
+    [Fact]
+    public void A_welcome_with_a_missing_field_is_ignored_as_a_whole()
+    {
+        var core = NewCore();
+        var t = new FakeTransport();
+        var s = new RoomSession(core, t, "abcdef12", "Alice");
+        s.Start();
+        s.OnOpen(1);
+        s.OnMessage(1, Q("{'t':'welcome','you':{'id':'me1','name':'Alice','color':'#f97316'},'peers':[]}"));   // objects が無い
+        Assert.Null(s.Me);
+        Assert.Equal("接続中…", s.StatusText);
+        Assert.Empty(core.Objects);
+    }
+
+    [Fact]
+    public void A_bad_number_or_a_short_array_drops_the_whole_ops_message()
+    {
+        var (core, s, _) = Joined();
+        s.OnMessage(1, Q("{'t':'ops','upsert':[{'id':'a1','kind':'sphere','name':'S','p':[1,'x',0],'r':[0,0,0],'s':[1,1,1]}],'delete':[]}"));
+        s.OnMessage(1, Q("{'t':'ops','upsert':[{'id':'a2','kind':'sphere','name':'S','p':[1,2],'r':[0,0,0],'s':[1,1,1]}],'delete':[]}"));
+        s.OnMessage(1, Q("{'t':'ops','upsert':[{'id':'a3','name':'S','p':[1,1,1],'r':[0,0,0],'s':[1,1,1]}],'delete':[]}"));   // kind が無い
+        Assert.Single(core.Objects);
+    }
+
+    [Fact]
+    public void Preview_skips_the_object_we_are_moving_but_applies_the_others()
+    {
+        var (core, s, _) = Joined();
+        s.OnMessage(1, Q("{'t':'ops','upsert':[{'id':'s9','kind':'sphere','name':'Sphere','p':[3,0,0],'r':[0,0,0],'s':[1,1,1]}],'delete':[]}"));
+        core.SetSelection([core.Objects.Single(o => o.Rid == "cube0")]);
+        core.KeyDown("KeyG", "g", new Modifiers());
+        s.OnMessage(1, Q("{'t':'preview','objs':[{'id':'cube0','p':[5,5,5],'r':[0,0,0],'s':[1,1,1]},{'id':'s9','p':[7,0,0],'r':[0,0,0],'s':[1,1,1]}]}"));
+        Assert.Equal(0, core.Objects.Single(o => o.Rid == "cube0").Position.X);
+        Assert.Equal(7, core.Objects.Single(o => o.Rid == "s9").Position.X);
+    }
+
+    [Fact]
+    public void A_tick_during_a_move_sends_a_preview_and_cancel_then_sends_the_last_state_even_if_unchanged()
+    {
+        var (core, s, t) = Joined();
+        core.SetSelection([core.Objects.Single(o => o.Rid == "cube0")]);
+        core.KeyDown("KeyG", "g", new Modifiers());
+        t.Outbound.Clear();
+        t.Advance(RoomSession.TickMs);
+        Assert.Contains(t.Outbound, m => m.StartsWith(Q("{'t':'preview'"), StringComparison.Ordinal));
+        core.KeyDown("Escape", "Escape", new Modifiers());   // 取り消し: 元の位置に戻る（サーバーとの差は無い）
+        var ops = Assert.Single(t.Outbound, m => m.StartsWith(Q("{'t':'ops'"), StringComparison.Ordinal));
+        Assert.Contains(Q("'id':'cube0'"), ops);             // previewed のため、差が無くても最後の形を送る
+        Assert.Equal(Q("{'t':'unlock'}"), t.Outbound[^1]);
+    }
+
+    [Fact]
+    public void Join_with_the_same_id_replaces_the_peer()
+    {
+        var (_, s, _) = Joined();
+        s.OnMessage(1, Q("{'t':'join','peer':{'id':'p2','name':'Bobby','color':'#22c55e'}}"));
+        Assert.Equal("Bobby", Assert.Single(s.Peers).Name);
+    }
+
+    [Fact]
+    public void A_peer_message_with_our_own_id_changes_our_name()
+    {
+        var (_, s, _) = Joined();
+        s.OnMessage(1, Q("{'t':'peer','peer':{'id':'me1','name':'Alicia'}}"));
+        Assert.Equal("Alicia", s.Me!.Name);
+    }
+
+    [Fact]
+    public void Too_many_objects_says_so()
+    {
+        var (core, s, _) = Joined();
+        s.OnMessage(1, Q("{'t':'error','msg':'too many objects'}"));
+        Assert.Equal("この部屋のオブジェクトは 200 個までです", core.Status);
+    }
+
+    [Fact]
+    public void A_socket_that_is_not_the_current_one_is_not_greeted()
+    {
+        var t = new FakeTransport();
+        var s = new RoomSession(NewCore(), t, "abcdef12", "Alice");
+        s.Start();
+        s.OnOpen(99);
+        Assert.Empty(t.Outbound);
+    }
+
+    [Fact]
+    public void Rejected_follows_javascript_truthiness()
+    {
+        var (core, s, _) = Joined();
+        s.OnMessage(1, Q("{'t':'ops','upsert':[],'delete':[],'rejected':0}"));
+        Assert.Equal("接続しました", s.StatusText);
+        s.OnMessage(1, Q("{'t':'ops','upsert':[],'delete':[],'rejected':1}"));
+        Assert.Equal("ほかの人の操作と重なったため、一部の変更は反映されませんでした", core.Status);
+    }
+
+    [Fact]
+    public void A_lock_whose_owner_is_not_a_string_is_ignored()
+    {
+        var (core, s, _) = Joined();
+        s.OnMessage(1, Q("{'t':'locks','locks':{'cube0':5}}"));
+        Assert.Empty(Assert.Single(s.Peers).Locks);
+        Assert.Null(s.BlockedBy(core.Objects));
+    }
+
+    [Fact]
     public void Number_text_matches_javascript()
     {
         Assert.Equal("0", RoomWire.Num(-0.0));

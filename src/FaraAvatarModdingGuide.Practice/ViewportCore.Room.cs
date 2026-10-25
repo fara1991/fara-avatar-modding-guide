@@ -49,7 +49,7 @@ public sealed partial class ViewportCore
     public bool ApplyPreview(string rid, double[] p, double[] r, double[] s)
     {
         var o = Objects.FirstOrDefault(x => x.Rid == rid);
-        if (o is null) return false;
+        if (o is null || p.Length != 3 || r.Length != 3 || s.Length != 3) return false;
         if (Op is not null && Op.Start.Any(st => st.Object == o)) return false;
         o.Position = new Vec3(p[0], p[1], p[2]);
         o.SetRotation(r[0], r[1], r[2]);

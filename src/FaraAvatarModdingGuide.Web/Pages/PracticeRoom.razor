@@ -66,7 +66,7 @@
                     <button type="button" class="btn btn-outline-primary" id="room-copy" @onclick="CopyUrl">@(copied ? "コピーしました" : "コピー")</button>
                 </div>
                 <label class="form-label small" for="room-name">表示名（ほかの人に見えます。20 文字まで）</label>
-                <input type="text" class="form-control form-control-sm mb-3" id="room-name" maxlength="20" autocomplete="nickname" value="@(csActive ? room.Name : null)" @oninput="OnNameInput" />
+                <input type="text" class="form-control form-control-sm mb-3" id="room-name" maxlength="20" autocomplete="nickname" value="@(csActive ? nameInitial : null)" @oninput="OnNameInput" />
                 <h3 class="h6">参加している人</h3>
                 <ul class="room-peers mb-0" id="room-peers">
                     @if (csActive)
@@ -127,6 +127,7 @@
     private PracticeHud hud = new();
     private RoomHud room = new("", "", "", [], null);
     private string roomUrl = "";
+    private string nameInitial = "";
 
     /// <summary>入っている部屋の ID(小文字にそろえる)。?room= が無い・形が違うときは null(ロビー)。</summary>
     private string? RoomId => (RoomParameter ?? "").ToLowerInvariant() is { } id && RoomRe.IsMatch(id) ? id : null;
@@ -177,13 +178,15 @@
         try
         {
             await PracticeCsAssemblies.LoadAsync(Services);
-            if (disposed) return;   // 読み込んでいるあいだにページを離れた
+            // 読み込んでいるあいだに、ページを離れた・部屋が替わった(この始め方は古い)。次の部屋の始め方に任せる
+            if (disposed || startedRoom != roomId) return;
             roomUrl = Nav.Uri;
             created = await RoomCsLoader.CreateAsync(roomId, roomUrl, Query("debug") == "1");
-            if (disposed) return;
+            if (disposed || startedRoom != roomId) return;   // created は finally で破棄する
+            StopCs();                                        // 同じ画面に、前の部屋が残っていれば先に解放する
             cs = created;
-            cs.Changed += OnCsChanged;
             created = null;
+            cs.Changed += OnCsChanged;
             csActive = true;
             if (!cs.Start())
             {
@@ -192,6 +195,7 @@
             }
             hud = cs.Hud;
             room = cs.Room;
+            nameInitial = room.Name;   // 入力欄の初期値(以後は変えない。入力中の文字を Blazor が戻さないように)
         }
         catch (Exception e)
         {
