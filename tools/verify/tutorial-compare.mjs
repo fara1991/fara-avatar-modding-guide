@@ -8,7 +8,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { PNG } from "pngjs";
 import { launch } from "./lib.mjs";
 import { ARTICLES, UNITY, open, texts, shot, pixelDiff, sleep, realProblems, rendererOf, GPU_TOLERANT, guideRects, settleBuild } from "./tutorial-lib.mjs";
-import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden, assertCaptureTarget } from "./golden.mjs";
 const OUT = process.env.OUT || "./tutorial-compare-out";
 const GROUP = "tutorial-compare";
 // GPU_TOLERANT=1(実 GPU・DPR が 1 でないとき用)は、閾値の既定を 0.2 % / 40 に緩める（通常の SwiftShader・DPR 1 は 0 % / 8 のまま）。MAX_OVER_PCT・MAX_DIFF を指定すればそれが優先
@@ -18,6 +18,7 @@ const STEP = Number(process.env.STEPS || 1);
 const capture = GOLDEN_MODE === "capture";
 mkdirSync(OUT, { recursive: true });
 
+if (GOLDEN_MODE === "capture") await assertCaptureTarget(process.env.NEW || "http://127.0.0.1:8787");   // 基準を作る前に、three.js の版が配られているかを確かめる
 const browser = await launch();
 let failed = 0, compared = 0, warned = false;
 const only = process.env.ONLY;

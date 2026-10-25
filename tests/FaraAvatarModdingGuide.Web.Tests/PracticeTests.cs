@@ -26,6 +26,17 @@ public class PracticeTests : WebTestContext
         return module;
     }
 
+    /// <summary>タッチだけの端末の模擬（isTouchOnly が true）。案内の入口（start・dispose）だけが呼ばれ、PC の 3D（C# 版）は始まらない。</summary>
+    private BunitJSModuleInterop TouchEntry()
+    {
+        var module = JSInterop.SetupModule("./js/practice-entry.js");
+        module.Setup<bool>("isTouchOnly", _ => true).SetResult(true);
+        module.SetupVoid("start", _ => true).SetVoidResult();
+        module.SetupVoid("startArticle", _ => true).SetVoidResult();
+        module.SetupVoid("dispose", _ => true).SetVoidResult();
+        return module;
+    }
+
     private static string? Id(JSRuntimeInvocation call) => call.Arguments[0] as string;
 
     /// <summary>?room= を付けた URL へ移動してから、みんなで練習のページを描く(部屋の ID は URL のクエリから来る)。room が null なら ?room= なし(ロビー)。</summary>
@@ -92,6 +103,45 @@ public class PracticeTests : WebTestContext
         var uri = new Uri(nav.Uri);
         Assert.Equal("/practice/room", uri.AbsolutePath);
         Assert.Matches("^\\?room=[a-z0-9]{10}$", uri.Query);                 // room.js の randomRoomId と同じ形(10 字)
+    }
+
+    [Fact]
+    public async Task Practice_page_on_a_touch_device_starts_the_guide_and_disposes_with_the_same_id()
+    {
+        var entry = TouchEntry();
+        var cut = Render<Web.Pages.Practice>();
+        cut.WaitForAssertion(() => Assert.Single(entry.Invocations["start"]));
+        var call = entry.Invocations["start"].Single();
+        Assert.Null(call.Arguments[1]);                                     // 案内の入口だけ（PC の 3D は C# 版）
+        await DisposeComponentsAsync();
+        Assert.Equal(Id(call), Id(Assert.Single(entry.Invocations["dispose"])));
+    }
+
+    [Fact]
+    public async Task Unity_practice_page_on_a_touch_device_starts_the_guide_and_disposes_with_the_same_id()
+    {
+        var entry = TouchEntry();
+        Render<PracticeUnity>();
+        Assert.Single(entry.Invocations["start"]);
+        var call = entry.Invocations["start"].Single();
+        await DisposeComponentsAsync();
+        Assert.Equal(Id(call), Id(Assert.Single(entry.Invocations["dispose"])));
+    }
+
+    [Fact]
+    public void Switching_the_room_on_a_touch_device_disposes_the_old_one_by_its_own_id()
+    {
+        // 部屋が替わると、前の案内を、始めたときと同じ id で解放し、次を始める。
+        // 注意: 二つの描画（OnAfterRender）が重なると、前の部屋の解放が次の開始より後に届くことがある（JS 側は dispose(id) を id で見分けるので、どちらでも安全）。
+        // そのため、並びは確かめず、解放が一度だけ・始めたものと同じ id であること、次が始まっていることを確かめる。
+        var entry = TouchEntry();
+        var cut = RenderRoom("aaaaaa111111");
+        Assert.Single(entry.Invocations["start"]);
+        GoToRoom("bbbbbb222222");
+        cut.Render();
+        cut.WaitForAssertion(() => Assert.Equal(2, entry.Invocations["start"].Count));
+        cut.WaitForAssertion(() => Assert.Single(entry.Invocations["dispose"]));
+        Assert.Equal(Id(entry.Invocations["start"][0]), Id(entry.Invocations["dispose"][0]));
     }
 
     [Fact]

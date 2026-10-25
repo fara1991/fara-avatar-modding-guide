@@ -2,7 +2,7 @@
 // 書き方は Content/README.md の「操作の練習を記事に埋め込む」を参照。
 //
 // シナリオ: { title, engine?, scene?, view?, numpad?, steps: [ステップ...] }
-//   engine "unity" なら Unity の練習画面（wwwroot/js/unity.js）を使う。既定は Blender の 3D ビュー（viewport.js）
+//   engine "unity" は Unity 風の練習（画像の見出しなどの区別に使う。3D は C# 版（Services/TutorialController.cs・UnityTutorialController.cs））。既定は Blender の 3D（C# 版）
 //   scene  最初に置くオブジェクト [{ kind, name?, p?: [x,y,z], r?: [度...], s?: [...] }]。省略時は立方体 1 つ
 //   view   最初の視点 { dist: 距離, target: [x,y,z] }（省略時は Blender の既定。編集モードは近めにすると選びやすい）
 //   scene  Unity の場合は { instances: ["Avatar"] }（最初に置く Prefab）
@@ -22,7 +22,7 @@
 //   group      fail・「やり直す」で戻る単位（同じ group の最初のステップに戻る）
 //   allowOp    true なら、このステップ中に G / R / S が始まっても注意を出さない
 //
-// e はビューポートのイベント（viewport.js の先頭のコメント参照）。
+// e はビューポートのイベント（C# 版の ViewportCore の同じ種類のイベント）。
 
 const OP_NAME = { G: "移動", R: "回転", S: "スケール" };
 const UNIT = { G: " m", R: "°", S: " 倍" };

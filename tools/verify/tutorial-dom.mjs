@@ -1,13 +1,14 @@
 // 記事内チュートリアルの埋め込みの DOM の骨格(タグ・クラス・data-*・aria-*・hidden・disabled・type・href・id)を、Three.js 版と C# 版で並べて比べる(S4)
 import { launch, newPage } from "./lib.mjs";
 import { skeleton } from "./tutorial-lib.mjs";
-import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden, assertCaptureTarget } from "./golden.mjs";
 const GROUP = "tutorial-dom";
 const capture = GOLDEN_MODE === "capture";
 const STATES = ["initial", "focused", "skipped", "images", "complete"];
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const cases = [["navigation-numpad", "/learn/getting-started/navigation"], ["transform", "/learn/basics/transform"], ["extrude-inset-loopcut", "/learn/modeling/extrude-inset-loopcut"], ["unity-basics", "/learn/unity/editor-overview"], ["ma-outfit", "/learn/unity/modular-avatar-outfit"]];
 let failed = 0;
+if (GOLDEN_MODE === "capture") await assertCaptureTarget(process.env.NEW || "http://127.0.0.1:8787");   // 基準を作る前に、three.js の版が配られているかを確かめる
 const browser = await launch();
 for (const [name, url] of cases) {
   const res = {};

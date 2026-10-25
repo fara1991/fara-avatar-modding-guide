@@ -14,9 +14,7 @@ import { launch, newPage, csp } from "./lib.mjs";
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const BASELINE = JSON.parse(readFileSync(new URL("./practice-baseline.json", import.meta.url), "utf8"));
 const ROUNDS = Number(process.env.ROUNDS || 20);
-// ENGINE=cs: /practice を C# 版(?engine=cs。Phase 3b S3)で動かす。操作の結果は同じ基準(practice-baseline.json)と一致するはず。既定は Three.js 版
-const ENGINE = "cs";   // S7 から JS 版は無い（ENGINE は効かない。既定も C#）
-const ENGINE_QUERY = ENGINE === "cs" ? "&engine=cs" : "";
+// S7 から、練習・記事内チュートリアル・Unity 風の画面・共有ルームは C# 版だけ（?engine= は無い）。three.js の版との比較は、凍結した基準（tests/visual/golden。tools/verify/README.md）で行う。
 const ARTICLE = "/learn/basics/transform";   // 記事内チュートリアル(::: practice transform)がある記事
 const ARTICLE2 = "/learn/basics/select";
 
@@ -114,7 +112,7 @@ async function problems(page, label) {
 // ---------------------------------------------------------------- 1. /practice の操作(基準と同じ結果)
 async function practiceOps(browser, base, isNew) {
   const page = await open(browser, { width: 1280, height: 800 });
-  await page.goto(base + "/practice?debug=1" + ENGINE_QUERY, { waitUntil: "load" });
+  await page.goto(base + "/practice?debug=1", { waitUntil: "load" });
   if (isNew) await page.waitForSelector(".mud-layout", { timeout: 90000 });
   await page.waitForSelector(".practice-viewport canvas", { timeout: 60000 });
   await page.waitForFunction(() => window.__practice?.objects?.length > 0);
@@ -158,11 +156,11 @@ async function practiceOps(browser, base, isNew) {
 // C# 版(?engine=cs。Phase 3b S3)は HUD を Razor で、キーの preventDefault とフォーカスを gl.js・Blazor で作るので、JS 版と同じに振る舞うことを、ここで確かめる
 async function practiceHud(browser, base) {
   const page = await open(browser, { width: 1280, height: 800 });
-  await page.goto(base + "/practice?debug=1" + ENGINE_QUERY, { waitUntil: "load" });
+  await page.goto(base + "/practice?debug=1", { waitUntil: "load" });
   await page.waitForSelector(".mud-layout", { timeout: 90000 });
   await page.waitForSelector(".practice-viewport canvas", { timeout: 60000 });
   await page.waitForFunction(() => window.__practice?.objects?.length > 0);
-  const label = ENGINE === "cs" ? "C# 版" : "JS 版";
+  const label = "C# 版";
   const text = (sel) => page.locator(sel).first().textContent().then((t) => t?.trim());
   ok((await page.locator(".vp-mode, .vp-view, .vp-status, .vp-numeric, .vp-tools, .practice-npanel").count()) >= 6, `${label}: HUD の主要な要素（.vp-mode・.vp-view・.vp-status・.vp-numeric・.vp-tools・.practice-npanel）がある`);
   ok((await text(".vp-mode")) === "オブジェクトモード", `${label}: 最初の .vp-mode の文言`, await text(".vp-mode"));
@@ -200,10 +198,10 @@ async function practiceHud(browser, base) {
 // ---------------------------------------------------------------- 2. /practice/unity の操作
 async function unityOps(browser, base, isNew) {
   const page = await open(browser, { width: 1280, height: 900 });
-  await page.goto(base + "/practice/unity?debug=1" + (isNew ? ENGINE_QUERY : ""), { waitUntil: "load" });   // ENGINE=cs: Unity 風の画面も C# 版(Phase 3b S5)
+  await page.goto(base + "/practice/unity?debug=1", { waitUntil: "load" });   // ENGINE=cs: Unity 風の画面も C# 版(Phase 3b S5)
   if (isNew) await page.waitForSelector(".mud-layout", { timeout: 90000 });
   await page.waitForSelector(".unity-editor canvas", { timeout: 60000 });
-  if (isNew && ENGINE === "cs") await page.waitForFunction(() => window.__unityCs?.nodes); else await page.waitForFunction(() => window.__unity?.findByName);
+  if (isNew) await page.waitForFunction(() => window.__unityCs?.nodes); else await page.waitForFunction(() => window.__unity?.findByName);
   // Project の Hoodie を、Hierarchy の Avatar へドラッグ
   const asset = page.locator('.ue-asset[data-asset]', { hasText: "Hoodie" }).first();
   const target = page.locator(".ue-scene-row, .ue-hier-list [data-node]", { hasText: "Avatar" }).first();
@@ -213,7 +211,7 @@ async function unityOps(browser, base, isNew) {
   await page.mouse.move(t.x + 20, t.y + t.height / 2, { steps: 8 });
   await page.mouse.up();
   await sleep(200);
-  const hoodie = isNew && ENGINE === "cs" ? await page.evaluate(() => window.__unityCs.nodes.some((n) => n.path === "Avatar/Hoodie")) : await page.evaluate(() => !!window.__unity.findByName("Avatar/Hoodie"));
+  const hoodie = isNew ? await page.evaluate(() => window.__unityCs.nodes.some((n) => n.path === "Avatar/Hoodie")) : await page.evaluate(() => !!window.__unity.findByName("Avatar/Hoodie"));
   await page.keyboard.press("w");
   const state = await page.evaluate(() => ({
     nodes: [...document.querySelectorAll(".ue-hier-list [data-node]")].map((e) => e.textContent.trim().replace(/\s+/g, " ")),
@@ -243,25 +241,21 @@ async function roundTrips(browser) {
   const rafRate = async () => { const a = await page.evaluate(() => window.__live.raf); await sleep(2000); return (await page.evaluate(() => window.__live.raf)) - a; };
   const rafStart = await rafRate();   // 往復の前の、/learn での描画のループの回数(2 秒)。背景の 3D だけが回っている
   // waitForSelector は要素の参照(ElementHandle)を返し、解放しないと外した DOM を保持して「節が増える」ように見える
-  const visit = async (href, waitFor) => { if (ENGINE === "cs" && href === "/practice") await page.evaluate(() => window.Blazor.navigateTo("/practice?engine=cs")); else await go(page, href); await page.locator(waitFor).first().waitFor({ timeout: 60000 }); await sleep(300); };
+  const visit = async (href, waitFor) => { if (href === "/practice") await page.evaluate(() => window.Blazor.navigateTo("/practice")); else await go(page, href); await page.locator(waitFor).first().waitFor({ timeout: 60000 }); await sleep(300); };
   for (let i = 1; i <= ROUNDS; i++) {
     await visit("/practice", ".practice-viewport canvas");
     await visit("/learn", "h1");
     await visit("/practice/unity", ".unity-editor canvas");
     await visit("/learn", "h1");
-    // ENGINE=cs: 部屋も C# 版で往復する（Phase 3b S6）。ナビのリンクに ?engine が無いので、Blazor の移動で開く
-    if (ENGINE === "cs") { await page.evaluate(() => window.Blazor.navigateTo("/practice/room?engine=cs")); await page.locator("#room-create").waitFor({ timeout: 30000 }); }   // 画面内の移動（再読み込みしない）
-    else await visit("/practice/room", "#room-create");
+    // 部屋も C# 版で往復する（Phase 3b S6）。Blazor の移動で開く
+    { await page.evaluate(() => window.Blazor.navigateTo("/practice/room")); await page.locator("#room-create").waitFor({ timeout: 30000 }); }   // 画面内の移動（再読み込みしない）
+
     await page.locator("#room-create").click();
     await page.locator("#room-viewport canvas").first().waitFor({ timeout: 30000 });
     await page.waitForFunction(() => document.querySelector("#room-status")?.textContent.includes("接続しました"), null, { timeout: 30000 });
     await visit("/learn", "h1");
     // 記事内チュートリアル(::: practice)。記事を開いて、埋め込みを画面に入れて 3D を始める
-    if (ENGINE === "cs") await page.evaluate((url) => window.Blazor.navigateTo(url), ARTICLE + "?engine=cs");   // 記事のリンクは ?engine を引き継がない
-    else {
-      await go(page, "/learn/basics");
-      await page.locator(`.fsk-content a[href="${ARTICLE}"]`).first().click();
-    }
+    await page.evaluate((url) => window.Blazor.navigateTo(url), ARTICLE);
     await page.locator(".practice-embed.is-ready").first().waitFor({ timeout: 30000 });
     await page.locator(".practice-embed").first().scrollIntoViewIfNeeded();
     await page.locator(".practice-embed canvas").first().waitFor({ timeout: 60000 });
@@ -295,7 +289,7 @@ async function roundTrips(browser) {
 // ---------------------------------------------------------------- 4. 記事内チュートリアル
 async function tutorial(browser) {
   const page = await open(browser, { width: 1280, height: 800 });
-  await boot(page, ARTICLE + "?debug=1" + ENGINE_QUERY);   // ENGINE=cs: 記事内チュートリアルも C# 版(Components/TutorialEmbed.razor)
+  await boot(page, ARTICLE + "?debug=1");   // ENGINE=cs: 記事内チュートリアルも C# 版(Components/TutorialEmbed.razor)
   await page.waitForSelector(".practice-embed.is-ready", { timeout: 30000 });
   ok(await page.locator("[data-progress-page]").getAttribute("data-progress-page") === "basics/transform", "記事の見出しに data-progress-page(完了の記録の印)がある");
   await page.locator(".practice-embed").first().scrollIntoViewIfNeeded();
@@ -316,8 +310,7 @@ async function tutorial(browser) {
   ok((await page.evaluate(() => window.__counts().gl)) === 1, "3D ビューに戻すと、WebGL の context は 1 つ");
   // 別の記事(チュートリアルあり)へ: 前の記事の 3D は解放される
   await go(page, "/learn/basics");
-  if (ENGINE === "cs") await page.evaluate((url) => window.Blazor.navigateTo(url), ARTICLE2 + "?engine=cs");   // サイドバー・記事内のリンクは ?engine を引き継がない
-  else await page.locator(`.fsk-content a[href="${ARTICLE2}"]`).first().click();
+  await page.evaluate((url) => window.Blazor.navigateTo(url), ARTICLE2);
   await page.waitForSelector(".practice-embed.is-ready", { timeout: 30000 });
   await page.locator(".practice-embed").first().scrollIntoViewIfNeeded();
   await page.waitForSelector(".practice-embed canvas", { timeout: 60000 });

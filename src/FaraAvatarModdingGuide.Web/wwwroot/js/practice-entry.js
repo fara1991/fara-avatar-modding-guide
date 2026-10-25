@@ -36,7 +36,12 @@ export async function startArticle(id, selector) {
   current = mine;
   const container = document.querySelector(selector);
   if (!container) return;
-  const csHandle = touchOnly() ? null : await (await import("./practice-cs.js")).mount(container);
+  // C# 版の記事内チュートリアルが失敗しても（読み込みの失敗など）、「画像で見る」（tutorial.js）は始める。失敗は console.error に出す
+  let csHandle = null;
+  if (!touchOnly()) {
+    try { csHandle = await (await import("./practice-cs.js")).mount(container); }
+    catch (err) { console.error(err); }
+  }
   const handle = (await import("./tutorial.js")).mount(container);
   if (current !== mine) { handle.dispose(); csHandle?.dispose(); return; }
   mine.dispose = () => { handle.dispose(); csHandle?.dispose(); };

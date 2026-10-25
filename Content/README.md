@@ -164,16 +164,11 @@ Blender の操作は文章だけでは伝わりにくいので、手順ごとに
 
 スマートフォン・タブレット（タッチだけの端末）では 3D ビューを出さず、手順ごとの画像を横にめくるカードで表示します。PC でも「画像で見る」で切り替えられます。
 
-画像は `wwwroot/images/tutorials/<シナリオ名>/01.webp` 〜 で、サイトの 3D ビューをヘッドレス Chrome で動かして撮ります。**シナリオを追加・変更したら撮り直してください。**
+画像は `wwwroot/images/tutorials/<シナリオ名>/01.webp` 〜 です。以前は three.js の 3D ビューをヘッドレス Chrome で動かして撮っていました（`tools/tutorial-images/capture.mjs`。Phase 3b S7 で three.js と一緒に消した。作り方は docs/phase3b-design.md の §17.7）。**今は、シナリオを追加・変更しても画像は撮り直せません（撮るには C# 版の 3D を撮る仕組みが要る）。**シナリオを追加・変更したら撮り直してください。**
 
-```bash
-# サイトを起動しておく（README の「ビルドと確認」: publish + Build の出力を dist に置いて npx wrangler dev --env dev）
-node tools/tutorial-images/capture.mjs http://localhost:8787             # すべて
-node tools/tutorial-images/capture.mjs http://localhost:8787 transform   # 指定したシナリオだけ
-```
+（撮り直しの手順は、three.js の版（commit 8262089 の `tools/tutorial-images/capture.mjs`）にあります。今の版では撮れません）
 
 - 各画像は「その手順を終えたあと」の画面です（`skip` で再現するので、`skip` が正しく書かれている必要があります）
-- Chrome の場所は環境変数 `CHROME` で指定できます（Node.js 22 以上、追加のパッケージは不要）
 - 画像がないシナリオは「画像は準備中です」と表示されます
 
 ### 完了の記録

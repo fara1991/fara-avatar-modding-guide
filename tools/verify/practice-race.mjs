@@ -1,5 +1,5 @@
 // 低速な読み込み中に「離れて戻る」(Phase 3b S3 のレビュー指摘)。  node practice-race.mjs   NEW=http://127.0.0.1:8787
-// Practice・Render の wasm の応答を 3.5 秒遅らせ、/practice?engine=cs を開く → 1.2 秒後に /learn へ(画面内の移動)→ 0.5 秒後に /practice?engine=cs へ戻る。
+// Practice・Render の wasm の応答を 3.5 秒遅らせ、/practice を開く → 1.2 秒後に /learn へ(画面内の移動)→ 0.5 秒後に /practice へ戻る。
 // 期待: 二重読み込みの衝突('body stream already read' など)が出ず、コンソールのエラー・警告 0、戻ったあとに C# 版の canvas が 1 つ出て、描画が始まる。
 import { launch, newPage } from "./lib.mjs";
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
@@ -10,13 +10,13 @@ const browser = await launch();
 const page = await newPage(browser, { width: 1280, height: 800 });
 let delayed = 0;
 await page.route(/FaraAvatarModdingGuide\.(Practice|Render)\..*\.wasm/, async (route) => { delayed++; await sleep(3500); await route.continue(); });
-await page.goto(NEW + "/practice?engine=cs", { waitUntil: "load" });
+await page.goto(NEW + "/practice", { waitUntil: "load" });
 await page.waitForSelector(".mud-layout", { timeout: 90000 });
 await sleep(1200);
 await page.evaluate(() => window.Blazor.navigateTo("/learn"));
 await page.waitForSelector("h1", { timeout: 30000 });
 await sleep(500);
-await page.evaluate(() => window.Blazor.navigateTo("/practice?engine=cs"));
+await page.evaluate(() => window.Blazor.navigateTo("/practice"));
 await page.waitForSelector(".practice-viewport canvas", { timeout: 60000 });
 await sleep(1500);
 ok(delayed === 2, "Practice・Render の wasm を 1 回ずつだけ読む(離れて戻っても、二重に読まない)", String(delayed));

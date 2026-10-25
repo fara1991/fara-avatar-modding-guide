@@ -38,9 +38,9 @@ try {
 
   const roomA = "raca" + Math.random().toString(36).slice(2, 8);
   const roomB = "racb" + Math.random().toString(36).slice(2, 8);
-  await page.goto(`${NEW}/practice/room?room=${roomA}&engine=cs`, { waitUntil: "load" });
+  await page.goto(`${NEW}/practice/room?room=${roomA}`, { waitUntil: "load" });
   await sleep(800);   // A の 3D の読み込みが始まったころ
-  await page.evaluate(id => window.Blazor.navigateTo(`/practice/room?room=${id}&engine=cs`), roomB);
+  await page.evaluate(id => window.Blazor.navigateTo(`/practice/room?room=${id}`), roomB);
   await page.waitForFunction(() => document.querySelector("#room-status")?.textContent.includes("接続しました"), null, { timeout: 60000 });
   // A の読み込みが終わり、A の開始が後から届くまで待つ
   await sleep(DELAY_MS + 3000);

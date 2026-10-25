@@ -80,7 +80,7 @@ public sealed class BuildFixture : IDisposable
     public string Production { get; }
     public string Develop { get; }
 
-    /// <summary>本物のテンプレート（src/FaraAvatarModdingGuide.Web/wwwroot/index.html）で、本番用に書き出したもの。importmap のハッシュなど、実際の記述を通して確かめる。</summary>
+    /// <summary>本物のテンプレート（src/FaraAvatarModdingGuide.Web/wwwroot/index.html）で、本番用に書き出したもの。実際の記述を通して確かめる。</summary>
     public string Real { get; }
 
     public ContentService Content { get; }

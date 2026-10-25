@@ -10,7 +10,7 @@ import { PNG } from "pngjs";
 import { launch, newPage } from "./lib.mjs";
 import { skeleton, pixelDiff, sleep, realProblems } from "./tutorial-lib.mjs";
 import { drag, handlePoint, dragTo, stateOf, stateDiff } from "./unity-lib.mjs";
-import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden, assertCaptureTarget } from "./golden.mjs";
 
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const OUT = process.env.OUT || "./unity-compare-out";
@@ -110,6 +110,7 @@ const snapshotFromGolden = (key) => {
   return { ...g, png: PNG.sync.read(loadGolden(GROUP, key, "png")) };
 };
 
+if (GOLDEN_MODE === "capture") await assertCaptureTarget(process.env.NEW || "http://127.0.0.1:8787");   // 基準を作る前に、three.js の版が配られているかを確かめる
 const browser = await launch();
 let failed = 0, compared = 0;
 const js = capture ? await open(browser, false) : null;   // 基準（three.js の版）。比べるだけのときは開かない

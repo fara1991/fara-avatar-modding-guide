@@ -4,7 +4,7 @@
 //   ボックス選択の枠(.practice-box の位置・大きさ)・メニュー(位置・大きさ・中身)・HUD の文字(モード・視点・ステータス・数値入力・統計・マーカー)・ツールの点灯・N パネルの入力値。
 // 操作の途中(ドラッグ中・数値入力中・メニューを開いたまま)も比べる。値が違えば、その項目を出す。
 import { launch } from "./lib.mjs";
-import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden, assertCaptureTarget } from "./golden.mjs";
 
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -114,6 +114,7 @@ function diffKeys(a, b) {
   return out;
 }
 
+if (GOLDEN_MODE === "capture") await assertCaptureTarget(process.env.NEW || "http://127.0.0.1:8787");   // 基準を作る前に、three.js の版が配られているかを確かめる
 const browser = await launch();
 let failed = 0;
 const only = process.env.ONLY;

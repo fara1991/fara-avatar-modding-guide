@@ -10,7 +10,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { PNG } from "pngjs";
 import { launch, newPage } from "./lib.mjs";
-import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden, assertCaptureTarget } from "./golden.mjs";
 const GROUP = "room-compare";
 
 const NEW = process.env.NEW || "http://127.0.0.1:8787";   // wrangler dev（部屋の WebSocket は Worker が要る）
@@ -172,6 +172,7 @@ async function run(browser, cs) {
   return { label, shots, semantic, counts, errors };
 }
 
+if (GOLDEN_MODE === "capture") await assertCaptureTarget(process.env.NEW || "http://127.0.0.1:8787");   // 基準を作る前に、three.js の版が配られているかを確かめる
 const browser = await launch();
 try {
   // 基準（JavaScript 版の room.js）: GOLDEN_MODE=capture で作る（room.js があるうちだけ）。既定は保存した基準を読む（room.js は無くなった）

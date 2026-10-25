@@ -37,13 +37,22 @@
         <div class="card mb-3">
             <div class="card-header fw-semibold">お題</div>
             <div class="card-body">
-                <ol class="practice-tasks mb-2" id="unity-tasks">
-                    @for (var i = 0; i < hud.TaskTexts.Count; i++)
-                    {
-                        <li class="@(i < hud.TaskIndex ? "done" : i == hud.TaskIndex ? "current" : null)">@hud.TaskTexts[i]</li>
-                    }
-                </ol>
-                <div id="unity-tasks-done" class="small text-body-secondary" hidden="@(hud.TaskIndex < hud.TaskTexts.Count)">すべてできました。あとは自由に試してください。</div>
+                @if (cs is not null)
+                {
+                    <ol class="practice-tasks mb-2" id="unity-tasks">
+                        @for (var i = 0; i < hud.TaskTexts.Count; i++)
+                        {
+                            <li class="@(i < hud.TaskIndex ? "done" : i == hud.TaskIndex ? "current" : null)">@hud.TaskTexts[i]</li>
+                        }
+                    </ol>
+                    <div id="unity-tasks-done" class="small text-body-secondary" hidden="@(hud.TaskIndex < hud.TaskTexts.Count)">すべてできました。あとは自由に試してください。</div>
+                }
+                else
+                {
+                    @* 3D（C#）が始まる前・タッチだけの端末は、静的 HTML（PageBodies.PracticeUnity）と同じ空の一覧 *@
+                    <ol class="practice-tasks mb-2" id="unity-tasks"></ol>
+                    <div id="unity-tasks-done" class="small text-body-secondary" hidden>すべてできました。あとは自由に試してください。</div>
+                }
             </div>
         </div>
         <div class="card practice-keys">

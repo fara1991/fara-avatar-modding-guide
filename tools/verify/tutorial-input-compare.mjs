@@ -13,7 +13,7 @@ import { PNG } from "pngjs";
 import { launch } from "./lib.mjs";
 import { open, texts, shot, pixelDiff, sleep, realProblems, UNITY } from "./tutorial-lib.mjs";
 import { drag, dragTo, handlePoint, stateOf, stateDiff } from "./unity-lib.mjs";
-import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden, assertCaptureTarget } from "./golden.mjs";
 const GROUP = "tutorial-input-compare";
 const capture = GOLDEN_MODE === "capture";
 
@@ -112,6 +112,7 @@ const SCENARIOS = {
   "ma-outfit": MA_OUTFIT("ma-outfit"),
 };
 
+if (GOLDEN_MODE === "capture") await assertCaptureTarget(process.env.NEW || "http://127.0.0.1:8787");   // 基準を作る前に、three.js の版が配られているかを確かめる
 const browser = await launch();
 let failed = 0, compared = 0;
 const only = process.env.ONLY;

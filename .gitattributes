@@ -5,6 +5,3 @@
 *.png binary
 *.jpg binary
 
-# 同梱している外部のライブラリ(three.js)。差分には出さず、言語の集計(linguist)からも外す。**/ を付けるのは、
-# スラッシュを含むパターンはリポジトリのルートからの位置になるため(src/.../wwwroot/lib/ にも効かせる)
-**/wwwroot/lib/** -diff linguist-vendored

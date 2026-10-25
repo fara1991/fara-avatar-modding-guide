@@ -27,3 +27,14 @@ export function loadGolden(group, name, ext) {
   if (!existsSync(p)) throw new Error(`基準がありません: ${p}（GOLDEN_MODE=capture で、three.js の版から作ってください）`);
   return readFileSync(p);
 }
+
+/**
+ * 基準を作る（GOLDEN_MODE=capture）前の検査。配信先（NEW）が、three.js の版（viewport.js と lib/three/three.module.js）を配っているかを確かめる。
+ * 無ければ throw する（C# 版の出力で基準を上書きしないため）。作るのは、three.js の版が残っている commit だけ（docs/phase3b-design.md の §17）。
+ */
+export async function assertCaptureTarget(base) {
+  for (const file of ["/js/viewport.js", "/lib/three/three.module.js"]) {
+    const res = await fetch(base.replace(/\/$/, "") + file);
+    if (res.status !== 200) throw new Error(`基準を作れません: ${base}${file} が ${res.status}。three.js の版（commit 8262089 以前）を配信してください。C# 版の出力で基準を上書きしないため止めます`);
+  }
+}

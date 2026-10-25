@@ -725,4 +725,11 @@ S6 のあとに消せる分（見込み。同じ方法）: `room.js` 4,986 + `vi
 - **スマートフォン幅**（390・タッチ）: 記事 3 本の「画像で見る」の 6 枚が読め、`/practice`・`/practice/unity`・`/practice/room` は案内だけで、Practice・Render・canvas を読まない（部屋の canvas は 0）。
 - **テスト**: `dotnet test -c Release` 26 + 44 + 199 + 392 + 226 件すべて成功。`node --test`（CLAUDE.md の一覧）117 件すべて成功。
 - **配信量**（brotli q11。前 = fd6a94a（S6 を取り込んだ develop）、後 = この PR の最終形。js・css・dll・wasm・json・html）: 3,526,495 B → 3,261,657 B（**−264,838 B。約 265 KB**）。内訳: `lib/three/three.module.js` −207,048、`viewport.js` −20,575、`unity.js` −17,614、`room.js` −4,986、`editmesh.js` −8,860、`practice.js` −2,168、`unity-practice.js` −1,591、`tutorial.js` −917、`practice-entry.js` −465。JS（`js/*.js`）は 109,984 B → 52,808 B。
-- **残り**: `tutorial.js` の手順の処理（`this.vp` が無いので到達しない）・`tools/tutorial-images` と `captureStep`（画像は作り直せない）・`Maths.cs` などの three.js に倣った数式の注釈（コードの仕様としての説明。消さない）・`docs/wasm-migration-plan.md` の計画（歴史の記録）。
+- **残り**: `tutorial.js` の手順の処理（`this.vp` が無いので到達しない。17.7 参照）・`Maths.cs` などの three.js に倣った数式の注釈（コードの仕様としての説明。消さない）・`docs/wasm-migration-plan.md` の計画（歴史の記録）。
+
+### 17.7 記事内チュートリアルの画像（撮り直しができなくなった）
+
+- 手順画像（`wwwroot/images/tutorials/<名前>/NN.webp`・145 枚）は残す。Build がコピーする。
+- 撮り直しの道具 `tools/tutorial-images/capture.mjs` と、`tutorial.js` の `captureStep`（と `?debug=1` の `window.__tutorials`）は、three.js の 3D を動かして撮るものだったので消した。**今は画像を撮り直せない**（シナリオを変えたら、画像は古いまま）。
+- 作り方の記録: commit 8262089 の `tools/tutorial-images/capture.mjs`（ヘッドレス Chrome で、サイトの 3D を `?debug=1` で動かして、各手順のあとの画面を撮る）。C# 版で撮るには、`TutorialEmbed` の画面（Razor）を撮る道具を新しく作る（未着手）。
+- `tutorial.js` に残った手順の処理（`replayTo`・`onEvent`・`skip`・`showMsg` など）は、画面の作り（`build()`）・完了の画面と繋がっていて、消すと「画像で見る」の DOM まで動かす必要がある。タッチの確認（tools/verify/probe）と一緒に、後で整理する（残件）。

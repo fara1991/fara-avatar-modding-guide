@@ -1,13 +1,13 @@
 // CSP の違反ゼロの確認(Phase 4。計画書 4.9・8)。 NEW=http://127.0.0.1:8787 node csp-check.mjs
 // _headers の Content-Security-Policy が効く配信(wrangler dev)で、主要ページを PC 1280・スマホ 390 で開き、操作を少しして、
 // ブラウザの違反の通知(securitypolicyviolation)・コンソールのエラー/警告・失敗したリクエスト・ページのエラーを集める。1 件でもあれば終了コード 1。
-// 含むもの: 記事内チュートリアル・練習 3 ページ(自己ホストの three.js・importmap のハッシュ・WebGL・共有ルームの WebSocket)・検索・報告・404・テーマの切り替え。
+// 含むもの: 記事内チュートリアル・練習 3 ページ(WebGL・共有ルームの WebSocket。three.js は S7 で消した)・検索・報告・404・テーマの切り替え。
 import { launch, newPage } from "./lib.mjs";
 const NEW = (process.env.NEW || "http://127.0.0.1:8787").replace(/\/$/, "");
 const PAGES = [
   "/", "/learn", "/learn/basics", "/learn/getting-started/install", "/learn/basics/transform", "/learn/modeling/edit-mode", "/learn/unity/modular-avatar-outfit",
   "/shortcuts", "/glossary", "/howto", "/tips", "/qa", "/addons", "/links", "/changelog", "/privacy", "/report", "/search?q=blender",
-  "/practice", "/practice/unity", "/practice/unity?engine=cs", "/learn/unity/editor-overview?engine=cs", "/learn/unity/modular-avatar-outfit?engine=cs", "/practice/room", "/practice/room?room=cspcheck01", "/practice/room?room=cspcheck01&engine=cs", "/no-such-page-here",
+  "/practice", "/practice/unity", "/learn/unity/editor-overview", "/learn/unity/modular-avatar-outfit", "/practice/room", "/practice/room?room=cspcheck01", "/no-such-page-here",
 ];
 const b = await launch();
 const rows = [];

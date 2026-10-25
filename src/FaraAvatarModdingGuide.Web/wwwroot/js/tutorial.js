@@ -268,15 +268,6 @@ class Tutorial {
     }
   }
 
-  /**
-   * 画像を作るとき用（tools/tutorial-images/）: k 番目の手順を終えた状態にして、その手順の案内（矢印など）を出す。
-   * ?debug=1 のときだけ window.__tutorials から呼べる
-   */
-  /** 画像を作るとき用（tools/tutorial-images/）は、3D を動かす版でだけ作れた。この版では作れない（旧版は commit 8262089） */
-  async captureStep() {
-    throw new Error("画像は 3D の版（commit 8262089）で作る。この版は画像で見る専用");
-  }
-
   /** 別のチュートリアルにビューを譲る */
   suspend() {
     if (!this.vp) return;
@@ -470,9 +461,6 @@ export function mount(container = document) {
     mine.push(t);
   }
 
-  // 確認用（?debug=1）: コンソールや自動テストから状態を見られるようにする
-  if (new URLSearchParams(location.search).get("debug") === "1") window.__tutorials = [...tutorials.values()];
-
   return {
     dispose() {
       for (const t of mine) {
@@ -480,7 +468,6 @@ export function mount(container = document) {
         tutorials.delete(t.el);
       }
       mine.length = 0;
-      if (window.__tutorials) delete window.__tutorials;
     },
   };
 }

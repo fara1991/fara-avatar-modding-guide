@@ -5,7 +5,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { PNG } from "pngjs";
 import { launch } from "./lib.mjs";
-import { GOLDEN_MODE, loadGolden, saveGolden } from "./golden.mjs";
+import { GOLDEN_MODE, loadGolden, saveGolden, assertCaptureTarget } from "./golden.mjs";
 
 const NEW = process.env.NEW || "http://127.0.0.1:8787";
 const OUT = process.env.OUT || "./practice-compare-out";
@@ -57,6 +57,7 @@ async function run(page, steps) {
   await sleep(200);
 }
 
+if (GOLDEN_MODE === "capture") await assertCaptureTarget(process.env.NEW || "http://127.0.0.1:8787");   // 基準を作る前に、three.js の版が配られているかを確かめる
 const browser = await launch();
 let failed = 0;
 const only = process.env.ONLY;
