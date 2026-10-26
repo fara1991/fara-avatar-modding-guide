@@ -188,7 +188,7 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 
 | ファイル（Actions での名前） | 動くとき | 内容 |
 | --- | --- | --- |
-| `build.yml`（Build and test） | すべての push と Pull Request | ビルド・テスト・本番用と確認用の両方の出力・環境の確認・dry-run。公開しない |
+| `build.yml`（Build and test） | Pull Request と、develop・master への push | ビルド・テスト・本番用と確認用の両方の出力・環境の確認・dry-run。公開しない |
 | `deploy-develop.yml`（Deploy (develop)） | `develop` への push と、develop を選んだ手動実行 | 確認用の出力を作り、`fara-avatar-dev`（`--env dev`）に公開 |
 | `deploy.yml`（Deploy (production)） | `master` への push と、master を選んだ手動実行 | 本番用の出力を作り、`fara-avatar`（`--env production`）に公開（下の「本番の公開とメンテナンス」） |
 

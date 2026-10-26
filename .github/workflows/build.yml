@@ -1,13 +1,14 @@
 name: Build and test
 
-# FaraAvatarModdingGuide（Blazor WebAssembly + MudBlazor）のビルドとテスト。すべてのブランチへの push と Pull Request で動く。
+# FaraAvatarModdingGuide（Blazor WebAssembly + MudBlazor）のビルドとテスト。Pull Request と、develop・master への push で動く。
 # 公開はしない（Cloudflare のシークレットも使わない）。wrangler は dry-run だけ。
 # 公開は、deploy-develop.yml（develop → 確認用）と deploy.yml（master → 本番）がそれぞれ自分でビルドして行う。成果物（artifact）は保存しない。
 # fara-pokemon-battle-assistant と同じ形（build.yml / deploy-develop.yml / deploy.yml）。
 
 on:
+  # PR の間は pull_request の 1 回だけ動かす（作業ブランチへの push では動かさない）。develop・master に入ったときは push で動く
   push:
-    branches-ignore: [gh-pages]
+    branches: [develop, master]
   pull_request:
   workflow_dispatch:
 
