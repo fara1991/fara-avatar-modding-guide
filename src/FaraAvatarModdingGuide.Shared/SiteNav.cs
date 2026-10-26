@@ -32,7 +32,7 @@ public static class SiteNav
                 var categories = content.CategoriesIn(section.Id);
                 if (categories.Count == 0) continue;
                 sections.Add(new NavSection(section.Title, categories.Select(c =>
-                    new NavEntry($"learn/{c.Id}", c.Title, c.Icon, ProgressIds: content.ArticlesOf(c.Id).Select(a => a.Id).ToList())).ToList()));
+                    new NavEntry($"learn/{c.Id}", c.NavTitle ?? c.Title, c.Icon, ProgressIds: content.ArticlesOf(c.Id).Select(a => a.Id).ToList())).ToList()));
             }
         }
 

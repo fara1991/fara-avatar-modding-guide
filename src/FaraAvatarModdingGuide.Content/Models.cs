@@ -17,6 +17,8 @@ public sealed class LearnCategory
     /// <summary>入る区切り（sections.yml の id）</summary>
     public string Section { get; set; } = "blender";
     public string Title { get; set; } = string.Empty;
+    /// <summary>サイドバーの文言（狭い列で 1 行に収まる短い名前。無ければ Title）。サイドバーは区切り（Unity / VRChat など）の見出しの下に並ぶので、区切りと重なる語は省ける</summary>
+    public string? NavTitle { get; set; }
     /// <summary>題名の読み（ひらがな）。サイト内検索で、ローマ字・かなで探すときに使う（例: もでりんぐ）</summary>
     public string Reading { get; set; } = string.Empty;
     /// <summary>英語の名前（検索の小見出しに出し、英語でも探せるようにする。例: Modeling）</summary>

@@ -17,7 +17,7 @@ public static class SiteContentFactory
 
         return new SiteContent(
             content.Sections.Select(s => new SectionDto(s.Id, s.Title, s.Description, SiteIcons.ToMaterial(s.Icon))).ToList(),
-            content.Categories.Select(c => new CategoryDto(c.Id, c.Section, c.Title, c.Reading, c.En, c.Description, SiteIcons.ToMaterial(c.Icon))).ToList(),
+            content.Categories.Select(c => new CategoryDto(c.Id, c.Section, c.Title, c.Reading, c.En, c.Description, SiteIcons.ToMaterial(c.Icon), c.NavTitle)).ToList(),
             // ロードマップ順（区切り → カテゴリ → 記事）。ContentService.Articles と同じ並び
             content.Categories.SelectMany(c => content.GetArticles(c.Id)).Select(a => new ArticleDto(
                 a.Category, a.Slug, a.Order, a.Title, a.Reading, a.Description, a.Difficulty, a.BlenderVersion,
