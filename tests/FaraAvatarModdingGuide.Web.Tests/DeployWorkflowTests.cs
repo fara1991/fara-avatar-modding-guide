@@ -57,7 +57,7 @@ public class DeployWorkflowTests
     [Fact]
     public void Only_a_push_to_master_reaches_production_and_only_a_push_to_develop_reaches_dev()
     {
-        Assert.Matches(@"(?ms)^on:\s*\n\s*push:\s*\n\s*branches-ignore: \[gh-pages\]\s*\n\s*pull_request:\s*\n\s*workflow_dispatch:", Build);
+        Assert.Matches(@"(?ms)^on:\s*\n(?:\s*#[^\n]*\n)?\s*push:\s*\n\s*branches: \[develop, master\]\s*\n\s*pull_request:\s*\n\s*workflow_dispatch:", Build);
         Assert.Matches(@"(?ms)^on:\s*\n\s*push:\s*\n\s*branches: \[develop\]\s*\n\s*workflow_dispatch:", Dev);
         Assert.Matches(@"(?ms)^on:\s*\n\s*push:\s*\n\s*branches: \[master\]\s*\n\s*workflow_dispatch:", Prod);
         Assert.DoesNotContain("pull_request", Dev);
