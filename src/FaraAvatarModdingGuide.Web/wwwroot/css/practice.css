@@ -1627,3 +1627,20 @@
     margin-top: 0.5rem;
 }
 
+/* スマートフォン幅: 3D ビュー上部のボタン（頂点・辺・面・透過・統計・ミラー）の押せる範囲を 44px の高さにする。
+   見た目（大きさ・位置）は変えず、ボタンの上下に透明な領域を足す（::after）。横の間隔は 6px のままなので、隣とは重ならない。 */
+@media (max-width: 767.98px) {
+    .vp-tools button {
+        position: relative;
+    }
+
+    .vp-tools button::after {
+        content: "";
+        position: absolute;
+        top: -11px;
+        bottom: -11px;
+        left: 0;
+        right: 0;
+    }
+}
+
