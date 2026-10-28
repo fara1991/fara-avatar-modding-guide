@@ -16,11 +16,11 @@
 // - 作成者（作成者の鍵を持つ接続）だけが「部屋を閉じる」（close）できる。閉じた部屋の ID は 10 分、「閉じた」目印で拒否する
 // - ping は Durable Object を起こさずに自動で返す（WebSocket Hibernation）。応答の時刻で、切れた接続を見つけて外す
 import { DurableObject } from "cloudflare:workers";
-// 報告の受け口とメンテナンスの判定は、共通部品（fara-site-kit）の同じファイルを使う（各サイトに同じコピーを持たない）
-import { handleReport } from "../external/fara-site-kit/worker/report.js";
-import { getMaintenance, maintenanceResponse } from "../external/fara-site-kit/worker/maintenance.js";
+// 報告の受け口とメンテナンスの判定は、共通部品（fara-blazor-component）の同じファイルを使う（各サイトに同じコピーを持たない）
+import { handleReport } from "../external/fara-blazor-component/worker/report.js";
+import { getMaintenance, maintenanceResponse } from "../external/fara-blazor-component/worker/maintenance.js";
 // 報告の 1 日の送信回数の制限（送信元ごと 3 回まで）の Durable Object。バインディング REPORT_LIMITER（wrangler.toml）があるときだけ働く
-export { ReportRateLimiter } from "../external/fara-site-kit/worker/report-rate-limit.js";
+export { ReportRateLimiter } from "../external/fara-blazor-component/worker/report-rate-limit.js";
 
 // ---------------------------------------------------------------- 上限
 export const LIMITS = {
@@ -81,7 +81,7 @@ const listCache = new WeakMap();
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    // メンテナンス（Worker の変数 MAINTENANCE_MODE。external/fara-site-kit/worker/maintenance.js）。true の間は、すべて 503 のメンテナンス画面
+    // メンテナンス（Worker の変数 MAINTENANCE_MODE。external/fara-blazor-component/worker/maintenance.js）。true の間は、すべて 503 のメンテナンス画面
     const maintenance = getMaintenance(env);
     if (maintenance.state === "on") return maintenanceResponse(request, maintenance, "Avatar Modding Guide");
     // メンテナンスの状態。アプリ（WebAssembly）が起動時に 1 回読む。キャッシュさせない（MAINTENANCE_MODE を変えたら、すぐ反映するため）
@@ -113,7 +113,7 @@ export default {
         headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
       });
     }
-    // 作者への報告の受け口（external/fara-site-kit/worker/report.js）
+    // 作者への報告の受け口（external/fara-blazor-component/worker/report.js）
     if (url.pathname === "/api/report" || url.pathname === "/api/report/config") {
       try {
         return await handleReport(request, env, "Avatar Modding Guide");

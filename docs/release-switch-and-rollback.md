@@ -31,7 +31,7 @@ Blazor WebAssembly + MudBlazor への移行（[wasm-migration-plan.md](wasm-migr
 4. avatar-dev で動作を確認する（確認項目は統合 PR の本文）。
 5. **avatar-dev の変数の付け替え**: 旧 SSR 版の Worker は `MAINTENANCE`、新しい Worker（と kit）は `MAINTENANCE_MODE` を読む。付け替えるまで、avatar-dev の `MAINTENANCE` は無視される（メンテナンス・お知らせは出ない）。統合のあと、kit の Actions（Set maintenance (all sites)）か、次のどちらかで `MAINTENANCE_MODE` を作る:
    - avatar のリポジトリの Actions → `Deploy` → Run workflow、Use workflow from: `develop`、`maintenance_mode`: `false`（通常のまま変数だけを作る）
-   - 手元: `node external/fara-site-kit/tools/maintenance.mjs set --env dev --site avatar --mode false`（ドライラン）→ `--apply`
+   - 手元: `node external/fara-blazor-component/tools/maintenance.mjs set --env dev --site avatar --mode false`（ドライラン）→ `--apply`
    実行ページ下部のジョブサマリーで、`MAINTENANCE_MODE` の現在値が出ることを確かめる。そのあと、ダッシュボードの旧 `MAINTENANCE` は削除してよい（読まれない）。
 6. Cloudflare・GitHub の後始末（`wasm-dev` は使わなくなった）: Worker `fara-avatar-wasm-dev`・カスタムドメイン `avatar-wasm-dev.fara-labs.com`・その Cloudflare Access のアプリケーションを削除する。GitHub の Environment `wasm-dev` も削除してよい。kit の `tools/maintenance-sites.json` に `wasm-dev` を足していなければ、変更は要らない。
 

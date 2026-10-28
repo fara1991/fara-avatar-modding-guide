@@ -42,11 +42,11 @@ internal static class StaticFrame
     public static string Header(SiteSettings settings)
     {
         var sb = new StringBuilder();
-        sb.Line("<header class=\"mud-appbar mud-appbar-fixed-top mud-elevation-0 fsk-header\">");
+        sb.Line("<header class=\"mud-appbar mud-appbar-fixed-top mud-elevation-0 fbc-header\">");
         sb.Line("<div role=\"toolbar\" class=\"mud-toolbar mud-toolbar-appbar\">");
-        sb.Line("<div class=\"fsk-scroll-progress\" aria-hidden=\"true\" style=\"--scroll-progress: 0.0000;\"></div>");
-        sb.Line($"<span class=\"mud-button-root mud-icon-button mud-inherit-text mud-ripple mud-ripple-icon fsk-menu-toggle\" aria-hidden=\"true\"><span class=\"mud-icon-button-label\">{MudSvg("Menu")}</span></span>");
-        sb.Line($"<a class=\"fsk-brand\" href=\"/\" title=\"ホームへ\">{E(settings.Title)}</a>");
+        sb.Line("<div class=\"fbc-scroll-progress\" aria-hidden=\"true\" style=\"--scroll-progress: 0.0000;\"></div>");
+        sb.Line($"<span class=\"mud-button-root mud-icon-button mud-inherit-text mud-ripple mud-ripple-icon fbc-menu-toggle\" aria-hidden=\"true\"><span class=\"mud-icon-button-label\">{MudSvg("Menu")}</span></span>");
+        sb.Line($"<a class=\"fbc-brand\" href=\"/\" title=\"ホームへ\">{E(settings.Title)}</a>");
         // 検索欄(PC)。Web の AvSearchBox と同じ構造
         sb.Line("<div class=\"av-search av-pc\" role=\"search\" aria-hidden=\"true\">");
         sb.Line("<svg class=\"av-search-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"11\" cy=\"11\" r=\"7\"></circle><path d=\"M20 20l-3.5-3.5\"></path></svg>");
@@ -58,7 +58,7 @@ internal static class StaticFrame
         sb.Line($"<span class=\"av-sw-moon\">{MudSvg("DarkMode")}</span><span class=\"av-sw-sun\">{MudSvg("LightMode")}</span>");
         sb.Line("</span></div>");
         // 検索ボタン(スマホ)
-        sb.Line($"<span class=\"mud-button-root mud-icon-button mud-inherit-text mud-ripple mud-ripple-icon fsk-search-toggle av-sp\" aria-hidden=\"true\"><span class=\"mud-icon-button-label\">{MudSvg("Search")}</span></span>");
+        sb.Line($"<span class=\"mud-button-root mud-icon-button mud-inherit-text mud-ripple mud-ripple-icon fbc-search-toggle av-sp\" aria-hidden=\"true\"><span class=\"mud-icon-button-label\">{MudSvg("Search")}</span></span>");
         sb.Line("</div>");
         sb.Line("</header>");
         return sb.ToString();
@@ -68,12 +68,12 @@ internal static class StaticFrame
     public static string Sidebar(SiteContent content, string? path)
     {
         var sb = new StringBuilder();
-        sb.Line("<aside id=\"fsk-sidebar\" class=\"mud-drawer mud-drawer-fixed mud-drawer-pos-left mud-drawer--open mud-drawer--initial mud-drawer-sm mud-drawer-clipped-always mud-elevation-0 mud-drawer-mini fsk-sidebar\">");
+        sb.Line("<aside id=\"fbc-sidebar\" class=\"mud-drawer mud-drawer-fixed mud-drawer-pos-left mud-drawer--open mud-drawer--initial mud-drawer-sm mud-drawer-clipped-always mud-elevation-0 mud-drawer-mini fbc-sidebar\">");
         sb.Line("<div class=\"mud-drawer-content\">");
-        sb.Line("<nav class=\"mud-navmenu mud-navmenu-default mud-navmenu-margin-none fsk-nav\">");
+        sb.Line("<nav class=\"mud-navmenu mud-navmenu-default mud-navmenu-margin-none fbc-nav\">");
         foreach (var section in SiteNav.Build(content))
         {
-            if (!string.IsNullOrEmpty(section.Title)) sb.Line($"<div class=\"fsk-nav-section\">{E(section.Title)}</div>");
+            if (!string.IsNullOrEmpty(section.Title)) sb.Line($"<div class=\"fbc-nav-section\">{E(section.Title)}</div>");
             foreach (var entry in section.Items)
             {
                 var active = path is not null && SiteNav.IsActive(entry, path);
@@ -94,20 +94,20 @@ internal static class StaticFrame
     public static string Footer(SiteSettings settings, string? path)
     {
         var sb = new StringBuilder();
-        sb.Line("<footer class=\"fsk-footer\"><div class=\"fsk-footer-line\">");
-        sb.Line($"<span class=\"fsk-footer-name\">{E(settings.Title)}</span><span class=\"fsk-footer-sep\" aria-hidden=\"true\">|</span>");
-        sb.Line($"<a href=\"{PageCatalog.ReportHref(path)}\">問い合わせ</a><span class=\"fsk-footer-sep\" aria-hidden=\"true\">|</span>");
-        sb.Line("<a href=\"/privacy\">プライバシーポリシー</a><span class=\"fsk-footer-sep\" aria-hidden=\"true\">|</span>");
+        sb.Line("<footer class=\"fbc-footer\"><div class=\"fbc-footer-line\">");
+        sb.Line($"<span class=\"fbc-footer-name\">{E(settings.Title)}</span><span class=\"fbc-footer-sep\" aria-hidden=\"true\">|</span>");
+        sb.Line($"<a href=\"{PageCatalog.ReportHref(path)}\">問い合わせ</a><span class=\"fbc-footer-sep\" aria-hidden=\"true\">|</span>");
+        sb.Line("<a href=\"/privacy\">プライバシーポリシー</a><span class=\"fbc-footer-sep\" aria-hidden=\"true\">|</span>");
         sb.Line($"<span>© {settings.PublishedYear} <a href=\"{E(settings.PortfolioUrl)}\">Fara</a></span>");
         var socials = settings.Socials.Where(s => IsSafeUrl(s.Url)).ToList();
         if (socials.Count > 0)
         {
-            sb.Append("<span class=\"fsk-footer-socials\">");
+            sb.Append("<span class=\"fbc-footer-socials\">");
             foreach (var social in socials)
             {
                 var (label, color) = SocialServices.TryGetValue(social.Service, out var known) ? known : (social.Service, "#7c3aed");
                 var iconPath = SocialPaths.TryGetValue(social.Service, out var p) ? p : SocialPaths["github"];
-                sb.Append($"<a class=\"fsk-footer-social fsk-service-{E(social.Service)}\" href=\"{E(social.Url)}\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"{E(label)}\" title=\"{E(label)}\" style=\"--brand: {color}\">" +
+                sb.Append($"<a class=\"fbc-footer-social fbc-service-{E(social.Service)}\" href=\"{E(social.Url)}\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"{E(label)}\" title=\"{E(label)}\" style=\"--brand: {color}\">" +
                           $"<svg class=\"icon \" viewBox=\"0 0 24 24\" width=\"13\" height=\"13\" aria-hidden=\"true\" focusable=\"false\" fill=\"currentColor\" stroke=\"none\">{iconPath}</svg></a>");
             }
             sb.Line("</span>");

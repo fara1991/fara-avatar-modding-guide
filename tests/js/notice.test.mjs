@@ -14,7 +14,7 @@ function fakeDom({ withHost = true } = {}) {
         appendChild(c) { this.children.push(c); return c; },
         insertBefore(c, ref) { this.children.splice(ref ? this.children.indexOf(ref) : this.children.length, 0, c); return c; },
         get firstChild() { return this.children[0] ?? null; },
-        querySelector(sel) { return sel === ".fsk-notice" ? this.children.find((c) => c.className === "fsk-notice") ?? null : null; },
+        querySelector(sel) { return sel === ".fbc-notice" ? this.children.find((c) => c.className === "fbc-notice") ?? null : null; },
     });
     const host = make("div");
     host.children.push(make("header"));
@@ -43,7 +43,7 @@ test("render: 見出しと文を別の要素で、ページの枠の先頭に入
     const { doc, host } = fakeDom();
     const band = render(doc, { message: "<img src=x onerror=alert(1)>更新します" });
     assert.equal(host.children[0], band);                         // 先頭（ヘッダーより上）
-    assert.equal(band.className, "fsk-notice");
+    assert.equal(band.className, "fbc-notice");
     assert.equal(band.attrs.role, "status");
     assert.equal(band.children[0].textContent, "【お知らせ】");
     assert.equal(band.children[1].textContent, "<img src=x onerror=alert(1)>更新します");
@@ -55,7 +55,7 @@ test("render: 2 回呼んでも帯は 1 つ。枠が無いページ（WebAssembl
     const { doc, host } = fakeDom();
     render(doc, { message: "a" });
     assert.equal(render(doc, { message: "b" }), null);
-    assert.equal(host.children.filter((c) => c.className === "fsk-notice").length, 1);
+    assert.equal(host.children.filter((c) => c.className === "fbc-notice").length, 1);
     assert.equal(render(fakeDom({ withHost: false }).doc, { message: "a" }), null);
 });
 
@@ -66,7 +66,7 @@ test("読み込み: 枠のあるページで /api/maintenance を 1 回読み、
     load({ document: doc, fetch: fetchStub, AbortController, setTimeout, clearTimeout });
     await new Promise((r) => setTimeout(r, 20));
     assert.deepEqual(calls, [["/api/maintenance", "no-store"]]);
-    assert.equal(host.children[0].className, "fsk-notice");
+    assert.equal(host.children[0].className, "fbc-notice");
 });
 
 test("読み込み: 通信に失敗・応答が通常のときは、何も出さず、例外にしない", async () => {

@@ -1,5 +1,5 @@
 // 「更新予定」のお知らせの帯を、静的 HTML のままのページ（WebAssembly を読み込まないページ。記事など）に出す。
-// WebAssembly のページでは、kit の MaintenanceBanner が出す（同じ見た目の fsk-notice）。このファイルは、Build が WebAssembly を使わないページにだけ読み込ませる
+// WebAssembly のページでは、kit の MaintenanceBanner が出す（同じ見た目の fbc-notice）。このファイルは、Build が WebAssembly を使わないページにだけ読み込ませる
 // （index.html の STATIC-ONLY の印）。記事などが WebAssembly になるフェーズ 2〜3 で、不要になった分から外す。
 // Worker の GET /api/maintenance（{state, message}）を、ページを開いたときに 1 回だけ読む。2 秒で打ち切り、読めなければ何も出さない。state が notice のときだけ帯を出す。
 (function () {
@@ -24,15 +24,15 @@
     /** 帯を作って、静的なページの枠（.av-static）の先頭に入れる。文は textContent で入れる（HTML としては扱わない）。 */
     function render(doc, info) {
         var host = doc.querySelector(".av-static");
-        if (!host || host.querySelector(".fsk-notice")) return null;
+        if (!host || host.querySelector(".fbc-notice")) return null;
         var band = doc.createElement("div");
-        band.className = "fsk-notice";
+        band.className = "fbc-notice";
         band.setAttribute("role", "status");
         var title = doc.createElement("strong");
-        title.className = "fsk-notice-title";
+        title.className = "fbc-notice-title";
         title.textContent = "【お知らせ】";
         var text = doc.createElement("span");
-        text.className = "fsk-notice-text";
+        text.className = "fbc-notice-text";
         text.textContent = info.message;
         band.appendChild(title);
         band.appendChild(text);

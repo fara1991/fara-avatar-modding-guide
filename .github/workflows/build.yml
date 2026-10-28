@@ -24,7 +24,7 @@ jobs:
     name: Build and test
     runs-on: ubuntu-latest
     steps:
-      # external/fara-site-kit（共通部品。Web・Build・Worker が使う）を取得する
+      # external/fara-blazor-component（共通部品。Web・Build・Worker が使う）を取得する
       - uses: actions/checkout@v4
         with:
           submodules: true
@@ -44,9 +44,9 @@ jobs:
       - name: Test
         run: dotnet test -c Release --no-build --nologo
 
-      # 報告の受け口・メンテナンスの判定は共通部品（external/fara-site-kit/worker）。Worker の入口（worker/index.js）のテストと一緒に動かす
+      # 報告の受け口・メンテナンスの判定は共通部品（external/fara-blazor-component/worker）。Worker の入口（worker/index.js）のテストと一緒に動かす
       - name: Worker tests (report, maintenance, entry)
-        run: node --test external/fara-site-kit/worker/report.test.mjs external/fara-site-kit/worker/maintenance.test.mjs worker/index.test.mjs
+        run: node --test external/fara-blazor-component/worker/report.test.mjs external/fara-blazor-component/worker/maintenance.test.mjs worker/index.test.mjs
 
       - name: Deploy gate tests (maintenance, site verification)
         run: node --test .github/scripts/require-maintenance.test.mjs .github/scripts/verify-site.test.mjs

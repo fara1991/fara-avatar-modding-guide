@@ -30,7 +30,7 @@
 
 - .NET 10 / Blazor WebAssembly（ホスティングは静的ファイルのみ。サーバーで .NET は動かさない）
 - [MudBlazor](https://mudblazor.com/)（画面部品）
-- 共通部品: [fara-site-kit](https://github.com/fara1991/fara-site-kit)（`external/fara-site-kit`。git submodule。レイアウト・フッター・報告フォーム・メンテナンス表示・静的 HTML の生成・CSP・Worker の共有 JS）
+- 共通部品: [fara-blazor-component](https://github.com/fara1991/fara-blazor-component)（`external/fara-blazor-component`。git submodule。レイアウト・フッター・報告フォーム・メンテナンス表示・静的 HTML の生成・CSP・Worker の共有 JS）
 - [Markdig](https://github.com/xoofx/markdig)（Markdown → HTML）と [YamlDotNet](https://github.com/aaubry/YamlDotNet)（フロントマター・データ）は、ビルド時だけ使う（ブラウザには載らない）
 - 練習の 3D: C#（Blazor WebAssembly。Phase 3b S7 で three.js を外した。共有ルームも C#）
 - Cloudflare Workers（Static Assets + Durable Objects）でホスティング
@@ -41,7 +41,7 @@
 
 - .NET 10.0 SDK
 - Node.js 22 以上（静的 HTML の生成に kit の Node ツールを使う。テストにも使う）
-- `external/fara-site-kit` の submodule（無いとビルド・テストが失敗する）
+- `external/fara-blazor-component` の submodule（無いとビルド・テストが失敗する）
 
 ```bash
 git clone --recurse-submodules https://github.com/fara1991/fara-avatar-modding-guide.git
@@ -76,7 +76,7 @@ npx wrangler@4.149.0 dev --env dev
 
 ```bash
 dotnet test -c Release                       # Content.Tests・Build.Tests・Web.Tests・Practice.Tests（Build.Tests は Node を使う。Build.Tests は kit も）
-node --test external/fara-site-kit/worker/report.test.mjs external/fara-site-kit/worker/maintenance.test.mjs worker/index.test.mjs
+node --test external/fara-blazor-component/worker/report.test.mjs external/fara-blazor-component/worker/maintenance.test.mjs worker/index.test.mjs
 node --test .github/scripts/require-maintenance.test.mjs .github/scripts/verify-site.test.mjs
 node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/search-norm-fn.test.mjs tests/js/notice.test.mjs tests/js/practice-entry.test.mjs tests/js/head-sync.test.mjs tests/js/room-cs.test.mjs
 ```
@@ -96,7 +96,7 @@ npx playwright-core install chromium   # 初回（Linux は --with-deps）。ロ
 npm run layout-check   # site-production を配って計測（設定は layout-check.config.mjs。ページ・幅 360〜1440px）
 ```
 
-- **レイアウトの計測**は kit の `tools/layout-check`（設定の書き方と限界は `external/fara-site-kit/docs/layout-check.md`）。配信は `tools/layout-check/run.mjs` が行う。`/learn` は `learn.html` と `learn/` が両方あるので、フォルダの要求だけ `.html` に読み替える（kit の配信を直す案は kit の follow-up）。
+- **レイアウトの計測**は kit の `tools/layout-check`（設定の書き方と限界は `external/fara-blazor-component/docs/layout-check.md`）。配信は `tools/layout-check/run.mjs` が行う。`/learn` は `learn.html` と `learn/` が両方あるので、フォルダの要求だけ `.html` に読み替える（kit の配信を直す案は kit の follow-up）。
 - **C# の静的解析**は `Directory.Build.props` と `tools/lint/dotnet.site.editorconfig`（kit の `dotnet.editorconfig` より `global_level` が上）。**違反が 0 件のルールだけ error**、違反が残るものは warning（ラチェット）。
 
 #### 現在の違反の件数（最後に計測したとき）
@@ -116,14 +116,14 @@ npm run layout-check   # site-production を配って計測（設定は layout-c
 `layout-check.config.mjs` の `exclusions` に、**ルール名・セレクター・理由**を書く（理由が空だと設定エラー）。直し先が kit にあるものだけ。
 
 ```js
-{ rule: "tap-target", selector: "a.fsk-footer-social", reason: "kit の SiteFooter の SNS のアイコン（22px）。直すのは kit" },
+{ rule: "tap-target", selector: "a.fbc-footer-social", reason: "kit の SiteFooter の SNS のアイコン（22px）。直すのは kit" },
 ```
 
 現在の除外（7 件）:
 
 - `no-offscreen-focus`（本文・フッター・記事内の 3D のビュー）: 画面の下の項目に Tab で入ると、ブラウザは滑らかにスクロールする。計測はその途中を測るため。kit の `browser.mjs` は `reducedMotion` を指定できない（`chromium.launch` へ渡すのは `channel` だけ）。kit の follow-up
-- `no-offscreen-focus`（`.fsk-skip-link`）: フォーカスで出す演出の途中を測る（同じ理由。kit の部品）
-- `tap-target`（`a.fsk-footer-social`）: kit の SiteFooter の SNS の 22px のアイコン。直すのは kit
+- `no-offscreen-focus`（`.fbc-skip-link`）: フォーカスで出す演出の途中を測る（同じ理由。kit の部品）
+- `tap-target`（`a.fbc-footer-social`）: kit の SiteFooter の SNS の 22px のアイコン。直すのは kit
 - `tap-target`（`.article-body td a`）: 表のセルの中の文字リンク。前後に文字が無いので、kit の文中の判定に入らない。44px にすると表の行が崩れる
 - `tap-target`（`.breadcrumb-item > a`）: パンくずが折り返す行で、項目の下の点が次の行の項目に当たる。箱を 44px に広げても重なる。パンくずの行の作りを見直す別の PR
 - `tap-target`（問い合わせの送信ボタン）: 計測は Worker の無い静的配信なので、フォームは無効（MudButton の disabled は `pointer-events: none`）。有効なときの押せる範囲は、確認用（Worker あり）で目視
@@ -168,7 +168,7 @@ fara-avatar-modding-guide/
 │   ├── icons/                # 練習の JS が使う Bootstrap Icons を、CSS だけで描く css/bi-icons.css に書き出す
 │   └── room-check/           # 共同練習の部屋（Durable Object）の動作確認スクリプト
 ├── worker/index.js           # Cloudflare Worker（/api/* と共同練習の部屋の Durable Object）。報告・メンテナンスの判定は kit の共有 JS
-├── external/fara-site-kit/   # 共通部品（git submodule）
+├── external/fara-blazor-component/   # 共通部品（git submodule）
 ├── .github/
 │   ├── workflows/            # build.yml（ビルド・テスト）・deploy-develop.yml（develop → 確認用）・deploy.yml（master → 本番）
 │   └── scripts/              # require-maintenance.mjs（本番の公開のゲート）・verify-site.mjs（環境の取り違えを止める）
@@ -263,7 +263,7 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 ### 本番の公開とメンテナンス（MAINTENANCE_MODE）
 
 - Worker の変数 `MAINTENANCE_MODE`（`true` = 全体メンテナンス・全ページ 503 / `notice` = お知らせ帯 / `false` または未設定 = 通常）と `MAINTENANCE_MESSAGE`（文面）で切り替えます。旧名 `MAINTENANCE` は読みません（残っていても無視。ダッシュボードで削除してかまいません）。
-- 切り替えは **Actions → Deploy (production) → Run workflow**（Use workflow from = `master`）、確認用は **Actions → Deploy (develop) → Run workflow**（`develop`）で、`maintenance_mode`（true / notice / false / 空）と `maintenance_message`（空 = 変更しない）を入れて実行します。4 サイトまとめては `external/fara-site-kit/tools/maintenance.mjs`（`external/fara-site-kit/docs/maintenance-cli.md`）。実行ページ下部のジョブサマリーに、設定した値と反映後の現在値が出ます。
+- 切り替えは **Actions → Deploy (production) → Run workflow**（Use workflow from = `master`）、確認用は **Actions → Deploy (develop) → Run workflow**（`develop`）で、`maintenance_mode`（true / notice / false / 空）と `maintenance_message`（空 = 変更しない）を入れて実行します。4 サイトまとめては `external/fara-blazor-component/tools/maintenance.mjs`（`external/fara-blazor-component/docs/maintenance-cli.md`）。実行ページ下部のジョブサマリーに、設定した値と反映後の現在値が出ます。
 - **本番の push（master）と、何も指定しない手動実行**は、公開の前に `MAINTENANCE_MODE` が `notice` か `true` かをゲート（`.github/scripts/require-maintenance.mjs`）で確かめ、公開と同時に `--var MAINTENANCE_MODE:true`（メンテナンス画面）にします。作業が終わったら `maintenance_mode` に `false` を入れて Run workflow（master）で通常に戻します（お知らせも一緒に消える。このとき、その時点の master の内容がすべて公開されます）。
   - `maintenance_mode` を指定した手動実行はゲートを飛ばし、その値を渡します。`maintenance_message` だけの手動実行は `MAINTENANCE_MODE` を変えません。
   - `skip_maintenance_check` は確認を飛ばし、`MAINTENANCE_MODE` を作りも変えもしません（**お知らせなし・メンテナンス画面なしで、すぐ公開されます**。緊急の修正用）。

@@ -8,7 +8,7 @@ using FaraAvatarModdingGuide.Models;
 using FaraAvatarModdingGuide.Web.Search;
 using FaraAvatarModdingGuide.Web.Services;
 using Microsoft.Extensions.DependencyInjection;
-using FaraSiteKit.Razor;
+using FaraBlazorComponent.Razor;
 using Xunit;
 
 // SiteLinks（確認用ホスト）などは静的な設定なので、テストを並列に動かさない
@@ -77,8 +77,8 @@ public abstract class WebTestContext : BunitContext, IAsyncLifetime
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddSingleton(TestData.Settings);
-        // SiteOptions・テーマの状態・MudBlazor（AddFaraSiteKit。SiteInfo.Configure は Program.cs と同じ値を入れる）
-        Services.AddFaraSiteKit(o => SiteInfo.Configure(o, TestData.Settings));
+        // SiteOptions・テーマの状態・MudBlazor（AddFaraBlazorComponent。SiteInfo.Configure は Program.cs と同じ値を入れる）
+        Services.AddFaraBlazorComponent(o => SiteInfo.Configure(o, TestData.Settings));
         var http = new HttpClient(new FakeDataHandler(TestData.Content, fail: !contentLoaded)) { BaseAddress = new Uri("http://localhost/") };
         var store = new ContentStore(http);
         store.LoadAsync().GetAwaiter().GetResult();

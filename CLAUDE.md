@@ -20,7 +20,7 @@ Avatar Modding Guide（https://avatar.fara-labs.com/）。.NET 10 / Blazor WebAs
 - `src/FaraAvatarModdingGuide.Build`: 本文入りの静的 HTML・`data/*.json`・robots・sitemap・`_headers`・`_redirects` を、`dotnet publish` の出力に書き足す。本番用（`--env production`）と確認用（`--env develop`）で内容が違う（sitemap・noindex・canonical）
 - `src/FaraAvatarModdingGuide.Content`・`Shared`: 記事を読む部分（ビルド時のみ）と、Build と Web が共有する型
 - ルートの `wwwroot/` は `images/`（画像）と `og.png`（OGP。4 サイト共通の名前、URL は `/og.png?v=N`）だけ（Build がコピーする。画像は以前 tools/tutorial-images が書いた。S7 で消した。作り方は docs/phase3b-design.md の §17.7）
-- 共通部品は `external/fara-site-kit`（git submodule。直接は直さず、kit のリポジトリで直す）。`worker/index.js` は kit の共有 JS（報告・メンテナンス）を読む
+- 共通部品は `external/fara-blazor-component`（git submodule。タグ v1.0.0 に固定。直接は直さず、kit のリポジトリで直す。旧名 fara-site-kit からの移行は kit の docs/migration-v1.0.0.md）。`worker/index.js` は kit の共有 JS（報告・メンテナンス）を読む
 - 公開の設定は `wrangler.toml`（`name` はダッシュボードの Worker 名と一致させる。assets は `./dist`）と `.github/workflows/`（`build.yml`・`deploy-develop.yml`・`deploy.yml`。Pokémon と同じ形）。wrangler のバージョンは `4.149.0` で固定
 - メンテナンス表示は Worker の変数 `MAINTENANCE_MODE`（`true` / `notice` / `false`）と `MAINTENANCE_MESSAGE`。旧名 `MAINTENANCE` は読まない。本番の初回の公開は `MAINTENANCE_MODE:true` が付き、メンテナンス画面のまま公開される（README の「本番の公開とメンテナンス」）
 - 検索の「正解」は `tests/js/fixtures/searchcore.reference.js`（旧 SSR 版の写しを固定したもの）。仕様を変えるとき以外は書き換えない
@@ -32,7 +32,7 @@ Avatar Modding Guide（https://avatar.fara-labs.com/）。.NET 10 / Blazor WebAs
 dotnet test -c Release                     # Content.Tests・Build.Tests・Web.Tests（Node と submodule が要る）
 npm ci && npm run lint                     # ESLint（eslint.config.mjs）
 npm run layout-check                       # レイアウトの自動計測（先に publish と Build で site-production を作る。README の「静的解析（lint）とレイアウトの計測」）
-node --test external/fara-site-kit/worker/*.test.mjs worker/index.test.mjs .github/scripts/*.test.mjs tests/js/*.test.mjs   # search.test.mjs は SEARCH_INDEX_FILE=dist/search-index.json が要る
+node --test external/fara-blazor-component/worker/*.test.mjs worker/index.test.mjs .github/scripts/*.test.mjs tests/js/*.test.mjs   # search.test.mjs は SEARCH_INDEX_FILE=dist/search-index.json が要る
 # ビルドと配信（README の「ビルドと確認」）: publish → Build → wrangler dev
 dotnet publish src/FaraAvatarModdingGuide.Web -c Release -o publish
 rm -rf dist && cp -r publish/wwwroot dist

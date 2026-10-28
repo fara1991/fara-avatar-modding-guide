@@ -1,4 +1,4 @@
-/* このサイト（Avatar Modding Guide）の見た目。SSR 版の wwwroot/css/site.css から、共通部品（fara-site-kit のレイアウト・フッター・404・お知らせ）と
+/* このサイト（Avatar Modding Guide）の見た目。SSR 版の wwwroot/css/site.css から、共通部品（fara-blazor-component のレイアウト・フッター・404・お知らせ）と
    MudBlazor が受け持つ部分（サイドバー・ヘッダー・検索欄・スイッチ・スクロール線）を除いて移したもの。練習・チュートリアル・進捗・検索の CSS は、
    それぞれのフェーズ（2〜3）で WebAssembly 側に移すときに足す。
    Bootstrap のクラスは base.css（Bootstrap 5.3.3 から使うクラスだけを取り出したもの）。色は :root の変数（--bs-*・--violet など）で決める。 */
@@ -698,18 +698,18 @@ h1:focus {
 }
 
 /* Bootstrap の reboot（a の下線）が、サイドバーとヘッダーのリンクにも効くので、消す（SSR 版のサイドバーは下線なし） */
-.fsk-sidebar a,
-.fsk-header a {
+.fbc-sidebar a,
+.fbc-header a {
     text-decoration: none;
 }
 
 /* サイドバーの見出し（Blender / Unity / VRChat）は、SSR 版と同じく大文字で出す */
-.fsk-sidebar .fsk-nav-section {
+.fbc-sidebar .fbc-nav-section {
     text-transform: uppercase;
 }
 
-/* 見出しへのリンク（#id）で飛んだとき、上に少し余白を残す。本文の領域（.fsk-content）がスクロールする */
-.fsk-content,
+/* 見出しへのリンク（#id）で飛んだとき、上に少し余白を残す。本文の領域（.fbc-content）がスクロールする */
+.fbc-content,
 .av-static {
     scroll-padding-top: 1rem;
 }
@@ -744,7 +744,7 @@ h1:focus {
 }
 
 /* サイドバー・ヘッダーは常に濃い紫なので、ライトテーマでも白い枠 */
-:root body .fsk-sidebar :focus-visible {
+:root body .fbc-sidebar :focus-visible {
     outline-color: #fff;
     outline-offset: -2px;
 }
@@ -760,21 +760,21 @@ h1:focus {
 
 /* 本文の後ろに、半透明の地の色を敷く。図形と方眼は、本文の後ろでも見えるように、地は 0.4 にとどめる（0.8 だと図形がほとんど見えない）。
    文字の色と地のコントラストは、最も濃い図形の上でも WCAG AA（4.5 以上）を超える（ライト 11 前後・ダーク 9 前後の見積もり） */
-.fsk-content {
+.fbc-content {
     background: rgb(12 8 28 / 0.4);
 }
 
-[data-bs-theme="light"] .fsk-content {
+[data-bs-theme="light"] .fbc-content {
     background: rgb(247 244 253 / 0.4);
 }
 
 /* サイトの本文の幅と余白。SSR 版の .content（px-4 = 1.5rem）に合わせる */
-.fsk-content {
+.fbc-content {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
 }
 
-.fsk-header .av-header-switch {
+.fbc-header .av-header-switch {
     margin-left: 0.75rem;
 }
 
@@ -816,7 +816,7 @@ h1:focus {
     min-height: 100dvh;
 }
 
-/* ページ全体(window)がスクロールする。起動の後の PC は本文の領域(.fsk-content)の中がスクロールするが、起動の前は、
+/* ページ全体(window)がスクロールする。起動の後の PC は本文の領域(.fbc-content)の中がスクロールするが、起動の前は、
    スクロールを window にしておく(静的な本文は inert で、本文の領域の中のスクロールがホイールで操作できない。ヘッダー・サイドバー・フッターは固定のまま、一番上では起動の後と同じ位置になる) */
 .av-static .mud-main-content {
     display: flex;
@@ -830,19 +830,19 @@ h1:focus {
     min-width: 0;
 }
 
-.av-static .fsk-content {
+.av-static .fbc-content {
     display: block;
     overflow: visible;
     padding-bottom: 1rem;
 }
 
 /* フッターは、PC は画面の下に貼り付ける(起動の後と同じ位置)。スマホは、起動の後も本文の最後に出る */
-.av-static .fsk-footer {
+.av-static .fbc-footer {
     margin-top: auto;
     position: sticky;
     bottom: 0;
     z-index: 10;
-    background: var(--fsk-body-bg);
+    background: var(--fbc-body-bg);
 }
 
 .av-static .av-sp {
@@ -855,22 +855,22 @@ h1:focus {
         margin-left: var(--mud-drawer-width-left);
     }
 
-    html.fsk-sidebar-hidden .av-static .mud-main-content {
+    html.fbc-sidebar-hidden .av-static .mud-main-content {
         margin-left: var(--mud-drawer-width-mini-left);
     }
 
-    html.fsk-sidebar-hidden .av-static .fsk-sidebar {
+    html.fbc-sidebar-hidden .av-static .fbc-sidebar {
         width: var(--mud-drawer-width-mini-left) !important;
     }
 
-    html.fsk-sidebar-hidden .av-static .fsk-nav-section {
+    html.fbc-sidebar-hidden .av-static .fbc-nav-section {
         opacity: 0;
     }
 }
 
 @media (max-width: 767.98px) {
     /* スマホ: サイドバーは出さず(起動の後も、閉じた一時的なメニュー)、ヘッダーは検索ボタン、ページ全体がスクロールし、フッターは貼り付けない */
-    .av-static .fsk-sidebar,
+    .av-static .fbc-sidebar,
     .av-static .av-pc {
         display: none;
     }
@@ -884,11 +884,11 @@ h1:focus {
         min-height: 0;
     }
 
-    .av-static .fsk-content {
+    .av-static .fbc-content {
         padding-bottom: 0;
     }
 
-    .av-static .fsk-footer {
+    .av-static .fbc-footer {
         position: static;
     }
 }
@@ -1021,12 +1021,12 @@ h1:focus {
     color: #86efac;
 }
 
-.fsk-sidebar .category-progress {
+.fbc-sidebar .category-progress {
     background: rgba(255, 255, 255, 0.15);
     color: #fff;
 }
 
-.fsk-sidebar .category-progress.is-complete {
+.fbc-sidebar .category-progress.is-complete {
     background: rgba(74, 222, 128, 0.3);
     color: #dcfce7;
 }
@@ -1086,13 +1086,13 @@ h1:focus {
     color: #15803d;
 }
 
-[data-bs-theme="light"] .fsk-sidebar .category-progress {
+[data-bs-theme="light"] .fbc-sidebar .category-progress {
     background: rgba(255, 255, 255, 0.15);
     color: #fff;
 }
 
 /* サイドバーの項目の右端に置く「3/5」 */
-.fsk-sidebar .mud-nav-link-text {
+.fbc-sidebar .mud-nav-link-text {
     display: flex;
     align-items: center;
     flex: 1 1 auto;
@@ -1273,9 +1273,9 @@ h1:focus {
     color: inherit;
 }
 
-/* スマホの検索欄(ヘッダーの検索ボタンで、ヘッダーの下に開く。欄の枠 #fsk-search-sheet は kit の SiteLayout が出し入れする)。中の検索部品は、枠に position: static で入れ、
+/* スマホの検索欄(ヘッダーの検索ボタンで、ヘッダーの下に開く。欄の枠 #fbc-search-sheet は kit の SiteLayout が出し入れする)。中の検索部品は、枠に position: static で入れ、
    結果の一覧・× の位置の基準を、枠にする */
-.fsk-search-sheet .av-search-sheet {
+.fbc-search-sheet .av-search-sheet {
     position: static;
 }
 
@@ -1311,7 +1311,7 @@ h1:focus {
 }
 
 @media (max-width: 767.98px) {
-    html.fsk-search-open .fsk-search-sheet {
+    html.fbc-search-open .fbc-search-sheet {
         padding: 8px 56px 8px 12px;
         background: linear-gradient(90deg, #140a26 0%, #241243 100%);
         border-bottom: 1px solid rgba(200, 170, 255, 0.14);
@@ -1342,14 +1342,14 @@ h1:focus {
 @media (max-width: 767.98px) {
     .mud-drawer .mud-nav-link,
     .av-drawer-theme .mud-button-root,
-    .fsk-menu-toggle,
-    .fsk-search-toggle,
+    .fbc-menu-toggle,
+    .fbc-search-toggle,
     .btn {
         min-height: 44px;
     }
 
-    .fsk-menu-toggle,
-    .fsk-search-toggle {
+    .fbc-menu-toggle,
+    .fbc-search-toggle {
         min-width: 44px;
     }
 }
@@ -1358,14 +1358,14 @@ h1:focus {
    サイト名との間は 12px あるので重ならない。ドロワーのリンクは、広げると 1 件ずつ並びが動く（隙間なしに 40px で並んでいる）ので、ここでは変えない */
 @media (min-width: 768px) and (max-width: 1024px) {
     /* ボタンは overflow: hidden（MudBlazor）なので、外の領域を通すために clip にして、外へ 2px だけ許す */
-    .fsk-header .fsk-menu-toggle {
+    .fbc-header .fbc-menu-toggle {
         position: relative;
         overflow: hidden;
         overflow: clip;
         overflow-clip-margin: 2px;
     }
 
-    .fsk-header .fsk-menu-toggle::after {
+    .fbc-header .fbc-menu-toggle::after {
         content: "";
         position: absolute;
         inset: -3px;
@@ -1373,7 +1373,7 @@ h1:focus {
 }
 
 @media (min-width: 768px) {
-    .fsk-header .av-search {
+    .fbc-header .av-search {
         flex: 1 1 220px;
         min-width: 140px;
         max-width: 40rem;
@@ -1435,12 +1435,12 @@ h1:focus {
 }
 
 /* 静的 HTML のサイドバーの「いまのページ」の強調(詳細度は MudBlazor の .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) = 0,5,0 より高くする。負けると、色の変数が無い起動前は灰色・背景透明になる)。起動の後は MudBlazor が色の変数(--mud-palette-*)から決める色を、同じ値で直接書く(ダーク／ライト) */
-.av-static .fsk-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
+.av-static .fbc-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
     color: #a855f7;
     background-color: rgba(173, 173, 177, 0.06);
 }
 
-[data-bs-theme="light"] .av-static .fsk-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
+[data-bs-theme="light"] .av-static .fbc-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
     color: #7c3aed;
     background-color: rgba(0, 0, 0, 0.06);
 }
@@ -1501,7 +1501,7 @@ h1:focus {
 }
 
 /* 問い合わせの送信ボタン（kit の ReportFormView の MudButton）。押せる範囲の中心の上下 21.5px が、ボタンの中に入るように高さを 48px にする */
-.fsk-report-submit {
+.fbc-report-submit {
     min-height: 48px;
 }
 

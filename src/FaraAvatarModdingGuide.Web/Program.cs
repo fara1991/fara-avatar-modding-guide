@@ -4,8 +4,8 @@ using FaraAvatarModdingGuide.Web;
 using FaraAvatarModdingGuide.Web.Components;
 using FaraAvatarModdingGuide.Web.Search;
 using FaraAvatarModdingGuide.Web.Services;
-using FaraSiteKit.Core;
-using FaraSiteKit.Razor;
+using FaraBlazorComponent.Core;
+using FaraBlazorComponent.Razor;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
@@ -38,7 +38,7 @@ if (settings is null || SiteContentValidation.Check(settings) is not null || sto
 
 builder.Services.AddSingleton(settings);
 // 共通部品（レイアウト・フッター・報告フォームなど）が読む SiteOptions に、サイトの設定を入れる
-builder.Services.AddFaraSiteKit(options => SiteInfo.Configure(options, settings));
+builder.Services.AddFaraBlazorComponent(options => SiteInfo.Configure(options, settings));
 builder.Services.AddSingleton(maintenanceTask.Result);
 builder.Services.AddSingleton(store);
 builder.Services.AddSingleton<ISearchNormalizer, JsSearchNormalizer>();

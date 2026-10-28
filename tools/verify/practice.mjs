@@ -99,7 +99,7 @@ async function metrics(page) {
 
 /** 画面内の移動(再読み込みなし): サイドバーのリンクを押す */
 async function go(page, href) {
-  await page.locator(`.fsk-nav a[href="${href}"], .fsk-nav a[href="${href.replace(/^\//, "")}"]`).first().click();   // サイドバーの href は <base> に対する相対(learn/basics)
+  await page.locator(`.fbc-nav a[href="${href}"], .fbc-nav a[href="${href.replace(/^\//, "")}"]`).first().click();   // サイドバーの href は <base> に対する相対(learn/basics)
   await page.waitForFunction((h) => location.pathname + location.search === h || location.pathname === h.split("?")[0], href, { timeout: 30000 });
 }
 

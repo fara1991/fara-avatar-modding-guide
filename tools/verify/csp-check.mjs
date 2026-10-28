@@ -23,12 +23,12 @@ for (const [vpName, vp] of [["pc", { width: 1280, height: 800 }], ["sp", { width
     await p.addInitScript(() => document.addEventListener("securitypolicyviolation", (e) => window.__reportCsp(`${e.violatedDirective} ${e.blockedURI} @${e.sourceFile || ""}:${e.lineNumber || 0}`)));
     const res = await p.goto(NEW + path, { waitUntil: "load" });
     const status = res.status();
-    await p.waitForSelector(path === "/no-such-page-here" ? ".fsk-not-found" : ".fsk-page", { timeout: 60000 });
+    await p.waitForSelector(path === "/no-such-page-here" ? ".fbc-not-found" : ".fbc-page", { timeout: 60000 });
     await p.waitForTimeout(1500);
     // 少し操作する: スクロール・テーマの切り替え・検索欄・練習の 3D(キー)・チュートリアル
-    await p.evaluate(() => { window.scrollTo(0, 300); const c = document.querySelector(".fsk-content"); if (c) c.scrollTop = 300; });
+    await p.evaluate(() => { window.scrollTo(0, 300); const c = document.querySelector(".fbc-content"); if (c) c.scrollTop = 300; });
     if (vpName === "pc") {
-      await p.locator(".fsk-theme-switch input").first().click({ force: true, timeout: 3000 }).catch(() => {});
+      await p.locator(".fbc-theme-switch input").first().click({ force: true, timeout: 3000 }).catch(() => {});
       await p.waitForTimeout(300);
       await p.keyboard.press("Control+k").catch(() => {});
       await p.keyboard.type("ウェイト").catch(() => {});

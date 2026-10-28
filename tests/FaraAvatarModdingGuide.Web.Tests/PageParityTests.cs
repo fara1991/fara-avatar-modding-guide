@@ -39,7 +39,7 @@ public class PageParityTests : WebTestContext
     {
         var cut = Render<Privacy>();
         Assert.Equal(TestData.TextOf(StaticMain("/privacy")), TestData.TextOf(cut.Markup));
-        Assert.Contains("fsk-page-column--wide", cut.Markup);                       // PC で横幅 72rem（長文のページ）
+        Assert.Contains("fbc-page-column--wide", cut.Markup);                       // PC で横幅 72rem（長文のページ）
     }
 
     [Fact]

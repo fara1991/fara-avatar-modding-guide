@@ -141,13 +141,13 @@ public class DeployWorkflowTests
             Assert.DoesNotContain(gone, yml);
         foreach (var kept in new[]
         {
-            "dotnet build -c Release", "dotnet test -c Release --no-build", "external/fara-site-kit/worker/report.test.mjs", "external/fara-site-kit/worker/maintenance.test.mjs", "worker/index.test.mjs",
+            "dotnet build -c Release", "dotnet test -c Release --no-build", "external/fara-blazor-component/worker/report.test.mjs", "external/fara-blazor-component/worker/maintenance.test.mjs", "worker/index.test.mjs",
             ".github/scripts/require-maintenance.test.mjs", ".github/scripts/verify-site.test.mjs", "tests/js/storage-migrate.test.mjs", "tests/js/head-sync.test.mjs",
             "dotnet publish src/FaraAvatarModdingGuide.Web -c Release", "submodules: true", "tests/js/search-norm.mjs site-production/data/search.json",
         })
             Assert.Contains(kept, yml);
         // 書いてある node のテストが、実在する
-        foreach (Match m in Regex.Matches(yml, @"(?<![\w/.-])((?:tests/js|worker|\.github/scripts|external/fara-site-kit/worker)/[\w./-]+\.(?:test\.)?mjs)"))
+        foreach (Match m in Regex.Matches(yml, @"(?<![\w/.-])((?:tests/js|worker|\.github/scripts|external/fara-blazor-component/worker)/[\w./-]+\.(?:test\.)?mjs)"))
             Assert.True(File.Exists(Path.Combine(TestData.Root, m.Groups[1].Value)), m.Groups[1].Value);
     }
 
@@ -306,7 +306,7 @@ public class DeployWorkflowTests
     public void Worker_exports_the_report_rate_limiter_durable_object_from_the_kit()
     {
         var js = Read("worker/index.js");
-        Assert.Contains("export { ReportRateLimiter } from \"../external/fara-site-kit/worker/report-rate-limit.js\";", js);
+        Assert.Contains("export { ReportRateLimiter } from \"../external/fara-blazor-component/worker/report-rate-limit.js\";", js);
         // 練習の部屋の一覧の Durable Object も、Worker の本体から export する（wrangler の class_name と一致させる）
         Assert.Contains("export class RoomDirectory extends DurableObject", js);
     }
@@ -334,9 +334,9 @@ public class DeployWorkflowTests
     public void Worker_checks_maintenance_first_and_serves_the_state_api_without_rewriting_html()
     {
         var js = Read("worker/index.js");
-        // 共通部品（fara-site-kit）のファイルを使う。メンテナンスの判定・報告の受け口は、各サイトにコピーを持たない
-        Assert.Contains("import { getMaintenance, maintenanceResponse } from \"../external/fara-site-kit/worker/maintenance.js\";", js);
-        Assert.Contains("import { handleReport } from \"../external/fara-site-kit/worker/report.js\";", js);
+        // 共通部品（fara-blazor-component）のファイルを使う。メンテナンスの判定・報告の受け口は、各サイトにコピーを持たない
+        Assert.Contains("import { getMaintenance, maintenanceResponse } from \"../external/fara-blazor-component/worker/maintenance.js\";", js);
+        Assert.Contains("import { handleReport } from \"../external/fara-blazor-component/worker/report.js\";", js);
         var fetchStart = js.IndexOf("async fetch(request, env)", StringComparison.Ordinal);
         var maintenance = js.IndexOf("maintenanceResponse(request, maintenance", StringComparison.Ordinal);
         var rooms = js.IndexOf("/api\\/rooms", StringComparison.Ordinal);
@@ -357,11 +357,11 @@ public class DeployWorkflowTests
     {
         Assert.False(File.Exists(Path.Combine(TestData.Root, "worker", "maintenance.js")), "worker/maintenance.js は kit にある");
         Assert.False(File.Exists(Path.Combine(TestData.Root, "worker", "report.js")), "worker/report.js は kit にある");
-        var module = Read("external/fara-site-kit/worker/maintenance.js");
+        var module = Read("external/fara-blazor-component/worker/maintenance.js");
         foreach (var name in new[] { "getMaintenance", "maintenanceResponse" })
             Assert.Contains($"export function {name}", module);
         Assert.Contains("twitter.com/game_fara", module);
-        Assert.Contains("export async function handleReport", Read("external/fara-site-kit/worker/report.js"));
+        Assert.Contains("export async function handleReport", Read("external/fara-blazor-component/worker/report.js"));
     }
 
     private static string Section(string text, string from, string to)

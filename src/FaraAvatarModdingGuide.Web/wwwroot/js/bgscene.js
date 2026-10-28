@@ -164,10 +164,10 @@
   function insets() {
     var l = 0, t = HEADER_H;
     if (W >= SIDEBAR_MIN_W) {
-      var sb = document.querySelector(".fsk-sidebar"), r = sb && sb.getBoundingClientRect();
+      var sb = document.querySelector(".fbc-sidebar"), r = sb && sb.getBoundingClientRect();
       l = r && r.width > 0 ? Math.min(Math.round(r.right), W * 0.5) : SIDEBAR_W;
     }
-    var hd = document.querySelector(".fsk-header"), q = hd && hd.getBoundingClientRect();
+    var hd = document.querySelector(".fbc-header"), q = hd && hd.getBoundingClientRect();
     if (q && q.height > 0) t = Math.min(Math.round(q.bottom), H * 0.3);
     return [l, t];
   }

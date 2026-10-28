@@ -3,7 +3,7 @@ using FaraAvatarModdingGuide.Build;
 // 使い方:
 //   dotnet run --project src/FaraAvatarModdingGuide.Build -c Release -- \
 //     --template <dotnet publish の wwwroot/index.html> --out <dotnet publish の wwwroot> --env production|develop \
-//     [--repo .] [--dev-origin https://avatar-preview.fara-labs.com] [--kit external/fara-site-kit] [--node node]
+//     [--repo .] [--dev-origin https://avatar-preview.fara-labs.com] [--kit external/fara-blazor-component] [--node node]
 // 詳しくは SiteBuilder.cs。
 try
 {

@@ -1,14 +1,14 @@
 // 記事の目次(ArticlePage.razor)。今読んでいる h2 を見つけて、C# に知らせる(C# が目次のリンクを is-current・aria-current="location" にする)。
 // 見出しが画面の上の方を通ったかどうかで決める。ページの一番下まで来たら最後の見出しにする。旧 SSR 版の toc.js 相当。
-// スクロールするのは、PC は本文の領域(.fsk-content。kit のレイアウト)、スマホ(MobilePageScroll)は window。どちらでも動くよう、document で scroll を捕まえる。
+// スクロールするのは、PC は本文の領域(.fbc-content。kit のレイアウト)、スマホ(MobilePageScroll)は window。どちらでも動くよう、document で scroll を捕まえる。
 // 記事が替わったら avatarToc.start を呼び直す(前の監視は止める)。
 (function () {
     "use strict";
     var state = null;
 
-    /** 本文の領域(.fsk-content)が自分でスクロールしているなら、それ。そうでなければ null(window がスクロールする) */
+    /** 本文の領域(.fbc-content)が自分でスクロールしているなら、それ。そうでなければ null(window がスクロールする) */
     function scroller() {
-        var el = document.querySelector(".fsk-content");
+        var el = document.querySelector(".fbc-content");
         if (!el) return null;
         var overflow = getComputedStyle(el).overflowY;
         return overflow === "auto" || overflow === "scroll" ? el : null;

@@ -73,7 +73,7 @@ test("お知らせ（notice）のときも、静的ファイルの HTML は書�
   const res = await call("/learn/basics", { ASSETS: a, MAINTENANCE_MODE: "notice", MAINTENANCE_MESSAGE: "更新します" });
   assert.equal(res.status, 200);
   const html = await res.text();
-  assert.ok(!html.includes("maintenance-notice") && !html.includes("fsk-notice") && !html.includes("更新します"));
+  assert.ok(!html.includes("maintenance-notice") && !html.includes("fbc-notice") && !html.includes("更新します"));
   assert.ok(html.includes("静的ページ"));
   assert.deepEqual(a.calls, ["/learn/basics"]);
 });

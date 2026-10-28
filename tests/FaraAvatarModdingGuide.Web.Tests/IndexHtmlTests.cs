@@ -59,12 +59,14 @@ public class IndexHtmlTests
     public void Static_only_pages_lose_the_loader_and_blazor_but_keep_theme_and_css()
     {
         var stripped = NoComments(SiteBuilder.RemoveStaticOnly(SiteBuilder.RemoveWasmOnly(Html, keep: false), keep: true));
+        // 共通部品の静的アセット（_content/FaraBlazorComponent.Razor/… の URL）は、名前に Blazor を含むが、Blazor の実行時ではないので除く
+        var withoutKitAssets = Regex.Replace(stripped, "_content/FaraBlazorComponent\\.Razor/[^\"' >]*", "_content/kit/");
         Assert.DoesNotContain("boot-indicator", stripped);
-        Assert.DoesNotContain("blazor", stripped, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("blazor", withoutKitAssets, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("MudBlazor", stripped);
         Assert.Contains("css/base.css", stripped);
         Assert.Contains("css/app.css", stripped);
-        Assert.Contains("fara-site-kit.css", stripped);
+        Assert.Contains("fara-blazor-component.css", stripped);
         Assert.Contains("theme-init.js", stripped);
         Assert.Contains("fonts.googleapis.com", stripped);
         Assert.Contains("js/notice.js", stripped);                  // 静的なページは、notice.js が「更新予定」の帯を出す
