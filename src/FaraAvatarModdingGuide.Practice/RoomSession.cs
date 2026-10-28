@@ -56,7 +56,13 @@ public sealed class RoomSession : IDisposable
     public const double NamePollMs = 100;
     private const double NameDebounceMs = 500;
     private const double ViewMs = 250;
+    private const double MaxRetryWaitMs = 15000;
     private const int MaxRetries = 6;
+    /// <summary>1 部屋の人数・オブジェクト数(worker/index.js の LIMITS の participants・objects と同じ値。RoomSessionTests が一致を確かめる)。</summary>
+    public const int MaxParticipants = 8;
+    public const int MaxObjects = 200;
+    /// <summary>操作が続くあいだ、ロックを取り直す間隔。サーバーのロックは 15 秒で切れるので、それより短くする。</summary>
+    public const double LockRenewMs = 5000;
 
     private readonly ViewportCore core;
     private readonly IRoomTransport transport;
@@ -80,6 +86,7 @@ public sealed class RoomSession : IDisposable
     private string lastPreview = "";
     private string lastView = "";
     private double lastViewAt;
+    private double lastLockAt;
     private string nameInput;
     private double nameDirtyAt = -1;
 
@@ -223,11 +230,11 @@ public sealed class RoomSession : IDisposable
         Me = null;
         peers.Clear();
         Changed?.Invoke();
-        if (code == 4001) { SetStatus("満員です（8 人まで）", "warn"); core.SetStatusText("この部屋は満員です。別の部屋を作ってください"); return; }
+        if (code == 4001) { SetStatus($"満員です（{MaxParticipants} 人まで）", "warn"); core.SetStatusText("この部屋は満員です。別の部屋を作ってください"); return; }
         if (code == 1008) { SetStatus("切断されました", "warn"); return; }
         // 4000（しばらく通信がなかった）などは、つなぎ直す
         if (retries >= MaxRetries) { SetStatus("接続できません。ページを再読み込みしてください", "warn"); return; }
-        var wait = Math.Min(15000, 1000 * Math.Pow(2, retries));
+        var wait = Math.Min(MaxRetryWaitMs, 1000 * Math.Pow(2, retries));
         retries++;
         SetStatus(retries == 1 && code == 1006 && !everJoined ? "接続できません（この環境では部屋を使えない可能性があります）" : "再接続しています…", "warn");
         retryTimer = transport.Timer(wait, false, () => { retryTimer = -1; Connect(); });
@@ -271,7 +278,7 @@ public sealed class RoomSession : IDisposable
             case "ops": ApplyOps(m); break;
             case "view": ApplyView(m); break;
             case "error":
-                if (TryStr(m, "msg", out var msg) && msg == "too many objects") core.SetStatusText("この部屋のオブジェクトは 200 個までです");
+                if (TryStr(m, "msg", out var msg) && msg == "too many objects") core.SetStatusText($"この部屋のオブジェクトは {MaxObjects} 個までです");
                 break;
         }
     }
@@ -423,6 +430,7 @@ public sealed class RoomSession : IDisposable
                 if (!edit && core.Op is not null)
                 {
                     lockHeld = true;
+                    lastLockAt = transport.Now();
                     Send(RoomWire.Lock(core.Op.Start.Select(s => s.Object.Rid)));
                 }
                 break;
@@ -476,6 +484,7 @@ public sealed class RoomSession : IDisposable
     {
         if (disposed || Me is null) return;
         var op = core.Op;
+        var now = transport.Now();
         if (op is { Edit: false } && lockHeld)
         {
             var ids = new HashSet<string>(op.Start.Select(s => s.Object.Rid));
@@ -487,6 +496,12 @@ public sealed class RoomSession : IDisposable
                 foreach (var o in objs) previewed.Add(o.Id);
                 Send(message);
             }
+            // ロックは 15 秒で切れる。操作が続くあいだは取り直す（ほかの人が取っていたら lockdenied が返り、こちらの操作はやめる）
+            if (now - lastLockAt >= LockRenewMs)
+            {
+                lastLockAt = now;
+                Send(RoomWire.Lock(ids));
+            }
         }
         if (hasPendingCursor)
         {
@@ -494,7 +509,6 @@ public sealed class RoomSession : IDisposable
             hasPendingCursor = false;
             pendingCursor = null;
         }
-        var now = transport.Now();
         if (peers.Count > 0 && now - lastViewAt > ViewMs)
         {
             var v = core.GetView();
@@ -517,7 +531,7 @@ public sealed class RoomSession : IDisposable
     }
 
     // ---------------------------------------------------------------- 文字・数
-    /// <summary>表示名: 制御文字を除いて 20 文字まで(サーバーでも同じ処理をする)。JavaScript の trim と、コードポイント単位の切り取りに合わせる。</summary>
+    /// <summary>表示名: 制御文字と HTML の特殊文字（&lt; &gt; &amp; " '）を除き、前後の空白を取って 20 文字まで（worker/index.js の cleanName と同じ処理。コードポイント単位で切る）。</summary>
     public static string CleanName(string v)
     {
         var s = new string(v.Where(c => !IsRemovedInName(c)).ToArray()).Trim();
@@ -530,9 +544,10 @@ public sealed class RoomSession : IDisposable
         return string.Concat(units);
     }
 
-    /// <summary>表示名から取り除く文字: 制御文字(C0・C1)・ゼロ幅の文字・行の区切り・書式の文字・BOM(room.js の cleanName と同じ範囲)。</summary>
+    /// <summary>表示名から取り除く文字: 制御文字(C0・C1)・ゼロ幅の文字・行の区切り・書式の文字・BOM・HTML の特殊文字（worker/index.js の cleanName の正規表現と同じ範囲）。</summary>
     private static bool IsRemovedInName(char c) =>
-        c <= 0x1f || (c >= 0x7f && c <= 0x9f) || (c >= 0x200b && c <= 0x200f) || (c >= 0x2028 && c <= 0x202e) || (c >= 0x2060 && c <= 0x206f) || c == 0xfeff;
+        c <= 0x1f || (c >= 0x7f && c <= 0x9f) || (c >= 0x200b && c <= 0x200f) || (c >= 0x2028 && c <= 0x202e) || (c >= 0x2060 && c <= 0x206f) || c == 0xfeff
+        || c is '<' or '>' or '&' or '"' or '\'';
 
     /// <summary>起動時の表示名: 保存された名前(あれば)か、「ゲスト」と乱数(10〜99)。</summary>
     public static string InitialName(string? stored, int guestNumber)
@@ -659,9 +674,11 @@ public sealed class RoomSession : IDisposable
         return true;
     }
 
+    /// <summary>オブジェクトの配列。無い・null は空（upsert を省いた ops でも、delete は反映する）。配列でなければ false。</summary>
     private static bool TryObjects(JsonElement array, out RoomObject[] list)
     {
         list = [];
+        if (array.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null) return true;
         if (array.ValueKind != JsonValueKind.Array) return false;
         var items = new List<RoomObject>();
         foreach (var o in array.EnumerateArray())
