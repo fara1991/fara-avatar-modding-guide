@@ -10,6 +10,8 @@ export default {
     { path: "/learn/vrchat/upload-errors", name: "記事（アップロードのエラー）" },
     { path: "/report", name: "問い合わせ" },
     { path: "/privacy", name: "プライバシー" },
+    // みんなで練習のロビー（練習の部屋の一覧・作成フォーム・鍵の欄）。部屋の中の 3D は実機の確認（tools/room-check）で見る
+    { path: "/practice/room", name: "みんなで練習（ロビー）" },
     // 存在しないページ。kit の serve-static は /404 を 404.html として返す（Cloudflare の 404-page と同じ見た目）
     { path: "/404", name: "404（存在しないページ）" },
   ],
@@ -38,6 +40,12 @@ export default {
   // 除外は、既知の例外だけを「セレクター・ルール名・理由」つきで書く（kit の docs/layout-check.md の 3）。
   // 次は、いずれも直し先を kit に持つもの。kit の次のタグで直したら、対応する行を消す（kit の follow-up に書いてある）。
   exclusions: [
+    {
+      rule: "tap-target",
+      selector: "footer a",
+      page: "/practice/room",
+      reason: "ロビーのページだけ、kit の SiteFooter の文字リンク（22px）が 44px 未満。フッターの直し方（kit の部品）が決まるまでの除外。ロビーの新しい要素（入力欄・select・一覧の行・ボタン）は、この除外に含めない",
+    },
     {
       rule: "no-offscreen-focus",
       selector: "#fsk-main a, #fsk-main button, #fsk-main summary, #fsk-main input, #fsk-main select, #fsk-main textarea, #fsk-main .practice-viewport, footer a",

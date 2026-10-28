@@ -34,6 +34,7 @@ public static class IconMap
         ["Home"] = Icons.Material.Filled.Home,
         ["Keyboard"] = Icons.Material.Filled.Keyboard,
         ["Lightbulb"] = Icons.Material.Filled.Lightbulb,
+        ["Lock"] = Icons.Material.Filled.Lock,
         ["Link"] = Icons.Material.Filled.Link,
         ["MailOutline"] = Icons.Material.Filled.MailOutline,
         ["MenuBook"] = Icons.Material.Filled.MenuBook,

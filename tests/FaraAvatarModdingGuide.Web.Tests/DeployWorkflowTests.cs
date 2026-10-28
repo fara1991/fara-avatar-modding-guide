@@ -283,6 +283,23 @@ public class DeployWorkflowTests
         // 既存の Room の migration（v1）は変えない。tag の重複も無い
         Assert.Equal(3, Regex.Matches(toml, @"tag = ""v1""").Count);
         Assert.Equal(3, Regex.Matches(toml, @"tag = ""v2""").Count);
+        Assert.Equal(3, Regex.Matches(toml, @"tag = ""v3""").Count);
+    }
+
+    [Fact]
+    public void Room_directory_is_bound_and_migrated_in_every_environment_without_touching_v1_or_v2()
+    {
+        // 練習の部屋の一覧（RoomDirectory。固定名の 1 つの Durable Object）。本番・確認用・トップレベルの 3 か所に、バインディングと migrations（v3）を書く
+        var toml = Toml;
+        Assert.Matches(@"(?m)^\[\[durable_objects\.bindings\]\]\nname = ""ROOM_DIRECTORY""\nclass_name = ""RoomDirectory""$", toml);
+        Assert.Matches(@"(?m)^\[\[migrations\]\]\ntag = ""v3""\nnew_sqlite_classes = \[""RoomDirectory""\]$", toml);
+        Assert.Matches(@"(?m)^\[\[env\.production\.durable_objects\.bindings\]\]\nname = ""ROOM_DIRECTORY""\nclass_name = ""RoomDirectory""$", toml);
+        Assert.Matches(@"(?m)^\[\[env\.production\.migrations\]\]\ntag = ""v3""\nnew_sqlite_classes = \[""RoomDirectory""\]$", toml);
+        Assert.Matches(@"(?m)^\[\[env\.dev\.durable_objects\.bindings\]\]\nname = ""ROOM_DIRECTORY""\nclass_name = ""RoomDirectory""$", toml);
+        Assert.Matches(@"(?m)^\[\[env\.dev\.migrations\]\]\ntag = ""v3""\nnew_sqlite_classes = \[""RoomDirectory""\]$", toml);
+        // 既存の Room（v1）と ReportRateLimiter（v2）の migration は、そのまま残る（同じ tag を新しいクラスに付け替えない）
+        Assert.Matches(@"(?m)^\[\[env\.production\.migrations\]\]\ntag = ""v1""\nnew_sqlite_classes = \[""Room""\]$", toml);
+        Assert.Matches(@"(?m)^\[\[env\.production\.migrations\]\]\ntag = ""v2""\nnew_sqlite_classes = \[""ReportRateLimiter""\]$", toml);
     }
 
     [Fact]
@@ -290,6 +307,8 @@ public class DeployWorkflowTests
     {
         var js = Read("worker/index.js");
         Assert.Contains("export { ReportRateLimiter } from \"../external/fara-site-kit/worker/report-rate-limit.js\";", js);
+        // 練習の部屋の一覧の Durable Object も、Worker の本体から export する（wrangler の class_name と一致させる）
+        Assert.Contains("export class RoomDirectory extends DurableObject", js);
     }
 
     [Fact]

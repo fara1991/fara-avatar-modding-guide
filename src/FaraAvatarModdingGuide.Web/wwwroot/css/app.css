@@ -1521,3 +1521,8 @@ h1:focus {
         min-height: 44px;
     }
 }
+
+/* みんなで練習のロビー・部屋の鍵の入力: 押せる範囲（タップ）を 44px 以上にする（layout-check の tap-target） */
+.room-lobby-field {
+    min-height: 44px;
+}

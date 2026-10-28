@@ -52,7 +52,7 @@ jobs:
         run: node --test .github/scripts/require-maintenance.test.mjs .github/scripts/verify-site.test.mjs
 
       - name: Browser script tests (storage migration, default theme, search normaliser, notice banner, practice entry, head sync)
-        run: node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/search-norm-fn.test.mjs tests/js/notice.test.mjs tests/js/practice-entry.test.mjs tests/js/head-sync.test.mjs
+        run: node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs tests/js/search-norm-fn.test.mjs tests/js/notice.test.mjs tests/js/practice-entry.test.mjs tests/js/head-sync.test.mjs tests/js/room-cs.test.mjs
 
       - name: Publish web (WebAssembly)
         run: dotnet publish src/FaraAvatarModdingGuide.Web -c Release --nologo -o publish

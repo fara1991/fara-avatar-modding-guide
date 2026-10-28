@@ -25,10 +25,28 @@ public interface IRoomTransport
 
     /// <summary>表示名を保存する(localStorage)。</summary>
     void SaveName(string name);
+
+    /// <summary>この部屋の作成者の鍵(端末に保存したもの。無ければ null)。</summary>
+    string? LoadOwnerKey(string roomId);
+
+    /// <summary>作成者の鍵を保存する(部屋を作ったとき)。</summary>
+    void SaveOwnerKey(string roomId, string key);
+
+    /// <summary>作成者の鍵を消す(部屋が閉じたとき)。</summary>
+    void ForgetOwnerKey(string roomId);
 }
 
-/// <summary>参加者の自分(welcome の you)。</summary>
-public sealed record RoomMe(string Id, string Name, string Color);
+/// <summary>部屋を作る指定(作成の hello に載せる)。OwnerKey は作成者の鍵(16 バイトの乱数を 16 進にしたもの)。鍵・作成者の鍵はメモリ上だけで扱う。</summary>
+public sealed record RoomCreateOptions(string Name, bool Listed, string? Pass, string OwnerKey);
+
+/// <summary>部屋に入る指定。Pass は一覧から入るときなどに、最初の hello で使う鍵。Create は作成するとき。</summary>
+public sealed record RoomJoinOptions(string? Pass = null, RoomCreateOptions? Create = null);
+
+/// <summary>鍵の状態(鍵の入力を待っている・違った・試しすぎて拒否された)。None は鍵の画面を出さない。</summary>
+public enum RoomGate { None, NeedPass, WrongPass, PassLimited }
+
+/// <summary>参加者の自分(welcome の you)。Owner は作成者(部屋を閉じられる)。</summary>
+public sealed record RoomMe(string Id, string Name, string Color, bool Owner = false);
 
 /// <summary>ほかの参加者(表示用)。Cursor は 3D の点(null は無い)、Selection・Locks は部屋の id(rid)。</summary>
 public sealed class RoomPeer
@@ -76,6 +94,7 @@ public sealed class RoomSession : IDisposable
     private readonly ViewportCore core;
     private readonly IRoomTransport transport;
     private readonly string roomId;
+    private readonly RoomJoinOptions join;
     private readonly List<RoomPeer> peers = [];
     private readonly OrderedMap server = new();                 // rid → サーバーが持っている状態(roomState の JSON 文字)。差分を作るのに使う
     private readonly Dictionary<string, string> locks = [];     // rid → 操作中の人の id
@@ -98,12 +117,16 @@ public sealed class RoomSession : IDisposable
     private double lastLockAt;
     private string nameInput;
     private double nameDirtyAt = -1;
+    private string? pass;          // 鍵(入力された、または最初の hello に使った鍵)。自動の再接続では、このメモリの鍵を送る
+    private string? ownerKey;      // 作成者の鍵(この端末が作った部屋のもの)
+    private bool createPending;    // 作成の指定を、まだ welcome の前に送る(welcome のあとは送らない)
 
-    public RoomSession(ViewportCore core, IRoomTransport transport, string roomId, string name)
+    public RoomSession(ViewportCore core, IRoomTransport transport, string roomId, string name, RoomJoinOptions? join = null)
     {
         this.core = core;
         this.transport = transport;
         this.roomId = roomId;
+        this.join = join ?? new RoomJoinOptions();
         Name = name;
         nameInput = name;
         core.SetRemotePeers(peers);
@@ -120,6 +143,17 @@ public sealed class RoomSession : IDisposable
     /// <summary>"" / "ok" / "warn"(room.js の status の is-* クラス)。</summary>
     public string StatusKind { get; private set; } = "";
     public bool Disposed => disposed;
+    /// <summary>部屋の名前・鍵つきか(welcome で届く)。</summary>
+    public string RoomName { get; private set; } = "";
+    public bool Locked { get; private set; }
+    /// <summary>鍵の状態(鍵の画面を出すかどうか)。</summary>
+    public RoomGate Gate { get; private set; } = RoomGate.None;
+    /// <summary>試しすぎて拒否されているあいだの残り(ms)。Gate が PassLimited のときだけ。</summary>
+    public double PassLimitMs { get; private set; }
+    /// <summary>閉じられた理由("owner" 作成者が閉じた・"idle" 30 分操作が無かった・"closed" その他)。閉じたら null 以外。</summary>
+    public string? ClosedReason { get; private set; }
+    /// <summary>閉じる前の警告の残り(ms)。警告が無いときは null。</summary>
+    public double? IdleWarnMs { get; private set; }
 
     /// <summary>画面に出る状態が変わった(ステータス・参加者・表示名・追従など)。</summary>
     public event Action? Changed;
@@ -127,6 +161,9 @@ public sealed class RoomSession : IDisposable
     /// <summary>部屋に入る(接続を始め、定期の送信・ping・名前の確認を始める)。</summary>
     public void Start()
     {
+        pass = join.Pass ?? join.Create?.Pass;
+        ownerKey = join.Create?.OwnerKey ?? transport.LoadOwnerKey(roomId);
+        createPending = join.Create is not null;
         tickTimer = transport.Timer(TickMs, true, Tick);
         pingTimer = transport.Timer(PingMs, true, Ping);
         nameTimer = transport.Timer(NamePollMs, true, PollName);
@@ -187,6 +224,28 @@ public sealed class RoomSession : IDisposable
         Changed?.Invoke();
     }
 
+    /// <summary>鍵を入れて、もう一度入る(鍵の画面の送信)。鍵はこの画面のあいだだけメモリに持つ。</summary>
+    public void SubmitPass(string value)
+    {
+        if (disposed || ClosedReason is not null) return;
+        pass = value;
+        Gate = RoomGate.None;
+        PassLimitMs = 0;
+        retries = 0;
+        if (socket >= 0) transport.Close(socket, 1000, "retry");
+        socket = -1;
+        socketOpen = false;
+        Connect();
+        Changed?.Invoke();
+    }
+
+    /// <summary>部屋を閉じる(作成者だけ。確認は画面で済ませてから呼ぶ)。作成者でなければ何もしない。</summary>
+    public void RequestClose()
+    {
+        if (disposed || Me is not { Owner: true }) return;
+        Send(RoomWire.Close());
+    }
+
     /// <summary>ビューの上のポインター(clientX / clientY)。カーソルの送信は次の tick に。</summary>
     public void PointerAt(double clientX, double clientY)
     {
@@ -219,7 +278,7 @@ public sealed class RoomSession : IDisposable
     // ---------------------------------------------------------------- 通信
     private void Connect()
     {
-        if (closing || disposed) return;
+        if (closing || disposed || ClosedReason is not null) return;
         SetStatus("接続中…", "");
         socket = transport.Open(roomId);
         socketOpen = false;
@@ -230,7 +289,14 @@ public sealed class RoomSession : IDisposable
     {
         if (disposed || id != socket) return;
         socketOpen = true;
-        transport.Send(id, RoomWire.Hello(Name));
+        // 作成の指定は、welcome の前の最初の hello だけ送る。作成者の鍵は、この端末に保存する（作成のとき）
+        var create = createPending ? join.Create : null;
+        if (create is not null)
+        {
+            ownerKey = create.OwnerKey;
+            transport.SaveOwnerKey(roomId, create.OwnerKey);
+        }
+        transport.Send(id, RoomWire.Hello(Name, ownerKey, pass, create));
     }
 
     /// <summary>接続が閉じた(code は WebSocket の close コード)。古い接続のものは無視する。</summary>
@@ -249,8 +315,18 @@ public sealed class RoomSession : IDisposable
         lockOrder.Clear();
         peers.Clear();
         Changed?.Invoke();
+        // 閉じられた部屋・鍵の入力待ち・鍵の拒否: 自動では再接続しない（画面の案内に任せる）
+        if (code == 4004) { ClosedReason ??= "closed"; transport.ForgetOwnerKey(roomId); return; }
+        if (code == 4003)
+        {
+            if (Gate == RoomGate.None) Gate = RoomGate.NeedPass;   // 理由のメッセージが無かったら、鍵を聞く
+            SetStatus(Gate == RoomGate.PassLimited ? "鍵の入力が続けて違ったため、しばらく入れません" : "この部屋には鍵があります", "warn");
+            return;
+        }
         if (code == 4001) { SetStatus($"満員です（{MaxParticipants} 人まで）", "warn"); core.SetStatusText("この部屋は満員です。別の部屋を作ってください"); return; }
         if (code == 1008) { SetStatus("切断されました", "warn"); return; }
+        // 閉じられた部屋（理由は closed の文字で届く）には、つなぎ直さない
+        if (ClosedReason is not null) return;
         // 4000（しばらく通信がなかった）などは、つなぎ直す
         if (retries >= MaxRetries) { SetStatus("接続できません。ページを再読み込みしてください", "warn"); return; }
         var wait = Math.Min(MaxRetryWaitMs, 1000 * Math.Pow(2, retries));
@@ -298,10 +374,38 @@ public sealed class RoomSession : IDisposable
             case "preview": ApplyPreviewMessage(m); break;
             case "ops": ApplyOps(m); break;
             case "view": ApplyView(m); break;
+            case "needpass": Gate = RoomGate.NeedPass; break;
+            case "wrongpass": Gate = RoomGate.WrongPass; break;
+            case "passlimit": ApplyPassLimit(m); break;
+            case "closed": ApplyClosed(m); break;
+            case "idlewarn": ApplyIdleWarn(m); break;
             case "error":
                 if (TryStr(m, "msg", out var msg) && msg == "too many objects") core.SetStatusText($"この部屋のオブジェクトは {MaxObjects} 個までです");
                 break;
         }
+    }
+
+    /// <summary>鍵を続けて間違えて、しばらく拒否されている(passlimit の ms)。</summary>
+    private void ApplyPassLimit(JsonElement m)
+    {
+        Gate = RoomGate.PassLimited;
+        PassLimitMs = TryNum(m, "ms", out var ms) ? ms : 0;
+    }
+
+    /// <summary>部屋が閉じられた(reason は owner・idle。ほかは closed)。以後は再接続しない。鍵の保存も消す。</summary>
+    private void ApplyClosed(JsonElement m)
+    {
+        var reason = TryStr(m, "reason", out var r) ? r : "";
+        ClosedReason = reason is "owner" or "idle" ? reason : "closed";
+        transport.ForgetOwnerKey(roomId);
+        SetStatus("部屋は閉じられました", "warn");
+    }
+
+    /// <summary>閉じる前の警告(ms。null は取り消し)。</summary>
+    private void ApplyIdleWarn(JsonElement m)
+    {
+        if (!TryGet(m, "ms", out var v)) return;
+        IdleWarnMs = v.ValueKind == JsonValueKind.Number && v.TryGetDouble(out var d) && double.IsFinite(d) ? d : null;
     }
 
     private void ApplyWelcome(JsonElement m)
@@ -309,8 +413,17 @@ public sealed class RoomSession : IDisposable
         if (!TryGet(m, "you", out var you) || !TryPeer(you, out var self)) return;
         if (!TryGet(m, "peers", out var pa) || pa.ValueKind != JsonValueKind.Array || !TryPeers(pa, out var newPeers)) return;
         if (!TryGet(m, "objects", out var oa) || oa.ValueKind != JsonValueKind.Array || !TryObjects(oa, out var objects)) return;
+        // 部屋の名前・鍵つき（無ければ空と false）と、自分が作成者か
+        var roomName = TryGet(m, "room", out var rv) && TryStr(rv, "name", out var rn) ? rn : "";
+        var locked = TryGet(m, "room", out var rl) && TryGet(rl, "locked", out var lv) && lv.ValueKind == JsonValueKind.True;
+        var owner = TryGet(you, "owner", out var ov) && ov.ValueKind == JsonValueKind.True;
         // ここまでで形は確かめた。以下で状態を変える
-        Me = new RoomMe(self.Id, self.Name, self.Color);
+        Me = new RoomMe(self.Id, self.Name, self.Color, owner);
+        RoomName = roomName;
+        Locked = locked;
+        Gate = RoomGate.None;
+        PassLimitMs = 0;
+        createPending = false;   // 作成は済んだ。以後の再接続では、作成の指定を送らない
         everJoined = true;
         retries = 0;
         peers.Clear();
@@ -574,12 +687,12 @@ public sealed class RoomSession : IDisposable
     }
 
     // ---------------------------------------------------------------- 文字・数
-    /// <summary>表示名: 制御文字と HTML の特殊文字（&lt; &gt; &amp; " '）を除き、前後の空白を取って 20 文字まで（worker/index.js の cleanName と同じ処理。コードポイント単位で切る）。</summary>
-    public static string CleanName(string v)
+    /// <summary>表示名: 制御文字と HTML の特殊文字（&lt; &gt; &amp; " '）を除き、前後の空白を取って max 文字まで（既定 20。部屋名は 40。worker/index.js の cleanName と同じ処理。コードポイント単位で切る）。</summary>
+    public static string CleanName(string v, int max = 20)
     {
         var s = new string(v.Where(c => !IsRemovedInName(c)).ToArray()).Trim();
         var units = new List<string>();
-        for (var i = 0; i < s.Length && units.Count < 20; i++)
+        for (var i = 0; i < s.Length && units.Count < max; i++)
         {
             if (char.IsHighSurrogate(s[i]) && i + 1 < s.Length && char.IsLowSurrogate(s[i + 1])) { units.Add(s.Substring(i, 2)); i++; }
             else units.Add(s[i].ToString());
