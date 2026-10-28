@@ -43,7 +43,7 @@ Blazor WebAssembly + MudBlazor への移行（[wasm-migration-plan.md](wasm-migr
 - **既存の `develop` → `master` の PR #4（「.NET 9 への移行、検索・画像・内容修正、Cloudflare デプロイ」）は、古い内容の題名のまま、統合のあと WebAssembly 版への切り替えそのものになる。** そのまま「いつもの更新」のつもりでマージしないこと。統合の前に閉じ、本番の初公開の準備ができたときに、題名・本文に「本番の初公開（WebAssembly 版）」と書いた新しい PR を作ることを勧める。
 - マージの前に確かめること: avatar-dev で WebAssembly 版を一通り確認した / Cloudflare に本番の報告用の変数（Turnstile・Discord Webhook）を設定する準備がある / PR の差分に `deploy.yml`・`wrangler.toml`・Worker の変更が含まれていることを理解している。
 - マージのあと（README の「本番の初回の公開」と同じ）:
-  1. `Deploy` が master で動く。ゲートは「Worker がまだ無い（初回の公開）」で通り、`--var MAINTENANCE_MODE:true` 付きで公開される。**全ページがメンテナンス画面（503）のまま**になる。
+  1. 初回は、master を選んで Run workflow（Deploy (production)）で `first_publish` を `true` にして実行する（Worker が無い 404 は、既定では止まる。初回の手動実行だけ通す。README の「本番の初回の公開」）。`--var MAINTENANCE_MODE:true` 付きで公開され、**全ページがメンテナンス画面（503）のまま**になる。
   2. ダッシュボードで `fara-avatar` に報告の変数（`TURNSTILE_SITE_KEY`・`TURNSTILE_SECRET`・`DISCORD_WEBHOOK_URL`）を設定する。
   3. Actions → `Deploy` → Run workflow（Use workflow from: `master`）、`maintenance_mode`: `false`（先にお知らせを見せるなら `notice`）→ 通常公開。このとき、その時点の master の内容がすべて公開される。
 - 2 回目以降の master への公開は、先に `MAINTENANCE_MODE` を `notice` にしておく（ゲート）。`notice` にするには、master を選んで Run workflow で `maintenance_mode`: `notice`（公開も一緒に行われる）、または kit の CLI。

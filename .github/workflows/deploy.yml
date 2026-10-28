@@ -25,6 +25,10 @@ on:
         description: "お知らせ・メンテナンス画面に出す文（200 文字まで・改行なし）。空 = 変更しない"
         type: string
         default: ""
+      first_publish:
+        description: "本番の Worker がまだ無いとき（初回の公開）だけ true。Worker が無いことを通し、メンテナンス画面のまま作る（MAINTENANCE_MODE の確認は、いつもどおり飛ばさない）"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -72,7 +76,8 @@ jobs:
 
       # 本番の公開は、Cloudflare の Worker の変数 MAINTENANCE_MODE が notice（更新予定のお知らせを出している）のときだけ行う。
       # 確認できないとき・notice でないときは、ここで止める（手動実行の skip_maintenance_check で飛ばせる）。
-      # Worker がまだ無い（本番の初回の公開）ときは通す。次の公開のステップが MAINTENANCE_MODE:true を付けるので、メンテナンス画面のまま作られる。
+      # Worker が無い（404）ときも止める。Worker 名の誤りでも 404 になるので、初回の公開（手動実行の first_publish = true）のときだけ通す。
+      # 通した初回の公開は、次の公開のステップが MAINTENANCE_MODE:true を付けるので、メンテナンス画面のまま作られる。
       # mode に true / notice / false のどれかを指定した手動実行（maintenance-cli の set）は、操作した人の意思なので、確認を飛ばす
       - name: Require MAINTENANCE_MODE=notice (production)
         if: ${{ !contains(fromJSON('["true","notice","false"]'), inputs.maintenance_mode) }}
@@ -81,6 +86,13 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           SKIP_MAINTENANCE_CHECK: ${{ inputs.skip_maintenance_check }}
+          ALLOW_MISSING_WORKER: ${{ inputs.first_publish && '1' || '' }}
+
+      # 文面の検査（200 文字まで・改行なし）。--var に渡す前に止める
+      - name: Check the maintenance message
+        run: node .github/scripts/maintenance-deploy.mjs check-message
+        env:
+          MAINTENANCE_MESSAGE_INPUT: ${{ inputs.maintenance_message }}
 
       # 入力はシェルに直接埋め込まず、環境変数で受ける。空の入力には --var を付けない（keep_vars で現在の値が保持される）。
       # push と、何も指定しない手動実行は、公開と同時に MAINTENANCE_MODE=true（メンテナンス画面）にする。作業が終わったら false に戻す（お知らせも一緒に消える）。
@@ -105,27 +117,11 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
 
-      # 設定した値と、反映後の現在値を、ジョブサマリーに出す（公開が失敗したときも出す）。文面は出してよい。トークンは出さない
+      # 設定した値と、反映後の現在値を、ジョブサマリーに出す（公開が失敗したときも出す）。文面は出してよい。トークンは出さない。
+      # 内容は .github/scripts/maintenance-deploy.mjs（develop と共通）。取得できなくても失敗にはしない
       - name: Summary (maintenance)
         if: ${{ always() }}
-        shell: bash
-        run: |
-          msg="$(printf '%s' "$MAINTENANCE_MESSAGE_INPUT" | tr '`' '"')"
-          {
-            echo "### メンテナンス表示 (${WORKER_NAME})"
-            echo "- 設定した値: MAINTENANCE_MODE=\`${MAINTENANCE_MODE_INPUT:-(変更なし)}\` / MAINTENANCE_MESSAGE=\`${msg:-(変更なし)}\`"
-            node -e '
-              const j = (v) => JSON.stringify(v);
-              fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${process.env.WORKER_NAME}/settings`, { headers: { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` } })
-                .then((r) => r.json())
-                .then((b) => {
-                  const list = b?.result?.bindings ?? [];
-                  const v = (n) => { const x = list.find((y) => y.name === n); return x ? (x.type === "plain_text" ? j(x.text).replaceAll("`", "\u0027") : `(${x.type})`) : "(未設定)"; };
-                  console.log(`- 反映後の現在値: MAINTENANCE_MODE=\`${v("MAINTENANCE_MODE")}\` / MAINTENANCE_MESSAGE=\`${v("MAINTENANCE_MESSAGE")}\``);
-                })
-                .catch(() => console.log("- 反映後の現在値: 取得できませんでした"));
-            '
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: node .github/scripts/maintenance-deploy.mjs summary >> "$GITHUB_STEP_SUMMARY"
         env:
           MAINTENANCE_MODE_INPUT: ${{ inputs.maintenance_mode }}
           MAINTENANCE_MESSAGE_INPUT: ${{ inputs.maintenance_message }}
