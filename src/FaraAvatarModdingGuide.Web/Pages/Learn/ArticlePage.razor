@@ -226,7 +226,7 @@ else
         if (observedUrl is not null && JS is IJSInProcessRuntime sync)
         {
             try { sync.InvokeVoid("avatarToc.stop"); }
-            catch (JSException) { }
+            catch (JSException) { }   // 画面を閉じる途中の解放。失敗しても、ほかの解放は続ける
         }
         self?.Dispose();
     }

@@ -312,6 +312,7 @@
                 await module.InvokeVoidAsync("unbind", RootId);
                 await module.DisposeAsync();
             }
+            // 回線が切れている（ページを離れた後）なら、解放は要らない。画面を閉じる途中の失敗も、解放は続ける
             catch (JSDisconnectedException) { }
             catch (JSException) { }
         }
