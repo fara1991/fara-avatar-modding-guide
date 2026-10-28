@@ -40,9 +40,17 @@ run_worker_first = true
 name = "ROOMS"
 class_name = "Room"
 
+[[durable_objects.bindings]]
+name = "REPORT_LIMITER"
+class_name = "ReportRateLimiter"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Room"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["ReportRateLimiter"]
 
 [env.production]
 name = "fara-avatar"
@@ -63,9 +71,17 @@ run_worker_first = true
 name = "ROOMS"
 class_name = "Room"
 
+[[env.production.durable_objects.bindings]]
+name = "REPORT_LIMITER"
+class_name = "ReportRateLimiter"
+
 [[env.production.migrations]]
 tag = "v1"
 new_sqlite_classes = ["Room"]
+
+[[env.production.migrations]]
+tag = "v2"
+new_sqlite_classes = ["ReportRateLimiter"]
 
 [env.dev]
 name = "fara-avatar-dev"
@@ -87,3 +103,16 @@ run_worker_first = true
 [[env.dev.durable_objects.bindings]]
 name = "ROOMS"
 class_name = "Room"
+
+[[env.dev.durable_objects.bindings]]
+name = "REPORT_LIMITER"
+class_name = "ReportRateLimiter"
+
+# 確認用は、Room の v1 を含めて明示する（env.* の migrations の引き継ぎに頼らない。適用済みのタグは再実行されない）
+[[env.dev.migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
+
+[[env.dev.migrations]]
+tag = "v2"
+new_sqlite_classes = ["ReportRateLimiter"]

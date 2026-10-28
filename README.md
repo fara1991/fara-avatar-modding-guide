@@ -192,7 +192,7 @@ fara-avatar-modding-guide/
 | `/learn/{category}/{slug}` | 記事 |
 | `/shortcuts?category=…` | ショートカット一覧（カテゴリで絞り込み） |
 | `/addons` | おすすめアドオン |
-| `/changelog` `/search` `/report` `/privacy` | 更新履歴・検索・作者への報告（Turnstile 付き）・プライバシーポリシー |
+| `/changelog` `/search` `/report` `/privacy` | 更新履歴・検索・作者への報告（Turnstile 付き。送信元ごと・1 日 3 回まで）・プライバシーポリシー |
 
 旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へ 301 で転送されます（`_redirects`）。静的 HTML は 76 本、存在しないパスは `404.html`（404 のステータス）です。
 
@@ -255,6 +255,7 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 2. Cloudflare の `fara-labs.com` の **DNS → Records** に `avatar` / `avatar-dev` のレコードが無いことを確認（`wrangler.toml` の `custom_domain = true` で自動作成される）
 3. 開発環境を自分だけに見せるため、Cloudflare **Zero Trust → Access → Applications** の確認用アプリケーションに public hostname `avatar-dev.fara-labs.com` を追加します
 4. 報告フォーム（`/report`）の変数（`TURNSTILE_SITE_KEY`・`TURNSTILE_SECRET`・`DISCORD_WEBHOOK_URL`）を、各 Worker（`fara-avatar`・`fara-avatar-dev`）にダッシュボードで設定します。`wrangler.toml` の `keep_vars = true` で、公開のたびに消えません
+5. 報告の回数制限（送信元ごと・日本時間で 1 日 3 回まで）は、Durable Object `ReportRateLimiter`（バインディング `REPORT_LIMITER`・`wrangler.toml` の `migrations` tag `v2`）で動きます。変数は要りません。送信元の IP アドレスは保存せず、秘密の鍵つきの識別子を、その日の間だけ保存します（プライバシーポリシーに記載）。`TURNSTILE_SECRET` を変えると、識別子と回数がすべて変わり、回数の枠が一度だけ戻ります。仕様は kit の `docs/usage.md` の 2.2
 
 ### 本番の公開とメンテナンス（MAINTENANCE_MODE）
 

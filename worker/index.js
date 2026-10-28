@@ -14,6 +14,8 @@ import { DurableObject } from "cloudflare:workers";
 // 報告の受け口とメンテナンスの判定は、共通部品（fara-site-kit）の同じファイルを使う（各サイトに同じコピーを持たない）
 import { handleReport } from "../external/fara-site-kit/worker/report.js";
 import { getMaintenance, maintenanceResponse } from "../external/fara-site-kit/worker/maintenance.js";
+// 報告の 1 日の送信回数の制限（送信元ごと 3 回まで）の Durable Object。バインディング REPORT_LIMITER（wrangler.toml）があるときだけ働く
+export { ReportRateLimiter } from "../external/fara-site-kit/worker/report-rate-limit.js";
 
 // ---------------------------------------------------------------- 上限
 export const LIMITS = {
