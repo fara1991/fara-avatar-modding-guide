@@ -8,11 +8,14 @@
 
 export const MESSAGE_MAX = 200;
 
+// 改行とみなす文字（CR・LF・NEL・行区切り・段落区切り）。pokemon の check-maintenance-message.mjs と同じ集合
+const LINE_BREAK_CODE_POINTS = [0x0d, 0x0a, 0x85, 0x2028, 0x2029];
+
 /** 文面の検査。問題があれば理由の文、無ければ null（空は「変更しない」なので問題なし）。 */
 export function checkMessage(message) {
-  const length = [...message].length;   // 文字数はコードポイントで数える（絵文字 1 つ = 1 文字）
-  if (length > MESSAGE_MAX) return `メンテナンスの文は ${MESSAGE_MAX} 文字までです（いま ${length} 文字）`;
-  if (/[\r\n]/.test(message)) return "メンテナンスの文に改行は入れられません";
+  const chars = [...message];   // 文字数はコードポイントで数える（絵文字 1 つ = 1 文字）
+  if (chars.length > MESSAGE_MAX) return `メンテナンスの文は ${MESSAGE_MAX} 文字までです（いま ${chars.length} 文字）`;
+  if (chars.some((c) => LINE_BREAK_CODE_POINTS.includes(c.codePointAt(0)))) return "メンテナンスの文に改行は入れられません";
   return null;
 }
 

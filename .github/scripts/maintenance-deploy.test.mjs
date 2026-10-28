@@ -17,6 +17,13 @@ test("checkMessage: 改行（LF・CR）は止める", () => {
   assert.match(checkMessage("一行目\r二行目"), /改行/);
 });
 
+test("checkMessage: 改行は pokemon と同じ集合（NEL・行区切り U+2028・段落区切り U+2029）も止める", () => {
+  for (const cp of [0x85, 0x2028, 0x2029]) {
+    assert.match(checkMessage(`一行目${String.fromCodePoint(cp)}二行目`), /改行/, cp.toString(16));
+  }
+  assert.equal(checkMessage("タブ\tは通す"), null);
+});
+
 test("settingLine: 空は「変更なし」、バッククォートは \" に直す", () => {
   assert.equal(settingLine("", ""), "- 設定した値: MAINTENANCE_MODE=`(変更なし)` / MAINTENANCE_MESSAGE=`(変更なし)`");
   assert.equal(settingLine("notice", "a`b`c"), "- 設定した値: MAINTENANCE_MODE=`notice` / MAINTENANCE_MESSAGE=`a\"b\"c`");
