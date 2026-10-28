@@ -63,6 +63,15 @@ public sealed class RoomSession : IDisposable
     public const int MaxObjects = 200;
     /// <summary>操作が続くあいだ、ロックを取り直す間隔。サーバーのロックは 15 秒で切れるので、それより短くする。</summary>
     public const double LockRenewMs = 5000;
+    /// <summary>送る座標の丸め（1000 分の 1）。3D の位置・視点の距離に使う。</summary>
+    private const double PositionScale = 1000;
+    /// <summary>送る視点の丸め（1000 分の 1）。注視点と距離に使う。</summary>
+    private const double ViewScale = 1000;
+    /// <summary>送る視点の角度の丸め（1 万分の 1）。</summary>
+    private const double AngleScale = 10000;
+    /// <summary>接続が無いときに、変更や動かしを断る文（画面の状態に出す）。</summary>
+    private const string OfflineEditText = "接続が切れているため、この変更は部屋に届きません（再接続すると部屋の内容に戻ります）";
+    private const string OfflineMoveText = "接続中ではないため、動かせません";
 
     private readonly ViewportCore core;
     private readonly IRoomTransport transport;
@@ -182,7 +191,7 @@ public sealed class RoomSession : IDisposable
     public void PointerAt(double clientX, double clientY)
     {
         var p = core.PointAt(clientX, clientY);
-        pendingCursor = p is null ? null : [Round3(p.Value.X), Round3(p.Value.Y), Round3(p.Value.Z)];
+        pendingCursor = p is null ? null : [Round(p.Value.X, PositionScale), Round(p.Value.Y, PositionScale), Round(p.Value.Z, PositionScale)];
         hasPendingCursor = true;
     }
 
@@ -196,6 +205,8 @@ public sealed class RoomSession : IDisposable
     /// <summary>ほかの人が操作中のオブジェクトは動かせない(room.js の canTransform)。理由を返す。</summary>
     public string? BlockedBy(IReadOnlyList<SceneObject> objects)
     {
+        // 接続が無い間は、部屋の状態（ロック）が分からないので、動かさせない
+        if (Me is null) return OfflineMoveText;
         foreach (var o in objects)
         {
             if (!locks.TryGetValue(o.Rid, out var who) || who == Me?.Id) continue;
@@ -227,7 +238,15 @@ public sealed class RoomSession : IDisposable
     {
         if (disposed || id != socket || closing) return;
         socketOpen = false;
+        // 切れた接続には送れないので、途中の操作は取り消す（Me を外してから。取り消しの通知は、送らずに無視される）
         Me = null;
+        if (core.Op is not null) core.CancelOperation();
+        // ロックと途中経過も、サーバーのものは無くなる（再接続で取り直す）
+        lockHeld = false;
+        previewed = [];
+        lastPreview = "";
+        locks.Clear();
+        lockOrder.Clear();
         peers.Clear();
         Changed?.Invoke();
         if (code == 4001) { SetStatus($"満員です（{MaxParticipants} 人まで）", "warn"); core.SetStatusText("この部屋は満員です。別の部屋を作ってください"); return; }
@@ -422,7 +441,17 @@ public sealed class RoomSession : IDisposable
     // ---------------------------------------------------------------- 自分の操作
     private void OnLocal(ViewEvent e)
     {
-        if (disposed || Me is null) return;
+        if (disposed) return;
+        if (Me is null)
+        {
+            // 接続が無い間の変更は、部屋に届かない。再接続のとき部屋の内容に置き換わるので、黙って消えないように知らせる
+            if (e.Type is "add" or "delete" or "duplicate" or "undo" or "redo" or "edit" or "separate" or "confirm")
+            {
+                core.SetStatusText(OfflineEditText);
+                Changed?.Invoke();
+            }
+            return;
+        }
         var edit = e.Detail.TryGetValue("edit", out var ed) && ed is true;
         switch (e.Type)
         {
@@ -512,7 +541,7 @@ public sealed class RoomSession : IDisposable
         if (peers.Count > 0 && now - lastViewAt > ViewMs)
         {
             var v = core.GetView();
-            var rounded = new ViewState(v.Target.Select(n => Round(n, 1000)).ToArray(), Round(v.Dist, 1000), Round(v.Theta, 10000), Round(v.Phi, 10000), v.Ortho, v.Name);
+            var rounded = new ViewState(v.Target.Select(n => Round(n, ViewScale)).ToArray(), Round(v.Dist, ViewScale), Round(v.Theta, AngleScale), Round(v.Phi, AngleScale), v.Ortho, v.Name);
             var j = RoomWire.View(rounded);
             if (j != lastView)
             {
@@ -556,7 +585,7 @@ public sealed class RoomSession : IDisposable
         return n.Length > 0 ? n : $"ゲスト{guestNumber}";
     }
 
-    private static double Round3(double n) => Round(n, 1000);
+    /// <summary>scale で丸める（JavaScript の Math.round と同じ向き）。</summary>
     private static double Round(double n, double scale) => Js.Round(n * scale) / scale;
 
     // ---------------------------------------------------------------- サーバーの文字の形(不正なものは false)
