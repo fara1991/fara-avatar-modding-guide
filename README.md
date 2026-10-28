@@ -109,7 +109,7 @@ npm run layout-check   # site-production を配って計測（設定は layout-c
 | C# | `VSTHRD002`・`VSTHRD003`・`VSTHRD103` | warning | 6・5・9 件。同期の待ち・開始していない Task の待ち・同期の書き込み |
 | C# | `CA1416`・`CS8602`・`VSTHRD200` | （既定） | 対象外（今回のラチェットの一覧に入れていない） |
 | JS | ESLint（`eslint.config.mjs`） | error | 0 件（直したもの: 空の catch・未使用の変数・`==`・Workers の実行環境のグローバル） |
-| レイアウト | 8 ページ × 5 幅 | error | 0 件（除外は下の 7 件。すべて理由つき） |
+| レイアウト | 7 ページ × 5 幅 | error | 0 件（除外は下の 7 件。すべて理由つき） |
 
 #### 除外の書き方（レイアウト）
 
