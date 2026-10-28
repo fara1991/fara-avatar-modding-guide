@@ -237,7 +237,7 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 > develop への push は確認用（avatar-dev）にしか届きません。ほかのブランチ・Pull Request は、ビルドとテスト、`wrangler deploy --dry-run` だけで、公開しません。
 > `develop` → `master` の PR のマージは、中身（特に `deploy.yml`・`deploy-develop.yml`・`wrangler.toml`・Worker）を確かめてからユーザーが行います。Claude は PR の作成までで、master にはマージしません。
 
-ワークフローは 3 つです（fara-pokemon-battle-assistant・fara-portfolio-site と同じ形）。公開の 2 つは自分でビルドして公開し、成果物（artifact）は使いません。
+ワークフローは 3 つです（fara-pokemon-battle-assistant・fara-labs と同じ形）。公開の 2 つは自分でビルドして公開し、成果物（artifact）は使いません。
 
 | ファイル（Actions での名前） | 動くとき | 内容 |
 | --- | --- | --- |
@@ -249,7 +249,7 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 
 ### 初回設定
 
-1. GitHub リポジトリの **Settings → Secrets and variables → Actions** に以下を登録（値は fara-portfolio-site と同じものを使えます）
+1. GitHub リポジトリの **Settings → Secrets and variables → Actions** に以下を登録（値は fara-labs と同じものを使えます）
    - Secrets: `CLOUDFLARE_API_TOKEN`（テンプレート Edit Cloudflare Workers、Zone Resources は `fara-labs.com`）
    - Variables: `CLOUDFLARE_ACCOUNT_ID`
 2. Cloudflare の `fara-labs.com` の **DNS → Records** に `avatar` / `avatar-dev` のレコードが無いことを確認（`wrangler.toml` の `custom_domain = true` で自動作成される）
