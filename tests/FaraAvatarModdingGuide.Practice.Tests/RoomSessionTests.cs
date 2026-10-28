@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace FaraAvatarModdingGuide.Practice.Tests;
@@ -294,6 +295,57 @@ public class RoomSessionTests
         Assert.Null(core.Op);
         Assert.Equal("ほかの人が操作中のため、動かせませんでした", core.Status);
         Assert.Equal(Q("{'t':'unlock'}"), t.Outbound[^1]);
+    }
+
+    [Fact]
+    public void Lock_is_renewed_while_the_move_lasts_longer_than_the_server_lock()
+    {
+        // サーバーのロックは 15 秒で切れる。操作が続くあいだは取り直し、途中で切れないようにする
+        var (core, _, t) = Joined();
+        core.SetSelection([core.Objects[0]]);
+        t.Outbound.Clear();
+        core.KeyDown("KeyG", "g", new Modifiers());
+        t.Advance(20000);
+        var locks = t.Outbound.Count(m => m.StartsWith(Q("{'t':'lock'"), StringComparison.Ordinal));
+        Assert.True(locks >= 4, "lock が " + locks + " 回しか送られなかった");
+        Assert.True(RoomSession.LockRenewMs < 15000);
+    }
+
+    [Fact]
+    public void Ops_without_upsert_still_apply_the_delete()
+    {
+        var (core, s, _) = Joined();
+        Assert.Single(core.Objects);
+        s.OnMessage(1, Q("{'t':'ops','delete':['cube0']}"));
+        Assert.Empty(core.Objects);
+    }
+
+    [Fact]
+    public void Ops_with_a_non_array_upsert_are_dropped_as_a_whole()
+    {
+        var (core, s, _) = Joined();
+        s.OnMessage(1, Q("{'t':'ops','upsert':'x','delete':['cube0']}"));
+        Assert.Single(core.Objects);
+    }
+
+    [Fact]
+    public void Display_names_drop_the_html_characters_like_the_server()
+    {
+        Assert.Equal("ab", RoomSession.CleanName("<a>&\"'b"));
+        Assert.Equal("Alice", RoomSession.CleanName("  Ali\u0007ce  "));
+    }
+
+    [Fact]
+    public void Room_limits_match_the_worker_and_the_page_text()
+    {
+        var worker = File.ReadAllText(Path.Combine(JsReference.Root, "worker", "index.js"));
+        Assert.Contains($"participants: {RoomSession.MaxParticipants},", worker);
+        Assert.Contains($"objects: {RoomSession.MaxObjects},", worker);
+        var lockMs = int.Parse(Regex.Match(worker, @"lockMs:\s*(\d+)").Groups[1].Value);
+        Assert.True(RoomSession.LockRenewMs < lockMs);
+        var pageBodies = File.ReadAllText(Path.Combine(JsReference.Root, "src", "FaraAvatarModdingGuide.Build", "PageBodies.cs"));
+        Assert.Contains($"{RoomSession.MaxParticipants} 人まで", pageBodies);
+        Assert.Contains($"{RoomSession.MaxObjects} 個まで", pageBodies);
     }
 
     [Fact]
