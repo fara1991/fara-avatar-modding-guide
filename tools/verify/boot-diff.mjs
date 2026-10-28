@@ -28,7 +28,7 @@ mkdirSync(out, { recursive: true });
 
 // 動的な部分は、前後で内容が違って当然なので、両方で隠す(visibility のまま場所は残す)。動くものは止める
 const MASK_CSS = `
-input, canvas, #site-scene, .practice-embed, .category-progress, .fsk-footer-socials, .done-badge, .done-mark, .article-complete, .roadmap-progress, [data-progress-page] .badge-done { visibility: hidden !important; }
+input, canvas, #site-scene, .practice-embed, .category-progress, .fbc-footer-socials, .done-badge, .done-mark, .article-complete, .roadmap-progress, [data-progress-page] .badge-done { visibility: hidden !important; }
 input { border-color: transparent !important; box-shadow: none !important; outline: none !important; }
 *, *::before, *::after { animation: none !important; transition: none !important; caret-color: transparent !important; }
 `;
@@ -49,7 +49,7 @@ const RECORDER = () => {
     return covered < 0.2 || (Number(cs.opacity) < 0.15);
   };
   const loop = () => {
-    const h = document.querySelector("#fsk-main h1, main h1, h1");
+    const h = document.querySelector("#fbc-main h1, main h1, h1");
     if (h) {
       const r = h.getBoundingClientRect();
       window.__frames.push({ t: Math.round(performance.now() - t0), x: r.x, y: r.y, w: r.width, vis: visible(), mud: !!document.querySelector(".mud-layout") });
@@ -74,13 +74,13 @@ const settle = async (p) => {
 
 const rects = (p) => p.evaluate(() => {
   const r = (el) => { if (!el) return null; const b = el.getBoundingClientRect(); return { x: Math.round(b.x * 10) / 10, y: Math.round(b.y * 10) / 10, w: Math.round(b.width * 10) / 10 }; };
-  const main = document.querySelector("#fsk-main") || document.querySelector("main");
-  const active = document.querySelector(".fsk-sidebar .mud-nav-link.active");
+  const main = document.querySelector("#fbc-main") || document.querySelector("main");
+  const active = document.querySelector(".fbc-sidebar .mud-nav-link.active");
   const acs = active && getComputedStyle(active);
   return {
     // サイドバーの「いまのページ」の強調(計算済みの色・背景)。静的と起動後で同じであること(位置・ピクセル差の閾値では見つからない小さな領域)
     activeStyle: acs ? `${acs.color} | ${acs.backgroundColor}` : null,
-    h1: r(document.querySelector("#fsk-main h1, main h1, h1")),
+    h1: r(document.querySelector("#fbc-main h1, main h1, h1")),
     crumb: r(main && main.querySelector(".breadcrumb, nav ol")),
     para: r(main && main.querySelector("p")),
     h2: r(main && main.querySelector("h2")),

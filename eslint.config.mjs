@@ -1,6 +1,6 @@
 // 静的解析（ESLint）の設定。共通のルールは kit の tools/lint/eslint.config.shared.mjs（docs/lint.md の 1）。
 // 対象は JS だけ。external/（kit）は kit の CI で見る。画面の JS は、import/export があれば module、無ければ HTML の <script> で読む script。
-import shared, { createSharedConfig } from "./external/fara-site-kit/tools/lint/eslint.config.shared.mjs";
+import shared, { createSharedConfig } from "./external/fara-blazor-component/tools/lint/eslint.config.shared.mjs";
 
 // 読むのは、ファイルの形（import/export の有無）で決めた。ブラウザの JS は、Blazor の wwwroot/js（動的な import() で読む module）と、index.html の <script>（script）
 const WEB_JS = "src/FaraAvatarModdingGuide.Web/wwwroot/js";

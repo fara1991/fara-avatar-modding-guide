@@ -3,7 +3,7 @@ using Bunit;
 using FaraAvatarModdingGuide.Build;
 using FaraAvatarModdingGuide.Models;
 using FaraAvatarModdingGuide.Web.Layout;
-using FaraSiteKit.Razor;
+using FaraBlazorComponent.Razor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -31,14 +31,14 @@ public class StaticFrameTests : WebTestContext
     [Fact]
     public void Static_root_never_looks_rendered_to_the_kit_boot_script()
     {
-        // kit の boot-indicator.js は、#app の中に .mud-layout / .fsk-maintenance が現れたら「描画された」とみなして、読み込み表示を外し、静的な本文の inert を解く。
+        // kit の boot-indicator.js は、#app の中に .mud-layout / .fbc-maintenance が現れたら「描画された」とみなして、読み込み表示を外し、静的な本文の inert を解く。
         // 静的な枠に付けると、起動の前に外れてしまう(起動中の表示が出ず、操作できる状態になる)
         foreach (var path in new[] { "/", "/learn/basics/transform", "/search", null })
         {
             var html = Frame(path!);
             Assert.DoesNotContain("mud-layout", html);
-            Assert.DoesNotContain("fsk-maintenance", html);
-            Assert.DoesNotContain("fsk-page", html);
+            Assert.DoesNotContain("fbc-maintenance", html);
+            Assert.DoesNotContain("fbc-page", html);
             Assert.StartsWith("<div class=\"entry-static av-static\">", html);
         }
     }
@@ -70,7 +70,7 @@ public class StaticFrameTests : WebTestContext
     [Fact]
     public void Footer_social_icons_and_colors_equal_the_kit()
     {
-        var razor = File.ReadAllText(Path.Combine(TestData.Root, "external", "fara-site-kit", "src", "FaraSiteKit.Razor", "Components", "SocialIcon.razor"));
+        var razor = File.ReadAllText(Path.Combine(TestData.Root, "external", "fara-blazor-component", "src", "FaraBlazorComponent.Razor", "Components", "SocialIcon.razor"));
         var brands = Regex.Matches(razor, "\\[\"(?<name>\\w+)\"\\] = \"\"\"(?<path>.*?)\"\"\"", RegexOptions.Singleline).ToDictionary(m => m.Groups["name"].Value, m => m.Groups["path"].Value);
         Assert.Equal(4, brands.Count);
         foreach (var (name, path) in brands) Assert.Equal(path, StaticFrame.SocialPaths[name]);
@@ -80,7 +80,7 @@ public class StaticFrameTests : WebTestContext
         }
         // 設定の SNS が、フッターに同じ順で出る(起動の後は SocialLinks が、設定の Social の URL が空でないものを出す)
         var footer = Frame("/");
-        var hrefs = Regex.Matches(footer, "class=\"fsk-footer-social [^\"]*\" href=\"([^\"]+)\"").Select(m => m.Groups[1].Value).ToList();
+        var hrefs = Regex.Matches(footer, "class=\"fbc-footer-social [^\"]*\" href=\"([^\"]+)\"").Select(m => m.Groups[1].Value).ToList();
         Assert.Equal(TestData.Settings.Socials.Select(s => s.Url), hrefs);
     }
 
@@ -99,12 +99,12 @@ public class StaticFrameTests : WebTestContext
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost" + path);
         var cut = Render<AvNavMenu>(p => p.Add(x => x.Groups, NavGroups.Build(TestData.Content)));
         var rendered = cut.FindAll("a.mud-nav-link").Select(a => (Href: a.GetAttribute("href")!, Text: a.TextContent.Trim(), Active: a.ClassList.Contains("active"))).ToList();
-        var sections = cut.FindAll(".fsk-nav-section").Select(d => d.TextContent.Trim()).ToList();
+        var sections = cut.FindAll(".fbc-nav-section").Select(d => d.TextContent.Trim()).ToList();
 
         var html = StaticFrame.Sidebar(TestData.Content, path);
         var staticLinks = Regex.Matches(html, "<a href=\"/(?<href>[^\"]*)\" class=\"(?<cls>[^\"]*)\".*?<div class=\"mud-nav-link-text\">(?<text>.*?)(?:<span class=\"category-progress[^>]*></span>)?</div></a>", RegexOptions.Singleline)
             .Select(m => (Href: m.Groups["href"].Value, Text: System.Net.WebUtility.HtmlDecode(m.Groups["text"].Value).Trim(), Active: m.Groups["cls"].Value.Contains("active"))).ToList();
-        var staticSections = Regex.Matches(html, "<div class=\"fsk-nav-section\">(.*?)</div>").Select(m => System.Net.WebUtility.HtmlDecode(m.Groups[1].Value)).ToList();
+        var staticSections = Regex.Matches(html, "<div class=\"fbc-nav-section\">(.*?)</div>").Select(m => System.Net.WebUtility.HtmlDecode(m.Groups[1].Value)).ToList();
 
         Assert.Equal(rendered, staticLinks);
         Assert.Equal(sections, staticSections);
@@ -130,7 +130,7 @@ public class StaticFrameTests : WebTestContext
     {
         // MudBlazor: .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) = (0,5,0)。静的な枠のルールは、これより詳細度が高いこと
         // (負けると、色の変数が無い起動前は灰色・背景透明になり、起動の瞬間に強調が現れる)。!important は使わない
-        var rules = Regex.Matches(AppCss, @"(?<sel>[^{}]*\.av-static \.fsk-sidebar[^{}]*\.mud-nav-link\.active)\s*\{(?<body>[^}]*)\}").ToList();
+        var rules = Regex.Matches(AppCss, @"(?<sel>[^{}]*\.av-static \.fbc-sidebar[^{}]*\.mud-nav-link\.active)\s*\{(?<body>[^}]*)\}").ToList();
         Assert.Equal(2, rules.Count);                                    // ダークとライト
         foreach (var rule in rules)
         {

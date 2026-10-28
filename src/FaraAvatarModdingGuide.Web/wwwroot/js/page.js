@@ -2,10 +2,10 @@
 //   avatarPage.scrollToId(id)  … その id の要素が見える位置までスクロールする(#id で飛んできたとき)
 //   avatarPage.scrollToHash()  … URL の #id の要素へスクロールする。ページの描画が済むのを待つ(最大 2 秒)。直接開いたとき(静的 HTML で動いたスクロールは、WebAssembly が描き直すと失われる)と、見出し付きの URL へ移動したとき
 //   avatarPage.restoreBootScroll() … 起動の前の静的な本文で動かしたスクロールを、起動の後に引き継ぐ(起動の後の最初の描画のあとに 1 回)
-//   avatarPage.resetScroll()   … 本文のスクロールを一番上に戻す(別のページへ移ったとき。PC は本文の領域 .fsk-content が自分でスクロールするので、Blazor の既定の動き(window)では戻らない)
+//   avatarPage.resetScroll()   … 本文のスクロールを一番上に戻す(別のページへ移ったとき。PC は本文の領域 .fbc-content が自分でスクロールするので、Blazor の既定の動き(window)では戻らない)
 (function () {
     "use strict";
-    // 戻る/進むのとき、ブラウザの既定のスクロール復元は、本文の領域(.fsk-content。PC)の中では効かない(window だけ)。
+    // 戻る/進むのとき、ブラウザの既定のスクロール復元は、本文の領域(.fbc-content。PC)の中では効かない(window だけ)。
 // ページごとのスクロール位置を sessionStorage に覚えておき、popstate(戻る/進む)のあとに、描画が済むのを待って戻す。
 try { history.scrollRestoration = "manual"; } catch { /* 対応しない環境では、既定のまま */ }   // 既定の復元は、本文の領域の中では効かず、効く(window の)ときも、描き直しとぶつかる
 var lastPopAt = -1e9;
@@ -13,7 +13,7 @@ var restoreTarget = null;   // popstate から、復元が終わるまで(その
 function poppingNow() { return performance.now() - lastPopAt < 1500; }
 function scrollKey() { return "avatar-scroll:" + location.pathname + location.search; }
 function scroller() {
-    var el = document.querySelector(".fsk-content");
+    var el = document.querySelector(".fbc-content");
     return el && /^(auto|scroll)$/.test(getComputedStyle(el).overflowY) ? el : null;
 }
 function currentTop() { var el = scroller(); return el ? el.scrollTop : window.scrollY; }
@@ -69,7 +69,7 @@ window.avatarPage = {
             })();
         },
         // 起動の前の静的な本文で動かしたスクロール(window)を、起動の後に引き継ぐ。起動すると Blazor が #app の中身を置き換え、
-        // PC は本文の領域(.fsk-content)の中がスクロールする画面に替わる(スマホは window のまま)ので、そのままだと一番上に戻ってしまう。
+        // PC は本文の領域(.fbc-content)の中がスクロールする画面に替わる(スマホは window のまま)ので、そのままだと一番上に戻ってしまう。
         // 一番上で見ていたとき・戻る/進むの復元中・#見出しの URL(scrollToHash が動かす)では何もしない
         restoreBootScroll: function () {
             bootTracking = false;
@@ -89,7 +89,7 @@ window.avatarPage = {
         },
         resetScroll: function () {
             if (poppingNow()) return;   // 戻る/進むのときは、戻さない(スクロール位置は、保存した値に復元する)
-            var el = document.querySelector(".fsk-content");
+            var el = document.querySelector(".fbc-content");
             if (el) el.scrollTop = 0;
             window.scrollTo(0, 0);
         },

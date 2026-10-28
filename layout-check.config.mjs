@@ -1,4 +1,4 @@
-// レイアウトの自動計測の設定（kit の tools/layout-check。説明は external/fara-site-kit/docs/layout-check.md）。
+// レイアウトの自動計測の設定（kit の tools/layout-check。説明は external/fara-blazor-component/docs/layout-check.md）。
 // 計測の前に、公開用の静的出力を site-production に作る（README の「レイアウトの計測」）。npm run layout-check が配信と計測をまとめて行う。
 export default {
   // npm run layout-check が、site-production を配った先の URL を入れる（直接 CLI で動かすときは既定の値）
@@ -19,8 +19,8 @@ export default {
   viewportHeight: 800,
   // Blazor が描画した後にだけある要素。これを待ってから測る（静的の本文だけを測らない）
   readySelector: ".mud-layout",
-  // closeSelector: kit v0.7.0 の SiteLayout のドロワーの閉じるボタン（スマホのみ）。ドロワーがメニューボタンを覆うため、閉じる手段はこちらで判定する（kit の docs/layout-check.md の 6.）
-  menuEsc: { buttonSelector: ".fsk-menu-toggle", closeSelector: ".fsk-drawer-close" },
+  // closeSelector: kit v1.0.0 の SiteLayout のドロワーの閉じるボタン（スマホのみ）。ドロワーがメニューボタンを覆うため、閉じる手段はこちらで判定する（kit の docs/layout-check.md の 6.）
+  menuEsc: { buttonSelector: ".fbc-menu-toggle", closeSelector: ".fbc-drawer-close" },
   rules: {
     "no-horizontal-scroll": true,
     "single-h1": true,
@@ -48,17 +48,17 @@ export default {
     },
     {
       rule: "no-offscreen-focus",
-      selector: "#fsk-main a, #fsk-main button, #fsk-main summary, #fsk-main input, #fsk-main select, #fsk-main textarea, #fsk-main .practice-viewport, footer a",
-      reason: "計測の時間差。画面の下の項目に Tab で入ると、ブラウザは滑らかにスクロールする（kit の計測は reducedMotion を指定できず、スクロールの途中の位置を測る）。ドロワー（.fsk-sidebar）とヘッダーは、この除外の対象外。練習の 3D のビュー（記事内）も同じ理由",
+      selector: "#fbc-main a, #fbc-main button, #fbc-main summary, #fbc-main input, #fbc-main select, #fbc-main textarea, #fbc-main .practice-viewport, footer a",
+      reason: "計測の時間差。画面の下の項目に Tab で入ると、ブラウザは滑らかにスクロールする（kit の計測は reducedMotion を指定できず、スクロールの途中の位置を測る）。ドロワー（.fbc-sidebar）とヘッダーは、この除外の対象外。練習の 3D のビュー（記事内）も同じ理由",
     },
     {
       rule: "no-offscreen-focus",
-      selector: ".fsk-skip-link",
+      selector: ".fbc-skip-link",
       reason: "本文へ移動のリンク。フォーカスで上から出す演出（transition）の途中を測るため。kit の SiteLayout の部品",
     },
     {
       rule: "tap-target",
-      selector: "a.fsk-footer-social",
+      selector: "a.fbc-footer-social",
       reason: "kit の SiteFooter の SNS のアイコン（22px）。直すのは kit（押せる範囲を広げる）。サイト側の CSS で広げると、フッターの並びが kit の見た目と変わる",
     },
     {
@@ -73,7 +73,7 @@ export default {
     },
     {
       rule: "tap-target",
-      selector: "button.mud-button-root.fsk-report-submit",
+      selector: "button.mud-button-root.fbc-report-submit",
       page: "/report",
       reason: "問い合わせの送信ボタン。計測は Worker の無い静的配信なので、フォームは「送れません」の状態で、ボタンは無効（MudButton の disabled は pointer-events: none。どの点も自分に当たらない）。有効なときの押せる範囲は、確認用（Worker あり）で目視",
     },

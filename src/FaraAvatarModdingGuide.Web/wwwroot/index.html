@@ -68,7 +68,7 @@
         @media (max-width: 767.98px) {
             .av-static { display: flex; flex-direction: column; }
             .av-static .mud-main-content { order: 1; }
-            .av-static .fsk-sidebar { order: 2; display: block !important; position: static !important; width: auto !important; height: auto !important; overflow: visible !important; }
+            .av-static .fbc-sidebar { order: 2; display: block !important; position: static !important; width: auto !important; height: auto !important; overflow: visible !important; }
         }
     </style></noscript>
     <!-- WASM-ONLY:END -->
@@ -81,8 +81,8 @@
     <!-- WASM-ONLY:END -->
     <!-- Bootstrap 5.3.3 から、このサイトで使っているクラスだけを取り出したもの（CDN の Bootstrap・Bootstrap Icons はやめた） -->
     <link href="css/base.css" rel="stylesheet" />
-    <!-- 共通部品（fara-site-kit）の CSS。サイトの app.css より前に読む（同じ強さの規則は app.css が勝つ） -->
-    <link href="_content/FaraSiteKit.Razor/css/fara-site-kit.css" rel="stylesheet" />
+    <!-- 共通部品（fara-blazor-component）の CSS。サイトの app.css より前に読む（同じ強さの規則は app.css が勝つ） -->
+    <link href="_content/FaraBlazorComponent.Razor/css/fara-blazor-component.css" rel="stylesheet" />
     <!-- 練習・記事内チュートリアルの見た目(SSR 版の site.css から移した)と、練習の JavaScript が出すアイコン(Bootstrap Icons のうち使うものだけを CSS にした) -->
     <link href="css/bi-icons.css" rel="stylesheet" />
     <link href="css/practice.css" rel="stylesheet" />
@@ -91,7 +91,7 @@
          data-storage-key・data-sidebar-key は、SiteOptions（Services/SiteInfo.cs の StorageKey・SidebarKey）と同じ値にする（違うと、起動の後にコンソールに警告が出る）。
          storage-migrate.js は、SSR 版が保存していた形（文字列の light / dark）を、kit が読む形（JSON）に直す。theme-init.js より前に読む -->
     <script src="js/storage-migrate.js"></script>
-    <script src="_content/FaraSiteKit.Razor/js/theme-init.js" data-storage-key="avatar-modding-guide.theme" data-sidebar-key="avatar-modding-guide.sidebar-hidden"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/theme-init.js" data-storage-key="avatar-modding-guide.theme" data-sidebar-key="avatar-modding-guide.sidebar-hidden"></script>
     <!-- 保存されたテーマが無い・読めないときの既定を、SSR 版と同じダークにする（theme-init.js は light にするので、直後に直す） -->
     <script src="js/theme-default.js"></script>
     <!-- STATIC-ONLY の区切りで囲んだ部分は、WebAssembly を使わないページ（記事など）だけに残す。「更新予定」の帯は、WebAssembly のページでは kit の MaintenanceBanner が出し、
@@ -129,10 +129,10 @@
     <script src="js/head-sync.js"></script>
     <script src="js/toc.js"></script>
     <script src="js/search-ui.js"></script>
-    <script src="_content/FaraSiteKit.Razor/js/boot-indicator.js"></script>
-    <script src="_content/FaraSiteKit.Razor/js/fara-site-kit.js"></script>
-    <script src="_content/FaraSiteKit.Razor/js/scroll-progress.js"></script>
-    <script src="_content/FaraSiteKit.Razor/js/report.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/boot-indicator.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/fara-blazor-component.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/scroll-progress.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/report.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <!-- WASM-ONLY:END -->

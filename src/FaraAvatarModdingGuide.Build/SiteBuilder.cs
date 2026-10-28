@@ -21,7 +21,7 @@ public sealed record BuildOptions(
     string? KitDir = null,
     string Node = "node")
 {
-    public string KitPath => KitDir ?? Path.Combine(RepoRoot, "external", "fara-site-kit");
+    public string KitPath => KitDir ?? Path.Combine(RepoRoot, "external", "fara-blazor-component");
 }
 
 /// <summary>
@@ -90,7 +90,7 @@ public static class SiteBuilder
         Directory.CreateDirectory(outDir);
 
         var kitScript = Path.Combine(options.KitPath, "build", "build-pages.mjs");
-        if (!File.Exists(kitScript)) throw new FileNotFoundException($"fara-site-kit がありません（git submodule update --init が必要）: {kitScript}");
+        if (!File.Exists(kitScript)) throw new FileNotFoundException($"fara-blazor-component がありません（git submodule update --init が必要）: {kitScript}");
 
         var contentService = new ContentService(Path.Combine(repo, "Content"));
         var content = SiteContentFactory.From(contentService);
@@ -225,7 +225,7 @@ public static class SiteBuilder
         var stderr = process.StandardError.ReadToEndAsync();
         process.WaitForExit();
         if (process.ExitCode != 0)
-            throw new InvalidOperationException($"fara-site-kit の build-pages.mjs が失敗しました（終了コード {process.ExitCode}）:\n{stderr.Result}{stdout.Result}");
+            throw new InvalidOperationException($"fara-blazor-component の build-pages.mjs が失敗しました（終了コード {process.ExitCode}）:\n{stderr.Result}{stdout.Result}");
         Console.WriteLine(stdout.Result.Trim());
     }
 

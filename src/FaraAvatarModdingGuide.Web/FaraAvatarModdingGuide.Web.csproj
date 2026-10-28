@@ -3,7 +3,7 @@
   <!--
     本番の画面（Blazor WebAssembly + MudBlazor。docs/wasm-migration-plan.md の 3.1）。
     記事・データは Content を参照せず、Build が書いた data/*.json と静的 HTML を読む。
-    レイアウト・テーマ・フッター・報告フォームなどの共通部品は fara-site-kit（external/fara-site-kit）。
+    レイアウト・テーマ・フッター・報告フォームなどの共通部品は fara-blazor-component（external/fara-blazor-component）。
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -33,8 +33,8 @@
     <ProjectReference Include="..\FaraAvatarModdingGuide.Practice\FaraAvatarModdingGuide.Practice.csproj" />
     <ProjectReference Include="..\FaraAvatarModdingGuide.Render\FaraAvatarModdingGuide.Render.csproj" />
     <!-- 共通部品（Core: SiteLinks・MaintenanceInfo・ReportForm・SiteOptions。Razor: レイアウト・フッター・報告フォームなど） -->
-    <ProjectReference Include="..\..\external\fara-site-kit\src\FaraSiteKit.Core\FaraSiteKit.Core.csproj" />
-    <ProjectReference Include="..\..\external\fara-site-kit\src\FaraSiteKit.Razor\FaraSiteKit.Razor.csproj" />
+    <ProjectReference Include="..\..\external\fara-blazor-component\src\FaraBlazorComponent.Core\FaraBlazorComponent.Core.csproj" />
+    <ProjectReference Include="..\..\external\fara-blazor-component\src\FaraBlazorComponent.Razor\FaraBlazorComponent.Razor.csproj" />
   </ItemGroup>
 
   <ItemGroup>

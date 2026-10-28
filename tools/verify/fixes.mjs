@@ -22,7 +22,7 @@ const ok = (c, m) => { if (!c) { fails++; console.log("FAIL", m); } else console
 { // 未知の記事の URL(直接) → サイドバーに強調なし
   const p = await newPage(b);
   await p.goto(B + "/learn/basics/no-such-article"); await p.waitForSelector(".mud-layout"); await p.waitForTimeout(500);
-  ok(/見つかりません/.test(await p.locator(".fsk-content").innerText()), "unknown article: not found view");
+  ok(/見つかりません/.test(await p.locator(".fbc-content").innerText()), "unknown article: not found view");
   ok((await p.locator("a.mud-nav-link.active").count()) === 0, "unknown article: no active sidebar item");
   await p.context().close();
 }

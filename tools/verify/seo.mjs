@@ -220,7 +220,7 @@ if (!NO_BROWSER) {
   // 404 から他のページへアプリ内で移ったとき: 404.html の head は title と noindex だけなので、canonical・description・OGP が足され、noindex が外れる
   const q = await newPage(b, { width: 1280, height: 800 });
   await q.goto(NEW + "/no-such-page-here", { waitUntil: "load" });
-  await q.waitForSelector(".fsk-not-found", { timeout: 60000 });
+  await q.waitForSelector(".fbc-not-found", { timeout: 60000 });
   const from404 = await snapshot(q);
   if (from404.canonical.length !== 0) fail("404 の head に canonical がある(あってはいけない)");
   await q.locator('a.mud-nav-link[href="learn/modeling"]').click();

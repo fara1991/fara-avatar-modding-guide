@@ -3,7 +3,7 @@
   <!--
     C# の静的解析（ラチェット）。ルールの中身と理由は kit の tools/lint/dotnet.editorconfig と docs/lint.md の 2。
     kit の共通の設定を読み、このサイトだけの重大度は tools/lint/dotnet.site.editorconfig（global_level が上）で決める。
-    kit のプロジェクト（external/fara-site-kit/src）には、kit の Directory.Build.props が効く（MSBuild は一番近い 1 つだけを読む）。
+    kit のプロジェクト（external/fara-blazor-component/src）には、kit の Directory.Build.props が効く（MSBuild は一番近い 1 つだけを読む）。
   -->
 
   <PropertyGroup>
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <GlobalAnalyzerConfigFiles Include="$(MSBuildThisFileDirectory)external/fara-site-kit/tools/lint/dotnet.editorconfig" />
+    <GlobalAnalyzerConfigFiles Include="$(MSBuildThisFileDirectory)external/fara-blazor-component/tools/lint/dotnet.editorconfig" />
     <GlobalAnalyzerConfigFiles Include="$(MSBuildThisFileDirectory)tools/lint/dotnet.site.editorconfig" />
   </ItemGroup>
 

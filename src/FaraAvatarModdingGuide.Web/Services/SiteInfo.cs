@@ -1,10 +1,10 @@
 using FaraAvatarModdingGuide.Models;
-using FaraSiteKit.Core;
+using FaraBlazorComponent.Core;
 
 namespace FaraAvatarModdingGuide.Web.Services;
 
 /// <summary>
-/// このサイトの名前・作者・保存のキー・SNS。共通部品（fara-site-kit の Razor）が読む SiteOptions に、起動時に入れる（Program.cs）。
+/// このサイトの名前・作者・保存のキー・SNS。共通部品（fara-blazor-component の Razor）が読む SiteOptions に、起動時に入れる（Program.cs）。
 /// 名前・SNS などは data/site.json（Build が appsettings.json の Site から書く）、保存のキーはここで決める。
 /// </summary>
 public static class SiteInfo

@@ -48,7 +48,7 @@ jobs:
       name: production
       url: https://avatar.fara-labs.com
     steps:
-      # worker/index.js が external/fara-site-kit の report.js・maintenance.js を読み込むので、submodule も取得する
+      # worker/index.js が external/fara-blazor-component の report.js・maintenance.js を読み込むので、submodule も取得する
       - uses: actions/checkout@v4
         with:
           submodules: true

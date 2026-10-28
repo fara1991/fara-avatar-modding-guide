@@ -3,7 +3,7 @@
   <!--
     公開用の静的ファイル一式を作るコマンド（docs/wasm-migration-plan.md の 3.3）。
     Content/ の記事・データから、本文入りの静的 HTML・データの JSON・404.html・_redirects・_headers などを書き出す。
-    ページごとの head・robots.txt・sitemap.xml・_headers は、fara-site-kit の build/build-pages.mjs（Node）に任せる。
+    ページごとの head・robots.txt・sitemap.xml・_headers は、fara-blazor-component の build/build-pages.mjs（Node）に任せる。
     MudBlazor への参照は、Material アイコン（SVG の path）の定数を使うためだけ。
   -->
   <PropertyGroup>

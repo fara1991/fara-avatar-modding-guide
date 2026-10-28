@@ -35,7 +35,7 @@
         for (var i = 0; i < inputs.length; i++) { if (inputs[i].offsetParent !== null) { input = inputs[i]; break; } }
         if (!input) {
             // スマホ: ヘッダーの検索ボタン(kit の SiteLayout)で欄を開く
-            var toggle = document.querySelector(".fsk-search-toggle");
+            var toggle = document.querySelector(".fbc-search-toggle");
             if (!toggle) return;
             e.preventDefault();
             toggle.click();

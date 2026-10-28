@@ -112,8 +112,8 @@ public class PageCatalogTests
     {
         var html = PageCatalog.Wrap("<p>x</p>", Settings, Site);
         Assert.StartsWith("<div class=\"entry-static", html);
-        Assert.Contains("<main id=\"fsk-main\"", html);
-        Assert.Contains("<footer class=\"fsk-footer\">", html);
+        Assert.Contains("<main id=\"fbc-main\"", html);
+        Assert.Contains("<footer class=\"fbc-footer\">", html);
     }
 
     [Fact]

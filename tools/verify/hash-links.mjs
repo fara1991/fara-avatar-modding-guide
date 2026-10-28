@@ -3,7 +3,7 @@ const B = process.env.NEW || "http://127.0.0.1:8787";
 const b = await launch();
 let fails = 0;
 const ok = (c, m) => { if (!c) { fails++; console.log("FAIL", m); } else console.log("ok  ", m); };
-const pos = (p, id) => p.evaluate((id) => { const h = document.getElementById(id); const c = document.querySelector(".fsk-content"); const cs = getComputedStyle(c).overflowY; const top = h.getBoundingClientRect().top - (cs === "auto" ? c.getBoundingClientRect().top : 0); return Math.round(top); }, id);
+const pos = (p, id) => p.evaluate((id) => { const h = document.getElementById(id); const c = document.querySelector(".fbc-content"); const cs = getComputedStyle(c).overflowY; const top = h.getBoundingClientRect().top - (cs === "auto" ? c.getBoundingClientRect().top : 0); return Math.round(top); }, id);
 
 for (const mobile of [false, true]) {
   const p = await newPage(b, mobile ? { width: 390, height: 844, mobile: true } : {});
@@ -36,7 +36,7 @@ for (const mobile of [false, true]) {
   // 別の記事から、見出し付きで移動(検索の結果など)
   await p.goto(B + "/links", { waitUntil: "load" }); await p.waitForSelector(".mud-layout"); await p.waitForTimeout(300);
   await p.evaluate(() => { window.__marker = 1; });
-  await p.evaluate((t) => { const a = document.createElement("a"); a.href = "/learn/basics/transform#" + t; a.id = "tmp-link"; a.textContent = "x"; document.querySelector(".fsk-content").appendChild(a); }, encodeURIComponent(target));
+  await p.evaluate((t) => { const a = document.createElement("a"); a.href = "/learn/basics/transform#" + t; a.id = "tmp-link"; a.textContent = "x"; document.querySelector(".fbc-content").appendChild(a); }, encodeURIComponent(target));
   await p.locator("#tmp-link").click();
   await p.waitForTimeout(900);
   ok((await p.evaluate(() => window.__marker)) === 1, `${tag}: in-app link with #heading, no reload`);
@@ -44,7 +44,7 @@ for (const mobile of [false, true]) {
   ok(t3 >= -4 && t3 < 120, `${tag}: navigation with #heading lands on the heading (${t3}px)`);
   // 用語集の #id (検索からの移動) — アプリ内
   await p.goto(B + "/links", { waitUntil: "load" }); await p.waitForSelector(".mud-layout"); await p.waitForTimeout(300);
-  await p.evaluate(() => { window.__marker = 1; const a = document.createElement("a"); a.href = "/glossary#vertex"; a.id = "tmp-link"; a.textContent = "x"; document.querySelector(".fsk-content").appendChild(a); });
+  await p.evaluate(() => { window.__marker = 1; const a = document.createElement("a"); a.href = "/glossary#vertex"; a.id = "tmp-link"; a.textContent = "x"; document.querySelector(".fbc-content").appendChild(a); });
   await p.locator("#tmp-link").click();
   await p.waitForTimeout(900);
   const g = await pos(p, "vertex");

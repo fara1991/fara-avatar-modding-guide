@@ -1,11 +1,11 @@
-// 戻る/進むでスクロール位置が復元されること(PC は本文の領域 .fsk-content、スマホは window)。
+// 戻る/進むでスクロール位置が復元されること(PC は本文の領域 .fbc-content、スマホは window)。
 import { launch, newPage, csp } from "./lib.mjs";
 const B = process.env.NEW || "http://127.0.0.1:8787";
 const b = await launch();
 let fails = 0;
 const ok = (c, m) => { if (!c) { fails++; console.log("FAIL", m); } else console.log("ok  ", m); };
-const top = (p) => p.evaluate(() => { const c = document.querySelector(".fsk-content"); return Math.round(/^(auto|scroll)$/.test(getComputedStyle(c).overflowY) ? c.scrollTop : window.scrollY); });
-const setTop = (p, y) => p.evaluate((y) => { const c = document.querySelector(".fsk-content"); if (/^(auto|scroll)$/.test(getComputedStyle(c).overflowY)) c.scrollTop = y; else window.scrollTo(0, y); }, y);
+const top = (p) => p.evaluate(() => { const c = document.querySelector(".fbc-content"); return Math.round(/^(auto|scroll)$/.test(getComputedStyle(c).overflowY) ? c.scrollTop : window.scrollY); });
+const setTop = (p, y) => p.evaluate((y) => { const c = document.querySelector(".fbc-content"); if (/^(auto|scroll)$/.test(getComputedStyle(c).overflowY)) c.scrollTop = y; else window.scrollTo(0, y); }, y);
 for (const mobile of [false, true]) {
   const tag = mobile ? "mobile" : "pc";
   const p = await newPage(b, mobile ? { width: 390, height: 844, mobile: true } : {});

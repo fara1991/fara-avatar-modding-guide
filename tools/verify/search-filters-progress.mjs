@@ -44,7 +44,7 @@ const boot = async (p, path) => { await p.goto(B + path, { waitUntil: "load" });
   ok(cnt > 0, "search page: results rendered (" + cnt + ")");
   ok(/\d+ 件/.test(await p.locator("p.text-body-secondary").first().innerText()), "search page: count text");
   // 検索ページ内で再検索
-  await p.locator(".fsk-content input[name=q]").fill("modeling");
+  await p.locator(".fbc-content input[name=q]").fill("modeling");
   await p.keyboard.press("Enter");
   await p.waitForTimeout(500);
   ok(p.url().endsWith("q=modeling"), "search page: form submit -> ?q=modeling (in app): " + p.url());
@@ -81,7 +81,7 @@ const boot = async (p, path) => { await p.goto(B + path, { waitUntil: "load" });
   ok(!!id, "tips: has a hidden item under the tag filter: " + id);
   await p.goto(B + "/tips?tag=Blender#" + id, { waitUntil: "load" });
   await p.waitForSelector(".mud-layout"); await p.waitForTimeout(600);
-  const state = await p.evaluate((id) => { const a = document.getElementById(id); const r = a.getBoundingClientRect(); const c = document.querySelector(".fsk-content").getBoundingClientRect(); return { hidden: a.closest("[data-tip-item]").hidden, open: !!a.querySelector("details.tip-body")?.open, hasDetails: !!a.querySelector("details.tip-body"), top: r.top - c.top, ch: c.height }; }, id);
+  const state = await p.evaluate((id) => { const a = document.getElementById(id); const r = a.getBoundingClientRect(); const c = document.querySelector(".fbc-content").getBoundingClientRect(); return { hidden: a.closest("[data-tip-item]").hidden, open: !!a.querySelector("details.tip-body")?.open, hasDetails: !!a.querySelector("details.tip-body"), top: r.top - c.top, ch: c.height }; }, id);
   ok(!state.hidden, "tips: #id un-hides the item");
   ok(!state.hasDetails || state.open, "tips: #id opens the details");
   ok(state.top >= -2 && state.top < state.ch, "tips: #id scrolled into view (top " + Math.round(state.top) + ")");

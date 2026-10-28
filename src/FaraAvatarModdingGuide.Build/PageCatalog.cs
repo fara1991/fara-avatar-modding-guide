@@ -103,7 +103,7 @@ public static class PageCatalog
         sb.Append(StaticFrame.Header(settings));
         sb.Append(StaticFrame.Sidebar(content, path));
         sb.Line("<div class=\"mud-main-content\">");
-        sb.Line("<main id=\"fsk-main\" tabindex=\"-1\"><article class=\"fsk-content\">");
+        sb.Line("<main id=\"fbc-main\" tabindex=\"-1\"><article class=\"fbc-content\">");
         sb.Append(main.TrimEnd('\n')).Append('\n');
         sb.Line("</article></main>");
         sb.Append(StaticFrame.Footer(settings, path));

@@ -47,7 +47,7 @@ internal static class TestTemplate
             <title>x</title>
             <!-- SEO-HEAD:END -->
             <base href="/" />
-            <script src="_content/FaraSiteKit.Razor/js/theme-init.js" data-storage-key="avatar-modding-guide.theme" data-sidebar-key="avatar-modding-guide.sidebar-hidden"></script>
+            <script src="_content/FaraBlazorComponent.Razor/js/theme-init.js" data-storage-key="avatar-modding-guide.theme" data-sidebar-key="avatar-modding-guide.sidebar-hidden"></script>
             <!-- STATIC-ONLY:START -->
             <script src="js/notice.js" defer></script>
             <!-- STATIC-ONLY:END -->
@@ -92,7 +92,7 @@ public sealed class BuildFixture : IDisposable
         Production = Path.Combine(_root, "production");
         Develop = Path.Combine(_root, "develop");
         Real = Path.Combine(_root, "real");
-        Available = Repo.NodeAvailable() && File.Exists(Path.Combine(Repo.Root, "external", "fara-site-kit", "build", "build-pages.mjs"));
+        Available = Repo.NodeAvailable() && File.Exists(Path.Combine(Repo.Root, "external", "fara-blazor-component", "build", "build-pages.mjs"));
         if (!Available) return;
 
         Directory.CreateDirectory(_root);
@@ -119,7 +119,7 @@ public sealed class NodeFactAttribute : FactAttribute
     public NodeFactAttribute()
     {
         var ci = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
-        if (!ci && (!Repo.NodeAvailable() || !File.Exists(Path.Combine(Repo.Root, "external", "fara-site-kit", "build", "build-pages.mjs"))))
-            Skip = "Node.js か external/fara-site-kit（git submodule update --init）がありません";
+        if (!ci && (!Repo.NodeAvailable() || !File.Exists(Path.Combine(Repo.Root, "external", "fara-blazor-component", "build", "build-pages.mjs"))))
+            Skip = "Node.js か external/fara-blazor-component（git submodule update --init）がありません";
     }
 }

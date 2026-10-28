@@ -4,7 +4,7 @@
 
 @* サイト内の検索欄(すべてのページ)。入力するとすぐに、一致した場所の種類・小見出し・前後の文章を、強調つきで出す。
    ↑↓ で選んで Enter、Esc で閉じる。Enter だけなら検索ページ(/search?q=)へ。Ctrl+K(Mac は ⌘K)か「/」で欄に移る(js/search-ui.js)。
-   PC はヘッダーに置く。スマホは Sheet(ヘッダーの検索ボタンで、下に開く欄。× で閉じる・結果を開いたら閉じる・Esc で閉じる)。欄の枠(#fsk-search-sheet)の出し入れは、kit の SiteLayout(SearchSheet)が行う。
+   PC はヘッダーに置く。スマホは Sheet(ヘッダーの検索ボタンで、下に開く欄。× で閉じる・結果を開いたら閉じる・Esc で閉じる)。欄の枠(#fbc-search-sheet)の出し入れは、kit の SiteLayout(SearchSheet)が行う。
    探す処理は Search/SearchEngine(searchcore.js の移植)。日本語入力の変換中の Enter は、js/search-ui.js が止める(ここには届かない) *@
 <div class="@("av-search" + (Sheet ? " av-search-sheet" : ""))" role="search" @onfocusout="Close" @onfocusin="OnFocusIn" @onkeydown="OnKeyDown" @onkeydown:stopPropagation="true">
     <svg class="av-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>

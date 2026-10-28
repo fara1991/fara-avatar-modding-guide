@@ -11,12 +11,12 @@ import { createServer } from "node:http";
 import { existsSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createStaticServer } from "../../external/fara-site-kit/tools/layout-check/serve-static.mjs";
+import { createStaticServer } from "../../external/fara-blazor-component/tools/layout-check/serve-static.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const siteDir = resolve(root, "site-production");
 const configPath = resolve(root, "layout-check.config.mjs");
-const cliPath = resolve(root, "external/fara-site-kit/tools/layout-check/cli.mjs");
+const cliPath = resolve(root, "external/fara-blazor-component/tools/layout-check/cli.mjs");
 const START_PORT = 8870;
 const TRIES = 10;
 

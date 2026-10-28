@@ -820,7 +820,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         + "<div aria-live=\"polite\">\n<p class=\"text-body-secondary\">キーワードを入力してください。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上の検索欄に移動できます。</p>\n<noscript><p class=\"text-danger\">検索には JavaScript が必要です。</p></noscript>\n</div>\n";
 
     public string Report() =>
-        "<div class=\"fsk-page-column\">\n" +
+        "<div class=\"fbc-page-column\">\n" +
         Heading("問い合わせ", "記事の間違い・不具合・要望・ご意見を、作者に直接送れます。いただいた内容は、作者に通知されます（公開はされません）。") +
         (string.IsNullOrEmpty(s.RepositoryUrl) ? "" : $"<p class=\"small text-body-secondary\">記事の修正は、<a href=\"{E(s.RepositoryUrl)}\" target=\"_blank\" rel=\"noopener\">GitHub</a> で提案していただくこともできます。</p>\n") +
         "<p class=\"small text-body-secondary mt-3 mb-0\">送信フォームは、JavaScript を有効にすると使えます。送信すると、<a href=\"/privacy\">プライバシーポリシー</a>に書いたとおり、内容が作者に通知されます。個人情報（パスワードなど）は書かないでください。</p>\n" +
@@ -830,9 +830,9 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     {
         var t = E(s.Title);
         return $"""
-            <div class="fsk-page-column fsk-page-column--wide">
+            <div class="fbc-page-column fbc-page-column--wide">
             <h1>プライバシーポリシー</h1>
-            <p class="lead">{t}（このサイト）で、どんな情報を、何のために扱うかをまとめています。<span class="fsk-nowrap">制定: 2026 年 10 月 22 日</span></p>
+            <p class="lead">{t}（このサイト）で、どんな情報を、何のために扱うかをまとめています。<span class="fbc-nowrap">制定: 2026 年 10 月 22 日</span></p>
 
             <section class="mb-4">
                 <h2 class="h5">運営者</h2>
@@ -892,10 +892,10 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     /// <summary>404.html の本文（WebAssembly が起動すると NotFoundView に置き換わる）。</summary>
     public static string NotFound() =>
         """
-        <section class="fsk-not-found">
-        <p class="fsk-not-found-code" aria-hidden="true">404</p>
+        <section class="fbc-not-found">
+        <p class="fbc-not-found-code" aria-hidden="true">404</p>
         <h1>ページが見つかりません</h1>
-        <p class="fsk-not-found-lead">URL が間違っているか、ページが移動した可能性があります。</p>
+        <p class="fbc-not-found-lead">URL が間違っているか、ページが移動した可能性があります。</p>
         <a class="btn btn-primary" href="/">ホームへ戻る</a>
         </section>
         """;
