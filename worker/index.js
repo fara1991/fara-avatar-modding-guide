@@ -31,7 +31,14 @@ export const LIMITS = {
   expireMs: 24 * 60 * 60 * 1000, // 最後の変更から部屋を消すまで
   idleMs: 60 * 1000,        // これだけ何も届かない接続は切れたものとみなす（クライアントは 20 秒ごとに ping）
   sweepMs: 60 * 1000,       // 誰かがいるあいだ、切れた接続を確かめる間隔
-  invalidBeforeClose: 30,   // 不正なメッセージがこれだけ続いたら切断
+  invalidBeforeClose: 30,   // 不正なメッセージが、下の時間窓の中でこれだけ届いたら切断
+  invalidWindowMs: 60 * 1000, // 不正なメッセージを数える時間窓（長く開いた接続が、昔の分で切れないように）
+  lockIds: 50,              // 1 回のロックで押さえる数・プレビューの数
+  rotationMax: 100,         // 回転の絶対値の上限（度）
+  viewDistMax: 500,         // 視点の距離の上限
+  viewAngleMax: 1000,       // 視点の角度（theta）の絶対値の上限
+  viewPhiMax: 4,            // 視点の角度（phi）の絶対値の上限
+  viewNameLength: 8,        // 視点の先生役の名前の長さ
 };
 
 const KINDS = new Set(["plane", "cube", "sphere", "cylinder", "cone", "torus"]);
@@ -102,7 +109,7 @@ export function cleanObject(o) {
   if (!KINDS.has(o.kind)) return null;
   const p = o.p, r = o.r, s = o.s;
   if (!vec3(p, x => isNum(x, LIMITS.coord))) return null;
-  if (!vec3(r, x => isNum(x, 100))) return null;
+  if (!vec3(r, x => isNum(x, LIMITS.rotationMax))) return null;
   if (!vec3(s, x => isNum(x, LIMITS.scaleMax) && Math.abs(x) >= LIMITS.scaleMin)) return null;
   const name = cleanName(o.name, LIMITS.objectNameLength) || o.kind;
   return { id: o.id, kind: o.kind, name, p, r, s };
@@ -111,7 +118,7 @@ export function cleanObject(o) {
 /** 変形だけ（操作中のプレビュー）。不正なら null */
 function cleanTransform(o) {
   if (!o || typeof o.id !== "string" || !OBJ_ID.test(o.id)) return null;
-  if (!vec3(o.p, x => isNum(x, LIMITS.coord)) || !vec3(o.r, x => isNum(x, 100)) || !vec3(o.s, x => isNum(x, LIMITS.scaleMax) && Math.abs(x) >= LIMITS.scaleMin)) return null;
+  if (!vec3(o.p, x => isNum(x, LIMITS.coord)) || !vec3(o.r, x => isNum(x, LIMITS.rotationMax)) || !vec3(o.s, x => isNum(x, LIMITS.scaleMax) && Math.abs(x) >= LIMITS.scaleMin)) return null;
   return { id: o.id, p: o.p, r: o.r, s: o.s };
 }
 
@@ -123,9 +130,9 @@ function cleanIds(ids, max = LIMITS.objects) {
 /** 視点（先生役の視点に合わせる用） */
 function cleanView(v) {
   if (!v || typeof v !== "object") return null;
-  if (!vec3(v.target, x => isNum(x, LIMITS.coord)) || !isNum(v.dist, 500) || v.dist <= 0) return null;
-  if (!isNum(v.theta, 1000) || !isNum(v.phi, 4) || typeof v.ortho !== "boolean") return null;
-  return { target: v.target, dist: v.dist, theta: v.theta, phi: v.phi, ortho: v.ortho, name: cleanName(v.name, 8) };
+  if (!vec3(v.target, x => isNum(x, LIMITS.coord)) || !isNum(v.dist, LIMITS.viewDistMax) || v.dist <= 0) return null;
+  if (!isNum(v.theta, LIMITS.viewAngleMax) || !isNum(v.phi, LIMITS.viewPhiMax) || typeof v.ortho !== "boolean") return null;
+  return { target: v.target, dist: v.dist, theta: v.theta, phi: v.phi, ortho: v.ortho, name: cleanName(v.name, LIMITS.viewNameLength) };
 }
 
 // ---------------------------------------------------------------- 部屋
@@ -238,7 +245,7 @@ export class Room extends DurableObject {
   /** 1 人あたりの送信の頻度を制限する（トークンバケツ）。超えたら false */
   allow(ws) {
     const now = Date.now();
-    const r = this.rate.get(ws) ?? { tokens: LIMITS.rateBurst, at: now, invalid: 0 };
+    const r = this.rate.get(ws) ?? { tokens: LIMITS.rateBurst, at: now };
     r.tokens = Math.min(LIMITS.rateBurst, r.tokens + ((now - r.at) / 1000) * LIMITS.ratePerSec);
     r.at = now;
     this.rate.set(ws, r);
@@ -247,12 +254,15 @@ export class Room extends DurableObject {
     return true;
   }
 
+  /** 不正なメッセージを返す。直近の時間窓の中で invalidBeforeClose 回になったら切断（古いものは数えない） */
   invalid(ws, why) {
-    const r = this.rate.get(ws) ?? { tokens: LIMITS.rateBurst, at: Date.now(), invalid: 0 };
-    r.invalid++;
+    const now = Date.now();
+    const r = this.rate.get(ws) ?? { tokens: LIMITS.rateBurst, at: now };
+    r.invalidAt = (r.invalidAt ?? []).filter(t => now - t < LIMITS.invalidWindowMs);
+    r.invalidAt.push(now);
     this.rate.set(ws, r);
     this.send(ws, { t: "error", msg: why });
-    if (r.invalid >= LIMITS.invalidBeforeClose) ws.close(1008, "too many invalid messages");
+    if (r.invalidAt.length >= LIMITS.invalidBeforeClose) ws.close(1008, "too many invalid messages");
   }
 
   /** ロックの確認。ほかの人が持っている ID の一覧 */
@@ -287,6 +297,8 @@ export class Room extends DurableObject {
     const me = ws.deserializeAttachment();
 
     if (msg.t === "hello") {
+      // 二度目の hello は無視する（join を二重に知らせない）
+      if (me.joined) return;
       me.name = cleanName(msg.name) || "ゲスト";
       me.joined = true;
       ws.serializeAttachment(me);
@@ -329,7 +341,7 @@ export class Room extends DurableObject {
         return;
       }
       case "lock": {
-        const ids = cleanIds(msg.ids, 50);
+        const ids = cleanIds(msg.ids, LIMITS.lockIds);
         if (!ids) return this.invalid(ws, "bad lock");
         const busy = this.lockedByOthers(ids, me.id);
         if (busy.length) { this.send(ws, { t: "lockdenied", ids: busy, seq: msg.seq ?? null }); return; }
@@ -345,7 +357,7 @@ export class Room extends DurableObject {
       }
       case "preview": {
         // 操作中の変形（保存しない）。ほかの人がロックしているものは送らない
-        if (!Array.isArray(msg.objs) || msg.objs.length > 50) return this.invalid(ws, "bad preview");
+        if (!Array.isArray(msg.objs) || msg.objs.length > LIMITS.lockIds) return this.invalid(ws, "bad preview");
         const objs = msg.objs.map(cleanTransform);
         if (objs.some(o => !o)) return this.invalid(ws, "bad preview");
         const ok = objs.filter(o => this.objects.has(o.id) && !this.lockedByOthers([o.id], me.id).length);
@@ -353,10 +365,10 @@ export class Room extends DurableObject {
         return;
       }
       case "ops": {
-        // 確定した変更: upsert（追加・変形）と delete
-        const upsert = Array.isArray(msg.upsert) ? msg.upsert : [];
+        // 確定した変更: upsert（追加・変形）と delete。どちらも、無い・null は空。配列でなければ不正
+        const upsert = msg.upsert ?? [];
         const del = cleanIds(msg.delete ?? []);
-        if (upsert.length > LIMITS.objects || !del) return this.invalid(ws, "bad ops");
+        if (!Array.isArray(upsert) || upsert.length > LIMITS.objects || !del) return this.invalid(ws, "bad ops");
         const objs = upsert.map(cleanObject);
         if (objs.some(o => !o)) return this.invalid(ws, "bad object");
         const busy = this.lockedByOthers([...objs.map(o => o.id), ...del], me.id);

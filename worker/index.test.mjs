@@ -5,7 +5,7 @@ import { test, before } from "node:test";
 import assert from "node:assert/strict";
 import { register } from "node:module";
 
-let worker;
+let worker, Room, cleanName;
 
 before(async () => {
   // "cloudflare:workers" を、DurableObject だけを持つ空のモジュールにする
@@ -15,7 +15,12 @@ before(async () => {
       return next(specifier, context);
     }`;
   register("data:text/javascript," + encodeURIComponent(hooks), import.meta.url);
-  worker = (await import("./index.js")).default;
+  // Durable Object の自動応答（ping → pong）の型も、Node には無いので空の実装にする
+  globalThis.WebSocketRequestResponsePair ??= class { constructor(request, response) { this.request = request; this.response = response; } };
+  const mod = await import("./index.js");
+  worker = mod.default;
+  Room = mod.Room;
+  cleanName = mod.cleanName;
 });
 
 /** 静的ファイル（ASSETS）の代わり。呼ばれたパスを記録し、HTML をそのまま返す */
@@ -97,4 +102,106 @@ test("共同練習の部屋: 部屋 ID の形が違えば 400、WebSocket でな
   assert.equal(foreign.status, 403);
   const same = await call("/api/rooms/abcdef12/ws", env, { headers: { Upgrade: "websocket", Origin: "https://avatar-dev.example" } });
   assert.equal(await same.text(), "room");
+});
+
+// ---------------------------------------------------------------- 共同練習の部屋（Room を、偽の ctx と WebSocket で動かす）
+/** Durable Object の ctx の最小限の偽物 */
+function fakeRoom() {
+  const sockets = [];
+  const storage = new Map();
+  const ctx = {
+    storage: {
+      list: async () => new Map(),
+      get: async (k) => storage.get(k),
+      put: async (o, v) => { if (typeof o === "string") storage.set(o, v); else for (const [k, x] of Object.entries(o)) storage.set(k, x); },
+      delete: async (keys) => { for (const k of [].concat(keys)) storage.delete(k); },
+      setAlarm: async () => {},
+      deleteAll: async () => storage.clear(),
+    },
+    setWebSocketAutoResponse() {},
+    getWebSocketAutoResponseTimestamp() { return null; },
+    getWebSockets: () => sockets,
+    acceptWebSocket(ws) { sockets.push(ws); },
+  };
+  return { room: new Room(ctx, {}), ctx };
+}
+
+/** 接続 1 本。送られた JSON は sent に溜まる */
+function connect(ctx, id) {
+  let attachment = null;
+  const ws = {
+    readyState: 1, sent: [], closed: null,
+    send(d) { this.sent.push(JSON.parse(d)); },
+    close(code, reason) { this.closed = { code, reason }; this.readyState = 3; },
+    serializeAttachment(a) { attachment = a; },
+    deserializeAttachment() { return attachment; },
+  };
+  ctx.acceptWebSocket(ws);
+  ws.serializeAttachment({ id, color: "#f97316", name: "", joined: false, at: Date.now() });
+  return ws;
+}
+
+/** Date.now を仮想の時計にする（終わったら元に戻す） */
+async function withClock(start, fn) {
+  const real = Date.now;
+  let now = start;
+  Date.now = () => now;
+  try { return await fn((ms) => { now += ms; }); } finally { Date.now = real; }
+}
+
+test("共同練習: 二度目の hello では join を二重に知らせない", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await room.webSocketMessage(a, JSON.stringify({ t: "hello", name: "Alice" }));
+  await room.webSocketMessage(b, JSON.stringify({ t: "hello", name: "Bob" }));
+  await room.webSocketMessage(b, JSON.stringify({ t: "hello", name: "Bob" }));
+  assert.equal(a.sent.filter(m => m.t === "join").length, 1);
+  assert.equal(b.sent.filter(m => m.t === "welcome").length, 1);
+});
+
+test("共同練習: upsert が無い ops でも delete は反映する（無い・null は空）", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  await room.webSocketMessage(a, JSON.stringify({ t: "hello", name: "Alice" }));
+  await room.webSocketMessage(a, JSON.stringify({ t: "ops", delete: ["cube0"] }));
+  assert.equal(room.objects.has("cube0"), false);
+  assert.equal(a.sent.some(m => m.t === "error"), false);
+  const sent = connect(ctx, "b2");
+  await room.webSocketMessage(sent, JSON.stringify({ t: "hello", name: "Bob" }));
+  await room.webSocketMessage(sent, JSON.stringify({ t: "ops", upsert: null, delete: [] }));
+  assert.equal(sent.sent.some(m => m.t === "error"), false);
+});
+
+test("共同練習: upsert が配列でない ops は、delete も含めて丸ごと捨てる（黙って空にしない）", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  await room.webSocketMessage(a, JSON.stringify({ t: "hello", name: "Alice" }));
+  await room.webSocketMessage(a, JSON.stringify({ t: "ops", upsert: "x", delete: ["cube0"] }));
+  assert.equal(room.objects.has("cube0"), true);
+  assert.deepEqual(a.sent.at(-1), { t: "error", msg: "bad ops" });
+});
+
+test("共同練習: 不正なメッセージは直近 1 分の中で数える（古いものは数えない）", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  await withClock(1_000_000_000_000, async (tick) => {
+    await room.webSocketMessage(a, JSON.stringify({ t: "hello", name: "Alice" }));
+    // 61 秒おきに 35 回: どの 1 分の窓にも 30 回は入らないので、切れない
+    for (let i = 0; i < 35; i++) {
+      tick(61_000);
+      await room.webSocketMessage(a, JSON.stringify({ t: "bogus" }));
+    }
+    assert.equal(a.closed, null);
+    // 1 秒の中で 30 回: 切れる
+    const b = connect(ctx, "b2");
+    await room.webSocketMessage(b, JSON.stringify({ t: "hello", name: "Bob" }));
+    for (let i = 0; i < 30; i++) await room.webSocketMessage(b, JSON.stringify({ t: "bogus" }));
+    assert.equal(b.closed?.code, 1008);
+  });
+});
+
+test("表示名: HTML の特殊文字と制御文字を除く（クライアントの C# と同じ）", () => {
+  assert.equal(cleanName('<a>&"\'b'), "ab");
+  assert.equal(cleanName("  Ali\u0007ce  "), "Alice");
 });
