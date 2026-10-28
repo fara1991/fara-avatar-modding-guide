@@ -317,7 +317,8 @@ public sealed partial class ContentService
         {
             if (link.IsImage && link.Url is { } url && IsRelative(url))
             {
-                var size = ReadPngSize(Path.Combine(_root, "learn", categoryId, url));
+                // Content の外を指すパスは、読まずにエラーにする（読み込みの前に確かめる）
+                var size = ReadPngSize(ResolveContentImage(_root, categoryId, url, path));
                 link.Url = $"/learn/{categoryId}/{url}";
                 if (size is { } s) imageSizes[link.Url] = s;
             }
@@ -384,6 +385,19 @@ public sealed partial class ContentService
 
     private static bool IsRelative(string url) =>
         !url.StartsWith('/') && !url.StartsWith('#') && !url.Contains("://") && !url.StartsWith("data:", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 記事の相対パスの画像（Content/learn/&lt;カテゴリ&gt;/ からの位置）を、Content フォルダの中の実際のパスにする。
+    /// Content の外を指すとき（.. で抜けるなど）は、ファイルを読まずに FormatException にする。
+    /// </summary>
+    internal static string ResolveContentImage(string contentRoot, string categoryId, string url, string articlePath)
+    {
+        var root = Path.GetFullPath(contentRoot).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var full = Path.GetFullPath(Path.Combine(contentRoot, "learn", categoryId, url));
+        if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+            throw new FormatException($"{articlePath}: 画像のパスが Content の外を指しています（{url}）");
+        return full;
+    }
 
     /// <summary>
     /// PNG の寸法（IHDR の幅・高さ）を読む。PNG でない・読めないときは null（寸法を付けないだけで、表示はそのまま）。
