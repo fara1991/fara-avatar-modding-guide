@@ -28,10 +28,19 @@ public class MobileCssTests
     }
 
     [Fact]
-    public void Article_tables_scroll_inside_the_table_and_keep_key_combinations_on_one_line_on_small_phones()
+    public void Article_cells_wrap_so_tables_fit_the_column_and_only_wide_tables_scroll_on_small_phones()
     {
+        // 見出し（th）は keep-all のまま字の途中で折らない（PR #142）。本文のセル（td）は、語が列に入らないときだけ字の途中で折る（keep-all のままだと列より広くなり、右端が切れる）
+        Assert.Matches(@"\.article-body th,\s*\.article-body td\s*\{[^}]*word-break:\s*keep-all;\s*\}", AppCss);
+        Assert.Matches(@"\.article-body td\s*\{\s*overflow-wrap:\s*anywhere;\s*\}", AppCss);
+        // 480px 未満では、折り返しても収まらない表だけ、表の箱の中で横に送れる（tip の表と同じ形）
         var small = MobileBlocks("479.98px");
         Assert.Matches(@"\.article-body table\s*\{[^}]*display:\s*block;[^}]*overflow-x:\s*auto;", small);
-        Assert.Matches(@"\.article-body td:first-child:has\(> kbd\)\s*\{\s*white-space:\s*nowrap;", small);
+    }
+
+    [Fact]
+    public void Article_code_blocks_scroll_inside_themselves_instead_of_widening_the_page()
+    {
+        Assert.Matches(@"\.article-body pre\s*\{[^}]*max-width:\s*100%;[^}]*overflow-x:\s*auto;", AppCss);
     }
 }

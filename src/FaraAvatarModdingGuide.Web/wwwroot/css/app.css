@@ -480,15 +480,20 @@ kbd {
     white-space: nowrap;
 }
 
-/* 記事の表のセルの余白。文字が隣の列とくっつかないように空ける。keep-all で「キー」「表記」などの語を字の途中で折らない（360px・390px で確かめた） */
+/* 記事の表のセルの余白。文字が隣の列とくっつかないように空ける。keep-all で「キー」「表記」などの語を字の途中で折らない（見出しの th は、360px・390px でも keep-all のまま） */
 .article-body th,
 .article-body td {
-    padding: 6px 10px;
+    padding: 10px 12px;
     word-break: keep-all;
 }
 
+/* 本文のセル（td）だけ、語が列に入らないときに字の途中で折る。keep-all のままだと日本語の表が列より広くなり、右端が切れるため */
+.article-body td {
+    overflow-wrap: anywhere;
+}
+
 /* スマートフォン（480px 未満）: 記事の表は列を狭くしすぎない。表が画面より広いときだけ、表の中で横に送れる（tip の表と同じ形）。
-   左の列にキー（<kbd>）があるときは、キーと続きの文字（Shift＋クリック）を 1 行に保つ。折れると「+クリ / ック」のように読みにくい */
+   表は折り返しで画面幅に収まる（計測済み）。収まらない表だけ、この箱の中で横に送れる */
 @media (max-width: 479.98px) {
     .article-body table {
         display: block;
@@ -497,9 +502,17 @@ kbd {
         font-size: 0.9rem;
     }
 
-    .article-body td:first-child:has(> kbd) {
-        white-space: nowrap;
+    .article-body th,
+    .article-body td {
+        padding-left: 10px;
+        padding-right: 10px;
     }
+}
+
+/* 記事のコードブロックは、画面より長い行を箱の中で横に送る（箱から出すとページ全体が横に動く） */
+.article-body pre {
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 /* ---------- 記事内の目次・キー一覧（右の列） ---------- */
