@@ -213,6 +213,12 @@ public static class TutorialScenarios
         return steps;
     }
 
+    /// <summary>上の面を 1 つだけクリックして選ぶ手順(押し出し・削除の前に使う)。</summary>
+    private static TutorialStep UpperFaceClickStep(string text, string group) => EditClickStep(text, [0, 0.2, 1], group,
+        (e, vp, _) => IsEdit(e) && e.Counts().Faces == 1 && UpNormal(vp),
+        M(e => IsEdit(e) ? "上の面だけをクリックしてください。" : null),
+        vp => vp.EditSelectWhere(p => p.Normal.Z > 0.9 && p.Center.Z > 0.9));
+
     private static bool UpNormal(ViewportCore vp) => vp.GetEditInfo().Faces.Count > 0 && vp.GetEditInfo().Faces[0].Normal.Z > 0.9;
 
     private static List<TutorialStep> S(params object[] parts)
@@ -548,10 +554,7 @@ public static class TutorialScenarios
                 EditOpSteps("Ctrl+B", "B", false, "0.3", " m", "面取りの幅", "bevel",
                     "<kbd>Ctrl</kbd>+<kbd>B</kbd> でベベルを始めてください。マウスを離すほど面取りの幅が広がります。", vp => vp.BevelNow()),
                 SelectModeStep("face"),
-                EditClickStep("上の面をクリックして選んでください。", [0, 0.2, 1], "dup",
-                    (e, vp, _) => IsEdit(e) && e.Counts().Faces == 1 && UpNormal(vp),
-                    M(e => IsEdit(e) ? "上の面だけをクリックしてください。" : null),
-                    vp => vp.EditSelectWhere(p => p.Normal.Z > 0.9 && p.Center.Z > 0.9)),
+                UpperFaceClickStep("上の面をクリックして選んでください。", "dup"),
                 new TutorialStep
                 {
                     Group = "dup", Keys = ["E"],
@@ -590,10 +593,7 @@ public static class TutorialScenarios
                     Skip = vp => { vp.CloseMenuNow(); vp.MergeEditNow("distance"); },
                 },
                 SelectModeStep("face"),
-                EditClickStep("もう一度、上の面をクリックして選んでください。", [0, 0.2, 1], "hole",
-                    (e, vp, _) => IsEdit(e) && e.Counts().Faces == 1 && UpNormal(vp),
-                    M(e => IsEdit(e) ? "上の面だけをクリックしてください。" : null),
-                    vp => vp.EditSelectWhere(p => p.Normal.Z > 0.9 && p.Center.Z > 0.9)),
+                UpperFaceClickStep("もう一度、上の面をクリックして選んでください。", "hole"),
                 new TutorialStep
                 {
                     Group = "hole", Keys = ["X"], Text = "<kbd>X</kbd> で削除のメニューを出してください。",

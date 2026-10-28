@@ -20,7 +20,9 @@ export async function newPage(browser, { width = 1280, height = 800, theme = "da
         if (!window.__noThemeSeed) localStorage.setItem("avatar-modding-guide.theme", theme);
         for (const [k, v] of Object.entries(seed)) localStorage.setItem(k, v);
       }
-    } catch {}
+    } catch {
+      // 保存領域が使えない（プライベートブラウズ・保存の禁止など）ときは、初期値が入らないだけ。確認は続ける
+    }
     window.__csp = [];
     document.addEventListener("securitypolicyviolation", (e) => window.__csp.push(e.violatedDirective + " " + e.blockedURI));
   }, { seed, theme });

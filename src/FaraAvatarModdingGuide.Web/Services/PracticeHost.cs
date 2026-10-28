@@ -42,7 +42,7 @@ public sealed class PracticeHost(IJSRuntime js) : IAsyncDisposable
             // 3D を始められなくても、ページの説明は読める(WebGL が使えない環境のメッセージは、練習のスクリプトが出す)
             Console.Error.WriteLine($"[avatar] 練習を始められません: {e.Message}");
         }
-        catch (JSDisconnectedException) { }
+        catch (JSDisconnectedException) { }   // 回線が切れた（ページを離れた）後の開始は、もう要らない
     }
 
     /// <summary>3D(WebGL のコンテキスト・イベント・WebSocket・タイマー)を解放する。何度呼んでもよい。</summary>
@@ -60,6 +60,7 @@ public sealed class PracticeHost(IJSRuntime js) : IAsyncDisposable
             await module.InvokeVoidAsync("dispose", id);
             await module.DisposeAsync();
         }
+        // 回線が切れている（ページを離れた後）なら、解放は要らない。画面を閉じる途中の失敗も、解放は続ける
         catch (JSDisconnectedException) { }
         catch (JSException) { }
         module = null;

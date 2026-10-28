@@ -95,6 +95,7 @@
             module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/practice-cs.js");
             await module.InvokeVoidAsync("positionMenu", RootId, Hud.Menu!.X, Hud.Menu.Y);
         }
+        // メニューの位置を直せなくても、メニューは出ている（回線が切れた場合は JSDisconnectedException。想定内）
         catch (JSDisconnectedException) { }
         catch (JSException) { }
     }
@@ -102,6 +103,7 @@
     public async ValueTask DisposeAsync()
     {
         if (module is null) return;
+        // 回線が切れている（ページを離れた後）なら、解放は要らない
         try { await module.DisposeAsync(); }
         catch (JSDisconnectedException) { }
         catch (JSException) { }
