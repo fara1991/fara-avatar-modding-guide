@@ -59,13 +59,13 @@ export default {
     {
       rule: "tap-target",
       selector: ".breadcrumb-item > a",
-      reason: "パンくずの項目。スマホでは 44px の高さ・幅を取っているが、中心の上下の点が項目の外（li の行の箱）に当たる。原因は未確認（インラインの箱のずれ）。直すのは別の PR で確かめてから（docs の「既知の除外」）",
+      reason: "パンくずが折り返す行で、項目の下の点が次の行の項目に当たる（計測時点）。項目の箱を 44px に広げても、行の箱が低いままで重なる。直すのは、パンくずの行の作り（ol の折り返し）を見直す別の PR",
     },
     {
       rule: "tap-target",
       selector: "button.mud-button-root.fsk-report-submit",
       page: "/report",
-      reason: "kit の問い合わせの送信ボタン（MudButton）。高さを 48px にしても、中心の上下の点が自分に当たらない（原因は未確認。MudBlazor の部品の内側の要素が当たる）。kit で確かめて直す（kit の follow-up）",
+      reason: "問い合わせの送信ボタン。計測は Worker の無い静的配信なので、フォームは「送れません」の状態で、ボタンは無効（MudButton の disabled は pointer-events: none。どの点も自分に当たらない）。有効なときの押せる範囲は、確認用（Worker あり）で目視",
     },
     {
       rule: "focus-visible",

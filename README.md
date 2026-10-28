@@ -109,7 +109,7 @@ npm run layout-check   # site-production を配って計測（設定は layout-c
 | C# | `VSTHRD002`・`VSTHRD003`・`VSTHRD103` | warning | 6・5・9 件。同期の待ち・開始していない Task の待ち・同期の書き込み |
 | C# | `CA1416`・`CS8602`・`VSTHRD200` | （既定） | 対象外（今回のラチェットの一覧に入れていない） |
 | JS | ESLint（`eslint.config.mjs`） | error | 0 件（直したもの: 空の catch・未使用の変数・`==`・Workers の実行環境のグローバル） |
-| レイアウト | 7 ページ × 5 幅 | error | 0 件（除外は下の 4 件） |
+| レイアウト | 7 ページ × 5 幅 | error | 0 件（除外は下の 7 件。すべて理由つき） |
 
 #### 除外の書き方（レイアウト）
 
@@ -119,7 +119,17 @@ npm run layout-check   # site-production を配って計測（設定は layout-c
 { rule: "tap-target", selector: "a.fsk-footer-social", reason: "kit の SiteFooter の SNS のアイコン（22px）。直すのは kit" },
 ```
 
-現在の除外: 本文・フッターの項目の「画面の下に入ると滑らかにスクロールする」計測の時間差（`no-offscreen-focus`）、スキップリンク（同）、フッターの SNS（`tap-target`）、問い合わせの入力欄の見える表示（`focus-visible`。下線で示す。目視で確かめる）、表のセルの文字リンク（`tap-target`）、問い合わせの送信ボタン（原因は未確認）、パンくずの項目（原因は未確認）。**kit の follow-up**: 配信のフォルダ→`.html` の読み替え、計測で `reducedMotion` を指定できるように、送信ボタン・パンくずの原因の確認。
+現在の除外（7 件）:
+
+- `no-offscreen-focus`（本文・フッター・記事内の 3D のビュー）: 画面の下の項目に Tab で入ると、ブラウザは滑らかにスクロールする。計測はその途中を測るため。kit の `browser.mjs` は `reducedMotion` を指定できない（`chromium.launch` へ渡すのは `channel` だけ）。kit の follow-up
+- `no-offscreen-focus`（`.fsk-skip-link`）: フォーカスで出す演出の途中を測る（同じ理由。kit の部品）
+- `tap-target`（`a.fsk-footer-social`）: kit の SiteFooter の SNS の 22px のアイコン。直すのは kit
+- `tap-target`（`.article-body td a`）: 表のセルの中の文字リンク。前後に文字が無いので、kit の文中の判定に入らない。44px にすると表の行が崩れる
+- `tap-target`（`.breadcrumb-item > a`）: パンくずが折り返す行で、項目の下の点が次の行の項目に当たる。箱を 44px に広げても重なる。パンくずの行の作りを見直す別の PR
+- `tap-target`（問い合わせの送信ボタン）: 計測は Worker の無い静的配信なので、フォームは無効（MudButton の disabled は `pointer-events: none`）。有効なときの押せる範囲は、確認用（Worker あり）で目視
+- `focus-visible`（問い合わせの入力欄）: MudBlazor が入力欄の outline を 0 にし、見える表示は枠の下線で出す。下線は計測では見ないので、目視で確かめる
+
+**kit の follow-up**: 配信のフォルダ→`.html` の読み替え（`run.mjs` で回避している）、計測で `reducedMotion` を指定できるようにする、フッターの SNS の押せる範囲。
 
 #### 除外の書き方（ESLint・C#）
 

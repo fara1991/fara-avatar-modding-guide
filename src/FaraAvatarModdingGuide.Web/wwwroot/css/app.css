@@ -1480,6 +1480,13 @@ h1:focus {
 
 /* スマホ幅: パンくずの項目を、押せる高さ（44px）にする（文字は左から、行の中央に置く） */
 @media (max-width: 599.98px) {
+    /* 項目の箱の高さを、中の項目（44px）に合わせる。低い箱だと、項目が隣の項目に重なって、押せる範囲の中心が隣に当たる */
+    .breadcrumb-item {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
     .breadcrumb-item > a {
         display: inline-flex;
         align-items: center;
