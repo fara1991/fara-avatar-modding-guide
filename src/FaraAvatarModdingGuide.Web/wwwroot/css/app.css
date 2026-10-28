@@ -480,12 +480,15 @@ kbd {
     white-space: nowrap;
 }
 
-/* 記事の表のセルの余白。文字が隣の列とくっつかないように空ける。keep-all で「キー」「表記」などの語を字の途中で折らない（360px・390px で確かめた）。
-   語が列に入らないときだけ、字の途中で折り返す（overflow-wrap: anywhere）。keep-all のままだと日本語の表が列より広くなり、右端が切れるため */
+/* 記事の表のセルの余白。文字が隣の列とくっつかないように空ける。keep-all で「キー」「表記」などの語を字の途中で折らない（見出しの th は、360px・390px でも keep-all のまま） */
 .article-body th,
 .article-body td {
     padding: 10px 12px;
     word-break: keep-all;
+}
+
+/* 本文のセル（td）だけ、語が列に入らないときに字の途中で折る。keep-all のままだと日本語の表が列より広くなり、右端が切れるため */
+.article-body td {
     overflow-wrap: anywhere;
 }
 
@@ -497,6 +500,12 @@ kbd {
         max-width: 100%;
         overflow-x: auto;
         font-size: 0.9rem;
+    }
+
+    .article-body th,
+    .article-body td {
+        padding-left: 10px;
+        padding-right: 10px;
     }
 }
 

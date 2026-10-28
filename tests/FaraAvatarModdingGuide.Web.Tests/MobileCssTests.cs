@@ -30,8 +30,9 @@ public class MobileCssTests
     [Fact]
     public void Article_cells_wrap_so_tables_fit_the_column_and_only_wide_tables_scroll_on_small_phones()
     {
-        // 表のセルは、語が列に入らないときだけ字の途中で折る（keep-all のままだと列より広くなり、右端が切れる）
-        Assert.Matches(@"\.article-body th,\s*\.article-body td\s*\{[^}]*word-break:\s*keep-all;[^}]*overflow-wrap:\s*anywhere;", AppCss);
+        // 見出し（th）は keep-all のまま字の途中で折らない（PR #142）。本文のセル（td）は、語が列に入らないときだけ字の途中で折る（keep-all のままだと列より広くなり、右端が切れる）
+        Assert.Matches(@"\.article-body th,\s*\.article-body td\s*\{[^}]*word-break:\s*keep-all;\s*\}", AppCss);
+        Assert.Matches(@"\.article-body td\s*\{\s*overflow-wrap:\s*anywhere;\s*\}", AppCss);
         // 480px 未満では、折り返しても収まらない表だけ、表の箱の中で横に送れる（tip の表と同じ形）
         var small = MobileBlocks("479.98px");
         Assert.Matches(@"\.article-body table\s*\{[^}]*display:\s*block;[^}]*overflow-x:\s*auto;", small);
