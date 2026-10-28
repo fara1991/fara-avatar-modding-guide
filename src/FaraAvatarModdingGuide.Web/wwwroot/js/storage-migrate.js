@@ -15,7 +15,7 @@
         } else if (value === null) {
             localStorage.setItem(KEY, JSON.stringify({ Theme: "dark" }));
         }
-    } catch (e) {
+    } catch {
         // localStorage が使えない（プライベートモード等）ときは何もしない（theme-init.js が light にする。SiteLayout は保存できなくても動く）
     }
 })();

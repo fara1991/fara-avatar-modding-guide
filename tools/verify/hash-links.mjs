@@ -3,15 +3,13 @@ const B = process.env.NEW || "http://127.0.0.1:8787";
 const b = await launch();
 let fails = 0;
 const ok = (c, m) => { if (!c) { fails++; console.log("FAIL", m); } else console.log("ok  ", m); };
-const boot = async (p, path) => { await p.goto(B + path, { waitUntil: "load" }); await p.waitForSelector(".mud-layout", { timeout: 60000 }); await p.waitForTimeout(500); };
 const pos = (p, id) => p.evaluate((id) => { const h = document.getElementById(id); const c = document.querySelector(".fsk-content"); const cs = getComputedStyle(c).overflowY; const top = h.getBoundingClientRect().top - (cs === "auto" ? c.getBoundingClientRect().top : 0); return Math.round(top); }, id);
 
 for (const mobile of [false, true]) {
   const p = await newPage(b, mobile ? { width: 390, height: 844, mobile: true } : {});
   const tag = mobile ? "mobile" : "pc";
   // 直接開く(#見出し)
-  const id = "3-つのキー";
-  await p.goto(B + "/learn/basics/transform", { waitUntil: "load" });
+    await p.goto(B + "/learn/basics/transform", { waitUntil: "load" });
   await p.waitForSelector(".mud-layout");
   const ids = await p.evaluate(() => [...document.querySelectorAll(".article-body h2")].map((h) => h.id));
   const target = ids[3];

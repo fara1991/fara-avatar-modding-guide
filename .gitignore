@@ -29,3 +29,6 @@ site-develop/
 
 ## 画像比較の出力（tools/verify。画像は作業用）
 *-compare-out/
+
+## Node の依存（package-lock.json は残す）
+node_modules/

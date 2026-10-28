@@ -269,6 +269,7 @@ public abstract class CsViewEngine : IDisposable
         renderer?.Dispose();
         renderer = null;
         core = null;
+        GC.SuppressFinalize(this);
     }
 }
 

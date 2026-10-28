@@ -1,4 +1,4 @@
-import { launch, newPage, csp } from "./lib.mjs";
+import { launch, newPage } from "./lib.mjs";
 const B = process.env.NEW || "http://127.0.0.1:8787";
 const b = await launch();
 let fails = 0;
@@ -28,8 +28,7 @@ const boot = async (p, path) => { await p.goto(B + path, { waitUntil: "load" });
   const stored2 = JSON.parse(await p.evaluate(() => localStorage.getItem("avatar-modding-guide.progress")));
   ok(!("basics/transform" in stored2) && stored2["x/unknown"] === "keep", "progress: undone removes only that id");
   // TOC 強調: 本文をスクロール
-  const first = await p.locator(".article-toc a").nth(0).getAttribute("href");
-  await p.evaluate(() => { const c = document.querySelector(".fsk-content"); c.scrollTop = 0; });
+    await p.evaluate(() => { const c = document.querySelector(".fsk-content"); c.scrollTop = 0; });
   await p.waitForTimeout(200);
   const cur0 = await p.locator(".article-toc a.is-current").count();
   await p.evaluate(() => { const h = document.querySelectorAll(".article-body h2")[3]; h.scrollIntoView({ block: "start" }); });

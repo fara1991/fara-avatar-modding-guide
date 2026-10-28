@@ -43,7 +43,7 @@ function setup({ path, pages = PAGES, fetchOk = true, bare = false }) {
     let fetched = 0;
     const sandbox = {
         window: {}, document: doc, location, URL, Promise, Object,
-        fetch: async (url) => { fetched++; return { ok: fetchOk, status: fetchOk ? 200 : 500, json: async () => pages }; },
+        fetch: async () => { fetched++; return { ok: fetchOk, status: fetchOk ? 200 : 500, json: async () => pages }; },
     };
     runInNewContext(SOURCE, sandbox);
     const tags = (sel) => head.children.filter((c) => matches(c, sel));

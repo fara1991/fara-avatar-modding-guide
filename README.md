@@ -83,6 +83,49 @@ node --test tests/js/storage-migrate.test.mjs tests/js/theme-default.test.mjs te
 
 ブラウザでの動作確認（Playwright。CI では動かさない）は [tools/verify/README.md](tools/verify/README.md)。
 
+### 静的解析（lint）とレイアウトの計測
+
+CI の `build.yml` に `lint`（ESLint）と `layout-check`（レイアウトの自動計測）の job がある。どちらも公開はしない。
+
+```bash
+npm ci                 # 依存（eslint 10.13.0・globals 17.13.0・playwright-core 1.64.1 を固定。package-lock.json）
+npm run lint           # ESLint（JS の対象は eslint.config.mjs。kit の共通の設定を読む）
+dotnet publish src/FaraAvatarModdingGuide.Web -c Release -o publish
+cp -r publish/wwwroot site-production && dotnet run --project src/FaraAvatarModdingGuide.Build -c Release --no-launch-profile -- --template publish/wwwroot/index.html --out site-production --env production
+npx playwright-core install chromium   # 初回（Linux は --with-deps）。ローカルで Edge を使うなら LAYOUT_CHECK_CHANNEL=msedge
+npm run layout-check   # site-production を配って計測（設定は layout-check.config.mjs。ページ・幅 360〜1440px）
+```
+
+- **レイアウトの計測**は kit の `tools/layout-check`（設定の書き方と限界は `external/fara-site-kit/docs/layout-check.md`）。配信は `tools/layout-check/run.mjs` が行う。`/learn` は `learn.html` と `learn/` が両方あるので、フォルダの要求だけ `.html` に読み替える（kit の配信を直す案は kit の follow-up）。
+- **C# の静的解析**は `Directory.Build.props` と `tools/lint/dotnet.site.editorconfig`（kit の `dotnet.editorconfig` より `global_level` が上）。**違反が 0 件のルールだけ error**、違反が残るものは warning（ラチェット）。
+
+#### 現在の違反の件数（最後に計測したとき）
+
+| 対象 | ルール | 重大度 | 件数・理由 |
+| --- | --- | --- | --- |
+| C# | `CS4014`・`VSTHRD100`・`CA1816`・`IDE0059` | error | 0 件（CA1816 は 3 件・IDE0059 は 1 件を直した） |
+| C# | `CA1031` | warning | 6 件。一般の例外を受けて止めない場所（意図した握りつぶし） |
+| C# | `CA2000` | warning | 25 件。Dispose 漏れの大半はテストの使い捨て |
+| C# | `VSTHRD002`・`VSTHRD003`・`VSTHRD103` | warning | 6・5・9 件。同期の待ち・開始していない Task の待ち・同期の書き込み |
+| C# | `CA1416`・`CS8602`・`VSTHRD200` | （既定） | 対象外（今回のラチェットの一覧に入れていない） |
+| JS | ESLint（`eslint.config.mjs`） | error | 0 件（直したもの: 空の catch・未使用の変数・`==`・Workers の実行環境のグローバル） |
+| レイアウト | 7 ページ × 5 幅 | error | 0 件（除外は下の 4 件） |
+
+#### 除外の書き方（レイアウト）
+
+`layout-check.config.mjs` の `exclusions` に、**ルール名・セレクター・理由**を書く（理由が空だと設定エラー）。直し先が kit にあるものだけ。
+
+```js
+{ rule: "tap-target", selector: "a.fsk-footer-social", reason: "kit の SiteFooter の SNS のアイコン（22px）。直すのは kit" },
+```
+
+現在の除外: 本文・フッターの項目の「画面の下に入ると滑らかにスクロールする」計測の時間差（`no-offscreen-focus`）、スキップリンク（同）、フッターの SNS（`tap-target`）、問い合わせの入力欄の見える表示（`focus-visible`。下線で示す。目視で確かめる）、表のセルの文字リンク（`tap-target`）、問い合わせの送信ボタン（原因は未確認）、パンくずの項目（原因は未確認）。**kit の follow-up**: 配信のフォルダ→`.html` の読み替え、計測で `reducedMotion` を指定できるように、送信ボタン・パンくずの原因の確認。
+
+#### 除外の書き方（ESLint・C#）
+
+- ESLint は、違反を `eslint-disable` で消さず、`eslint.config.mjs` の設定（対象・実行環境のグローバル）で扱う。
+- C# は、`tools/lint/dotnet.site.editorconfig` の重大度を変える（理由をコメントに書く）。イベントの型で必要な `async void` は、理由つきの `SuppressMessage` で抑える（現在は該当なし）。
+
 ## プロジェクト構造
 
 ```

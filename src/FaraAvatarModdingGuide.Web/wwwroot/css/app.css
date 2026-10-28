@@ -583,6 +583,11 @@ kbd {
     padding: 0 0.9rem 0.75rem;
 }
 
+/* 閉じた目次の中の項目は見えないので、レイアウトにも残さない（計測と、支援技術の一覧から外す） */
+.article-toc-mobile:not([open]) .toc-list {
+    display: none;
+}
+
 .article-toc-mobile .toc-list a {
     padding: 0.4rem 0.6rem;
     font-size: 0.9rem;
@@ -1465,5 +1470,21 @@ h1:focus {
         min-height: 44px;
         min-width: 44px;
         justify-content: center;
+    }
+}
+
+/* 問い合わせの送信ボタン（kit の ReportFormView の MudButton）。押せる範囲の中心の上下 21.5px が、ボタンの中に入るように高さを 48px にする */
+.fsk-report-submit {
+    min-height: 48px;
+}
+
+/* スマホ幅: パンくずの項目を、押せる高さ（44px）にする（文字は左から、行の中央に置く） */
+@media (max-width: 599.98px) {
+    .breadcrumb-item > a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
     }
 }

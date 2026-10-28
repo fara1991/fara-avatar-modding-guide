@@ -30,6 +30,8 @@ Avatar Modding Guide（https://avatar.fara-labs.com/）。.NET 10 / Blazor WebAs
 
 ```bash
 dotnet test -c Release                     # Content.Tests・Build.Tests・Web.Tests（Node と submodule が要る）
+npm ci && npm run lint                     # ESLint（eslint.config.mjs）
+npm run layout-check                       # レイアウトの自動計測（先に publish と Build で site-production を作る。README の「静的解析（lint）とレイアウトの計測」）
 node --test external/fara-site-kit/worker/*.test.mjs worker/index.test.mjs .github/scripts/*.test.mjs tests/js/*.test.mjs   # search.test.mjs は SEARCH_INDEX_FILE=dist/search-index.json が要る
 # ビルドと配信（README の「ビルドと確認」）: publish → Build → wrangler dev
 dotnet publish src/FaraAvatarModdingGuide.Web -c Release -o publish
@@ -40,7 +42,8 @@ npx wrangler@4.149.0 deploy --dry-run --env production   # dist に --env produc
 ```
 
 - `tests/js/search.test.mjs` と `search-norm.mjs` は、Build の出力（`SEARCH_INDEX_FILE` / `data/search.json`）を読む
-- ブラウザでの確認（Playwright）は tools/verify/README.md。`playwright-core` などは作業用のフォルダに入れて実行する（リポジトリには入れない）
+- ブラウザでの確認（Playwright）は tools/verify/README.md。`playwright-core` は devDependency（1.64.1 に固定）で、`npm run layout-check`（レイアウトの自動計測）と tools/verify が使う。tools/verify の結果は作業用のフォルダに出す（リポジトリには入れない）
+- 静的解析: `npm run lint`（ESLint）と C# の重大度（`tools/lint/dotnet.site.editorconfig`）は、違反 0 件のルールだけ error（ラチェット）。除外は理由つきで書く（README の「静的解析（lint）とレイアウトの計測」）。新しい違反を入れたら、CI（`lint`・`layout-check` の job）が落ちる
 - three.js の版（JS 版の練習・共有ルーム）は S7 で消した。以前の JS 比較の代わり（C# の dotnet test・room-race・dom-diff など）の対応表は tools/verify/README.md の「JS 版が無くなって代わりに使うもの」。基準（`tests/visual/golden`・`tests/js/golden`）を作れるのは、three.js の版が残っている commit だけ（`GOLDEN_MODE=capture` は `assertCaptureTarget` が、配信に viewport.js と lib/three が無いと止める）
 - ローカルで `dotnet publish` の ILLink が断続的に落ちることがある。コードの問題ではないので、まず再実行する
 - 作業用のサーバー（wrangler dev など）は、終わったら自分の PID だけを止める（`pkill -f dotnet` や `taskkill /IM` のような広い停止はしない）

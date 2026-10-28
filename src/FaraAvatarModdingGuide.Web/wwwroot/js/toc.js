@@ -27,7 +27,7 @@
     }
 
     function decode(a) {
-        try { return decodeURIComponent(a.hash.slice(1)); } catch (e) { return a.hash.slice(1); }
+        try { return decodeURIComponent(a.hash.slice(1)); } catch { return a.hash.slice(1); }
     }
 
     /** 目次が縦にあふれて内側でスクロールしているときだけ、強調するリンクが見える位置にする */

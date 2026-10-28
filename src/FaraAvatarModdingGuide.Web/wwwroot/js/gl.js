@@ -383,7 +383,7 @@ function drawSky(s) {
   gl.depthMask(true);
 }
 
-function paint(s, f, n) {
+function paint(s, f) {
   const gl = s.gl;
   const count = f[19];
   const modes = PRIMITIVES(gl);
@@ -439,7 +439,7 @@ function paint(s, f, n) {
 }
 
 /** 1 フレーム: 大きさを合わせて、C# に描かせる */
-function render(s, t) {
+function render(s) {
   if (s.disposed || s.lost) return;
   const { root, canvas } = s;
   const w = root.clientWidth, h = root.clientHeight;

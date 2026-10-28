@@ -161,7 +161,7 @@ for (const path of ["/", "/learn/basics/transform", "/report", "/definitely-not-
   if ((tag || null) !== want) fail(`${path}: X-Robots-Tag=${tag}(期待 ${want})`);
   await r.arrayBuffer();
 }
-if (fails.length === 0 || true) ok(EXPECT_NOINDEX_HEADER ? "確認用は全 URL に X-Robots-Tag: noindex" : "本番相当は X-Robots-Tag なし");
+ok(EXPECT_NOINDEX_HEADER ? "確認用は全 URL に X-Robots-Tag: noindex" : "本番相当は X-Robots-Tag なし");
 
 if (!NO_BROWSER) {
   console.log("\n[5] ブラウザ(起動の後の head と、アプリ内の移動)");

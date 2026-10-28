@@ -91,3 +91,57 @@ jobs:
         run: |
           rm -rf dist && cp -r site-develop dist
           npx --yes wrangler@4.149.0 deploy --dry-run --env dev
+
+  # 静的解析（ESLint。対象と除外は eslint.config.mjs・docs/lint.md）。npm の依存は package-lock.json で固定する
+  lint:
+    name: Lint (ESLint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+  # レイアウトの自動計測（kit の tools/layout-check。設定と除外は layout-check.config.mjs・docs/layout-check.md）。
+  # 公開用の静的出力（publish → Build の site-production）を配って計測する。公開はしない（Cloudflare の鍵も使わない）
+  layout-check:
+    name: Layout check (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Publish web (WebAssembly)
+        run: dotnet publish src/FaraAvatarModdingGuide.Web -c Release --nologo -o publish
+
+      - name: Build static pages (production)
+        run: |
+          cp -r publish/wwwroot site-production
+          dotnet run --project src/FaraAvatarModdingGuide.Build -c Release --no-launch-profile -- --template publish/wwwroot/index.html --out site-production --env production
+
+      - name: Install Chromium
+        run: npx playwright-core install --with-deps chromium
+
+      - name: Layout check
+        run: npm run layout-check

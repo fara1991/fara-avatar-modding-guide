@@ -6,6 +6,6 @@
     "use strict";
     var KEY = "avatar-modding-guide.theme";
     var saved = null;
-    try { saved = localStorage.getItem(KEY); } catch (e) { saved = null; }
+    try { saved = localStorage.getItem(KEY); } catch { saved = null; }
     if (!saved) document.documentElement.setAttribute("data-bs-theme", "dark");
 })();

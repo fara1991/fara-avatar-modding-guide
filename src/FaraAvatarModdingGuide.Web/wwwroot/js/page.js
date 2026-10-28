@@ -7,7 +7,7 @@
     "use strict";
     // 戻る/進むのとき、ブラウザの既定のスクロール復元は、本文の領域(.fsk-content。PC)の中では効かない(window だけ)。
 // ページごとのスクロール位置を sessionStorage に覚えておき、popstate(戻る/進む)のあとに、描画が済むのを待って戻す。
-try { history.scrollRestoration = "manual"; } catch (e) { }   // 既定の復元は、本文の領域の中では効かず、効く(window の)ときも、描き直しとぶつかる
+try { history.scrollRestoration = "manual"; } catch { /* 対応しない環境では、既定のまま */ }   // 既定の復元は、本文の領域の中では効かず、効く(window の)ときも、描き直しとぶつかる
 var lastPopAt = -1e9;
 var restoreTarget = null;   // popstate から、復元が終わるまで(その間は、保存し直さない)
 function poppingNow() { return performance.now() - lastPopAt < 1500; }
@@ -22,13 +22,13 @@ document.addEventListener("scroll", function () {
     if (restoreTarget !== null || saveFrame) return;
     saveFrame = requestAnimationFrame(function () {
         saveFrame = 0;
-        try { sessionStorage.setItem(scrollKey(), String(Math.round(currentTop()))); } catch (e) { }
+        try { sessionStorage.setItem(scrollKey(), String(Math.round(currentTop()))); } catch { /* 保存できないときは、位置を覚えないだけ（プライベートモードなど） */ }
     });
 }, { capture: true, passive: true });
 window.addEventListener("popstate", function () {
     lastPopAt = performance.now();
     var saved = null;
-    try { saved = sessionStorage.getItem(scrollKey()); } catch (e) { }
+    try { saved = sessionStorage.getItem(scrollKey()); } catch { /* 読めないときは、保存された位置なしとして扱う */ }
     restoreTarget = saved === null ? null : Number(saved);
     if (restoreTarget === null) return;
     var target = restoreTarget, tries = 0, cancelled = false;
@@ -59,7 +59,7 @@ window.avatarPage = {
         },
         scrollToHash: function (smooth) {
             var id;
-            try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { id = location.hash.slice(1); }
+            try { id = decodeURIComponent(location.hash.slice(1)); } catch { id = location.hash.slice(1); }
             if (!id || (poppingNow() && restoreTarget !== null)) return;   // 戻る/進むで、保存した位置があるときは、その位置を優先する
             var tries = 0;
             (function find() {

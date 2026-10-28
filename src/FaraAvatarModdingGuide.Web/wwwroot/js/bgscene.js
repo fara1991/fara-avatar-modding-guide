@@ -65,7 +65,7 @@
     [[0, 2, 3, 1], [4, 5, 7, 6], [0, 1, 5, 4], [2, 6, 7, 3], [0, 4, 6, 2], [1, 3, 7, 5]].forEach(function (q) { f.push([q[0], q[1], q[2]], [q[0], q[2], q[3]]); });
     return { v: v, f: f };
   }
-  function grid(nu, nv, pos, wrapU, wrapV) {
+  function grid(nu, nv, pos) {
     // (nu+1)×(nv+1) の点の格子を、三角形にする。pos(i, j) が座標
     var v = [], f = [];
     for (var j = 0; j <= nv; j++) for (var i = 0; i <= nu; i++) v.push(pos(i, j));
