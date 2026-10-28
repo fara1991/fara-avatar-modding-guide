@@ -162,7 +162,10 @@ public class DeployWorkflowTests
         Assert.Contains("node .github/scripts/require-maintenance.mjs fara-avatar", gate);
         Assert.Contains("if: ${{ !contains(fromJSON('[\"true\",\"notice\",\"false\"]'), inputs.maintenance_mode) }}", gate);
         Assert.Contains("SKIP_MAINTENANCE_CHECK: ${{ inputs.skip_maintenance_check }}", gate);
+        Assert.Contains("ALLOW_MISSING_WORKER: ${{ inputs.first_publish && '1' || '' }}", gate);
         Assert.Contains("skip_maintenance_check:", Prod);
+        Assert.Contains("first_publish:", Prod);
+        Assert.DoesNotContain("first_publish:", Dev);
         Assert.DoesNotContain("require-maintenance.mjs", Dev);
         foreach (var yml in new[] { Dev, Prod })
         {
@@ -179,6 +182,9 @@ public class DeployWorkflowTests
         Assert.Contains("if (settings.missing)", gate);
         Assert.Contains("初回の公開", gate);
         Assert.Contains("return 0;", gate[gate.IndexOf("if (settings.missing)", StringComparison.Ordinal)..]);
+        // 既定では止める（404 は Worker 名の誤りでも起きる）。通すのは ALLOW_MISSING_WORKER のときだけ
+        Assert.Contains("allowsMissingWorker(env)", gate);
+        Assert.Contains("ALLOW_MISSING_WORKER", gate);
         // 通した公開は MAINTENANCE_MODE:true を付ける（入力なし・skip でないとき）。実際の引数は下の bash のテストが確かめる
         Assert.Contains("vars+=(--var \"MAINTENANCE_MODE:true\")", Prod);
     }
@@ -197,6 +203,10 @@ public class DeployWorkflowTests
             Assert.Contains("$GITHUB_STEP_SUMMARY", summary);
             Assert.Contains("MAINTENANCE_MODE", summary);
             Assert.Contains("if: ${{ always() }}", summary);
+            // 文面の検査は、--var に渡す前の独立したステップ。Summary と中身は、共通のスクリプト（develop と同じ）
+            Assert.Contains("node .github/scripts/maintenance-deploy.mjs check-message", Step(yml, "Check the maintenance message"));
+            Assert.Contains("node .github/scripts/maintenance-deploy.mjs summary", summary);
+            Assert.Contains("MAINTENANCE_MESSAGE_INPUT: ${{ inputs.maintenance_message }}", Step(yml, "Check the maintenance message"));
         }
         foreach (var yml in new[] { Build, Dev, Prod })
         {
