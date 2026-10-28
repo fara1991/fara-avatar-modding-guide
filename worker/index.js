@@ -215,7 +215,7 @@ export class Room extends DurableObject {
     return this.open().map(ws => ws.deserializeAttachment()).filter(a => a?.joined && !a.left);
   }
 
-  async fetch(request) {
+  async fetch() {
     this.prune();
     const sockets = this.open();
     if (sockets.length >= LIMITS.participants) {

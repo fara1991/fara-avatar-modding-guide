@@ -47,7 +47,7 @@ let s = await state();
 check(s.total <= 1, "最初: WebGL の canvas は多くて 1 つ", JSON.stringify(s));
 check(s.unityDom === 0 || s.unityCanvas === 1, "最初: Unity の DOM があるなら、その canvas もある", JSON.stringify(s));
 
-for (const [name, sel, other] of [["Unity", UNITY, "blender"], ["Blender", BLENDER, "unity"], ["Unity", UNITY, "blender"], ["Blender", BLENDER, "unity"], ["Unity", UNITY, "blender"]]) {
+for (const [name, sel] of [["Unity", UNITY], ["Blender", BLENDER], ["Unity", UNITY], ["Blender", BLENDER], ["Unity", UNITY]]) {
   await start(sel);
   s = await state();
   const mineOk = name === "Unity" ? s.unityCanvas === 1 && s.unityDom === 1 && s.blenderCanvas === 0 : s.blenderCanvas === 1 && s.unityDom === 0 && s.unityCanvas === 0;

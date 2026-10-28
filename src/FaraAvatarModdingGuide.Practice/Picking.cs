@@ -61,7 +61,6 @@ public static class Picking
         if (invdirz >= 0) { tzmin = (min.Z - origin.Z) * invdirz; tzmax = (max.Z - origin.Z) * invdirz; }
         else { tzmin = (max.Z - origin.Z) * invdirz; tzmax = (min.Z - origin.Z) * invdirz; }
         if (tmin > tzmax || tzmin > tmax) return false;
-        if (tzmin > tmin || double.IsNaN(tmin)) tmin = tzmin;
         if (tzmax < tmax || double.IsNaN(tmax)) tmax = tzmax;
         return !(tmax < 0);
     }

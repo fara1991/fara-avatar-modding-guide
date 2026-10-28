@@ -21,8 +21,8 @@ async function page(url, { width = 1000, height = 600 } = {}) {
     window.__t = {};
     const poll = setInterval(() => {
       let d; try { d = window.__glDiag && JSON.parse(window.__glDiag()); } catch { return; }
-      if (d?.started && window.__t.started == null) window.__t.started = performance.now();
-      if (d?.drawn > 0 && window.__t.firstDraw == null) { window.__t.firstDraw = performance.now(); clearInterval(poll); }
+      if (d?.started && window.__t.started === undefined) window.__t.started = performance.now();
+      if (d?.drawn > 0 && window.__t.firstDraw === undefined) { window.__t.firstDraw = performance.now(); clearInterval(poll); }
     }, 5);
   });
   await p.goto(url);
@@ -34,17 +34,17 @@ const report = (p, name) => p.evaluate((n) => window.__labReport?.[n], name);
 const cold = [];
 for (let i = 0; i < COLD; i++) {
   const { ctx, p } = await page(`${ORIGIN}/lab/`);
-  await p.waitForFunction(() => window.__t.firstDraw != null, null, { timeout: 90000 });
+  await p.waitForFunction(() => window.__t.firstDraw !== undefined, null, { timeout: 90000 });
   const t = await p.evaluate(() => ({ ...window.__t, nav: performance.getEntriesByType("navigation")[0].domContentLoadedEventEnd }));
   const bytes = await p.evaluate(() => performance.getEntriesByType("resource").reduce((s, r) => s + (r.decodedBodySize || 0), 0));
   const marks = await p.evaluate(() => Object.fromEntries(performance.getEntriesByType("mark").map((m) => [m.name, m.startTime])));
-  const g = (a, b) => (marks[a] != null && marks[b] != null ? +(marks[b] - marks[a]).toFixed(1) : null);
+  const g = (a, b) => (marks[a] !== undefined && marks[b] !== undefined ?+(marks[b] - marks[a]).toFixed(1) : null);
   cold.push({ started: Math.round(t.started), firstDraw: Math.round(t.firstDraw), decodedBytes: bytes,
     abs: Object.fromEntries(Object.entries(marks).map(([k, v]) => [k, Math.round(v)])),
     split: { navToMain: Math.round(marks["lab:main"]), importModule: g("lab:main", "lab:imported"), importToGlStart: g("lab:imported", "gl:start"), initContextAndShader: g("gl:start", "gl:inited"), firstFrameCsAndPaint: g("gl:inited", "gl:firstPaint") } });
   if (i === 0) {
     await p.reload();
-    await p.waitForFunction(() => window.__t.firstDraw != null, null, { timeout: 90000 });
+    await p.waitForFunction(() => window.__t.firstDraw !== undefined, null, { timeout: 90000 });
     const w = await p.evaluate(() => window.__t);
     out.warmReload = { started: Math.round(w.started), firstDraw: Math.round(w.firstDraw) };
   }
@@ -55,7 +55,7 @@ out.cold = cold;
 // 2. フレーム(C# の 1 フレームの CPU = Build + 詰める + JS 呼び出し(描画の発行まで)。rAF の間隔)
 {
   const { ctx, p } = await page(`${ORIGIN}/lab/?scene=${encodeURIComponent(JSON.stringify([{ kind: "sphere" }]))}`);
-  await p.waitForFunction(() => window.__t.firstDraw != null, null, { timeout: 90000 });
+  await p.waitForFunction(() => window.__t.firstDraw !== undefined, null, { timeout: 90000 });
   const frames = async (label) => {
     await p.evaluate(() => window.__labControl("start", 0)); // 計測を 0 から(再開)
     await p.waitForFunction(() => window.__t && window.__glDiag && JSON.parse(window.__glDiag()).drawn > 0);
@@ -117,7 +117,7 @@ out.cold = cold;
   const problems = [];
   for (let i = 0; i < CONTEXTS; i++) {
     const { ctx, p } = await page(`${ORIGIN}/lab/`);
-    try { await p.waitForFunction(() => window.__t.firstDraw != null, null, { timeout: 60000 }); ok++; } catch { problems.push(i); }
+    try { await p.waitForFunction(() => window.__t.firstDraw !== undefined, null, { timeout: 60000 }); ok++; } catch { problems.push(i); }
     problems.push(...p.problems.filter((m) => !/404/.test(m)));
     await ctx.close();
   }
@@ -127,7 +127,7 @@ out.cold = cold;
 // 5. 開始と停止を CYCLES 回(WebGL の context・リスナー・rAF が増えないか)
 {
   const { ctx, p } = await page(`${ORIGIN}/lab/`);
-  await p.waitForFunction(() => window.__t.firstDraw != null, null, { timeout: 90000 });
+  await p.waitForFunction(() => window.__t.firstDraw !== undefined, null, { timeout: 90000 });
   await p.evaluate(() => {
     window.__ctxCount = 0;
     const g = HTMLCanvasElement.prototype.getContext;

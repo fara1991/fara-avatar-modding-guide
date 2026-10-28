@@ -22,5 +22,9 @@ public abstract class ProgressAware : ComponentBase, IDisposable
     /// <summary>記事の id が完了なら "is-done"（CSS が完了の印を見せる）、そうでなければ null。</summary>
     protected string? DoneClass(string articleId) => Progress.IsDone(articleId) ? "is-done" : null;
 
-    public virtual void Dispose() => Progress.Changed -= OnProgressChanged;
+    public virtual void Dispose()
+    {
+        Progress.Changed -= OnProgressChanged;
+        GC.SuppressFinalize(this);
+    }
 }

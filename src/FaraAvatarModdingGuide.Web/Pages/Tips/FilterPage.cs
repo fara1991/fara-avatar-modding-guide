@@ -152,5 +152,6 @@ public abstract class FilterPage : ComponentBase, IDisposable
             }
             _self.Dispose();
         }
+        GC.SuppressFinalize(this);
     }
 }

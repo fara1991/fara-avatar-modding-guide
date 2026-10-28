@@ -1,0 +1,18 @@
+# このサイトの C# の静的解析の重大度（kit の tools/lint/dotnet.editorconfig を上書きする）。global_level を上げて、kit の同じキーより優先させる。
+# 方針は kit と同じ（ラチェット）: 違反が 0 件のルールだけ error（新しい違反を止める）。違反が残るルールは warning のまま（件数は docs/lint.md）。
+# error にする前に、わざと違反を入れたコードで「そのルールが実際に動く」ことを確かめている（docs/lint.md の「ルールが動くかの確認」）。
+is_global = true
+global_level = 2
+
+# error: 違反 0 件（確認済み）
+dotnet_diagnostic.CS4014.severity = error
+dotnet_diagnostic.VSTHRD100.severity = error
+dotnet_diagnostic.CA1816.severity = error
+dotnet_diagnostic.IDE0059.severity = error
+
+# warning: 違反が残る（件数は docs/lint.md の「このサイトの件数」）。ノイズが多い・直すと挙動に触れるため、error にしない
+dotnet_diagnostic.CA1031.severity = warning
+dotnet_diagnostic.CA2000.severity = warning
+dotnet_diagnostic.VSTHRD002.severity = warning
+dotnet_diagnostic.VSTHRD003.severity = warning
+dotnet_diagnostic.VSTHRD103.severity = warning

@@ -16,7 +16,7 @@
             if (state !== "notice") return null;
             var message = typeof json.message === "string" ? json.message.trim() : "";
             return { message: message || DEFAULT_MESSAGE };
-        } catch (e) {
+        } catch {
             return null;   // Worker が無く、HTML が返ってきたときなど
         }
     }
