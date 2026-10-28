@@ -148,7 +148,7 @@ public abstract class FilterPage : ComponentBase, IDisposable
             if (JS is IJSInProcessRuntime sync)
             {
                 try { sync.InvokeVoid("avatarPage.unwatchHash", _self); }
-                catch (JSException) { }
+                catch (JSException) { }   // 画面を閉じる途中の解放。失敗しても、ほかの解放は続ける
             }
             _self.Dispose();
         }

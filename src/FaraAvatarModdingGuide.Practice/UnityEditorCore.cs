@@ -411,6 +411,8 @@ public sealed partial class UnityEditorCore
     /// <summary>Prefab を置く(parentId を省くとルート)。</summary>
     public UnityNode? Instantiate(string asset, string? parentId = null)
     {
+        // 親が無い(消された直後の古い id など)ときは何もしない
+        if (parentId is not null && Get(parentId) is null) return null;
         var list = Prefab(asset);
         if (list is null) return null;
         PushUndo();
@@ -433,7 +435,9 @@ public sealed partial class UnityEditorCore
     {
         var n = Get(id);
         if (n is null || n.Parent == parentId || id == parentId) return;
-        if (parentId is not null && new[] { Get(parentId)! }.Concat(Ancestors(Get(parentId)!)).Any(a => a.Id == id))
+        var newParent = Get(parentId);
+        if (parentId is not null && newParent is null) return;   // 親が無い(古い id)
+        if (newParent is not null && new[] { newParent }.Concat(Ancestors(newParent)).Any(a => a.Id == id))
         {
             SetStatus("自分の子の中には入れられません");
             return;
@@ -566,9 +570,10 @@ public sealed partial class UnityEditorCore
     public void SetTransformValue(string? id, string prop, int axis, double value, bool fromInput = false)
     {
         var n = Get(id);
-        if (n is null || !double.IsFinite(value)) return;
+        if (n is null || !double.IsFinite(value) || axis is < 0 or > 2) return;
+        var arr = prop switch { "p" => n.P, "r" => n.R, "s" => n.S, _ => null };
+        if (arr is null) return;
         PushUndo();
-        var arr = prop switch { "p" => n.P, "r" => n.R, _ => n.S };
         arr[axis] = value;
         ApplyTransform(n, n.Obj!);
         UpdateGizmo();
@@ -894,7 +899,8 @@ public sealed partial class UnityEditorCore
     /// <summary>ドラッグせずに離した = クリック。</summary>
     public void ClickAsset(string asset)
     {
-        var a = UnityData.Asset(asset)!;
+        var a = UnityData.Asset(asset);
+        if (a is null) return;   // 知らない素材名(古い画面・改ざんされた入力)は無視する
         SetStatus($"{a.Label}: {a.Note ?? a.Shader ?? ""}（ドラッグして使う）");
     }
 
@@ -907,7 +913,8 @@ public sealed partial class UnityEditorCore
 
     public void DropAsset(string payloadAsset, string targetKind, string? targetId, int slot, double x, double y)
     {
-        var asset = UnityData.Asset(payloadAsset)!;
+        var asset = UnityData.Asset(payloadAsset);
+        if (asset is null) return;   // 知らない素材名は無視する
         if (asset.Type == "prefab")
         {
             if (targetKind == "node") Instantiate(payloadAsset, targetId);

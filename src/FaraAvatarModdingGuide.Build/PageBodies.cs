@@ -187,7 +187,8 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
 
     public string Article(ArticleDto article)
     {
-        var category = c.Categories.First(x => x.Id == article.Category);
+        var category = c.Categories.FirstOrDefault(x => x.Id == article.Category)
+            ?? throw new InvalidOperationException($"記事 {article.Title} のカテゴリ {article.Category} が sections・categories にありません");
         var sb = new StringBuilder();
         var crumbs = new List<(string?, string)> { ("/learn", "目次") };
         if (c.SectionOf(category) is { } section) crumbs.Add(($"/learn#section-{section.Id}", section.Title));
