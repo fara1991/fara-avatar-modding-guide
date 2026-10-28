@@ -70,16 +70,21 @@
     private async ValueTask OnLocationChanging(LocationChangingContext context)
     {
         if (!PageRoutes.ShouldReload(context.TargetLocation, Nav.BaseUri, Store.Content)) return;
-        context.PreventNavigation();
-        await JS.InvokeVoidAsync("location.assign", context.TargetLocation);
+        try
+        {
+            // ブラウザが移動を受け付けたときだけ、Blazor の移動を止める。受け付けられなければ（JS が失敗した）、Blazor の移動に任せる
+            await JS.InvokeVoidAsync("location.assign", context.TargetLocation);
+            context.PreventNavigation();
+        }
+        catch (JSException)
+        {
+            // 通常の移動に任せる（NotFound の表示になるが、画面は壊れない）
+        }
     }
 
     /// <summary>
-    /// 別のページへ移ったら、本文のスクロールを一番上に戻す(# の見出しへの移動のときは、その見出しへ)。
-    /// PC は本文の領域(.fsk-content)が自分でスクロールするので、Blazor の既定(window を戻す)では戻らない。
-    /// 同じページの中の移動(絞り込みの ?tag=・?category=)では動かさない。
+    /// イベントの口(戻り値を持てないので async void)。本体は <see cref="ApplyLocationAsync"/>。ここで例外を外へ出さず、ログに残す。
     /// </summary>
-    /// <summary>イベントの口(戻り値を持てないので async void)。本体は <see cref="ApplyLocationAsync"/>。ここで例外を外へ出さず、ログに残す。</summary>
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         try
@@ -96,6 +101,11 @@
         }
     }
 
+    /// <summary>
+    /// 別のページへ移ったら、本文のスクロールを一番上に戻す(# の見出しへの移動のときは、その見出しへ)。
+    /// PC は本文の領域(.fsk-content)が自分でスクロールするので、Blazor の既定(window を戻す)では戻らない。
+    /// 同じページの中の移動(絞り込みの ?tag=・?category=)では動かさない。
+    /// </summary>
     private async Task ApplyLocationAsync(string location)
     {
         var path = PathOf(location);

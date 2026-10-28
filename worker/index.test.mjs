@@ -109,13 +109,14 @@ test("共同練習の部屋: 部屋 ID の形が違えば 400、WebSocket でな
 function fakeRoom() {
   const sockets = [];
   const storage = new Map();
+  const alarms = [];   // setAlarm で渡された時刻（DO のアラームは 1 つで、呼ぶたびに上書きされる）
   const ctx = {
     storage: {
       list: async () => new Map(),
       get: async (k) => storage.get(k),
       put: async (o, v) => { if (typeof o === "string") storage.set(o, v); else for (const [k, x] of Object.entries(o)) storage.set(k, x); },
       delete: async (keys) => { for (const k of [].concat(keys)) storage.delete(k); },
-      setAlarm: async () => {},
+      setAlarm: async (t) => { alarms.push(t); },
       deleteAll: async () => storage.clear(),
     },
     setWebSocketAutoResponse() {},
@@ -123,7 +124,7 @@ function fakeRoom() {
     getWebSockets: () => sockets,
     acceptWebSocket(ws) { sockets.push(ws); },
   };
-  return { room: new Room(ctx, {}), ctx };
+  return { room: new Room(ctx, {}), ctx, alarms };
 }
 
 /** 接続 1 本。送られた JSON は sent に溜まる */
@@ -198,6 +199,25 @@ test("共同練習: 不正なメッセージは直近 1 分の中で数える（
     await room.webSocketMessage(b, JSON.stringify({ t: "hello", name: "Bob" }));
     for (let i = 0; i < 30; i++) await room.webSocketMessage(b, JSON.stringify({ t: "bogus" }));
     assert.equal(b.closed?.code, 1008);
+  });
+});
+
+test("共同練習: ロックの期限が切れたら、アラームでほかの人へ locks を送る（古いロックを見せ続けない）", async () => {
+  const { room, ctx, alarms } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await withClock(1_000_000_000_000, async (tick) => {
+    await room.webSocketMessage(a, JSON.stringify({ t: "hello", name: "Alice" }));
+    await room.webSocketMessage(b, JSON.stringify({ t: "hello", name: "Bob" }));
+    await room.webSocketMessage(a, JSON.stringify({ t: "lock", ids: ["cube0"] }));
+    // 次のアラームは、ロックの期限（1 分ごとの確認より前）に設定されている
+    const lockUntil = room.locks.get("cube0").until;
+    assert.ok(alarms.at(-1) <= lockUntil, `アラーム ${alarms.at(-1)} がロックの期限 ${lockUntil} より後`);
+    // 期限を過ぎてアラームが鳴ると、ほかの人の画面からロックが外れる（locks が空で届く）
+    tick(lockUntil - Date.now() + 1);
+    await room.alarm();
+    assert.deepEqual(b.sent.at(-1), { t: "locks", locks: {} });
+    assert.equal(room.locks.size, 0);
   });
 });
 

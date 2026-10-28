@@ -508,4 +508,39 @@ public class RoomSessionTests
         m.Set("a", "4");
         Assert.Equal(new[] { "b", "a" }, m.Keys);
     }
+
+    [Fact]
+    public void While_disconnected_an_edit_is_announced_and_does_not_reach_the_room()
+    {
+        var (core, s, t) = Joined();
+        s.OnClose(1, 1006);
+        t.Outbound.Clear();
+        core.AddPrimitiveNow("sphere");
+        // 変更は部屋に届かない（送らない）。届かないことを、画面の文で知らせる
+        Assert.Empty(t.Outbound);
+        Assert.Contains("部屋に届きません", core.Status);
+    }
+
+    [Fact]
+    public void While_disconnected_moving_is_refused_with_a_reason()
+    {
+        var (core, s, _) = Joined();
+        s.OnClose(1, 1006);
+        Assert.Equal("接続中ではないため、動かせません", s.BlockedBy(core.Objects));
+    }
+
+    [Fact]
+    public void Reconnecting_clears_the_old_lock_of_a_dropped_session()
+    {
+        var (core, s, t) = Joined();
+        // ほかの人（p2）が操作中のロックを受け取ったまま切れる
+        s.OnMessage(1, Q("{'t':'locks','locks':{'cube0':'p2'}}"));
+        Assert.NotNull(s.BlockedBy(core.Objects));
+        s.OnClose(1, 1006);
+        t.Advance(1000);
+        s.OnOpen(2);
+        s.OnMessage(2, Q(Welcome));
+        // 再接続の時点では、サーバーのロックは分からない。古いロックが残って動かせなくなっていないこと
+        Assert.Null(s.BlockedBy(core.Objects));
+    }
 }

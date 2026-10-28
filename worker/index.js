@@ -166,15 +166,22 @@ export class Room extends DurableObject {
     await this.schedule();
   }
 
-  /** 誰かいるあいだは 1 分ごと（切れた接続の確認）、いなければ最後の変更の 24 時間後（部屋を消す） */
+  /**
+   * 次のアラームを決める（1 つしか持てないので、毎回ここで全部を計算し直す）。
+   * 誰かいるあいだは 1 分ごと（切れた接続の確認）、いなければ最後の変更の 24 時間後（部屋を消す）。
+   * ロックの期限が先に来るなら、その時刻にも起きる（切れたロックを、ほかの人の画面から外すため）。
+   */
   async schedule() {
     const changed = (await this.ctx.storage.get("changed")) ?? Date.now();
-    const at = this.open().length ? Date.now() + LIMITS.sweepMs : changed + LIMITS.expireMs;
+    let at = this.open().length ? Date.now() + LIMITS.sweepMs : changed + LIMITS.expireMs;
+    for (const l of this.locks.values()) at = Math.min(at, l.until);
     await this.ctx.storage.setAlarm(at);
   }
 
   async alarm() {
     this.prune();
+    // 期限の切れたロックは、ほかの人にも知らせる（locksMessage は期限切れを除くので、送らないと古いロックが見え続ける）
+    if (this.pruneLocks()) this.broadcast(this.locksMessage());
     const changed = (await this.ctx.storage.get("changed")) ?? 0;
     if (!this.open().length && Date.now() - changed >= LIMITS.expireMs) {
       await this.ctx.storage.deleteAll();
@@ -278,6 +285,14 @@ export class Room extends DurableObject {
     return { t: "locks", locks: out };
   }
 
+  /** 期限の切れたロックを外す。外したものがあれば true */
+  pruneLocks() {
+    const now = Date.now();
+    let removed = false;
+    for (const [id, l] of this.locks) if (l.until <= now) { this.locks.delete(id); removed = true; }
+    return removed;
+  }
+
   releaseLocks(peer) {
     let changed = false;
     for (const [id, l] of this.locks) if (l.peer === peer) { this.locks.delete(id); changed = true; }
@@ -349,6 +364,7 @@ export class Room extends DurableObject {
         const until = Date.now() + LIMITS.lockMs;
         for (const id of ids) this.locks.set(id, { peer: me.id, until });
         this.broadcast(this.locksMessage());
+        await this.schedule();   // 期限が切れたときに起きて、ほかの人へ知らせる
         return;
       }
       case "unlock": {

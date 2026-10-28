@@ -391,11 +391,10 @@ public sealed partial class ContentService
     /// </summary>
     private static (int Width, int Height)? ReadPngSize(string path)
     {
-        Span<byte> head = stackalloc byte[24];
         try
         {
             using var stream = File.OpenRead(path);
-            if (stream.Read(head) < head.Length) return null;
+            return ReadPngSize(stream);
         }
         catch (IOException)
         {
@@ -405,6 +404,13 @@ public sealed partial class ContentService
         {
             return null;
         }
+    }
+
+    /// <summary>PNG の先頭 24 バイト（署名と IHDR）から寸法を読む。1 回の Read で足りないストリームも扱う（ReadAtLeast）。</summary>
+    internal static (int Width, int Height)? ReadPngSize(Stream stream)
+    {
+        Span<byte> head = stackalloc byte[24];
+        if (stream.ReadAtLeast(head, head.Length, throwOnEndOfStream: false) < head.Length) return null;
         ReadOnlySpan<byte> signature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
         if (!head[..8].SequenceEqual(signature) || !head.Slice(12, 4).SequenceEqual("IHDR"u8)) return null;
         var width = BinaryPrimitives.ReadInt32BigEndian(head[16..20]);
