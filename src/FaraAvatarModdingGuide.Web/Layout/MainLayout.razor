@@ -49,7 +49,10 @@
             if (new Uri(Nav.Uri).Fragment.Length > 1) await JS.InvokeVoidAsync("avatarPage.scrollToHash");
             else await JS.InvokeVoidAsync("avatarPage.restoreBootScroll");   // 起動の前の静的な本文で動かしたスクロールを引き継ぐ
         }
-        catch (JSException) { }
+        catch (JSException)
+        {
+            // スクロールを動かせなかっただけ（回線が切れた・ページを離れた場合は JSDisconnectedException。どちらも表示には影響しない）
+        }
     }
 
     protected override void OnInitialized()
@@ -76,20 +79,33 @@
     /// PC は本文の領域(.fsk-content)が自分でスクロールするので、Blazor の既定(window を戻す)では戻らない。
     /// 同じページの中の移動(絞り込みの ?tag=・?category=)では動かさない。
     /// </summary>
+    /// <summary>イベントの口(戻り値を持てないので async void)。本体は <see cref="ApplyLocationAsync"/>。ここで例外を外へ出さず、ログに残す。</summary>
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        var path = PathOf(e.Location);
-        var samePage = path == lastPath;
-        lastPath = path;
         try
         {
-            // 見出し付きの URL へ移動したときは、その見出しへ(Blazor は、本文の領域 .fsk-content の中の見出しへは動かさない)。そうでなければ、別のページへ移ったときだけ、一番上へ
-            if (new Uri(e.Location).Fragment.Length > 1) await JS.InvokeVoidAsync("avatarPage.scrollToHash");
-            else if (!samePage) await JS.InvokeVoidAsync("avatarPage.resetScroll");
-            // head の description・canonical・OGP・robots を、移った先のページに合わせる(題名は PageTitle が替える)。別のページへ移ったときだけ
-            if (!samePage) await JS.InvokeVoidAsync("avatarHead.sync", path.Length == 0 ? "/" : path);
+            await ApplyLocationAsync(e.Location);
         }
-        catch (JSException) { /* スクロールを動かせなくても、表示は変わっている */ }
+        catch (JSException)
+        {
+            // スクロールを動かせなくても、表示は変わっている（JSDisconnectedException は回線切断。想定内）
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            Console.Error.WriteLine($"[avatar] 移動のあとの処理に失敗しました: {ex.Message}");
+        }
+    }
+
+    private async Task ApplyLocationAsync(string location)
+    {
+        var path = PathOf(location);
+        var samePage = path == lastPath;
+        lastPath = path;
+        // 見出し付きの URL へ移動したときは、その見出しへ(Blazor は、本文の領域 .fsk-content の中の見出しへは動かさない)。そうでなければ、別のページへ移ったときだけ、一番上へ
+        if (new Uri(location).Fragment.Length > 1) await JS.InvokeVoidAsync("avatarPage.scrollToHash");
+        else if (!samePage) await JS.InvokeVoidAsync("avatarPage.resetScroll");
+        // head の description・canonical・OGP・robots を、移った先のページに合わせる(題名は PageTitle が替える)。別のページへ移ったときだけ
+        if (!samePage) await JS.InvokeVoidAsync("avatarHead.sync", path.Length == 0 ? "/" : path);
     }
 
     private static string PathOf(string uri) => new Uri(uri).AbsolutePath.TrimEnd('/');

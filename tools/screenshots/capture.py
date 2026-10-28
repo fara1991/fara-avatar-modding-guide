@@ -9,7 +9,6 @@
 """
 import ctypes
 import json
-import math
 import os
 import sys
 import traceback
@@ -183,8 +182,8 @@ def sidebar(show=True, tab=None):
             if r.type == "UI":
                 try:
                     r.active_panel_category = tab
-                except Exception:
-                    pass
+                except Exception as e:   # このバージョンの Blender に、そのタブが無いときだけ。撮影は続けてログに残す
+                    log(f"sidebar タブ {tab} を開けませんでした: {e}")
 
 
 def overlay():
@@ -562,7 +561,7 @@ def main_gen():
             try:
                 reset_ui()
             except Exception:
-                pass
+                log("reset_ui に失敗（次のショットに進む）:\n" + traceback.format_exc())
             yield 0.5
     with open(os.path.join(WORK, "post.json"), "w", encoding="utf-8") as f:
         json.dump(POST, f, ensure_ascii=False, indent=1)
@@ -926,8 +925,8 @@ def image_material(name="Shirt"):
     return m
 
 
-@shot("materials", "texture-node", workspace="Shading", area="NODE_EDITOR", delay=1.5)
-def _():
+def uv_unwrapped_textured_cube():
+    """画像のマテリアルを付けた立方体を、UV 展開して、シーンを組んだ状態で返す（UV の 2 本のショットで共有）。"""
     cube = default_scene()
     cube.data.materials.append(image_material())
     mode("EDIT")
@@ -936,18 +935,16 @@ def _():
         bpy.ops.uv.smart_project()
     mode("OBJECT")
     set_view(dist=6.5)
+
+
+@shot("materials", "texture-node", workspace="Shading", area="NODE_EDITOR", delay=1.5)
+def _():
+    uv_unwrapped_textured_cube()
 
 
 @shot("materials", "texture-paint", workspace="Texture Paint", delay=1.5)
 def _():
-    cube = default_scene()
-    cube.data.materials.append(image_material())
-    mode("EDIT")
-    with ctx():
-        bpy.ops.mesh.select_all(action="SELECT")
-        bpy.ops.uv.smart_project()
-    mode("OBJECT")
-    set_view(dist=6.5)
+    uv_unwrapped_textured_cube()
 
 
 @shot("materials", "bake-panel", area="PROPERTIES", props="RENDER", maximize="PROPERTIES", delay=0.8)

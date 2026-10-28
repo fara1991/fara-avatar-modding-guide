@@ -210,11 +210,11 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 - **本番の push（master）と、何も指定しない手動実行**は、公開の前に `MAINTENANCE_MODE` が `notice` か `true` かをゲート（`.github/scripts/require-maintenance.mjs`）で確かめ、公開と同時に `--var MAINTENANCE_MODE:true`（メンテナンス画面）にします。作業が終わったら `maintenance_mode` に `false` を入れて Run workflow（master）で通常に戻します（お知らせも一緒に消える。このとき、その時点の master の内容がすべて公開されます）。
   - `maintenance_mode` を指定した手動実行はゲートを飛ばし、その値を渡します。`maintenance_message` だけの手動実行は `MAINTENANCE_MODE` を変えません。
   - `skip_maintenance_check` は確認を飛ばし、`MAINTENANCE_MODE` を作りも変えもしません（**お知らせなし・メンテナンス画面なしで、すぐ公開されます**。緊急の修正用）。
-- **本番の初回の公開**（Worker `fara-avatar` がまだ無い）: ゲートは Worker の不在（Cloudflare API が 404）を「初回の公開」として通します。master への push（または `maintenance_mode` を空にした手動実行）で `--var MAINTENANCE_MODE:true` が付くので、**Worker・カスタムドメイン・Durable Object が作られ、全ページがメンテナンス画面（503）のまま公開されます**。
+- **本番の初回の公開**（Worker `fara-avatar` がまだ無い）: Worker の不在（Cloudflare API が 404）は、Worker 名やアカウント ID の誤りでも起きるので、既定では **止まります**。初回だけ、**Actions → Deploy (production) → Run workflow**（Use workflow from: `master`）で `first_publish` を `true` にして実行します（`ALLOW_MISSING_WORKER=1` としてゲートを通す）。`--var MAINTENANCE_MODE:true` が付くので、**Worker・カスタムドメイン・Durable Object が作られ、全ページがメンテナンス画面（503）のまま公開されます**。初回の前の master への push は、ゲートで止まります（失敗するのが正しい動き）。
   1. 公開前の確認は avatar-dev で行う（同じコードの確認用ビルド。本番は 503 で、中身は見えない）
-  2. master への初回の push のあと、ダッシュボードで `fara-avatar` に報告の変数（上の初回設定の 4）を設定する
+  2. 上の手動実行（`first_publish` = `true`）のあと、ダッシュボードで `fara-avatar` に報告の変数（上の初回設定の 4）を設定する
   3. Actions → Deploy (production) → Run workflow（Use workflow from: `master`）で `maintenance_mode` に `false`（先にお知らせを見せるなら `notice`）を入れて実行 → 通常公開になる
-  - `skip_maintenance_check` は初回には使わない（メンテナンス画面を経由せず、すぐ公開されてしまう）。
+  - `skip_maintenance_check` は初回には使わない（メンテナンス画面を経由せず、すぐ公開されてしまう）。`first_publish` は初回の 1 回だけ。2 回目以降に入れると、Worker が有るので効きません（MAINTENANCE_MODE の確認は続きます）。
 - 切り替えの手順・戻し方・Cloudflare 側の後始末は [docs/release-switch-and-rollback.md](docs/release-switch-and-rollback.md)。
 
 ### 仕組み

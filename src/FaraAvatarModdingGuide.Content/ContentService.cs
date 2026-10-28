@@ -340,7 +340,9 @@ public sealed partial class ContentService
         {
             Category = categoryId,
             Slug = match.Groups["slug"].Value,
-            Order = int.Parse(match.Groups["order"].Value),
+            Order = int.TryParse(match.Groups["order"].Value, out var order)
+                ? order
+                : throw new InvalidDataException($"{name}: 順番の番号が大きすぎるか、数ではありません（{match.Groups["order"].Value}）"),
             Title = front.Title ?? name,
             Reading = front.Reading ?? string.Empty,
             Description = front.Description ?? string.Empty,

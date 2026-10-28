@@ -170,27 +170,42 @@ public sealed class EditMesh
         return cache!.VertEdges.TryGetValue(v, out var l) ? l : [];
     }
 
+    /// <summary>辺の輪をたどる歩数の上限(壊れたメッシュで止まらないための安全弁)。</summary>
+    private const int MaxRingSteps = 10000;
+    /// <summary>頂点をまとめる既定の距離(Merge の dist の既定値)。</summary>
+    public const double DefaultMergeDistance = 0.0001;
+
     public static EmVert Other(EmEdge e, EmVert v) => e.A == v ? e.B : e.A;
 
+    /// <summary>頂点の複製。同じ頂点は map で 1 回だけ作り、新しい頂点を Verts に足す(押し出し・複製で使う)。</summary>
+    private EmVert DuplicateVertex(OrderedDictionary<EmVert, EmVert> map, EmVert v)
+    {
+        if (!map.TryGetValue(v, out var n))
+        {
+            n = new EmVert(v.Co);
+            map[v] = n;
+            Verts.Add(n);
+        }
+        return n;
+    }
+
+    /// <summary>面の法線(正規化した Newell ベクトル)。面積が 0 の面は、上向き(0, 0, 1)。</summary>
     public static Vec3 FaceNormal(EmFace f)
     {
-        double nx = 0, ny = 0, nz = 0;
-        var vs = f.V;
-        for (var i = 0; i < vs.Count; i++)
-        {
-            var a = vs[i].Co;
-            var b = vs[(i + 1) % vs.Count].Co;
-            nx += (a.Y - b.Y) * (a.Z + b.Z);
-            ny += (a.Z - b.Z) * (a.X + b.X);
-            nz += (a.X - b.X) * (a.Y + b.Y);
-        }
-        var n = new Vec3(nx, ny, nz);
+        var n = NewellVector(f);
         return n.LengthSq > 0 ? n.Normalized() : new Vec3(0, 0, 1);
     }
 
     /// <summary>面の Newell ベクトル(正規化前)の長さ。面積の 2 倍。</summary>
     public static double FaceArea(EmFace f)
     {
+        var n = NewellVector(f);
+        return Math.Sqrt(n.X * n.X + n.Y * n.Y + n.Z * n.Z);
+    }
+
+    /// <summary>面の頂点の順に、Newell の式で作る法線の向きのベクトル(正規化前)。FaceNormal と FaceArea が使う。</summary>
+    private static Vec3 NewellVector(EmFace f)
+    {
         double nx = 0, ny = 0, nz = 0;
         var vs = f.V;
         for (var i = 0; i < vs.Count; i++)
@@ -201,7 +216,7 @@ public sealed class EditMesh
             ny += (a.Z - b.Z) * (a.X + b.X);
             nz += (a.X - b.X) * (a.Y + b.Y);
         }
-        return Math.Sqrt(nx * nx + ny * ny + nz * nz);
+        return new Vec3(nx, ny, nz);
     }
 
     public static Vec3 FaceCenter(EmFace f)
@@ -403,7 +418,7 @@ public sealed class EditMesh
         (List<EmEdge> Out, bool Closed) Walk(EmEdge cur, EmVert v)
         {
             var output = new List<EmEdge>();
-            for (var guard = 0; guard < 10000; guard++)
+            for (var guard = 0; guard < MaxRingSteps; guard++)
             {
                 EmEdge? next = null;
                 if (cur.Faces.Count == 1)
@@ -457,7 +472,7 @@ public sealed class EditMesh
             var faces = new List<EmFace>();
             var cur = start;
             var face = firstFace;
-            for (var guard = 0; guard < 10000 && face is not null; guard++)
+            for (var guard = 0; guard < MaxRingSteps && face is not null; guard++)
             {
                 var nx = Step(cur, face);
                 if (nx is null) break;
@@ -539,16 +554,7 @@ public sealed class EditMesh
             foreach (var f in region) normal += FaceNormal(f);
             normal = normal.Normalized();
             var map = new OrderedDictionary<EmVert, EmVert>();
-            EmVert Dup(EmVert v)
-            {
-                if (!map.TryGetValue(v, out var n))
-                {
-                    n = new EmVert(v.Co);
-                    map[v] = n;
-                    Verts.Add(n);
-                }
-                return n;
-            }
+            EmVert Dup(EmVert v) => DuplicateVertex(map, v);
             var oldVerts = region.SelectMany(f => f.V).ToList();
             foreach (var f in region) f.V = [.. f.V.Select(Dup)];
             foreach (var (a, b) in boundary)
@@ -567,16 +573,7 @@ public sealed class EditMesh
         var byKey = EdgeMap();
         var edges = Esel.Select(k => byKey.TryGetValue(k, out var e) ? e : null).Where(e => e is not null).Select(e => e!).ToList();
         var map2 = new OrderedDictionary<EmVert, EmVert>();
-        EmVert Dup2(EmVert v)
-        {
-            if (!map2.TryGetValue(v, out var n))
-            {
-                n = new EmVert(v.Co);
-                map2[v] = n;
-                Verts.Add(n);
-            }
-            return n;
-        }
+        EmVert Dup2(EmVert v) => DuplicateVertex(map2, v);
         if (edges.Count > 0)
         {
             foreach (var e in edges)
@@ -815,9 +812,9 @@ public sealed class EditMesh
         for (var i = 0; i < bevEdges.Count; i++)
         {
             var e = bevEdges[i];
-            var (fF, gG) = sides[i];
+            var (faceA, faceB) = sides[i];
             EmVert R(EmFace face, EmVert x) => rep.TryGetValue(face, out var m) && m.TryGetValue(x, out var y) ? y : x;
-            Faces.Add(new EmFace([R(fF, e.B), R(fF, e.A), R(gG, e.A), R(gG, e.B)]));
+            Faces.Add(new EmFace([R(faceA, e.B), R(faceA, e.A), R(faceB, e.A), R(faceB, e.B)]));
         }
         // 角に残った穴(3 本の辺が集まる角や、辺の多い頂点)をふさぐ
         var created = Faces.Skip(Faces.Count - bevEdges.Count).ToList();
@@ -893,22 +890,22 @@ public sealed class EditMesh
                 if (!byKey.TryGetValue(k, out var e0)) continue;
                 var a = e0.A;
                 var b = e0.B;
-                var fF = Faces.FirstOrDefault(f => HasDirected(f, a, b));
-                var gG = Faces.FirstOrDefault(f => HasDirected(f, b, a));
-                if (fF is null || gG is null || fF == gG) continue;
+                var faceA = Faces.FirstOrDefault(f => HasDirected(f, a, b));
+                var faceB = Faces.FirstOrDefault(f => HasDirected(f, b, a));
+                if (faceA is null || faceB is null || faceA == faceB) continue;
                 static List<EmVert> Rot(EmFace f, EmVert from)
                 {
                     var i = f.V.IndexOf(from);
                     return [.. f.V.Skip(i), .. f.V.Take(i)];
                 }
-                var fPath = Rot(fF, b); // b ... a
-                var gPath = Rot(gG, a); // a ... b
-                var merged = new List<EmVert>(fPath);
-                merged.AddRange(gPath.Skip(1).Take(Math.Max(gPath.Count - 2, 0)));
+                var pathA = Rot(faceA, b); // b ... a
+                var pathB = Rot(faceB, a); // a ... b
+                var merged = new List<EmVert>(pathA);
+                merged.AddRange(pathB.Skip(1).Take(Math.Max(pathB.Count - 2, 0)));
                 if (new HashSet<EmVert>(merged).Count != merged.Count) continue;
-                fF.V = merged;
-                Faces = [.. Faces.Where(f => f != gG)];
-                Fsel.Remove(gG);
+                faceA.V = merged;
+                Faces = [.. Faces.Where(f => f != faceB)];
+                Fsel.Remove(faceB);
                 ends.Add(a);
                 ends.Add(b);
                 Changed();
@@ -928,7 +925,7 @@ public sealed class EditMesh
     }
 
     /// <summary>マージ(M)。how: "center" | "cursor" | "distance"。消えた頂点の数を返す。</summary>
-    public int Merge(string how, Vec3 cursor, double dist = 0.0001)
+    public int Merge(string how, Vec3 cursor, double dist = DefaultMergeDistance)
     {
         var sel = Vsel.ToList();
         var map = new OrderedDictionary<EmVert, EmVert>();
