@@ -44,4 +44,61 @@ public class UnityRobustnessTests
         Assert.Equal("Hoodie_lilToon", body.Smr.Materials[0]);
         Assert.Equal(2, core.UndoDepth);
     }
+
+    [Fact]
+    public void Instantiate_with_a_missing_parent_does_nothing()
+    {
+        var (core, _) = Make();
+        var depth = core.UndoDepth;
+        var count = core.Nodes.Count;
+        Assert.Null(core.Instantiate("Hoodie", "古い-id"));
+        Assert.Equal(depth, core.UndoDepth);
+        Assert.Equal(count, core.Nodes.Count);
+    }
+
+    [Fact]
+    public void Reparent_to_a_missing_parent_does_nothing()
+    {
+        var (core, body) = Make();
+        var parentBefore = body.Parent;
+        var depth = core.UndoDepth;
+        core.Reparent(body.Id, "古い-id");
+        Assert.Equal(parentBefore, body.Parent);
+        Assert.Equal(depth, core.UndoDepth);
+    }
+
+    [Fact]
+    public void Unknown_asset_names_are_ignored_on_click_and_drop()
+    {
+        var (core, _) = Make();
+        var depth = core.UndoDepth;
+        core.ClickAsset("知らない素材");
+        core.DropAsset("知らない素材", "node", null, 0, 0, 0);
+        core.DropAsset("知らない素材", "slot", null, 0, 0, 0);
+        Assert.Equal(depth, core.UndoDepth);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(3)]
+    [InlineData(int.MaxValue)]
+    public void Transform_axis_outside_0_to_2_is_ignored(int axis)
+    {
+        var (core, body) = Make();
+        var before = body.P.ToArray();
+        var depth = core.UndoDepth;
+        core.SetTransformValue(body.Id, "p", axis, 5);
+        Assert.Equal(before, body.P);
+        Assert.Equal(depth, core.UndoDepth);
+    }
+
+    [Fact]
+    public void Transform_with_unknown_prop_or_missing_node_is_ignored()
+    {
+        var (core, body) = Make();
+        var depth = core.UndoDepth;
+        core.SetTransformValue(body.Id, "x", 0, 5);
+        core.SetTransformValue("古い-id", "p", 0, 5);
+        Assert.Equal(depth, core.UndoDepth);
+    }
 }
