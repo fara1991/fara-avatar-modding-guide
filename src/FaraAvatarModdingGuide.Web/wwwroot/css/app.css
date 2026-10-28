@@ -1140,7 +1140,7 @@ h1:focus {
     background: transparent;
     color: #d8c7f5;
     font: inherit;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
 }
 
 .av-search-list {
@@ -1398,4 +1398,54 @@ h1:focus {
 [data-bs-theme="light"] .av-static .fsk-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
     color: #7c3aed;
     background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* ---------- 操作しやすさ（スマートフォン幅で 44px 以上・文字 12px 以上）----------
+   見た目はほぼ変えず、押せる範囲だけを広げる。目次の行は高さだけ 44px にする。 */
+.article-header .badge {
+    font-size: 0.75rem;
+}
+
+@media (max-width: 767.98px) {
+    .roadmap-articles li {
+        display: flex;
+        align-items: stretch;
+        min-height: 44px;
+    }
+
+    .roadmap-articles li > a {
+        display: flex;
+        align-items: center;
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 44px;
+    }
+
+    .roadmap-articles li > .done-mark {
+        align-self: center;
+    }
+
+    .roadmap-body h4 > a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .article-toc-mobile summary {
+        min-height: 44px;
+    }
+
+    .article-toc-mobile .toc-list a {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .article-aside .article-keys .list-group-item > a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        min-width: 44px;
+        justify-content: center;
+    }
 }
