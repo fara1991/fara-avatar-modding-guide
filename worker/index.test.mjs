@@ -5,7 +5,7 @@ import { test, before } from "node:test";
 import assert from "node:assert/strict";
 import { register } from "node:module";
 
-let worker, Room, cleanName;
+let worker, Room, cleanName, LIMITS;
 
 before(async () => {
   // "cloudflare:workers" を、DurableObject だけを持つ空のモジュールにする
@@ -21,6 +21,7 @@ before(async () => {
   worker = mod.default;
   Room = mod.Room;
   cleanName = mod.cleanName;
+  LIMITS = mod.LIMITS;
 });
 
 /** 静的ファイル（ASSETS）の代わり。呼ばれたパスを記録し、HTML をそのまま返す */
@@ -97,11 +98,19 @@ test("/api/report/config: 報告の受け口（kit の report.js）につなが�
 test("共同練習の部屋: 部屋 ID の形が違えば 400、WebSocket でなければ 426、別のホストからは 403", async () => {
   const env = { ASSETS: assets(), ROOMS: { idFromName: (n) => n, get: () => ({ fetch: async () => new Response("room") }) } };
   assert.equal((await call("/api/rooms/BAD!/ws", env)).status, 400);
-  assert.equal((await call("/api/rooms/abcdef12/ws", env)).status, 426);
-  const foreign = await call("/api/rooms/abcdef12/ws", env, { headers: { Upgrade: "websocket", Origin: "https://evil.example" } });
+  assert.equal((await call("/api/rooms/abcdef1234/ws", env)).status, 426);
+  const foreign = await call("/api/rooms/abcdef1234/ws", env, { headers: { Upgrade: "websocket", Origin: "https://evil.example" } });
   assert.equal(foreign.status, 403);
-  const same = await call("/api/rooms/abcdef12/ws", env, { headers: { Upgrade: "websocket", Origin: "https://avatar-dev.example" } });
+  const same = await call("/api/rooms/abcdef1234/ws", env, { headers: { Upgrade: "websocket", Origin: "https://avatar-dev.example" } });
   assert.equal(await same.text(), "room");
+});
+
+test("共同練習の部屋: 部屋 ID は 10 字以上。手で付けた 9 字以下の ID は 400（作成 UI の 10 字と既存の共有 URL は通る）", async () => {
+  const env = { ASSETS: assets(), ROOMS: { idFromName: (n) => n, get: () => ({ fetch: async () => new Response("room") }) } };
+  const ws = { headers: { Upgrade: "websocket", Origin: "https://avatar-dev.example" } };
+  assert.equal((await call("/api/rooms/abcdef123/ws", env, ws)).status, 400);      // 9 字
+  assert.equal((await call("/api/rooms/abcdef12/ws", env, ws)).status, 400);       // 8 字
+  assert.equal(await (await call("/api/rooms/abcdef1234/ws", env, ws)).text(), "room"); // 10 字
 });
 
 // ---------------------------------------------------------------- 共同練習の部屋（Room を、偽の ctx と WebSocket で動かす）
@@ -124,23 +133,54 @@ function fakeRoom() {
     getWebSockets: () => sockets,
     acceptWebSocket(ws) { sockets.push(ws); },
   };
-  return { room: new Room(ctx, {}), ctx, alarms };
+  return { room: new Room(ctx, {}), ctx, alarms, storage };
 }
 
-/** 接続 1 本。送られた JSON は sent に溜まる */
-function connect(ctx, id) {
+/** WebSocket 1 本の偽物。送られた JSON は sent に溜まる。close された理由は closed に入る */
+function fakeSocket() {
   let attachment = null;
-  const ws = {
+  return {
     readyState: 1, sent: [], closed: null,
     send(d) { this.sent.push(JSON.parse(d)); },
     close(code, reason) { this.closed = { code, reason }; this.readyState = 3; },
+    accept() {},
     serializeAttachment(a) { attachment = a; },
     deserializeAttachment() { return attachment; },
   };
+}
+
+/** 接続 1 本（accept 済み・参加前）。 */
+function connect(ctx, id) {
+  const ws = fakeSocket();
   ctx.acceptWebSocket(ws);
   ws.serializeAttachment({ id, color: "#f97316", name: "", joined: false, at: Date.now() });
   return ws;
 }
+
+/**
+ * Node には WebSocketPair と、101 の Response が無いので、fetch（接続の受け付け）を通すための代わりを入れる。
+ * fn には、作られたサーバー側の接続の一覧（made）を渡す。終わったら元に戻す。
+ */
+async function withUpgradeStubs(fn) {
+  const saved = { WebSocketPair: globalThis.WebSocketPair, Response: globalThis.Response };
+  const made = [];
+  globalThis.WebSocketPair = class { constructor() { this[0] = {}; this[1] = fakeSocket(); made.push(this[1]); } };
+  globalThis.Response = class { constructor(body, init) { this.status = init?.status ?? 200; this.webSocket = init?.webSocket; } };
+  try { return await fn(made); } finally {
+    for (const [k, v] of Object.entries(saved)) { if (v === undefined) delete globalThis[k]; else globalThis[k] = v; }
+  }
+}
+
+/** fetch で接続を 1 本受け付けた結果の、サーバー側の接続（満員で閉じられたものも含む） */
+async function accept(room, made) {
+  const before = made.length;
+  const res = await room.fetch();
+  assert.equal(res.status, 101);
+  return made[before];
+}
+
+const hello = (name) => JSON.stringify({ t: "hello", name });
+const T0 = 1_000_000_000_000;
 
 /** Date.now を仮想の時計にする（終わったら元に戻す） */
 async function withClock(start, fn) {
@@ -224,4 +264,137 @@ test("共同練習: ロックの期限が切れたら、アラームでほかの
 test("表示名: HTML の特殊文字と制御文字を除く（クライアントの C# と同じ）", () => {
   assert.equal(cleanName('<a>&"\'b'), "ab");
   assert.equal(cleanName("  Ali\u0007ce  "), "Alice");
+});
+
+// ---------------------------------------------------------------- 人数・参加前の接続・初期化の書き込み・ロックの上限
+test("共同練習: 参加前の接続は人数に数えない（参加前が上限を超えても、参加する人は入れる）", async () => {
+  const { room } = fakeRoom();
+  await withUpgradeStubs(async (made) => {
+    for (let i = 0; i < 8; i++) await accept(room, made);   // 参加前の接続を 8 本つなぐ（上限を超えたぶんは閉じられる）
+    const open = made.filter(ws => ws.closed === null);
+    assert.equal(open.length, LIMITS.pendingMax);
+    const ws = open[0];
+    await room.webSocketMessage(ws, hello("Alice"));
+    assert.equal(ws.closed, null);
+    assert.equal(ws.sent.at(-1).t, "locks");
+    assert.ok(ws.sent.some(m => m.t === "welcome"));
+    assert.equal(room.peers().length, 1);
+  });
+});
+
+test("共同練習: 満員は、参加（hello）した人の数で決まる。参加前の接続は、満員の判定に入らない", async () => {
+  const { room } = fakeRoom();
+  await withUpgradeStubs(async (made) => {
+    for (let i = 0; i < LIMITS.participants; i++) {
+      const ws = await accept(room, made);
+      await room.webSocketMessage(ws, hello(`P${i}`));
+    }
+    assert.equal(room.peers().length, LIMITS.participants);
+    // 9 本目の接続は、参加前でも満員で閉じる（理由つき）
+    const ninth = await accept(room, made);
+    assert.deepEqual(ninth.closed, { code: 4001, reason: "full" });
+  });
+});
+
+test("共同練習: 満員のあと、参加前のまま残っていた接続が hello をしても入れない（4001）", async () => {
+  const { room } = fakeRoom();
+  await withUpgradeStubs(async (made) => {
+    for (let i = 0; i < LIMITS.participants - 1; i++) {
+      const ws = await accept(room, made);
+      await room.webSocketMessage(ws, hello(`P${i}`));
+    }
+    const a = await accept(room, made);
+    const b = await accept(room, made);   // 残りは 1 席。a が入る
+    await room.webSocketMessage(a, hello("A"));
+    assert.equal(a.closed, null);
+    await room.webSocketMessage(b, hello("B"));   // 満員になったあとの hello
+    assert.deepEqual(b.closed, { code: 4001, reason: "full" });
+    assert.equal(room.peers().length, LIMITS.participants);
+  });
+});
+
+test("共同練習: 参加前の接続は pendingMax まで。超えたら、いちばん古いものを 4002 で閉じる", async () => {
+  const { room } = fakeRoom();
+  await withUpgradeStubs(async (made) => {
+    for (let i = 0; i < LIMITS.pendingMax + 1; i++) await accept(room, made);
+    assert.deepEqual(made[0].closed, { code: 4002, reason: "too many pending" });
+    for (const ws of made.slice(1)) assert.equal(ws.closed, null);
+  });
+});
+
+test("共同練習: 参加前のまま pendingMs たった接続は 4000 で閉じる（ping では延命できない）", async () => {
+  const { room } = fakeRoom();
+  await withClock(T0, async (tick) => {
+    await withUpgradeStubs(async (made) => {
+      const first = await accept(room, made);
+      tick(LIMITS.pendingMs - 1000);
+      await accept(room, made);
+      assert.equal(first.closed, null, "まだ期限の内");
+      tick(2000);
+      await accept(room, made);
+      assert.deepEqual(first.closed, { code: 4000, reason: "timeout" });
+    });
+  });
+});
+
+test("共同練習: 接続だけでは storage に書かず、アラームも設定しない（最初の hello のあとで初期化する）", async () => {
+  const { room, storage, alarms } = fakeRoom();
+  await withUpgradeStubs(async (made) => {
+    const ws = await accept(room, made);
+    await room.webSocketMessage(ws, JSON.stringify({ t: "bogus" }));        // hello の前の不正なメッセージ
+    await room.webSocketMessage(ws, JSON.stringify({ t: "ops", delete: [] })); // hello の前の ops
+    assert.equal(storage.size, 0, "接続だけでは何も保存しない");
+    assert.equal(alarms.length, 0, "接続だけではアラームも設定しない");
+    assert.equal(room.objects, null);
+    await room.webSocketMessage(ws, hello("Alice"));
+    assert.equal(storage.get("init"), true);
+    assert.ok(storage.has("o:cube0"));
+    assert.ok(alarms.length > 0);
+  });
+});
+
+test("共同練習: 同じ人が同じオブジェクトを続けて持てるのは lockMaxMs まで。超えたら lockexpired で解除し、ほかの人がすぐ取れる", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  const lock = (ws) => room.webSocketMessage(ws, JSON.stringify({ t: "lock", ids: ["cube0"] }));
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    await room.webSocketMessage(b, hello("Bob"));
+    // 5 秒ごとに持ち直す（操作が続くあいだ）。上限の前の 20 秒から、lockwarn が届く
+    for (let t = 0; t < LIMITS.lockMaxMs; t += 5000) { await lock(a); tick(5000); }
+    const warns = a.sent.filter(m => m.t === "lockwarn");
+    assert.ok(warns.length > 0, "上限の前に lockwarn が届く");
+    assert.ok(warns.at(-1).ms <= LIMITS.lockWarnMs);
+    assert.equal(a.sent.some(m => m.t === "lockexpired"), false, "上限の手前ではまだ解除しない");
+    // 上限に達した: lockexpired で知らせ、ロックは外れる
+    await lock(a);
+    assert.equal(a.sent.at(-1).t, "lockexpired");
+    assert.equal(room.locks.size, 0);
+    // 取り直しても（すぐでも）上限のまま。続きとして数える
+    tick(5000);
+    await lock(a);
+    assert.equal(a.sent.at(-1).t, "lockexpired");
+    assert.equal(room.locks.size, 0);
+    // ほかの人は、すぐ取れる
+    await lock(b);
+    assert.equal(room.locks.get("cube0")?.peer, "b2");
+  });
+});
+
+test("共同練習: 持ち直しの間隔が lockGapMs より空くと、続きが切れて新しく数える", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const lock = () => room.webSocketMessage(a, JSON.stringify({ t: "lock", ids: ["cube0"] }));
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    for (let t = 0; t < LIMITS.lockMaxMs; t += 5000) { await lock(); tick(5000); }
+    await lock();
+    assert.equal(a.sent.at(-1).t, "lockexpired");
+    // 手を止めて、取り直しの間隔が lockGapMs より空いたあとは、新しい保持として取れる
+    tick(LIMITS.lockGapMs + 1000);
+    await lock();
+    assert.equal(room.locks.get("cube0")?.peer, "a1");
+    assert.equal(a.sent.at(-1).t, "locks");
+  });
 });

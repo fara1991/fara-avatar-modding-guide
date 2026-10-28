@@ -28,6 +28,11 @@ export const LIMITS = {
   scaleMin: 0.001,
   scaleMax: 1000,
   lockMs: 15000,            // ロックの有効時間（操作が終わらないまま放置されたとき用）
+  lockMaxMs: 2 * 60 * 1000, // 同じ人が同じオブジェクトを続けて持てる上限。超えたら解除して、ほかの人が取れるようにする（lockexpired）
+  lockWarnMs: 20 * 1000,    // 上限のこれだけ前から、持っている人に知らせる（lockwarn）
+  lockGapMs: 10 * 1000,     // 取り直しの間隔がこれ以内なら、同じ保持の続きとみなす（unlock → lock の繰り返しで上限を回避させない）
+  pendingMax: 3,            // 参加前（hello の前）の接続の上限。超えたら、いちばん古い参加前の接続を閉じる
+  pendingMs: 10 * 1000,     // 参加前のまま、これより長く経った接続は閉じる
   expireMs: 24 * 60 * 60 * 1000, // 最後の変更から部屋を消すまで
   idleMs: 60 * 1000,        // これだけ何も届かない接続は切れたものとみなす（クライアントは 20 秒ごとに ping）
   sweepMs: 60 * 1000,       // 誰かがいるあいだ、切れた接続を確かめる間隔
@@ -43,7 +48,8 @@ export const LIMITS = {
 
 const KINDS = new Set(["plane", "cube", "sphere", "cylinder", "cone", "torus"]);
 const COLORS = ["#f97316", "#22c55e", "#3b82f6", "#e879f9", "#facc15", "#14b8a6", "#ef4444", "#a78bfa"];
-const ROOM_ID = /^[a-z0-9]{6,32}$/;
+// 部屋の ID は 10〜32 字（作成 UI の乱数は 10 字）。手で付けた短い ID（推測しやすい・ほかの人と重なりやすい）は受け付けない
+const ROOM_ID = /^[a-z0-9]{10,32}$/;
 const OBJ_ID = /^[a-z0-9]{1,24}$/;
 
 export default {
@@ -85,6 +91,14 @@ export default {
 /** Origin ヘッダーのホスト。"null" など URL として読めないものは null（どのホストとも一致しない） */
 function originHost(origin) {
   try { return new URL(origin).host; } catch { return null; }
+}
+
+/** 理由を付けて閉じる接続（満員など）。いったん受け付けてから閉じる（ブラウザでは理由が分かるように） */
+function refuse(code, reason) {
+  const pair = new WebSocketPair();
+  pair[1].accept();
+  pair[1].close(code, reason);
+  return new Response(null, { status: 101, webSocket: pair[0] });
 }
 
 const encoder = new TextEncoder();
@@ -141,6 +155,7 @@ export class Room extends DurableObject {
     super(ctx, env);
     this.objects = null; // Map<id, obj>（保存してあるシーン。最初に使うときに読み込む）
     this.locks = new Map(); // id → { peer, until }
+    this.holds = new Map(); // id → { peer, since, last }。同じ人が続けて持っている時間（上限 lockMaxMs の判定）。解除しても、lockGapMs の間は続きとみなす
     this.rate = new Map(); // WebSocket → { tokens, at, invalid }
     this.seen = new Map(); // WebSocket → 最後にメッセージが届いた時刻
     // {"t":"ping"} には、Durable Object を起こさずに {"t":"pong"} を返す
@@ -201,11 +216,16 @@ export class Room extends DurableObject {
     return Math.max(auto, this.seen.get(ws) ?? 0, ws.deserializeAttachment()?.at ?? 0);
   }
 
-  /** しばらく何も届いていない接続（ブラウザが落ちた・回線が切れた）を外す */
+  /**
+   * しばらく何も届いていない接続（ブラウザが落ちた・回線が切れた）を外す。
+   * 参加前のまま pendingMs たった接続も外す（ping は返るので lastSeen では延命できない。接続した時刻で決める）。
+   */
   prune() {
     const now = Date.now();
     for (const ws of this.open()) {
-      if (now - this.lastSeen(ws) <= LIMITS.idleMs) continue;
+      const a = ws.deserializeAttachment();
+      const stalePending = !a?.joined && now - (a?.at ?? 0) > LIMITS.pendingMs;
+      if (!stalePending && now - this.lastSeen(ws) <= LIMITS.idleMs) continue;
       this.leave(ws);
       try { ws.close(4000, "timeout"); } catch { /* 閉じ済み */ }
     }
@@ -215,24 +235,22 @@ export class Room extends DurableObject {
     return this.open().map(ws => ws.deserializeAttachment()).filter(a => a?.joined && !a.left);
   }
 
+  /**
+   * 接続の受け付け。ここでは書き込みをしない（部屋の初期化・保存・アラームは、最初の hello のあと）。
+   * 人数は hello 済みの人だけを数える。参加前の接続は別枠（pendingMax）で、超えたら、いちばん古いものを閉じる。
+   */
   async fetch() {
     this.prune();
-    const sockets = this.open();
-    if (sockets.length >= LIMITS.participants) {
-      // 満員: いったん受け付けて、理由を付けて閉じる（ブラウザでは理由が分かるように）
-      const pair = new WebSocketPair();
-      pair[1].accept();
-      pair[1].close(4001, "full");
-      return new Response(null, { status: 101, webSocket: pair[0] });
+    if (this.peers().length >= LIMITS.participants) return refuse(4001, "full");
+    const pending = this.open().filter(ws => !ws.deserializeAttachment()?.joined);
+    while (pending.length >= LIMITS.pendingMax) {
+      try { pending.shift().close(4002, "too many pending"); } catch { /* 閉じ済み */ }
     }
-    await this.load();
-    const used = new Set(sockets.map(ws => ws.deserializeAttachment()?.color));
-    const color = COLORS.find(c => !used.has(c)) ?? COLORS[sockets.length % COLORS.length];
     const pair = new WebSocketPair();
     const id = crypto.randomUUID().replace(/-/g, "").slice(0, 10);
     this.ctx.acceptWebSocket(pair[1]);
-    pair[1].serializeAttachment({ id, color, name: "", joined: false, at: Date.now() });
-    await this.schedule();
+    // 色は hello のときに決める（参加している人の色と重ならないように）
+    pair[1].serializeAttachment({ id, color: null, name: "", joined: false, at: Date.now() });
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
 
@@ -308,27 +326,19 @@ export class Room extends DurableObject {
     let msg;
     try { msg = JSON.parse(data); } catch { return this.invalid(ws, "bad json"); }
     if (!msg || typeof msg !== "object" || typeof msg.t !== "string") return this.invalid(ws, "bad message");
-    await this.load();
     const me = ws.deserializeAttachment();
-
-    if (msg.t === "hello") {
-      // 二度目の hello は無視する（join を二重に知らせない）
-      if (me.joined) return;
-      me.name = cleanName(msg.name) || "ゲスト";
-      me.joined = true;
-      ws.serializeAttachment(me);
-      this.send(ws, {
-        t: "welcome", you: { id: me.id, name: me.name, color: me.color },
-        peers: this.peers().filter(p => p.id !== me.id).map(({ id, name, color }) => ({ id, name, color })),
-        objects: [...this.objects.values()], limits: { participants: LIMITS.participants, objects: LIMITS.objects },
-      });
-      this.send(ws, this.locksMessage());
-      this.broadcast({ t: "join", peer: { id: me.id, name: me.name, color: me.color } }, ws);
-      return;
+    if (!me.joined) {
+      if (msg.t !== "hello") return this.invalid(ws, "say hello first");
+      // 部屋の初期化（立方体の作成・保存・アラーム）は、最初の hello のあとで行う（接続だけでは書かない）
+      await this.load();
+      return this.join(ws, ws.deserializeAttachment(), msg);
     }
-    if (!me.joined) return this.invalid(ws, "say hello first");
+    await this.load();
 
     switch (msg.t) {
+      case "hello":
+        // 二度目の hello は無視する（join を二重に知らせない）
+        return;
       case "name": {
         const name = cleanName(msg.name);
         if (!name) return this.invalid(ws, "bad name");
@@ -360,11 +370,28 @@ export class Room extends DurableObject {
         if (!ids) return this.invalid(ws, "bad lock");
         const busy = this.lockedByOthers(ids, me.id);
         if (busy.length) { this.send(ws, { t: "lockdenied", ids: busy, seq: msg.seq ?? null }); return; }
-        this.releaseLocks(me.id);
-        const until = Date.now() + LIMITS.lockMs;
-        for (const id of ids) this.locks.set(id, { peer: me.id, until });
+        const now = Date.now();
+        // 同じ人が同じものを続けて持っている時間（since）。取り直しの間隔が lockGapMs 以内なら、同じ保持の続きとみなす
+        const held = ids.map(id => {
+          const h = this.holds.get(id);
+          const since = h && h.peer === me.id && now - h.last <= LIMITS.lockGapMs ? h.since : now;
+          this.holds.set(id, { peer: me.id, since, last: now });
+          return { id, since };
+        });
+        const changed = this.releaseLocks(me.id);
+        if (held.some(h => now - h.since >= LIMITS.lockMaxMs)) {
+          // 上限に達した: 持っている全部を解除して知らせる（この人の取り直しは、上の続きとして扱うので通らない）
+          if (changed) this.broadcast(this.locksMessage());
+          this.send(ws, { t: "lockexpired", ids });
+          await this.schedule();
+          return;
+        }
+        for (const h of held) this.locks.set(h.id, { peer: me.id, until: Math.min(now + LIMITS.lockMs, h.since + LIMITS.lockMaxMs) });
         this.broadcast(this.locksMessage());
         await this.schedule();   // 期限が切れたときに起きて、ほかの人へ知らせる
+        // 上限が近いときは、持っている人に知らせる（操作が途中で外れないように、残りの時間を渡す）
+        const left = Math.min(...held.map(h => h.since + LIMITS.lockMaxMs - now));
+        if (left <= LIMITS.lockWarnMs) this.send(ws, { t: "lockwarn", ids, ms: left });
         return;
       }
       case "unlock": {
@@ -431,6 +458,26 @@ export class Room extends DurableObject {
       default:
         return this.invalid(ws, "unknown type");
     }
+  }
+
+  /** 参加（hello）。満員なら閉じる。色を決めて、参加を知らせる。 */
+  async join(ws, me, msg) {
+    if (me.joined) return;
+    if (this.peers().length >= LIMITS.participants) { ws.close(4001, "full"); return; }
+    // ここから同期の処理（await の前に joined にして、同時に来た hello で人数を超えないように）
+    me.name = cleanName(msg.name) || "ゲスト";
+    const used = new Set(this.peers().map(p => p.color));
+    me.color = COLORS.find(c => !used.has(c)) ?? COLORS[this.peers().length % COLORS.length];
+    me.joined = true;
+    ws.serializeAttachment(me);
+    await this.schedule();
+    this.send(ws, {
+      t: "welcome", you: { id: me.id, name: me.name, color: me.color },
+      peers: this.peers().filter(p => p.id !== me.id).map(({ id, name, color }) => ({ id, name, color })),
+      objects: [...this.objects.values()], limits: { participants: LIMITS.participants, objects: LIMITS.objects },
+    });
+    this.send(ws, this.locksMessage());
+    this.broadcast({ t: "join", peer: { id: me.id, name: me.name, color: me.color } }, ws);
   }
 
   async webSocketClose(ws, code) {

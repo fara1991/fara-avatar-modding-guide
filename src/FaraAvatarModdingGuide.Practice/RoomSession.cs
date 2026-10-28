@@ -293,6 +293,8 @@ public sealed class RoomSession : IDisposable
             case "select": ApplySelect(m); break;
             case "locks": ApplyLocks(m); break;
             case "lockdenied": ApplyLockDenied(); break;
+            case "lockexpired": ApplyLockExpired(); break;
+            case "lockwarn": ApplyLockWarn(m); break;
             case "preview": ApplyPreviewMessage(m); break;
             case "ops": ApplyOps(m); break;
             case "view": ApplyView(m); break;
@@ -380,13 +382,25 @@ public sealed class RoomSession : IDisposable
         foreach (var p in peers) p.Locks = lockOrder.Where(rid => locks[rid] == p.Id).ToList();
     }
 
-    private void ApplyLockDenied()
+    private void ApplyLockDenied() => CancelLockedMove("ほかの人が操作中のため、動かせませんでした");
+
+    /// <summary>同じ人が同じものを長く持ち続けて、上限(lockexpired)に達した: 操作を解除し、ほかの人が動かせるようにしたことを知らせる。</summary>
+    private void ApplyLockExpired() => CancelLockedMove("同じものを長く動かしたため、操作を解除しました。少し待ってからやり直してください");
+
+    /// <summary>上限が近い(lockwarn): 残りの時間を知らせる。操作はそのまま続く。</summary>
+    private void ApplyLockWarn(JsonElement m)
     {
-        // 同時に動かし始めたときなど: こちらの操作をやめる(room.js の lockdenied。解除の文字は、キャンセルのときに送られる)
+        if (!TryGet(m, "ms", out var ms) || ms.ValueKind != JsonValueKind.Number || !ms.TryGetDouble(out var value)) return;
+        core.SetStatusText($"同じものを長く動かしているため、あと約 {Math.Max(1, (int)Math.Ceiling(value / 1000))} 秒で操作が解除されます");
+    }
+
+    /// <summary>こちらの操作をやめる(room.js の lockdenied。解除の文字は、キャンセルのときに送られる)。</summary>
+    private void CancelLockedMove(string text)
+    {
         if (core.Op is { Edit: false })
         {
             core.CancelOperation();
-            core.SetStatusText("ほかの人が操作中のため、動かせませんでした");
+            core.SetStatusText(text);
         }
         lockHeld = false;
     }
