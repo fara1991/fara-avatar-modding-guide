@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Text.RegularExpressions;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
@@ -310,11 +311,15 @@ public sealed partial class ContentService
 
         // 記事内の相対パス画像（例: images/move.gif）を /learn/<category>/images/move.gif に解決する。
         // 画像は Content/learn/<category>/images/ に置き、Program.cs で /learn 以下として配信している。
+        // 画像の寸法（width・height）は、画像ファイルから読んで <img> に付ける（読み込み前後のレイアウトのずれを防ぐ）。
+        var imageSizes = new Dictionary<string, (int Width, int Height)>();
         foreach (var link in document.Descendants<LinkInline>())
         {
             if (link.IsImage && link.Url is { } url && IsRelative(url))
             {
+                var size = ReadPngSize(Path.Combine(_root, "learn", categoryId, url));
                 link.Url = $"/learn/{categoryId}/{url}";
+                if (size is { } s) imageSizes[link.Url] = s;
             }
         }
 
@@ -329,7 +334,7 @@ public sealed partial class ContentService
             front = Yaml.Deserialize<ArticleFrontMatter>(yaml) ?? front;
         }
 
-        var html = document.ToHtml(Pipeline);
+        var html = WithImageSizes(document.ToHtml(Pipeline), imageSizes);
 
         return new Article
         {
@@ -379,6 +384,43 @@ public sealed partial class ContentService
 
     private static bool IsRelative(string url) =>
         !url.StartsWith('/') && !url.StartsWith('#') && !url.Contains("://") && !url.StartsWith("data:", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// PNG の寸法（IHDR の幅・高さ）を読む。PNG でない・読めないときは null（寸法を付けないだけで、表示はそのまま）。
+    /// 記事の画像は PNG だけ（Content/learn/**/images）。
+    /// </summary>
+    private static (int Width, int Height)? ReadPngSize(string path)
+    {
+        Span<byte> head = stackalloc byte[24];
+        try
+        {
+            using var stream = File.OpenRead(path);
+            if (stream.Read(head) < head.Length) return null;
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return null;
+        }
+        ReadOnlySpan<byte> signature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+        if (!head[..8].SequenceEqual(signature) || !head.Slice(12, 4).SequenceEqual("IHDR"u8)) return null;
+        var width = BinaryPrimitives.ReadInt32BigEndian(head[16..20]);
+        var height = BinaryPrimitives.ReadInt32BigEndian(head[20..24]);
+        return width > 0 && height > 0 ? (width, height) : null;
+    }
+
+    /// <summary>Markdig が書いた &lt;img src="…" &gt; に、寸法（width・height 属性）を付ける。対応する画像が無ければ何もしない。</summary>
+    private static string WithImageSizes(string html, IReadOnlyDictionary<string, (int Width, int Height)> sizes)
+    {
+        foreach (var (src, size) in sizes)
+        {
+            html = html.Replace($"<img src=\"{src}\" ", $"<img src=\"{src}\" width=\"{size.Width}\" height=\"{size.Height}\" ", StringComparison.Ordinal);
+        }
+        return html;
+    }
 
     private static string ToPlainText(string html)
     {
