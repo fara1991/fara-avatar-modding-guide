@@ -480,6 +480,21 @@ kbd {
     white-space: nowrap;
 }
 
+/* スマートフォン（480px 未満）: 記事の表は列を狭くしすぎない。表が画面より広いときだけ、表の中で横に送れる（tip の表と同じ形）。
+   左の列にキー（<kbd>）があるときは、キーと続きの文字（Shift＋クリック）を 1 行に保つ。折れると「+クリ / ック」のように読みにくい */
+@media (max-width: 479.98px) {
+    .article-body table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        font-size: 0.9rem;
+    }
+
+    .article-body td:first-child:has(> kbd) {
+        white-space: nowrap;
+    }
+}
+
 /* ---------- 記事内の目次・キー一覧（右の列） ---------- */
 .article-aside {
     position: sticky;
@@ -1293,6 +1308,23 @@ h1:focus {
     /* ページ全体(window)がスクロールするので、見出しへのジャンプは、固定のヘッダーの下に止める */
     html {
         scroll-padding-top: 4.25rem;
+    }
+}
+
+/* スマートフォン: 指で押す操作は 44px 以上（ドロワーのリンク・ヘッダーのメニューと検索のボタン・本文のボタン）。
+   PC はマウスなので、ここでは変えない */
+@media (max-width: 767.98px) {
+    .mud-drawer .mud-nav-link,
+    .av-drawer-theme .mud-button-root,
+    .fsk-menu-toggle,
+    .fsk-search-toggle,
+    .btn {
+        min-height: 44px;
+    }
+
+    .fsk-menu-toggle,
+    .fsk-search-toggle {
+        min-width: 44px;
     }
 }
 
