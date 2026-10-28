@@ -1328,6 +1328,24 @@ h1:focus {
     }
 }
 
+/* 768〜1024（タブレット）: ヘッダーのメニューボタン（40px）の押せる範囲を 44px にする。見た目と配置は変えず、透明な領域を外に 2px ずつ足す（::after）。
+   サイト名との間は 12px あるので重ならない。ドロワーのリンクは、広げると 1 件ずつ並びが動く（隙間なしに 40px で並んでいる）ので、ここでは変えない */
+@media (min-width: 768px) and (max-width: 1024px) {
+    /* ボタンは overflow: hidden（MudBlazor）なので、外の領域を通すために clip にして、外へ 2px だけ許す */
+    .fsk-header .fsk-menu-toggle {
+        position: relative;
+        overflow: hidden;
+        overflow: clip;
+        overflow-clip-margin: 2px;
+    }
+
+    .fsk-header .fsk-menu-toggle::after {
+        content: "";
+        position: absolute;
+        inset: -3px;
+    }
+}
+
 @media (min-width: 768px) {
     .fsk-header .av-search {
         flex: 1 1 220px;

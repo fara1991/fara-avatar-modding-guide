@@ -1627,8 +1627,10 @@
     margin-top: 0.5rem;
 }
 
-/* スマートフォン幅: 3D ビュー上部のボタン（頂点・辺・面・透過・統計・ミラー）の押せる範囲を 44px の高さにする。
-   見た目（大きさ・位置）は変えず、ボタンの上下に透明な領域を足す（::after）。横の間隔は 6px のままなので、隣とは重ならない。 */
+/* スマートフォン幅: 3D ビュー上部のボタン（頂点・辺・面・透過・統計・ミラー）の押せる範囲を、記事の 3D ビュー（.tut-vp）では 44px 四方にする。
+   見た目（大きさ・位置）は変えず、ボタンの外に透明な領域を足す（::after）。練習ページ（/practice）は、これまでどおり（-11px）。
+   - 縦: ボタンの枠（1px）の内側（padding の箱は 20px）から上下に 12px ずつ。合計 44px。上の 3px は枠の外に出るので、記事の 3D ビューだけ overflow を clip にして、外の 4px を通す（clip が使えない環境は今までどおり）。
+   - 横（透過・統計・ミラー）: 幅 44px の中央に置く。隣とは 6px の間隔を半分ずつ使うので重ならない。頂点・辺・面は隣と間隔が無いので、横は広げない。 */
 @media (max-width: 767.98px) {
     .vp-tools button {
         position: relative;
@@ -1641,6 +1643,32 @@
         bottom: -11px;
         left: 0;
         right: 0;
+    }
+
+    .tut-vp.practice-viewport {
+        overflow: hidden;
+        overflow: clip;
+        overflow-clip-margin: 4px;
+    }
+
+    /* 角の画素を変えないため: 3D の canvas は置き場（.practice-gl）で、下の案内バーは自分の下角で、枠の角丸（8px の内側の 7px）に合わせて切る */
+    .tut-vp.practice-viewport .practice-gl {
+        overflow: hidden;
+        border-radius: 7px;
+    }
+
+    .tut-vp.practice-viewport .practice-status {
+        border-radius: 0 0 7px 7px;
+    }
+
+    .tut-vp .vp-tools button::after {
+        top: -12px;
+        bottom: -12px;
+    }
+
+    .tut-vp .vp-tools > button::after {
+        left: calc(50% - 22px);
+        right: calc(50% - 22px);
     }
 }
 
