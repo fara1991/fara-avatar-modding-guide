@@ -480,6 +480,13 @@ kbd {
     white-space: nowrap;
 }
 
+/* 記事の表のセルの余白。文字が隣の列とくっつかないように空ける。keep-all で「キー」「表記」などの語を字の途中で折らない（360px・390px で確かめた） */
+.article-body th,
+.article-body td {
+    padding: 6px 10px;
+    word-break: keep-all;
+}
+
 /* スマートフォン（480px 未満）: 記事の表は列を狭くしすぎない。表が画面より広いときだけ、表の中で横に送れる（tip の表と同じ形）。
    左の列にキー（<kbd>）があるときは、キーと続きの文字（Shift＋クリック）を 1 行に保つ。折れると「+クリ / ック」のように読みにくい */
 @media (max-width: 479.98px) {
@@ -1430,10 +1437,15 @@ h1:focus {
 }
 
 @media (max-width: 767.98px) {
+    /* 行の中の項目（記事名・完了の印・難易度のバッジ）は、行の高さに伸ばさず、中央にそろえる */
     .roadmap-articles li {
         display: flex;
-        align-items: stretch;
+        align-items: center;
         min-height: 44px;
+    }
+
+    .roadmap-articles li > .badge {
+        flex: 0 0 auto;
     }
 
     .roadmap-articles li > a {
