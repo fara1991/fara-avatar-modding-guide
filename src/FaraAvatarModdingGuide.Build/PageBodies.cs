@@ -728,6 +728,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
             <div class="card-body">
                 <h2 class="h5">部屋を作る</h2>
                 <p class="mb-3">ログインは不要です。部屋を作ったら、表示される URL を一緒に練習する人に送ってください。</p>
+                <p class="small text-body-secondary mb-3">URL を知っている人は誰でも入れて、内容を変えられます。個人情報は入れないでください。</p>
                 <button type="button" class="btn btn-primary" id="room-create">{{ICON_ADD}} 部屋を作る</button>
             </div>
         </div>
@@ -751,6 +752,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
                             <input type="text" class="form-control" id="room-url" readonly />
                             <button type="button" class="btn btn-outline-primary" id="room-copy">コピー</button>
                         </div>
+                        <p class="small text-body-secondary mb-3">URL を知っている人は誰でも入れて、内容を変えられます。個人情報は入れないでください。</p>
                         <label class="form-label small" for="room-name">表示名（ほかの人に見えます。20 文字まで）</label>
                         <input type="text" class="form-control form-control-sm mb-3" id="room-name" maxlength="20" autocomplete="nickname" />
                         <h3 class="h6">参加している人</h3>

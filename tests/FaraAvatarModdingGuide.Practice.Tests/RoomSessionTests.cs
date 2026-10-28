@@ -312,6 +312,31 @@ public class RoomSessionTests
     }
 
     [Fact]
+    public void Lock_expired_cancels_our_move_and_says_why()
+    {
+        // 同じものを 2 分続けて持った(サーバーの上限)。操作を解除し、理由を出す(ほかの人が操作中、とは出さない)
+        var (core, s, t) = Joined();
+        core.SetSelection([core.Objects[0]]);
+        t.Outbound.Clear();
+        core.KeyDown("KeyG", "g", new Modifiers());
+        s.OnMessage(1, Q("{'t':'lockexpired','ids':['cube0']}"));
+        Assert.Null(core.Op);
+        Assert.Equal("同じものを長く動かしたため、操作を解除しました。少し待ってからやり直してください", core.Status);
+        Assert.Equal(Q("{'t':'unlock'}"), t.Outbound[^1]);
+    }
+
+    [Fact]
+    public void Lock_warning_tells_the_seconds_left_and_keeps_our_move()
+    {
+        var (core, s, _) = Joined();
+        core.SetSelection([core.Objects[0]]);
+        core.KeyDown("KeyG", "g", new Modifiers());
+        s.OnMessage(1, Q("{'t':'lockwarn','ids':['cube0'],'ms':14200}"));
+        Assert.NotNull(core.Op);
+        Assert.Equal("同じものを長く動かしているため、あと約 15 秒で操作が解除されます", core.Status);
+    }
+
+    [Fact]
     public void Ops_without_upsert_still_apply_the_delete()
     {
         var (core, s, _) = Joined();

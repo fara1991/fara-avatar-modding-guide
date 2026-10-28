@@ -63,6 +63,7 @@ public class PracticeTests : WebTestContext
     }
 
     [Theory]
+    [InlineData("abcdef1234", "abcdef1234")]                                // 10 字(作成 UI の長さ。既存の共有 URL も通る)
     [InlineData("abcdef123456", "abcdef123456")]
     [InlineData("ABCDEF123456", "abcdef123456")]                            // 小文字にそろえる(room.js・Worker と同じ)
     [InlineData("abcdefghijklmnopqrstuvwxyz012345", "abcdefghijklmnopqrstuvwxyz012345")]   // 32 字
@@ -77,7 +78,9 @@ public class PracticeTests : WebTestContext
 
     [Theory]
     [InlineData("")]
-    [InlineData("abc")]                                                     // 6 字未満
+    [InlineData("abc")]                                                     // 10 字未満
+    [InlineData("abcdef12")]                                                // 8 字(手で付けた短い ID は通さない)
+    [InlineData("abcdef123")]                                               // 9 字
     [InlineData("abcdefghijklmnopqrstuvwxyz0123456")]                       // 33 字
     [InlineData("abc def123")]
     [InlineData("abc/../12345")]
@@ -147,13 +150,13 @@ public class PracticeTests : WebTestContext
     [Fact]
     public void Room_ids_made_by_the_page_use_only_the_characters_the_worker_accepts()
     {
-        // 36 通りの文字から 10 字。10 字 = 6〜32 字の範囲
+        // 36 通りの文字から 10 字。10 字 = 10〜32 字の範囲（worker は 9 字以下を受け付けない）
         const string alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
         Assert.Equal(36, alphabet.Length);
         for (var i = 0; i < 50; i++)
         {
             var id = new string(RandomNumberGenerator.GetBytes(10).Select(b => alphabet[b % 36]).ToArray());
-            Assert.Matches("^[a-z0-9]{6,32}$", id);
+            Assert.Matches("^[a-z0-9]{10,32}$", id);
         }
     }
 
