@@ -32,11 +32,32 @@ function mapFolderToHtml(req) {
   }
 }
 
+/**
+ * みんなで練習のロビーの一覧（GET /api/rooms）の代わり。静的の配信には Worker が無いので、一覧のカードが描かれるように、
+ * 空き・満員・鍵つき・長い名前（英数字 40 字・ひらがなの長い名）を返す。カードの押せる範囲（tap-target）を、この計測で見るため。
+ */
+function serveRoomListFixture(res) {
+  const now = Date.now();
+  const rooms = [
+    { id: "layoutroom001", name: "夏の練習", count: 2, max: 8, locked: false, createdAt: now - 5 * 60_000 },
+    { id: "layoutroom002", name: "鍵つきの部屋", count: 1, max: 8, locked: true, createdAt: now - 60_000 },
+    { id: "layoutroom003", name: "満員の部屋", count: 8, max: 8, locked: false, createdAt: now - 30 * 60_000 },
+    { id: "layoutroom004", name: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn", count: 3, max: 8, locked: true, createdAt: now - 120 * 60_000 },
+    { id: "layoutroom005", name: "かなりながい名前の練習の部屋を、みんなで一緒に確かめるための練習会", count: 4, max: 8, locked: false, createdAt: now - 3 * 60_000 },
+  ];
+  res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+  res.end(JSON.stringify({ rooms, limit: 50 }));
+}
+
 /** kit の配信の応答を、同じポート探しの手順で配る。止めるのはこの関数が返した close だけ。 */
 async function serveSite(startPort) {
   const kitHandler = createStaticServer(siteDir).listeners("request")[0];
   for (let port = startPort; port < startPort + TRIES; port += 1) {
     const server = createServer((req, res) => {
+      if (new URL(req.url ?? "/", "http://localhost").pathname === "/api/rooms") {
+        serveRoomListFixture(res);
+        return;
+      }
       mapFolderToHtml(req);
       kitHandler(req, res);
     });

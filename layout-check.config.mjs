@@ -44,7 +44,7 @@ export default {
       rule: "tap-target",
       selector: "footer a",
       page: "/practice/room",
-      reason: "ロビーのページだけ、kit の SiteFooter の文字リンク（22px）が 44px 未満。フッターの直し方（kit の部品）が決まるまでの除外。ロビーの新しい要素（入力欄・select・一覧の行・ボタン）は、この除外に含めない",
+      reason: "ロビーのページだけ、kit の SiteFooter の文字リンク（22px）が 44px 未満。フッターの直し方（kit の部品）が決まるまでの除外。ロビーの新しい要素（入力欄・select・一覧のカード・ボタン）は、この除外に含めない",
     },
     {
       rule: "no-offscreen-focus",

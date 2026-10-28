@@ -56,31 +56,50 @@
         {
             <p class="small text-danger mb-2" role="alert">@joinMessage</p>
         }
-        <ul class="room-list list-unstyled mb-0" id="room-list" aria-live="polite">
+        <ul class="room-list list-unstyled mb-0" id="room-list" role="list" aria-live="polite">
             @if (rooms is null)
             {
-                <li class="small text-body-secondary">読み込み中…</li>
+                <li class="room-empty small text-body-secondary">読み込み中…</li>
             }
             else if (rooms.Count == 0)
             {
-                <li class="small text-body-secondary">今、一覧に出ている部屋はありません。部屋を作るとき「一覧に出す」を選ぶと、ここに出ます。</li>
+                <li class="room-empty small text-body-secondary">今、一覧に出ている部屋はありません。部屋を作るとき「一覧に出す」を選ぶと、ここに出ます。</li>
             }
             else
             {
                 @foreach (var r in rooms)
                 {
-                    <li class="room-row d-flex flex-wrap gap-2 align-items-center py-2 border-bottom" data-room="@r.Id" @key="r.Id">
-                        <span class="flex-grow-1 text-break room-row-name">@r.Name</span>
-                        @if (r.Locked)
-                        {
-                            <span class="room-row-lock small" title="鍵つき"><AvIcon Name="Lock" /><span class="visually-hidden">鍵つき</span></span>
-                        }
-                        <span class="small text-body-secondary room-row-meta">@r.Count / @r.Max 人・@Elapsed(r.CreatedAt)</span>
-                        @if (r.Locked)
-                        {
-                            <input type="password" class="form-control room-lobby-field room-row-pass" maxlength="64" autocomplete="off" aria-label="@r.Name の鍵" value="@RowPass(r.Id)" @oninput="e => OnRowPass(r.Id, e)" />
-                        }
-                        <button type="button" class="btn btn-outline-primary room-lobby-field" @onclick="() => JoinRoom(r)">入る</button>
+                    var full = IsFull(r);
+                    <li class="room-card card h-100" data-room="@r.Id" @key="r.Id">
+                        <div class="card-body d-flex flex-column gap-2">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <h3 class="h5 mb-0 room-card-name">@r.Name</h3>
+                                @if (r.Locked)
+                                {
+                                    <span class="room-card-lock-icon" role="img" aria-label="鍵"><AvIcon Name="Lock" /></span>
+                                }
+                            </div>
+                            <p class="small mb-0 room-card-meta">
+                                <span class="room-card-count"><AvIcon Name="Groups" /> @r.Count / @r.Max 人</span>
+                                <span>@Elapsed(r.CreatedAt)</span>
+                            </p>
+                            <p class="small mb-0 room-card-status">
+                                <span class="room-card-pass">@(r.Locked ? "パスワードあり" : "鍵なし")</span>
+                                @if (full)
+                                {
+                                    <span class="room-card-full">満員</span>
+                                }
+                            </p>
+                            @if (r.Locked && !full)
+                            {
+                                <input type="password" class="form-control room-lobby-field room-row-pass" maxlength="64" autocomplete="off" aria-label="@PassLabel(r)" value="@RowPass(r.Id)" @oninput="e => OnRowPass(r.Id, e)" />
+                            }
+                            @if (full)
+                            {
+                                <p class="small mb-0" id="room-full-@r.Id">満員のため入れません。空くと、ここから入れるようになります。</p>
+                            }
+                            <button type="button" class="btn btn-outline-primary room-lobby-field room-card-join" aria-label="@JoinLabel(r)" aria-describedby="@(full ? "room-full-" + r.Id : null)" disabled="@full" @onclick="() => JoinRoom(r)">入る</button>
+                        </div>
                     </li>
                 }
             }
@@ -424,7 +443,7 @@
     private void JoinRoom(RoomListItem r)
     {
         joinMessage = null;
-        if (!RoomRe.IsMatch(r.Id)) return;
+        if (!RoomRe.IsMatch(r.Id) || IsFull(r)) return;   // 満員のボタンは無効。念のため、ここでも入らない
         var pass = RowPass(r.Id);
         if (r.Locked && pass.Length == 0)
         {
@@ -437,6 +456,15 @@
     }
 
     private string RowPass(string id) => rowPass.TryGetValue(id, out var v) ? v : "";
+
+    /// <summary>満員（人数が上限に達している部屋）。一覧の「満員」の表示と、入るボタンの無効に使う。</summary>
+    private static bool IsFull(RoomListItem r) => r.Max > 0 && r.Count >= r.Max;
+
+    /// <summary>入るボタンの名前（スクリーンリーダーには「部屋名 に入る」と読ませる）。</summary>
+    private static string JoinLabel(RoomListItem r) => $"{r.Name} に入る";
+
+    /// <summary>鍵の欄の名前（部屋ごと）。</summary>
+    private static string PassLabel(RoomListItem r) => $"{r.Name} の鍵";
 
     private void OnCreateName(ChangeEventArgs e) => createName = e.Value?.ToString() ?? "";
     private void OnCreatePass(ChangeEventArgs e) => createPass = e.Value?.ToString() ?? "";
