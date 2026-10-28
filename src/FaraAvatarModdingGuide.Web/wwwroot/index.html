@@ -74,7 +74,8 @@
     <!-- WASM-ONLY:END -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet" />
+    <!-- display=block: フォントが届くまで文字を出さない。swap だと、フォールバックの字で描いてから Zen Kaku に差し替わり、折り返しが変わって本文が動く。記事ページ（learn/basics/transform.html）の CLS は、1024 で 0.23 → 0.10（各 3 回の平均・Playwright）。768 と 390 は差が小さい。0 にするには optional が要るが、初回の訪問で Zen Kaku が出なくなるので採用していない -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=block" rel="stylesheet" />
     <!-- WASM-ONLY:START -->
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <!-- WASM-ONLY:END -->
