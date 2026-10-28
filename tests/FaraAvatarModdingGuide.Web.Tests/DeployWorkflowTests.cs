@@ -270,6 +270,29 @@ public class DeployWorkflowTests
     }
 
     [Fact]
+    public void Report_rate_limiter_is_bound_and_migrated_in_every_environment()
+    {
+        // 報告の 1 日の送信回数の制限（kit の ReportRateLimiter）。本番・確認用・トップレベルの 3 か所に、バインディングと migrations（v2）を書く
+        var toml = Toml;
+        Assert.Matches(@"(?m)^\[\[durable_objects\.bindings\]\]\nname = ""REPORT_LIMITER""\nclass_name = ""ReportRateLimiter""$", toml);
+        Assert.Matches(@"(?m)^\[\[migrations\]\]\ntag = ""v2""\nnew_sqlite_classes = \[""ReportRateLimiter""\]$", toml);
+        Assert.Matches(@"(?m)^\[\[env\.production\.durable_objects\.bindings\]\]\nname = ""REPORT_LIMITER""\nclass_name = ""ReportRateLimiter""$", toml);
+        Assert.Matches(@"(?m)^\[\[env\.production\.migrations\]\]\ntag = ""v2""\nnew_sqlite_classes = \[""ReportRateLimiter""\]$", toml);
+        Assert.Matches(@"(?m)^\[\[env\.dev\.durable_objects\.bindings\]\]\nname = ""REPORT_LIMITER""\nclass_name = ""ReportRateLimiter""$", toml);
+        Assert.Matches(@"(?m)^\[\[env\.dev\.migrations\]\]\ntag = ""v2""\nnew_sqlite_classes = \[""ReportRateLimiter""\]$", toml);
+        // 既存の Room の migration（v1）は変えない。tag の重複も無い
+        Assert.Equal(3, Regex.Matches(toml, @"tag = ""v1""").Count);
+        Assert.Equal(3, Regex.Matches(toml, @"tag = ""v2""").Count);
+    }
+
+    [Fact]
+    public void Worker_exports_the_report_rate_limiter_durable_object_from_the_kit()
+    {
+        var js = Read("worker/index.js");
+        Assert.Contains("export { ReportRateLimiter } from \"../external/fara-site-kit/worker/report-rate-limit.js\";", js);
+    }
+
+    [Fact]
     public void Wrangler_keeps_dashboard_variables_at_the_top_level()
     {
         // 公開（wrangler deploy）のたびに、ダッシュボードの MAINTENANCE_MODE・報告の鍵などが消えないように。keep_vars はトップレベルだけが有効
