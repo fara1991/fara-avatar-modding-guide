@@ -754,8 +754,8 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
             <div class="card-body">
                 <h2 class="h5">練習の部屋の一覧</h2>
                 <p class="small text-body-secondary mb-3">一覧に出ている部屋（参加者が 1 人以上いる部屋）を、10 秒ごとに読み直します。鍵つきの部屋は、鍵を入れて入れます。</p>
-                <ul class="room-list list-unstyled mb-0" id="room-list" aria-live="polite">
-                    <li class="small text-body-secondary">読み込み中…</li>
+                <ul class="room-list list-unstyled mb-0" id="room-list" role="list" aria-live="polite">
+                    <li class="room-empty small text-body-secondary">読み込み中…</li>
                 </ul>
             </div>
         </div>

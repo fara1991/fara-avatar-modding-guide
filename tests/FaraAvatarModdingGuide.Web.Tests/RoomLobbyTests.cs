@@ -75,8 +75,69 @@ public class RoomLobbyTests : WebTestContext
             Assert.Contains("作成から 5 分", rows[0].TextContent);
             Assert.Empty(rows[0].QuerySelectorAll("input[type=password]"));
             Assert.Single(rows[1].QuerySelectorAll("input[type=password]"));   // 鍵つきは、鍵の欄を出す
-            Assert.Contains("鍵つき", rows[1].TextContent);
+            Assert.Contains("パスワードあり", rows[1].TextContent);
+            Assert.Single(rows[1].QuerySelectorAll(".room-card-lock-icon[role=img][aria-label=鍵]"));   // 鍵のアイコンには代替テキスト
+            Assert.Empty(rows[0].QuerySelectorAll(".room-card-lock-icon"));
+            Assert.Contains("鍵なし", rows[0].TextContent);
         });
+    }
+
+    [Fact]
+    public void Each_room_is_a_card_whose_join_button_is_named_after_the_room()
+    {
+        directory.Rooms = [new RoomListItem("roomaaaa1111", "夏の練習", 2, 8, false, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())];
+        var cut = RenderLobby();
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("#room-list li[data-room]")));
+        var card = cut.Find("#room-list > li.room-card[data-room]");
+        Assert.Equal("夏の練習", card.QuerySelector("h3")!.TextContent);      // 部屋名は見出し（ページの h1 の下の h3）
+        Assert.Equal("夏の練習 に入る", card.QuerySelector("button")!.GetAttribute("aria-label"));
+        Assert.False(card.QuerySelector("button")!.HasAttribute("disabled"));
+        Assert.Contains("2 / 8 人", card.QuerySelector(".room-card-count")!.TextContent);
+    }
+
+    [Fact]
+    public void A_full_room_is_marked_full_and_its_join_button_is_disabled_with_the_reason()
+    {
+        directory.Rooms = [new RoomListItem("roomcccc3333", "満員の部屋", 8, 8, false, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())];
+        var cut = RenderLobby();
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("#room-list li[data-room]")));
+        var card = cut.Find("#room-list li[data-room]");
+        Assert.Equal("満員", card.QuerySelector(".room-card-full")!.TextContent);
+        var button = card.QuerySelector("button")!;
+        Assert.True(button.HasAttribute("disabled"));
+        var reasonId = button.GetAttribute("aria-describedby");
+        Assert.NotNull(reasonId);
+        Assert.Contains("満員のため入れません", cut.Find("#" + reasonId).TextContent);   // 無効の理由は、ボタンの説明として読まれる
+        Assert.Empty(card.QuerySelectorAll("input[type=password]"));
+    }
+
+    [Fact]
+    public void A_full_locked_room_shows_no_pass_field_and_a_room_with_room_left_shows_no_full_mark()
+    {
+        directory.Rooms =
+        [
+            new RoomListItem("roomdddd4444", "満員の鍵つき", 8, 8, true, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
+            new RoomListItem("roomeeee5555", "空きあり", 7, 8, false, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
+        ];
+        var cut = RenderLobby();
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("#room-list li[data-room]").Count));
+        var rows = cut.FindAll("#room-list li[data-room]");
+        Assert.Empty(rows[0].QuerySelectorAll("input[type=password]"));
+        Assert.Single(rows[0].QuerySelectorAll(".room-card-lock-icon"));
+        Assert.Empty(rows[1].QuerySelectorAll(".room-card-full"));
+        Assert.False(rows[1].QuerySelector("button")!.HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void A_room_name_is_shown_as_text_and_never_as_markup()
+    {
+        const string name = "<img src=x onerror=alert(1)>";
+        directory.Rooms = [new RoomListItem("roomffff6666", name, 1, 8, false, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())];
+        var cut = RenderLobby();
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("#room-list li[data-room]")));
+        Assert.Empty(cut.FindAll("#room-list img"));                              // タグとして作られない
+        Assert.Equal(name, cut.Find("#room-list h3").TextContent);
+        Assert.Equal(name + " に入る", cut.Find("#room-list button").GetAttribute("aria-label"));
     }
 
     [Fact]
