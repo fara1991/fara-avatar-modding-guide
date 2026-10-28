@@ -17,7 +17,8 @@ export default {
   viewportHeight: 800,
   // Blazor が描画した後にだけある要素。これを待ってから測る（静的の本文だけを測らない）
   readySelector: ".mud-layout",
-  menuEsc: { buttonSelector: ".fsk-menu-toggle" },
+  // closeSelector: kit v0.7.0 の SiteLayout のドロワーの閉じるボタン（スマホのみ）。ドロワーがメニューボタンを覆うため、閉じる手段はこちらで判定する（kit の docs/layout-check.md の 6.）
+  menuEsc: { buttonSelector: ".fsk-menu-toggle", closeSelector: ".fsk-drawer-close" },
   rules: {
     "no-horizontal-scroll": true,
     "single-h1": true,
@@ -26,6 +27,7 @@ export default {
     "tap-target": true,
     "min-font-size": true,
     "menu-esc": true,
+    "menu-close-visible": true,
   },
   tapTarget: { minSize: 44, maxWidth: 600 },
   minFontSize: { min: 12, ignoreSelectors: [".material-icons"] },
