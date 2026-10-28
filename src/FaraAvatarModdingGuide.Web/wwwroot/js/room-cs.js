@@ -3,6 +3,9 @@
 // 通知は、C# が setHandlers で渡した関数に、接続の番号つきで届ける（onOpen(id) / onMessage(id, text) / onClose(id, code)）。
 // 使い方の決まり(room.js と同じ): 同時に 1 つの部屋だけ。C# が Dispose で退室し、close の通知は C# 側で無視される。
 const NAME_KEY = "avatar-modding-guide.name";
+// 作った部屋の作成者の鍵 { 部屋の ID: 鍵 }（この端末で作った、閉じていない部屋だけ。新しい順に最大 20 件）
+const ROOMS_KEY = "avatar-modding-guide.rooms";
+const ROOMS_MAX = 20;
 
 let handlers = null;
 const sockets = new Map();
@@ -75,6 +78,44 @@ export function loadName() {
 /** 表示名を保存する（保存できなくても続ける）。 */
 export function saveName(name) {
   try { localStorage.setItem(NAME_KEY, name); } catch { /* 保存できなくても続ける */ }
+}
+
+/** 作成者の鍵の表（読めなければ空の表。保存できない環境でも例外にしない）。 */
+function readRooms() {
+  try {
+    const v = JSON.parse(localStorage.getItem(ROOMS_KEY) ?? "{}");
+    return v && typeof v === "object" && !Array.isArray(v) ? v : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeRooms(map) {
+  try { localStorage.setItem(ROOMS_KEY, JSON.stringify(map)); } catch { /* 保存できなくても続ける */ }
+}
+
+/** この部屋の作成者の鍵（この端末で作った部屋のもの。無ければ null）。 */
+export function loadOwnerKey(roomId) {
+  const key = readRooms()[roomId];
+  return typeof key === "string" ? key : null;
+}
+
+/** 作成者の鍵を保存する（部屋を作ったとき）。古いものから消して、ROOMS_MAX 件に保つ。 */
+export function saveOwnerKey(roomId, key) {
+  const map = readRooms();
+  delete map[roomId];
+  map[roomId] = key;
+  const ids = Object.keys(map);
+  for (const id of ids.slice(0, Math.max(0, ids.length - ROOMS_MAX))) delete map[id];
+  writeRooms(map);
+}
+
+/** 作成者の鍵を消す（部屋が閉じたとき）。 */
+export function forgetOwnerKey(roomId) {
+  const map = readRooms();
+  if (!(roomId in map)) return;
+  delete map[roomId];
+  writeRooms(map);
 }
 
 /**

@@ -16,17 +16,87 @@
 @* 3D（C#）は、部屋の規則を Practice の RoomSession・3D を RoomCsEngine（Practice・Render）・WebSocket などを room-cs.js が持つ（Phase 3b S6・S7。three.js は使わない）。
    部屋の同期は worker/index.js の Durable Object(/api/rooms/<ID>/ws。このページが持つのは、部屋に入っているか(?room=<ID>)・ロビーに戻るかだけ)。
    部屋を作る = ?room=<新しい ID> へ移動(Blazor の移動。再読み込みなし)。部屋が替わる・ロビーに戻るときは、前の部屋を退室して解放してから、次を始める。
+   作成や鍵の指定は、移動の前に、このページのメモリに置いて、次の部屋の始めに 1 回だけ使う（鍵は URL に載せない）。
    静的 HTML(Build の PageBodies.PracticeRoom)と同じ構造(?room= の無いロビーの状態)。 *@
 <div id="room-lobby" class="card mb-4 practice-pc-only" hidden="@inRoom">
     <div class="card-body">
         <h2 class="h5">部屋を作る</h2>
         <p class="mb-3">ログインは不要です。部屋を作ったら、表示される URL を一緒に練習する人に送ってください。</p>
-        <p class="small text-body-secondary mb-3">URL を知っている人は誰でも入れて、内容を変えられます。個人情報は入れないでください。</p>
+        <div class="row g-2 mb-2">
+            <div class="col-sm-6">
+                <label class="form-label small" for="room-create-name">部屋の名前（40 字まで。空なら「練習の部屋」）</label>
+                <input type="text" class="form-control room-lobby-field" id="room-create-name" maxlength="40" autocomplete="off" value="@createName" @oninput="OnCreateName" />
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label small" for="room-create-pass">鍵（任意。64 字まで。空なら鍵なし）</label>
+                <input type="password" class="form-control room-lobby-field" id="room-create-pass" maxlength="64" autocomplete="new-password" value="@createPass" @oninput="OnCreatePass" />
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label small" for="room-create-listed">練習の部屋の一覧に出すか（出すと、部屋の名前と人数が誰にでも見えます）</label>
+            <select class="form-select room-lobby-field" id="room-create-listed" @onchange="OnCreateListed">
+                <option value="no" selected="@(!createListed)">一覧に出さない（既定）</option>
+                <option value="yes" selected="@createListed">一覧に出す</option>
+            </select>
+        </div>
+        <p class="small text-body-secondary mb-3">URL を知っている人は誰でも入れて、内容を変えられます。個人情報は入れないでください。一覧に出さない部屋は、URL を知る人だけが入れます。</p>
         <button type="button" class="btn btn-primary" id="room-create" @onclick="CreateRoom"><AvIcon Name="Add" /> 部屋を作る</button>
     </div>
 </div>
 
-<div id="room-main" class="row g-4 practice-pc-only" hidden="@(!inRoom)">
+<div id="room-list-card" class="card mb-4 practice-pc-only" hidden="@inRoom">
+    <div class="card-body">
+        <h2 class="h5">練習の部屋の一覧</h2>
+        <p class="small text-body-secondary mb-3">一覧に出ている部屋（参加者が 1 人以上いる部屋）を、10 秒ごとに読み直します。鍵つきの部屋は、鍵を入れて入れます。</p>
+        @if (listFailed)
+        {
+            <p class="small text-danger mb-2" role="status">一覧を読めませんでした。しばらくすると、もう一度読みます。</p>
+        }
+        @if (joinMessage is not null)
+        {
+            <p class="small text-danger mb-2" role="alert">@joinMessage</p>
+        }
+        <ul class="room-list list-unstyled mb-0" id="room-list" aria-live="polite">
+            @if (rooms is null)
+            {
+                <li class="small text-body-secondary">読み込み中…</li>
+            }
+            else if (rooms.Count == 0)
+            {
+                <li class="small text-body-secondary">今、一覧に出ている部屋はありません。部屋を作るとき「一覧に出す」を選ぶと、ここに出ます。</li>
+            }
+            else
+            {
+                @foreach (var r in rooms)
+                {
+                    <li class="room-row d-flex flex-wrap gap-2 align-items-center py-2 border-bottom" data-room="@r.Id" @key="r.Id">
+                        <span class="flex-grow-1 text-break room-row-name">@r.Name</span>
+                        @if (r.Locked)
+                        {
+                            <span class="room-row-lock small" title="鍵つき"><AvIcon Name="Lock" /><span class="visually-hidden">鍵つき</span></span>
+                        }
+                        <span class="small text-body-secondary room-row-meta">@r.Count / @r.Max 人・@Elapsed(r.CreatedAt)</span>
+                        @if (r.Locked)
+                        {
+                            <input type="password" class="form-control room-lobby-field room-row-pass" maxlength="64" autocomplete="off" aria-label="@r.Name の鍵" value="@RowPass(r.Id)" @oninput="e => OnRowPass(r.Id, e)" />
+                        }
+                        <button type="button" class="btn btn-outline-primary room-lobby-field" @onclick="() => JoinRoom(r)">入る</button>
+                    </li>
+                }
+            }
+        </ul>
+    </div>
+</div>
+
+<div id="room-closed" class="card mb-4 practice-pc-only" hidden="@(!inRoom || room.ClosedReason is null)" role="status">
+    <div class="card-body">
+        <h2 class="h5">この部屋は閉じられました</h2>
+        <p class="mb-3">@ClosedText</p>
+        <a class="btn btn-outline-primary btn-sm" href="/practice/room">みんなで練習のロビーへ</a>
+    </div>
+</div>
+
+<div id="room-main" class="row g-4 practice-pc-only" hidden="@(!inRoom || room.ClosedReason is not null)">
     <div class="col-lg-8">
         <div class="practice-viewport" id="room-viewport" tabindex="0" aria-label="3D ビューポート">
             @if (csActive)
@@ -48,9 +118,29 @@
         </div>
     </div>
     <div class="col-lg-4">
+        @if (csActive && room.Gate != "none" && room.ClosedReason is null)
+        {
+            <div class="card mb-3 room-gate" id="room-gate" role="form" aria-labelledby="room-gate-title">
+                <div class="card-body">
+                    <h2 class="h6" id="room-gate-title">この部屋には鍵があります</h2>
+                    @if (room.Gate == "limited")
+                    {
+                        <p class="small text-danger">鍵の入力が続けて違ったため、しばらく入れません（あと約 @Minutes(room.PassLimitMs) 分）。</p>
+                    }
+                    else
+                    {
+                        <p class="small">@(room.Gate == "wrongpass" ? "鍵が違います。" : "")部屋の作成者から聞いた鍵を入力してください。</p>
+                    }
+                    <div class="input-group input-group-sm">
+                        <input type="password" class="form-control room-lobby-field" id="room-gate-pass" maxlength="64" autocomplete="off" aria-label="鍵" value="@gatePass" @oninput="OnGatePass" disabled="@(room.Gate == "limited")" />
+                        <button type="button" class="btn btn-primary room-lobby-field" id="room-gate-submit" disabled="@(room.Gate == "limited")" @onclick="SubmitGate">入る</button>
+                    </div>
+                </div>
+            </div>
+        }
         <div class="card mb-3">
             <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-                <span>部屋</span>
+                <span>@(string.IsNullOrEmpty(room.RoomName) ? "部屋" : room.RoomName)</span>
                 @if (csActive)
                 {
                     <span class="room-status small @StatusClass" id="room-status" role="status">@room.Status</span>
@@ -61,6 +151,10 @@
                 }
             </div>
             <div class="card-body">
+                @if (csActive && room.IdleWarnMs is double idleMs && room.ClosedReason is null)
+                {
+                    <div class="alert alert-warning small" id="room-idle" role="alert">操作が無いため、あと約 @Minutes(idleMs) 分で部屋を閉じます。操作すると延びます。</div>
+                }
                 <label class="form-label small" for="room-url">この URL を送ると、同じ部屋に入れます</label>
                 <div class="input-group input-group-sm mb-3">
                     <input type="text" class="form-control" id="room-url" readonly value="@(csActive ? roomUrl : null)" />
@@ -80,6 +174,13 @@
                         }
                     }
                 </ul>
+                @if (csActive && room.IsOwner)
+                {
+                    <div class="mt-3 pt-3 border-top">
+                        <button type="button" class="btn btn-outline-danger btn-sm" id="room-close" @onclick="ConfirmCloseAsync">部屋を閉じる</button>
+                        <p class="small text-body-secondary mt-2 mb-0">作成者だけに表示されます。閉じると、ほかの人も切断され、部屋の中身は消えます。</p>
+                    </div>
+                }
             </div>
         </div>
         <div class="card">
@@ -91,7 +192,8 @@
                     <li>ほかの人が動かしているオブジェクトは、終わるまで動かせません（その人の色の枠が付きます）</li>
                     <li>ほかの人が変更すると、<kbd>Ctrl</kbd>+<kbd>Z</kbd> でそれより前には戻せません</li>
                     <li>「視点に合わせる」で、その人と同じ視点で見られます（自分で視点を動かすと解除）</li>
-                    <li>1 部屋 8 人まで、オブジェクトは 200 個まで。最後の変更から 24 時間で部屋の内容は消えます</li>
+                    <li>一覧に出した部屋の名前と人数は、誰にでも見えます。鍵つきの部屋も、鍵を知っている人は入れます</li>
+                    <li>1 部屋 8 人まで、オブジェクトは 200 個まで。操作（変更・ロック・移動）が 30 分無いと部屋は閉じられ、中身は消えます</li>
                 </ul>
             </div>
         </div>
@@ -130,12 +232,46 @@
     private string roomUrl = "";
     private string nameInitial = "";
 
+    // ロビー: 作成のフォーム・一覧（null は読み込み中）・鍵の入力
+    private IRoomDirectory? directory;
+    private IReadOnlyList<RoomListItem>? rooms;
+    private bool listFailed;
+    private string? joinMessage;
+    private string createName = "";
+    private string createPass = "";
+    private bool createListed;
+    private readonly Dictionary<string, string> rowPass = [];
+    private CancellationTokenSource? listCts;
+    private string gatePass = "";
+
+    // 次に入る部屋の指定（作成・一覧からの鍵）。移動の前に置き、その部屋の始めに 1 回だけ使う（鍵を URL に載せない）
+    private string? pendingRoomId;
+    private RoomStartOptions? pendingStart;
+
     /// <summary>入っている部屋の ID(小文字にそろえる)。?room= が無い・形が違うときは null(ロビー)。</summary>
     private string? RoomId => (RoomParameter ?? "").ToLowerInvariant() is { } id && RoomRe.IsMatch(id) ? id : null;
 
     private string StatusClass => string.IsNullOrEmpty(room.StatusKind) ? "" : $"is-{room.StatusKind}";
 
+    private string ClosedText => room.ClosedReason switch
+    {
+        "owner" => "作成者がこの部屋を閉じました。部屋の中身は消えました。",
+        "idle" => "30 分のあいだ操作が無かったため、部屋を閉じました。部屋の中身は消えました。",
+        _ => "この部屋は閉じられています。",
+    };
+
     protected override void OnParametersSet() => inRoom = RoomId is not null;
+
+    protected override void OnInitialized()
+    {
+        // 一覧は、ロビーでだけ読み直す（部屋の中・Dispose のあとは止める）
+        directory = Services.GetService<IRoomDirectory>();
+        if (directory is not null)
+        {
+            listCts = new CancellationTokenSource();
+            _ = ListLoopAsync(listCts.Token);
+        }
+    }
 
     private string? Query(string name) => Nav.Get(name);
 
@@ -168,7 +304,7 @@
             // 読み込んでいるあいだに、ページを離れた・部屋が替わった(この始め方は古い)。次の部屋の始め方に任せる
             if (disposed || startedRoom != roomId) return;
             roomUrl = Nav.Uri;
-            created = await RoomCsLoader.CreateAsync(roomId, roomUrl, Query("debug") == "1");
+            created = await RoomCsLoader.CreateAsync(roomId, roomUrl, Query("debug") == "1", TakePending(roomId));
             if (disposed || startedRoom != roomId) return;   // created は finally で破棄する
             StopCs();                                        // 同じ画面に、前の部屋が残っていれば先に解放する
             cs = created;
@@ -196,11 +332,22 @@
         if (!disposed) StateHasChanged();
     }
 
+    /// <summary>次に入る部屋の指定を、その部屋の始めに 1 回だけ取り出す（別の部屋の指定は使わない）。</summary>
+    private RoomStartOptions? TakePending(string roomId)
+    {
+        if (pendingRoomId != roomId) return null;
+        var start = pendingStart;
+        pendingRoomId = null;
+        pendingStart = null;
+        return start;
+    }
+
     private void StopCs()
     {
         csActive = false;
         csFailed = false;
         copied = false;
+        gatePass = "";
         if (cs is null) return;
         cs.Changed -= OnCsChanged;
         cs.Dispose();
@@ -225,6 +372,22 @@
 
     private void ToggleFollow(string id) => cs?.ToggleFollow(id);
 
+    /// <summary>鍵を入れて入り直す（鍵の画面）。空なら何もしない。</summary>
+    private void SubmitGate()
+    {
+        if (cs is null || string.IsNullOrEmpty(gatePass)) return;
+        cs.SubmitPass(gatePass);
+        gatePass = "";
+    }
+
+    /// <summary>作成者が部屋を閉じる。確認のダイアログで「はい」のときだけ送る（作成者でなければ、サーバーも何もしない）。</summary>
+    private async Task ConfirmCloseAsync()
+    {
+        if (cs is null) return;
+        var ok = await JS.InvokeAsync<bool>("confirm", "部屋を閉じますか？\n\nほかの人も切断され、部屋の中身は消えます。取り消せません。");
+        if (ok && cs is not null) cs.RequestClose();
+    }
+
     /// <summary>URL をコピーする。ラベルは 1.5 秒のあと「コピー」に戻る。C# 版の描画の中では、JavaScript のタイマーで待つ。</summary>
     private async Task CopyUrl()
     {
@@ -238,19 +401,105 @@
         StateHasChanged();
     }
 
+    /// <summary>部屋を作る: ID と作成者の鍵（16 バイトの乱数）を作り、作成の指定を次の部屋として置いてから、その部屋へ移動する。</summary>
     private void CreateRoom()
     {
         var bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(10);
         var id = new string(bytes.Select(b => "0123456789abcdefghijklmnopqrstuvwxyz"[b % 36]).ToArray());
+        var ownerKey = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
+        var name = createName.Trim();
+        pendingRoomId = id;
+        pendingStart = new RoomStartOptions(
+            CreateName: name.Length == 0 ? "練習の部屋" : name,
+            Listed: createListed,
+            CreatePass: createPass.Length == 0 ? null : createPass,
+            OwnerKey: ownerKey);
+        createPass = "";
         // ?debug=1 は、作った部屋へも引き継ぐ
         var extra = Query("debug") == "1" ? "&debug=1" : "";
         Nav.NavigateTo($"/practice/room?room={id}{extra}");
+    }
+
+    /// <summary>一覧の部屋に入る。鍵つきは、入力した鍵を次の部屋の最初の hello に使う（URL には載せない）。</summary>
+    private void JoinRoom(RoomListItem r)
+    {
+        joinMessage = null;
+        if (!RoomRe.IsMatch(r.Id)) return;
+        var pass = RowPass(r.Id);
+        if (r.Locked && pass.Length == 0)
+        {
+            joinMessage = $"「{r.Name}」は鍵つきです。鍵を入力してから「入る」を押してください。";
+            return;
+        }
+        pendingRoomId = r.Id;
+        pendingStart = new RoomStartOptions(Pass: r.Locked ? pass : null);
+        Nav.NavigateTo($"/practice/room?room={r.Id}");
+    }
+
+    private string RowPass(string id) => rowPass.TryGetValue(id, out var v) ? v : "";
+
+    private void OnCreateName(ChangeEventArgs e) => createName = e.Value?.ToString() ?? "";
+    private void OnCreatePass(ChangeEventArgs e) => createPass = e.Value?.ToString() ?? "";
+    private void OnCreateListed(ChangeEventArgs e) => createListed = e.Value?.ToString() == "yes";
+    private void OnRowPass(string id, ChangeEventArgs e) => rowPass[id] = e.Value?.ToString() ?? "";
+    private void OnGatePass(ChangeEventArgs e) => gatePass = e.Value?.ToString() ?? "";
+
+    /// <summary>作成からの経過（表示用）。</summary>
+    private static string Elapsed(double createdAtMs)
+    {
+        var minutes = (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - createdAtMs) / 60000.0;
+        if (minutes < 1) return "作成したばかり";
+        if (minutes < 60) return $"作成から {(int)minutes} 分";
+        return $"作成から {(int)(minutes / 60)} 時間";
+    }
+
+    private static string Minutes(double ms) => Math.Max(1, (int)Math.Ceiling(ms / 60000.0)).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>一覧を 10 秒ごとに読み直す（ロビーのあいだだけ）。Dispose で止まる。</summary>
+    private async Task ListLoopAsync(CancellationToken ct)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+        try
+        {
+            do
+            {
+                await RefreshListAsync(ct);
+            }
+            while (await timer.WaitForNextTickAsync(ct));
+        }
+        catch (OperationCanceledException)
+        {
+            // ページを離れた
+        }
+    }
+
+    private async Task RefreshListAsync(CancellationToken ct)
+    {
+        if (directory is null || inRoom || disposed) return;
+        try
+        {
+            rooms = await directory.ListAsync(ct);
+            listFailed = false;
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        catch (Exception e) when (e is System.Net.Http.HttpRequestException or System.Text.Json.JsonException or NotSupportedException or InvalidOperationException)
+        {
+            listFailed = true;
+            Console.Error.WriteLine($"[avatar] 部屋の一覧を読めません: {e.Message}");
+        }
+        if (!disposed) await InvokeAsync(StateHasChanged);
     }
 
     public async ValueTask DisposeAsync()
     {
         disposed = true;
         initialized = false;
+        listCts?.Cancel();
+        listCts?.Dispose();
+        listCts = null;
         StopCs();
         if (host is not null) await host.DisposeAsync();
         host = null;

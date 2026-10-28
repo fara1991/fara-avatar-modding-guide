@@ -82,7 +82,27 @@ public static class RoomWire
         "{" + Key("id") + Str(o.Id) + "," + Key("kind") + Str(o.Kind) + "," + Key("name") + Str(o.Name) + ","
         + Key("p") + Nums(o.P) + "," + Key("r") + Nums(o.R) + "," + Key("s") + Nums(o.S) + "}";
 
-    public static string Hello(string name) => "{" + Key("t") + Str("hello") + "," + Key("name") + Str(name) + "}";
+    /// <summary>
+    /// 参加（hello）。owner(作成者の鍵)・pass(鍵)・create(作成の指定)は、あるときだけ付ける（無いときは従来の文字と同じ）。
+    /// create の中の pass は、作成するときの鍵。キーの順は t・name・owner・pass・create。
+    /// </summary>
+    public static string Hello(string name, string? owner = null, string? pass = null, RoomCreateOptions? create = null)
+    {
+        var sb = new StringBuilder("{" + Key("t") + Str("hello") + "," + Key("name") + Str(name));
+        if (owner is not null) sb.Append(',').Append(Key("owner")).Append(Str(owner));
+        if (pass is not null) sb.Append(',').Append(Key("pass")).Append(Str(pass));
+        if (create is not null)
+        {
+            sb.Append(',').Append(Key("create")).Append('{').Append(Key("name")).Append(Str(create.Name))
+                .Append(',').Append(Key("listed")).Append(create.Listed ? "true" : "false");
+            if (create.Pass is not null) sb.Append(',').Append(Key("pass")).Append(Str(create.Pass));
+            sb.Append('}');
+        }
+        return sb.Append('}').ToString();
+    }
+
+    /// <summary>部屋を閉じる（作成者だけ。サーバーが確かめる）。</summary>
+    public static string Close() => "{" + Key("t") + Str("close") + "}";
     public static string Name(string name) => "{" + Key("t") + Str("name") + "," + Key("name") + Str(name) + "}";
     public static string Select(IEnumerable<string> ids) => "{" + Key("t") + Str("select") + "," + Key("ids") + Ids(ids) + "}";
     public static string Lock(IEnumerable<string> ids) => "{" + Key("t") + Str("lock") + "," + Key("ids") + Ids(ids) + "}";
