@@ -3,7 +3,7 @@
 @inject NavigationManager Nav
 @inject SiteSettings Settings
 
-<PageTitle>検索 - @Settings.Title</PageTitle>
+<PageTitle>@PageTitles.Compose("検索", Settings.Title)</PageTitle>
 
 @* 静的 HTML(Build の PageBodies.Search)と同じ構造・class。検索語は URL の ?q=。探す処理と強調は Search/SearchEngine(searchcore.js の移植) *@
 <h1>検索</h1>

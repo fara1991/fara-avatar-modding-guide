@@ -2,7 +2,7 @@
 @inject ContentStore Store
 @inject SiteSettings Settings
 
-<PageTitle>ホーム - @Settings.Title</PageTitle>
+<PageTitle>@PageTitles.Compose("ホーム", Settings.Title)</PageTitle>
 
 @* サイト名と説明（ポケモン・Bot のサイトと同じ作り。箱で囲まず、グラデーションの文字）。静的 HTML（Build の PageBodies.Home）と同じ構造・class *@
 <div class="home-header">

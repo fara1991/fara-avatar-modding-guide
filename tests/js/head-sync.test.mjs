@@ -7,9 +7,9 @@ import { runInNewContext } from "node:vm";
 const SOURCE = readFileSync(new URL("../../src/FaraAvatarModdingGuide.Web/wwwroot/js/head-sync.js", import.meta.url), "utf8");
 
 const PAGES = {
-    "/": { title: "ホーム - Site", description: "ホームの説明", ogType: "website" },
-    "/learn/basics/select": { title: "選択 - Site", description: "選択の説明", ogType: "article" },
-    "/report": { title: "問い合わせ - Site", description: "報告の説明", ogType: "website", noindex: true },
+    "/": { title: "ホーム | Site", description: "ホームの説明", ogType: "website" },
+    "/learn/basics/select": { title: "選択 | Site", description: "選択の説明", ogType: "article" },
+    "/report": { title: "問い合わせ | Site", description: "報告の説明", ogType: "website", noindex: true },
 };
 
 /** 最小の head の代用(タグを 1 つずつ持つ。robots は最初は無い) */
@@ -58,7 +58,7 @@ test("移った先の値に、既存のタグを書き換える(タグは増え�
     assert.equal(t.tags('link[rel="canonical"]')[0].attrs.href, "https://avatar.fara-labs.com/learn/basics/select");
     assert.equal(t.tags('meta[name="description"]')[0].attrs.content, "選択の説明");
     assert.equal(t.tags('meta[property="og:description"]')[0].attrs.content, "選択の説明");
-    assert.equal(t.tags('meta[property="og:title"]')[0].attrs.content, "選択 - Site");
+    assert.equal(t.tags('meta[property="og:title"]')[0].attrs.content, "選択 | Site");
     assert.equal(t.tags('meta[property="og:type"]')[0].attrs.content, "article");
     assert.equal(t.tags('meta[property="og:url"]')[0].attrs.content, "https://avatar.fara-labs.com/learn/basics/select");
     assert.equal(t.head.children.length, 6);
@@ -113,7 +113,7 @@ test("404.html から移ったとき(head に canonical・description・OGP が�
     await t.sync("/learn/basics/select");
     assert.equal(t.tags('link[rel="canonical"]').length, 1);
     assert.equal(t.tags('link[rel="canonical"]')[0].attrs.href, "https://avatar.fara-labs.com/learn/basics/select");
-    for (const [attr, key, value] of [["name", "description", "選択の説明"], ["property", "og:description", "選択の説明"], ["property", "og:title", "選択 - Site"], ["property", "og:type", "article"], ["property", "og:url", "https://avatar.fara-labs.com/learn/basics/select"]]) {
+    for (const [attr, key, value] of [["name", "description", "選択の説明"], ["property", "og:description", "選択の説明"], ["property", "og:title", "選択 | Site"], ["property", "og:type", "article"], ["property", "og:url", "https://avatar.fara-labs.com/learn/basics/select"]]) {
         const found = t.tags(`meta[${attr}="${key}"]`);
         assert.equal(found.length, 1, key);
         assert.equal(found[0].attrs.content, value, key);

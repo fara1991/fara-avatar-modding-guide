@@ -16,7 +16,7 @@
 else
 {
     var done = Progress.IsDone(article.Id);
-    <PageTitle>@article.Title - @Settings.Title</PageTitle>
+    <PageTitle>@PageTitles.Compose(article.Title, Settings.Title)</PageTitle>
     <Breadcrumb Items="@Crumbs(content)" />
 
     <header class="article-header mb-4" data-progress-page="@article.Id">

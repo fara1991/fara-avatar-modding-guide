@@ -42,10 +42,10 @@ public static class PageCatalog
         var site = settings.Title;
         var pages = new List<PagePlan>();
 
-        PagePlan Page(string path, string title, string description, string main, string ogType = OgWebsite, string separator = "-") =>
-            new(path, $"{title} {separator} {site}", Html.Describe(description), main, IsWasm(path, content), NoIndexPaths.Contains(path), ogType);
+        PagePlan Page(string path, string title, string description, string main, string ogType = OgWebsite) =>
+            new(path, PageTitles.Compose(title, site), Html.Describe(description), main, IsWasm(path, content), NoIndexPaths.Contains(path), ogType);
 
-        pages.Add(new("/", $"ホーム - {site}",
+        pages.Add(new("/", PageTitles.Compose("ホーム", site),
             Html.Describe("アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。"),
             bodies.Home(), true));
         pages.Add(Page("/learn", "目次", "Blender・Unity・VRChat の区切りごとに、上から順に読むと一通り追えるアバター改変の目次です。", bodies.LearnIndex()));
@@ -60,7 +60,7 @@ public static class PageCatalog
         pages.Add(Page("/qa", "改変 Q&A", "非対応衣装の着せ替え、ウェイト、首すげ替え、テクスチャの色変え、表情・アニメーター、PhysBone、VRM など、アバター改変でよく出る質問と答え・手順です。", bodies.Qa()));
         pages.Add(Page("/links", "リンク集", "アバター改変で使う Unity のツール、VRChat の資料、参考になる記事・動画、話題になった BOOTH のアバター・衣装のリンク集です。", bodies.Links()));
         pages.Add(Page("/changelog", "更新履歴", $"{site} の更新履歴です。記事の追加・見た目や機能の変更を新しい順に載せています。", bodies.Changelog()));
-        pages.Add(Page("/report", "問い合わせ", $"{site} の不具合・要望・ご意見を、作者に直接送るフォームです。", bodies.Report(), separator: "|"));   // kit の ReportFormView の PageTitle(「問い合わせ | サイト名」)に合わせる(起動の後も、タブの題名が替わらない。kit の PageTitle は上書きできない)
+        pages.Add(Page("/report", "問い合わせ", $"{site} の不具合・要望・ご意見を、作者に直接送るフォームです。", bodies.Report()));
         pages.Add(Page("/privacy", "プライバシーポリシー", $"{site} で、どんな情報を何のために扱うかのまとめです。", bodies.Privacy()));
         pages.Add(Page("/search", "検索", "記事・用語集・何て名前？・TIPS・改変 Q&A・ショートカット・アドオン・リンク集をまとめて検索します。", bodies.Search()));
 
@@ -89,7 +89,7 @@ public static class PageCatalog
     }
 
     /// <summary>404.html の題名（kit の既定の形に合わせる）。</summary>
-    public static string NotFoundTitle(SiteSettings settings) => $"ページが見つかりません | {settings.Title}";
+    public static string NotFoundTitle(SiteSettings settings) => PageTitles.Compose("ページが見つかりません", settings.Title);
 
     /// <summary>
     /// ページの本文を、ページ全体の静的な枠(ヘッダー・サイドバー・本文・フッター)で包む。枠は、WebAssembly が起動したあとの画面と同じ DOM 構造・同じ class にする(StaticFrame。計画書 4.10)。
