@@ -1822,4 +1822,175 @@ label,
     word-break: normal;
     word-break: auto-phrase;
     overflow-wrap: break-word;
+
+/* ---------- 記事の読みやすさ（ページ内レイアウトの見直し） ---------- */
+
+/* 目次のリンクで飛んだとき、見出しが固定のヘッダーの下に隠れない */
+.article-body h2,
+.article-body h3 {
+    scroll-margin-top: 5rem;
+}
+
+/* h3 は h2 と見分けやすいよう、色で区別する（下線は h2 だけ） */
+.article-body h3 {
+    color: var(--lavender);
+    margin-bottom: 0.5rem;
+}
+
+[data-bs-theme="light"] .article-body h3 {
+    color: var(--violet-deep);
+}
+
+/* 番号つきの手順（本文の直下の ol）。番号を丸いバッジにして、1 手順ずつの区切りを見やすくする。
+   番号は list-item カウンターなので、start 属性や入れ子の ol でも本来の番号になる */
+.article-body > ol {
+    list-style: none;
+    padding-left: 0;
+}
+
+.article-body > ol > li {
+    position: relative;
+    padding-left: 2.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.article-body > ol > li::before {
+    content: counter(list-item);
+    position: absolute;
+    left: 0;
+    top: 0.2em;
+    width: 1.7rem;
+    height: 1.7rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    background: rgba(168, 85, 247, 0.18);
+    color: var(--bs-emphasis-color);
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.6rem;
+    text-align: center;
+}
+
+[data-bs-theme="light"] .article-body > ol > li::before {
+    background: rgba(124, 58, 237, 0.1);
+}
+
+/* 手順の中の入れ子の箇条書きと画像は、バッジの右（文字の左端）に揃える */
+.article-body > ol > li > ul,
+.article-body > ol > li > ol {
+    margin-top: 0.5rem;
+}
+
+/* 表の最初の列（項目名）が 1 文字ずつ折れないよう、最低限の幅を持たせる */
+.article-body td:first-child {
+    min-width: 7em;
+}
+
+/* 3 列以上の表は、狭い画面（1200px 未満。PC でも左のメニューと右の目次で本文が狭い）で、1 行ずつのカードにする。
+   見出しの文字は Build が td の data-label に付ける（読み上げ・検索の文字は変わらない）。最初の列がカードの見出し */
+@media (max-width: 1199.98px) {
+    .article-body table.table-cards,
+    .article-body table.table-cards tbody,
+    .article-body table.table-cards tr,
+    .article-body table.table-cards td {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .article-body table.table-cards {
+        overflow: visible;
+        font-size: inherit;
+    }
+
+    .article-body table.table-cards thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    .article-body table.table-cards tbody tr {
+        margin-bottom: 0.8rem;
+        border: 1px solid var(--border-strong);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .article-body table.table-cards td {
+        padding: 0.45rem 0.9rem;
+        border: 0;
+        word-break: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .article-body table.table-cards td:first-child {
+        min-width: 0;
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        font-weight: 700;
+    }
+
+    .article-body table.table-cards td::before {
+        content: attr(data-label);
+        display: block;
+        color: var(--bs-secondary-color);
+        font-size: 0.8rem;
+        font-weight: 400;
+        line-height: 1.5;
+    }
+
+    .article-body table.table-cards td:first-child::before {
+        display: none;
+    }
+
+    .article-body table.table-cards td:last-child {
+        padding-bottom: 0.7rem;
+    }
+}
+
+/* スマートフォン: 説明の一文を少し小さくして、1 行の文字数を増やす。入れ子でない箇条書きの字下げも詰める */
+@media (max-width: 575.98px) {
+    .article-header .lead {
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+
+    .article-body > ul,
+    .article-body ul ul {
+        padding-left: 1.25rem;
+    }
+}
+
+/* 表（2 列の表と、広い画面の表）: 行の区切り線と見出しの背景を付け、セルは上揃えにする。区切りが無いと、行の境目と複数行のセルの区別がつかない */
+.article-body table {
+    border-collapse: collapse;
+}
+
+.article-body table:not(.table-cards) th,
+.article-body table:not(.table-cards) td {
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+}
+
+.article-body table:not(.table-cards) thead th {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border-strong);
+}
+
+@media (min-width: 1200px) {
+    .article-body table.table-cards th,
+    .article-body table.table-cards td {
+        vertical-align: top;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .article-body table.table-cards thead th {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border-strong);
+    }
 }

@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.CustomContainers;
+using Markdig.Extensions.Tables;
 using Markdig.Extensions.Yaml;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
@@ -325,6 +326,7 @@ public sealed partial class ContentService
         }
 
         var scenarios = ConvertPracticeContainers(document, path);
+        LabelTableCells(document);
 
         var front = new ArticleFrontMatter();
         if (document.Descendants<YamlFrontMatterBlock>().FirstOrDefault() is { } yamlBlock)
@@ -441,6 +443,32 @@ public sealed partial class ContentService
         }
         return html;
     }
+
+    /// <summary>
+    /// 記事の表の各セルに、見出しの文字を data-label として付ける。3 列以上の表には table-cards を付け、
+    /// 狭い画面では CSS が 1 行ずつのカードに組み替える（列が細くなって字が 1 文字ずつ折れるのを防ぐ）。文字は増えず、HTML の属性だけが増える。
+    /// </summary>
+    private static void LabelTableCells(MarkdownDocument document)
+    {
+        foreach (var table in document.Descendants<Table>())
+        {
+            var rows = table.OfType<TableRow>().ToList();
+            if (rows.Count < 2 || !rows[0].IsHeader) continue;
+            var labels = rows[0].OfType<TableCell>().Select(CellText).ToList();
+            if (labels.Count >= 3) table.GetAttributes().AddClass("table-cards");
+            foreach (var row in rows.Skip(1))
+            {
+                var cells = row.OfType<TableCell>().ToList();
+                for (var i = 0; i < cells.Count && i < labels.Count; i++)
+                {
+                    if (labels[i].Length > 0) cells[i].GetAttributes().AddProperty("data-label", labels[i]);
+                }
+            }
+        }
+    }
+
+    private static string CellText(TableCell cell) =>
+        string.Concat(cell.Descendants().Select(x => x switch { LiteralInline l => l.Content.ToString(), CodeInline c => c.Content, _ => "" })).Trim();
 
     private static string ToPlainText(string html)
     {
