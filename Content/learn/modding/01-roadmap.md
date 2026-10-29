@@ -66,7 +66,7 @@ updated: 2026-10-11
 - 対応アバターが書かれていない衣装（非対応衣装）を着せたい
 - 体形を変えたい、見えない部分のメッシュを消したい
 
-Blender の操作に慣れていなければ、目次の Blender の区切り（[インストール](/learn/getting-started/install) から [リギング](/learn/rigging/armature) まで）を先に読んでください。基本のキー操作は、ブラウザの [操作の練習](/practice) で試せます。非対応衣装を着せる流れは [非対応衣装を Blender で着せる](/learn/modding/unsupported-outfit)、うまくいかないときは [服が動かない・凹む・突き抜けるときのチェックリスト](/learn/modding/outfit-checklist) にまとめています。
+Blender の操作に慣れていなければ、目次の Blender の区切り（[インストール](/learn/getting-started/install) から [リギング](/learn/rigging/armature) まで）を先に読んでください。基本のキー操作は、ブラウザの [操作の練習](/practice) で試せます。非対応衣装を着せる流れは [非対応衣装を Blender で着せる](/learn/modding/unsupported-outfit) にまとめています。うまくいかないときは [服が動かない・凹む・突き抜けるときのチェックリスト](/learn/modding/outfit-checklist) を見てください。
 
 ::: warning
 改変の前に、アバターと衣装の **利用規約** を確認してください。改変の可否、他のアバターへの流用、素体のウェイトを使ってよいかなどは商品ごとに決まっています（[TIPS: 利用規約を確認する](/tips#check-license-terms)）。

@@ -50,7 +50,7 @@
   name: CopyComponentsByRegex
   url: https://github.com/Taremin/CopyComponentsByRegex
   category: unity-tool
-  description: ボーン名を正規表現で対応付けてコンポーネント（揺れもの等）を一括コピーする
+  description: ボーン名を正規表現で対応付けてコンポーネント（揺れものなど）を一括コピーする
   note: PhysBone でも使えるかは確かめてください。MA で衣装を分離する運用なら不要な場面も多い。
   source: discord
 
@@ -76,7 +76,7 @@
   url: https://booth.pm/ja/items/1258744
   category: unity-tool
   description: 表情アニメーションの作成や FX のデフォルト表情変更を GUI で行うエディタ拡張（beta）
-  note: 当時（SDK3 初期）の定番。現行 SDK・Unity 2022 での動作は未確認。 当時は VRCAvatarEditor で表情アニメーションの作成や FX のデフォルト表情の差し替えを GUI で行っていました。現在の SDK・Unity での対応状況は配布ページで確認してください。
+  note: 当時（SDK3 初期）の定番。現行 SDK・Unity 2022 での動作は未確認。当時は VRCAvatarEditor で表情アニメーションの作成や FX のデフォルト表情の差し替えを GUI で行っていた。現在の SDK・Unity での対応状況は配布ページで確認してください。
   source: discord
 
 - id: booth-2442610
@@ -138,7 +138,7 @@
   name: Enhanced Hierarchy 2.0
   url: https://assetstore.unity.com/packages/tools/utilities/enhanced-hierarchy-2-0-44322
   category: unity-tool
-  description: Hierarchy にコンポーネント等の情報を表示する
+  description: Hierarchy にコンポーネントなどの情報を表示する
   source: discord
 
 - id: av3emulator

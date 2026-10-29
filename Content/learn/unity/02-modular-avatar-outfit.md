@@ -32,7 +32,7 @@ Project ウィンドウの衣装の Prefab を、Hierarchy のアバターの **
 
 ## 2. Setup Outfit
 
-衣装（Prefab のいちばん上）を右クリックして **Modular Avatar > Setup Outfit** を選びます。衣装の `Armature` に **MA Merge Armature**、衣装のいちばん上に **MA Outfit Root** と **MA Mesh Settings** が付き、アップロードするとき（ビルド時）に、衣装のボーンが同じ名前のアバターのボーンに統合されます。元のシーンは変わらないので、あとから外すのも簡単です。
+衣装（Prefab のいちばん上）を右クリックして **Modular Avatar > Setup Outfit** を選びます。衣装の `Armature` に **MA Merge Armature**、衣装のいちばん上に **MA Outfit Root** と **MA Mesh Settings** が付きます。アップロードするとき（ビルド時）に、衣装のボーンが同じ名前のアバターのボーンに統合されます。元のシーンは変わらないので、あとから外すのも簡単です。
 
 服がついてこないときは [TIPS: Modular Avatar で服が体についてこない](/tips#ma-bone-mismatch) を見てください。
 

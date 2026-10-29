@@ -1800,6 +1800,29 @@ h1:focus {
     }
 }
 
+/* ---------- 行頭禁則 ----------
+   kit は本文（.fbc-page-column の p・li・dd・td）にだけ line-break: strict を付ける。見出し・表の見出し・図の説明・引用・ボタン・検索の候補などでも、
+   句読点・閉じ括弧が行頭に来ないよう、line-break は継承するので body から付ける（auto-phrase は語の途中で切らないための併用。対応しないブラウザでは通常の折り返し） */
+body {
+    line-break: strict;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+th,
+figcaption,
+blockquote,
+summary,
+label,
+.btn {
+    word-break: normal;
+    word-break: auto-phrase;
+    overflow-wrap: break-word;
+
 /* ---------- 記事の読みやすさ（ページ内レイアウトの見直し） ---------- */
 
 /* 目次のリンクで飛んだとき、見出しが固定のヘッダーの下に隠れない */

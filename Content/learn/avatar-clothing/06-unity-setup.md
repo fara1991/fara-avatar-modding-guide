@@ -13,7 +13,7 @@ updated: 2026-10-10
 | Unity（VRChat が指定するバージョン） | VRChat Creator Companion（VCC）または ALCOM から |
 | VRChat SDK（Avatars） | VCC / ALCOM でプロジェクトに追加 |
 | **Modular Avatar** | VCC / ALCOM の「Packages」で追加（リポジトリは [modular-avatar.nadena.dev](https://modular-avatar.nadena.dev/ja) の手順で登録） |
-| liltoon などのシェーダー | 任意。アバター付属のものと同じにするときれい |
+| lilToon などのシェーダー | 任意。アバター付属のものと同じにするときれい |
 
 Modular Avatar は、服のアーマチュアをアバターのアーマチュアに **自動で統合** するツールです。手動でボーンを 1 本ずつ付け替える必要がなくなり、服の着脱も簡単になります。
 
@@ -36,7 +36,7 @@ Modular Avatar は、服のアーマチュアをアバターのアーマチュ�
 ## 2. マテリアルを作る
 
 1. `Assets/Clothing/Shirt` で右クリック > **Create > Material**、名前を `Shirt`
-2. `Inspector` で **Shader** をアバターと同じもの（liltoon など）に変える
+2. `Inspector` で **Shader** をアバターと同じもの（lilToon など）に変える
 3. **Main Color / Texture**（シェーダーによって名前が違う）に `Shirt_Color.png` をドラッグ
 
 FBX のマテリアルは、既定では FBX の中に埋め込まれたものが使われます。作ったマテリアルを使うには、`Shirt.fbx` の `Inspector` の **Materials** タブで、**Remapped Materials** の該当欄に `Shirt` を入れて **Apply** します。

@@ -422,7 +422,7 @@
   term: シェイプキー
   reading: しぇいぷきー
   en: Shape Key
-  description: メッシュの形の差分を保存して、0〜1 で混ぜる仕組み。表情や体型の変化に使う。Unity ではブレンドシェイプと呼ばれる。
+  description: メッシュの形の差分を保存して、0〜1 で混ぜる仕組み。表情や体形の変化に使う。Unity ではブレンドシェイプと呼ばれる。
   tags: [Blender, リギング, Unity]
   articles: [rigging/shape-keys]
   related: [blendshape-sync]
@@ -705,7 +705,7 @@
   term: Setup Outfit
   reading: せっとあっぷあうとふぃっと
   en: Modular Avatar > Setup Outfit
-  description: 衣装をアバターの中に入れたあと、衣装を右クリック > Modular Avatar > Setup Outfit で、衣装のアーマチュアに MA Merge Armature、衣装のルートに MA Outfit Root と MA Mesh Settings などを自動で付ける操作。
+  description: 衣装をアバターの中に入れたあと、衣装を右クリック > Modular Avatar > Setup Outfit で行う操作。衣装のアーマチュアに MA Merge Armature、衣装のルートに MA Outfit Root と MA Mesh Settings などが自動で付く。
   tags: [Modular Avatar, Unity]
   articles: [avatar-clothing/unity-setup]
   related: [merge-armature, modular-avatar]
@@ -723,7 +723,7 @@
   term: MA Blendshape Sync
   reading: えむえーぶれんどしぇいぷしんく
   en: MA Blendshape Sync
-  description: アバター本体のブレンドシェイプ（シェイプキー）の値を、衣装の同じ名前のブレンドシェイプに合わせるコンポーネント。胸の大きさなどの体型の変更に服を追従させる。
+  description: アバター本体のブレンドシェイプ（シェイプキー）の値を、衣装の同じ名前のブレンドシェイプに合わせるコンポーネント。胸の大きさなどの体形の変更に服を追従させる。
   tags: [Modular Avatar, Unity]
   articles: [avatar-clothing/unity-setup, rigging/shape-keys]
   related: [shape-key]
@@ -768,7 +768,7 @@
   term: リーフボーン（_end）
   reading: りーふぼーん
   en: Leaf Bone
-  description: ボーン末端の「〜_end」は、Unity にボーンの長さ（向き）を伝えるための点です。ウェイトは乗っていないことが多く、揺らさないなら削除しても見た目は変わりませんが、揺れものの動き方には影響します。
+  description: ボーン末端の「〜_end」は、Unity にボーンの長さ（向き）を伝えるための点。ウェイトは乗っていないことが多く、揺らさないなら削除しても見た目は変わらないが、揺れものの動き方には影響する。
   body: |-
     - Blender のボーンには長さ（Head と Tail）がありますが、Unity のボーンは「点」です。末端に `〜_end` の点を置くことで、その手前のボーンが次の点への方向を持てます。
     - **揺れもの（PhysBone）との関係**
@@ -786,10 +786,10 @@
   term: Write Defaults（WD）
   reading: らいとでふぉると
   en: Write Defaults
-  description: Animator のステートごとの設定で、アニメーションで指定していないプロパティを既定値に書き戻すかどうかを決めます。同じアバター内で ON と OFF が混在すると、表情やトグルが思った通りに動かない原因になります。
+  description: Animator のステートごとの設定で、アニメーションで指定していないプロパティを既定値に書き戻すかどうかを決める。同じアバター内で ON と OFF が混在すると、表情やトグルが思った通りに動かない原因になる。
   body: |-
     - アニメーションの不具合で詰まったら、まず Write Defaults の混在を疑います。
-    - アバター本体の FX コントローラーの設定に合わせて、追加するギミックの WD も揃えます。
+    - アバター本体の FX コントローラーの設定に合わせて、追加するギミックの WD もそろえます。
     - Modular Avatar の Merge Animator には、アバターの WD 設定に合わせる設定（「アバターの Write Defaults 設定に合わせる」）があります。
     - VRChat の公式の Animator は WD を Off で作っていて、公式はアバター全体で On / Off をそろえることをすすめています。Motion が空（None）のステートは On のように振る舞います。
     - MMD ワールドの表情自動変化のように、WD ON を前提にした仕組みもあります。
@@ -803,7 +803,7 @@
 - id: mmd-world
   term: MMD ワールド
   reading: えむえむでぃーわーるど
-  description: MMD ワールドは、ダンス用のアニメーションコントローラーをアバターに割り当て、Body メッシュの MMD 準拠のシェイプキーを直接動かしています。MMD 準拠のシェイプキー名があり、Write Defaults が ON のアバターで動作します。
+  description: MMD ワールドは、ダンス用のアニメーションコントローラーをアバターに割り当て、Body メッシュの MMD 準拠のシェイプキーを直接動かしている。MMD 準拠のシェイプキー名があり、Write Defaults が ON のアバターで動作する。
   body: |-
     - ワールド側がアバターに専用のアニメーションコントローラーを割り当てます（ダンスモーションと一緒に表情のアニメーションが入っています）。
     - 動く条件の目安: `Body` メッシュに MMD 準拠の名前のシェイプキー（あ・い・う・まばたき など）がある、Write Defaults の設定がワールドの想定に合っている。
@@ -816,7 +816,7 @@
 - id: compatible-outfit
   term: 対応衣装 / 非対応衣装
   reading: たいおういしょう
-  description: 対応衣装は特定のアバター向けにボーン構造・体形を合わせて作られた衣装で、Unity（Modular Avatar など）だけで着せられます。非対応衣装を着せるには、多くの場合 Blender で体形・ボーン・ウェイトを合わせる必要があります。
+  description: 対応衣装は特定のアバター向けにボーン構造・体形を合わせて作られた衣装で、Unity（Modular Avatar など）だけで着せられる。非対応衣装を着せるには、多くの場合 Blender で体形・ボーン・ウェイトを合わせる必要がある。
   body: |-
     - **対応衣装**: 商品ページに「○○対応」と書かれたもの。Modular Avatar の Setup Outfit などで着せるのが基本です。複数アバター対応の衣装は、どのアバター用のデータを使うか（フォルダ・Prefab）を確認します。
     - **非対応衣装**: 体形・姿勢・ボーン構造が違うため、Blender での調整（位置・大きさ・関節位置合わせ、ウェイト転送、貫通対策）が必要なことが多いです。ボディラインの出ない服なら Unity での位置・サイズ調整だけで済む場合もあります。
