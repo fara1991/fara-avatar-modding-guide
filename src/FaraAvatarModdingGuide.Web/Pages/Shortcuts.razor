@@ -2,7 +2,7 @@
 @inject ContentStore Store
 @inject SiteSettings Settings
 
-<PageTitle>ショートカット一覧 - @Settings.Title</PageTitle>
+<PageTitle>@PageTitles.Compose("ショートカット一覧", Settings.Title)</PageTitle>
 
 @* 静的 HTML（Build の PageBodies.Shortcuts）と同じ構造・class。カテゴリの絞り込みは ?category=（URL で共有できる）。全件を描いて、合わない行を隠す *@
 <h1>ショートカット一覧</h1>

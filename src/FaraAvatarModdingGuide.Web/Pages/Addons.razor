@@ -2,7 +2,7 @@
 @inject ContentStore Store
 @inject SiteSettings Settings
 
-<PageTitle>アドオン - @Settings.Title</PageTitle>
+<PageTitle>@PageTitles.Compose("アドオン", Settings.Title)</PageTitle>
 
 @* 静的 HTML（Build の PageBodies.Addons）と同じ構造・class *@
 <h1>おすすめアドオン</h1>

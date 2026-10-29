@@ -41,7 +41,7 @@ public class PageCatalogTests
         Assert.All(Pages, p =>
         {
             Assert.False(string.IsNullOrWhiteSpace(p.Title));
-            Assert.Matches(" [-|] Avatar Modding Guide$", p.Title);   // 区切りは「 - 」(/report だけ kit に合わせて「 | 」)
+            Assert.EndsWith(" | Avatar Modding Guide", p.Title);
             Assert.False(string.IsNullOrWhiteSpace(p.Description), p.Path);
             Assert.True(p.Description.Length <= 160, p.Path + " の説明が長い");
             Assert.False(string.IsNullOrWhiteSpace(p.Main), p.Path);
@@ -155,10 +155,10 @@ public class PageCatalogTests
     }
 
     [Fact]
-    public void Report_title_uses_the_kit_separator_so_the_tab_title_does_not_change_after_boot()
+    public void All_titles_use_the_pipe_separator_like_the_kit_so_the_tab_title_does_not_change_after_boot()
     {
-        // kit の ReportFormView の PageTitle は「問い合わせ | サイト名」(上書きできない)。静的 HTML の title がちがうと、起動の後にタブの題名が替わる
+        // 全ページ「ページ名 | サイト名」（kit の問い合わせ・404 と同じ）。Razor の PageTitle も PageTitles.Compose で同じ形にする
         Assert.Equal("問い合わせ | " + Settings.Title, Pages.Single(p => p.Path == "/report").Title);
-        Assert.All(Pages.Where(p => p.Path != "/report"), p => Assert.EndsWith(" - " + Settings.Title, p.Title));
+        Assert.All(Pages.Where(p => p.Path != "/report"), p => Assert.EndsWith(" | " + Settings.Title, p.Title));
     }
 }

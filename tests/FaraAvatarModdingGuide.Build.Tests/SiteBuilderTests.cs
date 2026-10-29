@@ -111,7 +111,7 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
     public void Home_page_has_title_description_and_open_graph_tags()
     {
         var home = Read(fx.Production, "index.html");
-        Assert.Contains("<title>ホーム - Avatar Modding Guide</title>", home);
+        Assert.Contains("<title>ホーム | Avatar Modding Guide</title>", home);
         Assert.Contains("<meta name=\"description\"", home);
         Assert.Contains("<meta property=\"og:title\"", home);
         Assert.Contains("<meta property=\"og:url\" content=\"https://avatar.fara-labs.com/\"", home);

@@ -2,7 +2,7 @@
 @inject ContentStore Store
 @inject SiteSettings Settings
 
-<PageTitle>目次 - @Settings.Title</PageTitle>
+<PageTitle>@PageTitles.Compose("目次", Settings.Title)</PageTitle>
 
 @* 静的 HTML（Build の PageBodies.LearnIndex）と同じ構造・class *@
 <h1>目次</h1>

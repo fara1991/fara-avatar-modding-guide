@@ -9,7 +9,7 @@
 }
 else
 {
-    <PageTitle>@category.Title - @Settings.Title</PageTitle>
+    <PageTitle>@PageTitles.Compose(category.Title, Settings.Title)</PageTitle>
     <Breadcrumb Items="@Crumbs(content, category)" />
     <h1><AvIcon Name="@category.Icon" Class="me-2" />@category.Title@if (articles.Count > 0) {<CategoryProgress Ids="@(articles.Select(a => a.Id).ToList())" />}</h1>
     <p class="lead">@category.Description</p>

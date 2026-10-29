@@ -2,7 +2,7 @@
 @inherits FilterPage
 @inject SiteSettings Settings
 
-<PageTitle>改変 Q&A - @Settings.Title</PageTitle>
+<PageTitle>@PageTitles.Compose("改変 Q&A", Settings.Title)</PageTitle>
 
 @* 静的 HTML（Build の PageBodies.Qa）と同じ構造・class。絞り込みの動きは FilterPage *@
 <h1>改変 Q&amp;A</h1>

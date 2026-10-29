@@ -53,7 +53,7 @@ public static class SiteNav
             new NavEntry("practice/unity", "Unity の練習", "GridView"),
             new NavEntry("practice/room", "みんなで練習", "Groups"),
         }));
-        sections.Add(new NavSection("このサイトについて", new[]
+        sections.Add(new NavSection("サポート", new[]
         {
             new NavEntry("report", "問い合わせ", "MailOutline"),
             new NavEntry("privacy", "プライバシーポリシー", "PrivacyTip"),
