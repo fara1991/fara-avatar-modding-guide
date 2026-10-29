@@ -10,7 +10,7 @@ export default {
     { path: "/learn/vrchat/upload-errors", name: "記事（アップロードのエラー）" },
     { path: "/report", name: "問い合わせ" },
     { path: "/privacy", name: "プライバシー" },
-    // みんなで練習のロビー（練習の部屋の一覧・作成フォーム・鍵の欄）。部屋の中の 3D は実機の確認（tools/room-check）で見る
+    // みんなで練習のロビー（練習の部屋の一覧・部屋を作るボタン・開いたときのパスワードの欄）。部屋の中の 3D は実機の確認（tools/room-check）で見る
     { path: "/practice/room", name: "みんなで練習（ロビー）" },
     // 存在しないページ。kit の serve-static は /404 を 404.html として返す（Cloudflare の 404-page と同じ見た目）
     { path: "/404", name: "404（存在しないページ）" },

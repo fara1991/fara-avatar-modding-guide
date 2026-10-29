@@ -1148,6 +1148,9 @@ test("部屋の作成の回数: 数える側（RoomDirectory）が例外を出�
   }
   assert.ok(logs.some(l => l.includes("storage down")), "要約は残す");
   assert.equal(logs.join("\n").includes("203.0.113.11"), false, "IP は出さない");
+  // 数えた接続元の識別子（HMAC のハッシュ）も、ログには出さない
+  const hashKey = await roomCreateKeyOf({ headers: new Headers({ "CF-Connecting-IP": "203.0.113.11" }) }, { TURNSTILE_SECRET: "test-secret" });
+  assert.ok(hashKey && !logs.join("\n").includes(hashKey), "接続元の識別子（ハッシュ）は出さない");
 });
 
 test("部屋の作成の回数: 接続元の識別子は秘密鍵つきの HMAC（IP から作ったものでも、秘密鍵が違えば別の値。IP そのものは含まない）", async () => {
