@@ -23,7 +23,7 @@ public sealed class FilterTextStore(HttpClient http)
         }
         catch (Exception e) when (e is HttpRequestException or System.Text.Json.JsonException or TaskCanceledException)
         {
-            Console.Error.WriteLine($"[avatar] data/filter.json を読めません: {e.Message}");
+            await Console.Error.WriteLineAsync($"[avatar] data/filter.json を読めません: {e.Message}");
             _loading = null;
             return null;
         }

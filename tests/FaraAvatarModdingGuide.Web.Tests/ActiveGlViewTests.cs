@@ -31,8 +31,8 @@ public class ActiveGlViewTests
     [Fact]
     public void Claiming_suspends_the_previous_one_whatever_its_kind()
     {
-        var unity = new Fake();
-        var blender = new Fake();
+        using var unity = new Fake();
+        using var blender = new Fake();
         ActiveGlView.Claim(unity);
         ActiveGlView.Claim(blender);
         Assert.Equal(1, unity.Suspended);
@@ -47,8 +47,8 @@ public class ActiveGlViewTests
     [Fact]
     public void Claiming_again_or_releasing_a_stale_one_does_not_suspend_or_clear()
     {
-        var a = new Fake();
-        var b = new Fake();
+        using var a = new Fake();
+        using var b = new Fake();
         ActiveGlView.Claim(a);
         ActiveGlView.Claim(a);
         Assert.Equal(0, a.Suspended);

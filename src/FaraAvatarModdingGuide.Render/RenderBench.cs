@@ -62,7 +62,7 @@ public static class RenderBench
             {
                 var core = NewCore();
                 if (name == "frame-edit") Key(core, "Tab");
-                var renderer = new SceneRenderer(core);
+                using var renderer = new SceneRenderer(core);
                 var packed = Array.Empty<float>();
                 renderer.Build();  // 最初の 1 回は、バッファを作るので除く
                 timer.Time(() =>
@@ -83,7 +83,7 @@ public static class RenderBench
                 Key(core, "Tab");
                 Key(core, "KeyA");
                 Key(core, "KeyG");
-                var renderer = new SceneRenderer(core);
+                using var renderer = new SceneRenderer(core);
                 var packed = Array.Empty<float>();
                 renderer.Build();
                 long touched = 0;

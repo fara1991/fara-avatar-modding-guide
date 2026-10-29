@@ -73,15 +73,19 @@ internal sealed class FakeDataHandler(SiteContent? content, bool fail = false) :
 /// <summary>ページの Razor を描画するテストの土台。</summary>
 public abstract class WebTestContext : BunitContext, IAsyncLifetime
 {
+    private readonly ContentStore store;
+    private readonly HttpClient http;   // テストの間は使い続けるので、フィールドで持って破棄で閉じる
+    private readonly FakeDataHandler handler;
+
     protected WebTestContext(bool contentLoaded = true)
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddSingleton(TestData.Settings);
         // SiteOptions・テーマの状態・MudBlazor（AddFaraBlazorComponent。SiteInfo.Configure は Program.cs と同じ値を入れる）
         Services.AddFaraBlazorComponent(o => SiteInfo.Configure(o, TestData.Settings));
-        var http = new HttpClient(new FakeDataHandler(TestData.Content, fail: !contentLoaded)) { BaseAddress = new Uri("http://localhost/") };
-        var store = new ContentStore(http);
-        store.LoadAsync().GetAwaiter().GetResult();
+        handler = new FakeDataHandler(TestData.Content, fail: !contentLoaded);
+        http = new HttpClient(handler) { BaseAddress = new Uri("http://localhost/") };
+        store = new ContentStore(http);
         Services.AddSingleton(store);
         Services.AddSingleton<ISearchNormalizer, ManagedNormalizer>();
         Services.AddSingleton(sp => new SearchService(http, sp.GetRequiredService<ISearchNormalizer>()));
@@ -90,7 +94,13 @@ public abstract class WebTestContext : BunitContext, IAsyncLifetime
     }
 
     /// <summary>MudBlazor のサービスは非同期に破棄するため、xUnit からは非同期の破棄（DisposeAsync）を呼ばせる。</summary>
-    async Task IAsyncLifetime.DisposeAsync() => await base.DisposeAsync();
+    async Task IAsyncLifetime.DisposeAsync()
+    {
+        await base.DisposeAsync();
+        http.Dispose();
+        handler.Dispose();
+    }
 
-    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    /// <summary>記事のデータを読む（コンストラクターでは、同期で待たない）。xUnit が、各テストの前に呼ぶ。</summary>
+    async Task IAsyncLifetime.InitializeAsync() => await store.LoadAsync();
 }

@@ -42,7 +42,8 @@ public class PngSizeTests
     [Fact]
     public void Reads_the_size_even_when_each_read_returns_one_byte()
     {
-        var size = ContentService.ReadPngSize(new TrickleStream(PngHeader(640, 480)));
+        using var stream = new TrickleStream(PngHeader(640, 480));
+        var size = ContentService.ReadPngSize(stream);
         Assert.Equal((640, 480), size);
     }
 

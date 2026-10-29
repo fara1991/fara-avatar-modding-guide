@@ -85,7 +85,8 @@ public class RenderParityTests
         var s = RenderReference.Edit.Output.GetProperty("statics");
         var errors = new List<string>();
         var core = new ViewportCore(new ViewRect(0, 0, 800, 450));
-        var frame = new SceneRenderer(core).Build();
+        using var renderer = new SceneRenderer(core);
+        var frame = renderer.Build();
         var byLabel = frame.Items.ToDictionary(i => i.Label);
 
         // 方眼: 位置(XZ 平面)・色(three.js は線形で持つ)・向き(X 軸まわりに 90°)
@@ -119,7 +120,7 @@ public class RenderParityTests
         var name = c.GetProperty("name").GetString();
         var shots = reference.GetProperty("scenarios")[index].GetProperty("shots");
         var session = ViewportDriver.Build(c);
-        var renderer = new SceneRenderer(session.Core); // 編集モードの通知(OverlayRebuilt)を受けるため、操作の前に作る
+        using var renderer = new SceneRenderer(session.Core); // 編集モードの通知(OverlayRebuilt)を受けるため、操作の前に作る
         var steps = c.GetProperty("steps");
         var shotIndex = 0;
         var errors = new List<string>();

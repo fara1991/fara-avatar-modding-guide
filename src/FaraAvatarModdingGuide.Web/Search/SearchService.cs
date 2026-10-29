@@ -52,7 +52,7 @@ public sealed class SearchService(HttpClient http, ISearchNormalizer normalizer)
         }
         catch (Exception e) when (e is HttpRequestException or System.Text.Json.JsonException or TaskCanceledException)
         {
-            Console.Error.WriteLine($"[avatar] data/search.json を読めません: {e.Message}");
+            await Console.Error.WriteLineAsync($"[avatar] data/search.json を読めません: {e.Message}");
             _loading = null;   // 次の入力でもう一度読む
             return null;
         }

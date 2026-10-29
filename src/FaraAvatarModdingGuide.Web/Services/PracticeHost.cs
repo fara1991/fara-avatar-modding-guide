@@ -40,12 +40,13 @@ public sealed class PracticeHost(IJSRuntime js) : IAsyncDisposable
         catch (JSException e)
         {
             // 3D を始められなくても、ページの説明は読める(WebGL が使えない環境のメッセージは、練習のスクリプトが出す)
-            Console.Error.WriteLine($"[avatar] 練習を始められません: {e.Message}");
+            await Console.Error.WriteLineAsync($"[avatar] 練習を始められません: {e.Message}");
         }
         catch (JSDisconnectedException) { }   // 回線が切れた（ページを離れた）後の開始は、もう要らない
     }
 
     /// <summary>3D(WebGL のコンテキスト・イベント・WebSocket・タイマー)を解放する。何度呼んでもよい。</summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "解放の途中。StartCoreAsync が拾えなかった失敗（通信の切断など）の種類は問わず、解放は続ける")]
     public async ValueTask DisposeAsync()
     {
         if (starting is not null)

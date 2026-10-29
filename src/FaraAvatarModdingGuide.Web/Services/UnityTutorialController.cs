@@ -84,6 +84,7 @@ internal sealed class UnityTutorialController : ITutorialCs
     }
 
     // ---------------------------------------------------------------- ビューの用意
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "3D ビューの開始は WebGL・JS 連携・エンジン生成など失敗の種類が多い。どれでも「3D を使えない」表示にして、ページの説明は読めるままにする（終了はさせない）")]
     public async Task ActivateAsync()
     {
         if (engine is not null || loading || disposed) return;
@@ -107,7 +108,7 @@ internal sealed class UnityTutorialController : ITutorialCs
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[avatar] Unity のチュートリアルの 3D ビューを始められません: {ex.Message}");
+            await Console.Error.WriteLineAsync($"[avatar] Unity のチュートリアルの 3D ビューを始められません: {ex.Message}");
             viewFailed = true;
             loading = false;
         }

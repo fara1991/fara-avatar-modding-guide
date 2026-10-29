@@ -103,11 +103,9 @@ npm run layout-check   # site-production を配って計測（設定は layout-c
 
 | 対象 | ルール | 重大度 | 件数・理由 |
 | --- | --- | --- | --- |
-| C# | `CS4014`・`VSTHRD100`・`CA1816`・`IDE0059` | error | 0 件（CA1816 は 3 件・IDE0059 は 1 件を直した） |
-| C# | `CA1031` | warning | 6 件。一般の例外を受けて止めない場所（意図した握りつぶし） |
-| C# | `CA2000` | warning | 25 件。Dispose 漏れの大半はテストの使い捨て |
-| C# | `VSTHRD002`・`VSTHRD003`・`VSTHRD103` | warning | 6・5・9 件。同期の待ち・開始していない Task の待ち・同期の書き込み |
-| C# | `CA1416`・`CS8602`・`VSTHRD200` | （既定） | 対象外（今回のラチェットの一覧に入れていない） |
+| C# | `CS4014`・`VSTHRD100`・`CA1816`・`IDE0059`・`CA1031`・`CA2000`・`VSTHRD002`・`VSTHRD003`・`VSTHRD103` | error | 0 件（このサイトのコード）。直せずに残したものは `SuppressMessage`（理由つき）4 件: `CA1031` 3 件（`PracticeHost.DisposeAsync`・`TutorialController.ActivateAsync`・`UnityTutorialController.ActivateAsync`。失敗の種類を問わず、解放の続行や「3D を使えない」表示にするため）、`VSTHRD003` 1 件（`RetryableTaskTests`。テストが TaskCompletionSource を自分で操作する） |
+| C# | `CA1416`・`CS8602`・`VSTHRD200`・`xUnit1026` | error | 0 件（kit の写しにない行。このサイトの上書きだけで締めた） |
+| C# | kit（`external/fara-blazor-component`）の警告 | （kit の設定） | 4 件（`MaintenanceInfo` の `CA1031`・`VSTHRD103`、`SiteThemeState` の `CA1031` 2 件）。kit 側で直す（このサイトでは変えない） |
 | JS | ESLint（`eslint.config.mjs`） | error | 0 件（直したもの: 空の catch・未使用の変数・`==`・Workers の実行環境のグローバル） |
 | レイアウト | 8 ページ × 5 幅 | error | 0 件（除外は layout-check.config.mjs の 8 件。すべて理由つき） |
 

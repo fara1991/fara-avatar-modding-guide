@@ -86,7 +86,7 @@ public sealed class UnityCsEngine : IUnityCs
     }
 
     /// <summary>unity-ui.js を読み込む(1 回だけ)。</summary>
-    public static Task ImportUiAsync() => importingUi.RunAsync(() => JSHost.ImportAsync("unity-ui", "../js/unity-ui.js"));
+    public static Task ImportUiAsync() => importingUi.RunAsync(() => BrowserJs.ImportAsync("unity-ui", "../js/unity-ui.js"));
 
     /// <inheritdoc />
     public void AttachPractice()
