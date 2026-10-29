@@ -42,6 +42,7 @@ public class PageParityTests : WebTestContext
         Assert.Contains("fbc-page-column--wide", cut.Markup);                       // PC で横幅 72rem（長文のページ）
     }
 
+    private const string PrivacyEnacted = "制定:2026年10月22日";
     private const string PrivacyRevised = "最終改定:2026年10月29日";
 
     [Fact]
@@ -49,7 +50,9 @@ public class PageParityTests : WebTestContext
     {
         var cut = Render<Privacy>();
         var text = TestData.TextOf(cut.Markup);
+        Assert.Contains(PrivacyEnacted, text);
         Assert.Contains(PrivacyRevised, text);
+        Assert.Contains("利用目的", text);
         Assert.Contains("暗号化せずそのまま保存", text);                      // 作成者の端末のパスワードは平文
         Assert.Contains("パスワードの有無", text);                            // 一覧に出る項目
         Assert.Contains("保存の期間", text);
@@ -57,6 +60,10 @@ public class PageParityTests : WebTestContext
         Assert.Equal(4, cut.FindAll("table thead th").Count);
         Assert.DoesNotContain("サーバーには送りません）", text);              // 見出しの言い過ぎを戻さない
         Assert.DoesNotContain("匿名", text);
+        Assert.DoesNotContain("共同練習", text);                              // 「みんなで練習」に統一
+        Assert.DoesNotContain("掃除", text);
+        Assert.DoesNotContain("SHA-256", text);
+        Assert.DoesNotContain("AdSense", text);
         Assert.DoesNotContain("avatar-modding-guide.", text);                // 保存キー名は書かない
     }
 
