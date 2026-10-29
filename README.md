@@ -97,15 +97,15 @@ npm run layout-check   # site-production を配って計測（設定は layout-c
 ```
 
 - **レイアウトの計測**は kit の `tools/layout-check`（設定の書き方と限界は `external/fara-blazor-component/docs/layout-check.md`）。配信は `tools/layout-check/run.mjs` が行う。`/learn` は `learn.html` と `learn/` が両方あるので、フォルダの要求だけ `.html` に読み替える（kit の配信を直す案は kit の follow-up）。
-- **C# の静的解析**は `Directory.Build.props` と `tools/lint/dotnet.site.editorconfig`（kit の `dotnet.editorconfig` より `global_level` が上）。**違反が 0 件のルールだけ error**、違反が残るものは warning（ラチェット）。
+- **C# の静的解析**は `Directory.Build.props` と `tools/lint/dotnet.site.editorconfig`（kit の `dotnet.editorconfig` に上乗せ。`global_level` が上）。kit は v1.0.1 から `CS4014`・`VSTHRD100`・`CA1816`・`IDE0059`・`CA1031`・`CA2000`・`VSTHRD002`・`VSTHRD003`・`VSTHRD103` を error にしており、サイトの上書きは kit に無いルールだけ。**違反が 0 件のルールだけ error**、違反が残るものは warning（ラチェット）。
 
 #### 現在の違反の件数（最後に計測したとき）
 
 | 対象 | ルール | 重大度 | 件数・理由 |
 | --- | --- | --- | --- |
-| C# | `CS4014`・`VSTHRD100`・`CA1816`・`IDE0059`・`CA1031`・`CA2000`・`VSTHRD002`・`VSTHRD003`・`VSTHRD103` | error | 0 件（このサイトのコード）。直せずに残したものは `SuppressMessage`（理由つき）4 件: `CA1031` 3 件（`PracticeHost.DisposeAsync`・`TutorialController.ActivateAsync`・`UnityTutorialController.ActivateAsync`。失敗の種類を問わず、解放の続行や「3D を使えない」表示にするため）、`VSTHRD003` 1 件（`RetryableTaskTests`。テストが TaskCompletionSource を自分で操作する） |
-| C# | `CA1416`・`CS8602`・`VSTHRD200`・`xUnit1026` | error | 0 件（kit の写しにない行。このサイトの上書きだけで締めた） |
-| C# | kit（`external/fara-blazor-component`）の警告 | （kit の設定） | 4 件（`MaintenanceInfo` の `CA1031`・`VSTHRD103`、`SiteThemeState` の `CA1031` 2 件）。kit 側で直す（このサイトでは変えない） |
+| C# | `CS4014`・`VSTHRD100`・`CA1816`・`IDE0059`・`CA1031`・`CA2000`・`VSTHRD002`・`VSTHRD003`・`VSTHRD103`（kit の設定） | error | 0 件（このサイトのコード）。直せずに残したものは `SuppressMessage`（理由つき）4 件: `CA1031` 3 件（`PracticeHost.DisposeAsync`・`TutorialController.ActivateAsync`・`UnityTutorialController.ActivateAsync`。失敗の種類を問わず、解放の続行や「3D を使えない」表示にするため）、`VSTHRD003` 1 件（`RetryableTaskTests`。テストが TaskCompletionSource を自分で操作する） |
+| C# | `CA1416`・`CS8602`・`VSTHRD200`・`xUnit1026` | error | 0 件（kit に無いルール。`dotnet.site.editorconfig` の上書きで締めた） |
+| C# | kit（`external/fara-blazor-component`）の警告 | error（kit の設定） | 0 件（kit v1.0.1 で解消） |
 | JS | ESLint（`eslint.config.mjs`） | error | 0 件（直したもの: 空の catch・未使用の変数・`==`・Workers の実行環境のグローバル） |
 | レイアウト | 8 ページ × 5 幅 | error | 0 件（除外は layout-check.config.mjs の 8 件。すべて理由つき） |
 
