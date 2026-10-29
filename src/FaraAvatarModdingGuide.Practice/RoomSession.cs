@@ -394,7 +394,12 @@ public sealed class RoomSession : IDisposable
             case "closed": ApplyClosed(m); break;
             case "idlewarn": ApplyIdleWarn(m); break;
             case "error":
-                if (TryStr(m, "msg", out var msg) && msg == "too many objects") core.SetStatusText($"この部屋のオブジェクトは {MaxObjects} 個までです");
+                // 保存に失敗した（サーバーは取り消している）。画面の表示は、状態の行で短く知らせる
+                if (TryStr(m, "msg", out var msg))
+                {
+                    if (msg == "too many objects") core.SetStatusText($"この部屋のオブジェクトは {MaxObjects} 個までです");
+                    else if (msg.StartsWith("保存に失敗しました", StringComparison.Ordinal)) core.SetStatusText(msg);
+                }
                 break;
         }
     }
@@ -549,6 +554,13 @@ public sealed class RoomSession : IDisposable
         if (!OptionalArray(m, "upsert", out var up) || !TryObjects(up, out var upsert)) return;
         if (!OptionalArray(m, "delete", out var del) || !TryStringsOf(del, out var delete)) return;
         // ここまでで形は確かめた
+        if (IsTruthy(m, "failed"))
+        {
+            // 保存に失敗した: サーバーは変更を取り消した。進行中の操作を取り消し、こちらのロックを返してから、今の状態に合わせる
+            var held = lockHeld;
+            CancelLockedMove("保存に失敗したため、変更を元に戻しました。もう一度操作してください");
+            if (held) Send(RoomWire.Unlock());
+        }
         core.ApplyRemote(upsert, delete);
         foreach (var o in upsert)
         {
