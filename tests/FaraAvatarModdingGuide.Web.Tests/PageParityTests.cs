@@ -56,6 +56,7 @@ public class PageParityTests : WebTestContext
         Assert.Contains("暗号化せずそのまま保存", text);                      // 作成者の端末のパスワードは平文
         Assert.Contains("パスワードの有無", text);                            // 一覧に出る項目
         Assert.Contains("保存の期間", text);
+        Assert.Contains("次に間違いが記録されるときに消えます", text);          // 10 分後の削除はタイマーではない
         Assert.NotEmpty(cut.FindAll("table tbody tr"));                      // 外部のサービスの表
         Assert.Equal(4, cut.FindAll("table thead th").Count);
         Assert.DoesNotContain("サーバーには送りません）", text);              // 見出しの言い過ぎを戻さない
