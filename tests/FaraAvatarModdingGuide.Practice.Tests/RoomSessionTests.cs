@@ -912,6 +912,22 @@ public class RoomSessionTests
     }
 
     [Fact]
+    public void A_busy_server_closes_with_4008_and_the_room_is_reported_as_busy_without_reconnecting()
+    {
+        // 作成の確認が混み合っている（時間切れ・例外）: 作れなかった。保存した鍵は消し、つなぎ直さない
+        var t = new FakeTransport();
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
+        s.Start();
+        s.OnOpen(1);
+        s.OnMessage(1, Q("{'t':'closed','reason':'busy'}"));
+        s.OnClose(1, 4008);
+        Assert.Equal("busy", s.ClosedReason);
+        Assert.Equal(1, t.Opened);
+        Assert.False(t.OwnerKeys.ContainsKey("abcdef12"));
+        Assert.Contains("混み合っています", s.StatusText);
+    }
+
+    [Fact]
     public void CleanName_keeps_up_to_the_requested_length_for_room_names()
     {
         Assert.Equal(40, RoomSession.CleanName(new string('あ', 60), 40).Length);

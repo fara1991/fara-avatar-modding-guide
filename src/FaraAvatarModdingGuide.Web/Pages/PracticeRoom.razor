@@ -257,7 +257,7 @@
 
     private string StatusClass => string.IsNullOrEmpty(room.StatusKind) ? "" : $"is-{room.StatusKind}";
 
-    private string ClosedHeading => room.ClosedReason is "limit" or "outdated" or "full" ? "部屋を作れませんでした" : "この部屋は閉じられました";
+    private string ClosedHeading => room.ClosedReason is "limit" or "outdated" or "full" or "busy" ? "部屋を作れませんでした" : "この部屋は閉じられました";
 
     private string ClosedText => room.ClosedReason switch
     {
@@ -266,6 +266,7 @@
         "expired" => "この部屋は古い形式のため入れません。新しく作り直してください。",
         "limit" => "部屋を作れるのは、1 分に 1 部屋・1 日に 3 部屋までです。しばらくしてからもう一度お試しください。",
         "full" => "ただいま部屋がいっぱいです（最大 8 部屋）。空くまでお待ちください。",
+        "busy" => "ただいま混み合っています。しばらくしてからもう一度お試しください。",
         "outdated" => "画面が古いため、部屋を作れませんでした。ページを再読み込みしてください。",
         _ => "この部屋は閉じられています。",
     };

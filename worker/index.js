@@ -75,7 +75,7 @@ export const LIMITS = {
   passFailWindowMs: 10 * 60 * 1000, // 間違いを数える時間窓
   passBlockMs: 10 * 60 * 1000,      // 拒否する時間
   previewErrMs: 5 * 1000,           // 途中経過の保存の失敗を本人に知らせる間隔（連続の失敗で、エラーを連打しない）
-  rpcTimeoutMs: 5 * 1000,           // 別の DO（一覧・作成の回数）の呼び出しの上限。超えたら数えずに通す（fail-open）
+  rpcTimeoutMs: 3 * 1000,           // 別の DO（作成の回数の予約）の呼び出しの上限。超えたら作成を見送る（fail-closed。直列の鎖を長く止めない）
 };
 
 /** 別の DO の呼び出しに時間の上限を付ける（止まっても、ほかの人の待ちを長く止めない。超えたら例外） */
@@ -946,7 +946,9 @@ export class Room extends DurableObject {
     const unlocked = applied.delete.some(id => this.locks.has(id));   // 消したものを持っていた（ロックが外れる）
     const changed = applied.upsert.length > 0 || applied.delete.length > 0;
     const now = Date.now();
-    // 書き込み（オブジェクト・削除・操作の時刻）は 1 つの単位（storage.transaction）。途中で失敗したら、すべて取り消す（保存だけが変わらない）
+    // 書き込み（オブジェクト・削除・操作の時刻）は 1 つの単位（ctx.storage.transaction）。途中で失敗したら、閉じ関数の中の書き込みをすべて取り消す（保存だけが変わらない）。
+    // この Room は SQLite 版（new_sqlite_classes）。SQLite 版では、閉じ関数の中で ctx.storage を直接使えば、その書き込みは transaction に入る（txn 引数は KV 版の作法）。
+    // 1 回の put・delete は 128 件まで（putChunked・deleteChunked で分ける）。await を挟まない連続の書き込みは、まとめて atomic に確定される。
     const writeAt = changed && now - this.opPersisted >= LIMITS.roomPersistMs;   // 操作の時刻も、同じ単位で書く
     try {
       await this.ctx.storage.transaction(async () => {
@@ -1031,7 +1033,7 @@ export class Room extends DurableObject {
 
   /**
    * 部屋を作ってよいか（接続元ごとの回数。RoomDirectory の hitCreate）。超えたら false。
-   * 秘密鍵・接続元・RoomDirectory が無いとき、数えられなかったときは通す（fail-open）。ログには要約と秘密鍵の無い旨だけを出す（IP・ハッシュは出さない）。
+   * 秘密鍵・接続元・RoomDirectory が無いときは通す（fail-open）。数えられなかった（時間切れ・例外）ときは見送る（fail-closed。busy）。ログには要約と秘密鍵の無い旨だけを出す（IP・ハッシュは出さない）。
    */
   async createAllowed(ws) {
     if (!this.env?.TURNSTILE_SECRET) console.error("部屋の作成の回数を数えられないため、接続元の制限は働かせずに通します（秘密鍵が無い）");
@@ -1043,8 +1045,9 @@ export class Room extends DurableObject {
       if (r?.allowed === true) return "ok";
       return r?.reason === "full" ? "full" : "limit";
     } catch (e) {
-      console.error("部屋の作成の回数を数えられないため、制限せずに通します: " + errorSummary(e));
-      return "ok";
+      // 数えられない（時間切れ・例外）: 作成は見送る（fail-closed。数えずに通すと、接続元の回数の制限を外すことになる）。ログは要約だけ
+      console.error("部屋の作成の回数を数えられないため、作成を見送ります: " + errorSummary(e));
+      return "busy";
     }
   }
 
@@ -1102,6 +1105,7 @@ export class Room extends DurableObject {
     if (outcome === "outdated") { this.send(ws, { t: "closed", reason: "outdated" }); ws.close(4006, "outdated"); return; }
     if (outcome === "full") { this.send(ws, { t: "closed", reason: "full" }); ws.close(4007, "full"); return; }
     if (outcome === "limit") { this.send(ws, { t: "closed", reason: "limit" }); ws.close(4005, "rate limited"); return; }
+    if (outcome === "busy") { this.send(ws, { t: "closed", reason: "busy" }); ws.close(4008, "busy"); return; }
     if (me.joined) return;
     // 作成者は鍵を免除する（作成者の鍵が合う接続。作成したばかりの人も含む）
     const owner = outcome === "created" || await this.isOwner(msg.owner);

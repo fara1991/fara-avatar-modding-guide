@@ -129,26 +129,38 @@ function fakeRoom(env = {}) {
   const sockets = [];
   const storage = new Map();
   const alarms = [];   // setAlarm で渡された時刻（DO のアラームは 1 つで、呼ぶたびに上書きされる）
+  // transaction の中で行った書き込みの記録（失敗のとき、ここから取り消す。外の書き込みは取り消さない）
+  let journal = null;
+  const record = k => { if (journal) journal.push([k, storage.has(k), storage.get(k)]); };
   const ctx = {
     storage: {
       list: async ({ prefix = "" } = {}) => new Map([...storage].filter(([k]) => k.startsWith(prefix))),
       get: async (k) => storage.get(k),
-      // 1 回の put・delete は 128 件まで（DO の上限を再現する。超えたら例外。分けて書く回帰を検出する）
+      // 1 回の put・delete は 128 件まで（DO の上限を再現する。超えたら例外。分けて書く回帰を検出する）。1 回の呼び出しは atomic
       put: async (o, v) => {
-        if (typeof o === "string") { storage.set(o, v); return; }
+        if (typeof o === "string") { record(o); storage.set(o, v); return; }
         const entries = Object.entries(o);
         if (entries.length > 128) throw new Error("put は 1 回 128 件まで");
-        for (const [k, x] of entries) storage.set(k, x);
+        for (const [k, x] of entries) { record(k); storage.set(k, x); }
       },
       delete: async (keys) => {
         const list = [].concat(keys);
         if (list.length > 128) throw new Error("delete は 1 回 128 件まで");
-        for (const k of list) storage.delete(k);
+        for (const k of list) { record(k); storage.delete(k); }
       },
-      // 複数の操作を 1 つの単位にする（途中で失敗したら、開始時の内容に戻す）
+      // SQLite 版と同じ: 閉じ関数の中の書き込みだけを、失敗のとき取り消す（外の書き込みは取り消さない）
       transaction: async (fn) => {
-        const before = new Map(storage);
-        try { return await fn(); } catch (e) { storage.clear(); for (const [k, x] of before) storage.set(k, x); throw e; }
+        const outer = journal;
+        journal = [];
+        try {
+          const result = await fn();
+          journal = outer;
+          return result;
+        } catch (e) {
+          for (const [k, had, old] of journal.reverse()) { if (had) storage.set(k, old); else storage.delete(k); }
+          journal = outer;
+          throw e;
+        }
       },
       setAlarm: async (t) => { alarms.push(t); },
       deleteAll: async () => storage.clear(),
@@ -441,6 +453,8 @@ function fakeDirectory() {
     upsert: async (e) => { calls.push({ op: "upsert", e }); return true; },
     remove: async (id) => { calls.push({ op: "remove", id }); },
     list: async () => [],
+    // 作成の予約（作成の回数・全体の上限）は、このテストでは常に許可する（作成の確認は別のテストで確かめる）
+    reserveRoom: async () => ({ allowed: true }),
   };
   return { calls, idFromName: (n) => n, get: () => stub, last: () => calls.filter(c => c.op === "upsert").at(-1)?.e };
 }
@@ -750,7 +764,8 @@ test("一覧: 参加者の増減に合わせて登録の人数を更新し、誰
 });
 
 test("一覧: 一覧の登録がうまくいかなくても、部屋は動く（例外を外に出さない）", async () => {
-  const broken = { idFromName: () => "x", get: () => ({ upsert: async () => { throw new Error("down"); }, remove: async () => { throw new Error("down"); } }) };
+  // 登録（upsert・remove）だけが落ちる。作成の予約は許可する（作成の確認が落ちた場合は、別のテストで見送りを確かめる）
+  const broken = { idFromName: () => "x", get: () => ({ upsert: async () => { throw new Error("down"); }, remove: async () => { throw new Error("down"); }, reserveRoom: async () => ({ allowed: true }) }) };
   const { room, ctx } = fakeRoom({ ROOM_DIRECTORY: broken });
   room.roomId = ROOM;
   const a = connect(ctx, "a1");
@@ -1271,15 +1286,18 @@ test("途中経過（preview）の保存が続けて失敗しても、本人へ�
   });
 });
 
-test("一覧（作成の回数）の呼び出しが止まっても、上限の時間で打ち切って通す（fail-open。鎖を止めない）", async () => {
+test("一覧（作成の回数）の呼び出しが止まったら、上限の時間で打ち切って作成を見送る（fail-closed。閉じた理由は busy・4008。部屋は作らない）", async () => {
   const saved = LIMITS.rpcTimeoutMs;
   LIMITS.rpcTimeoutMs = 50;
   try {
     const env = { ROOM_DIRECTORY: { idFromName: n => n, get: () => ({ reserveRoom: () => new Promise(() => {}) }) } };
-    const { room, ctx } = fakeRoom(env);
+    const { room, ctx, storage } = fakeRoom(env);
     const a = connect(ctx, "a1");
     await room.webSocketMessage(a, createHello("Alice"));
-    assert.ok(a.sent.some(m => m.t === "welcome"), "止まっても作れる");
+    assert.equal(a.sent.some(m => m.t === "welcome"), false, "作らない");
+    assert.deepEqual(a.sent.at(-1), { t: "closed", reason: "busy" });
+    assert.deepEqual(a.closed, { code: 4008, reason: "busy" });
+    assert.equal(storage.has("init"), false, "部屋の保存も書かない");
   } finally {
     LIMITS.rpcTimeoutMs = saved;
   }
@@ -1291,6 +1309,14 @@ test("直列の鎖は、途中の処理が例外で終わっても、次の処�
   let ran = false;
   await room.serial(() => { ran = true; });
   assert.equal(ran, true);
+});
+
+test("transaction: 閉じ関数の外の書き込みは、失敗しても取り消されない（取り消すのは閉じ関数の中の書き込みだけ・SQLite 版と同じ）", async () => {
+  const { ctx, storage } = fakeRoom();
+  await ctx.storage.put("outer", 1);
+  await ctx.storage.transaction(async () => { await ctx.storage.put("inner", 2); throw new Error("abort"); }).catch(() => {});
+  assert.equal(storage.get("outer"), 1);
+  assert.equal(storage.has("inner"), false);
 });
 
 test("操作の数え方: 拒否された・適用されなかった操作（存在しない対象の preview・不正な ops）は、寿命を延ばさない", async () => {
@@ -1496,14 +1522,16 @@ test("部屋の作成の回数: 秘密鍵が無いとき・接続元が無いと
   assert.equal(logs.join("\n").includes("test-secret"), false);
 });
 
-test("部屋の作成の回数: 数える側（RoomDirectory）が例外を出しても、作成は通す（fail-open。ログは要約だけで IP を出さない）", async () => {
+test("部屋の作成の回数: 数える側（RoomDirectory）が例外を出したら、作成は見送る（fail-closed。ログは要約だけで IP を出さない）", async () => {
   const broken = { idFromName: (n) => n, get: () => ({ reserveRoom: async () => { throw new Error("storage down"); } }) };
   const logs = [];
   const saved = console.error;
   console.error = (...args) => logs.push(args.join(" "));
   try {
     const ws = await createFrom("203.0.113.11", { TURNSTILE_SECRET: "test-secret", ROOM_DIRECTORY: broken });
-    assert.ok(created(ws), "数えられなくても作れる");
+    assert.equal(created(ws), false, "数えられなければ作らない（fail-closed）");
+    assert.deepEqual(ws.sent.at(-1), { t: "closed", reason: "busy" });
+    assert.deepEqual(ws.closed, { code: 4008, reason: "busy" });
   } finally {
     console.error = saved;
   }

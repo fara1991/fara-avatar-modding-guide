@@ -154,7 +154,7 @@ public sealed class RoomSession : IDisposable
     public RoomGate Gate { get; private set; } = RoomGate.None;
     /// <summary>試しすぎて拒否されているあいだの残り(ms)。Gate が PassLimited のときだけ。</summary>
     public double PassLimitMs { get; private set; }
-    /// <summary>閉じられた理由("owner" 作成者が閉じた・"idle" 30 分操作が無かった・"expired" 旧形式の部屋・"limit" 部屋の作成の回数の上限・"outdated" 古い版の画面・"closed" その他)。閉じたら null 以外。</summary>
+    /// <summary>閉じられた理由("owner" 作成者が閉じた・"idle" 30 分操作が無かった・"expired" 旧形式の部屋・"limit" 部屋の作成の回数の上限・"busy" 作成の確認が混み合っている・"outdated" 古い版の画面・"closed" その他)。閉じたら null 以外。</summary>
     public string? ClosedReason { get; private set; }
     /// <summary>閉じる前の警告の残り(ms)。警告が無いときは null。</summary>
     public double? IdleWarnMs { get; private set; }
@@ -329,6 +329,8 @@ public sealed class RoomSession : IDisposable
         if (code == 4005) { ClosedReason ??= "limit"; transport.ForgetOwnerKey(roomId); SetStatus("部屋を作れるのは、1 分に 1 部屋・1 日に 3 部屋までです。しばらくしてからもう一度お試しください", "warn"); return; }
         // 部屋が全体の上限（同時に存在する部屋の数）に達している（4007）: 作れない。保存した鍵は消す
         if (code == 4007) { ClosedReason ??= "full"; transport.ForgetOwnerKey(roomId); SetStatus("ただいま部屋がいっぱいです（最大 8 部屋）。空くまでお待ちください", "warn"); return; }
+        // 作成の確認が混み合っている（4008）: 作れなかった。保存した鍵は消し、つなぎ直さない
+        if (code == 4008) { ClosedReason ??= "busy"; transport.ForgetOwnerKey(roomId); SetStatus("ただいま混み合っています。しばらくしてからもう一度お試しください", "warn"); return; }
         // 古い版の画面からの作成（4006）: 部屋は作られていない。保存した鍵は消し、再読み込みを案内する
         if (code == 4006) { ClosedReason ??= "outdated"; transport.ForgetOwnerKey(roomId); SetStatus("画面が古いため、部屋を作れませんでした。ページを再読み込みしてください", "warn"); return; }
         if (code == 4003)
@@ -415,7 +417,7 @@ public sealed class RoomSession : IDisposable
     private void ApplyClosed(JsonElement m)
     {
         var reason = TryStr(m, "reason", out var r) ? r : "";
-        ClosedReason = reason is "owner" or "idle" or "expired" or "limit" or "outdated" or "full" ? reason : "closed";
+        ClosedReason = reason is "owner" or "idle" or "expired" or "limit" or "outdated" or "full" or "busy" ? reason : "closed";
         transport.ForgetOwnerKey(roomId);
         SetStatus("部屋は閉じられました", "warn");
     }
