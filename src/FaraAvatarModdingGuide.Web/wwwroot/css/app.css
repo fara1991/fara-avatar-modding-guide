@@ -1822,6 +1822,7 @@ label,
     word-break: normal;
     word-break: auto-phrase;
     overflow-wrap: break-word;
+}
 
 /* ---------- 記事の読みやすさ（ページ内レイアウトの見直し） ---------- */
 
