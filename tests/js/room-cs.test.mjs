@@ -75,3 +75,22 @@ test("作成者の鍵: localStorage が使えなくても例外にしない（�
   assert.doesNotThrow(() => room.forgetOwnerKey("roomaaaa1111"));
   assert.equal(room.loadOwnerKey("roomaaaa1111"), null);
 });
+
+test("作成者の鍵とパスワード: 両方を保存して読める。パスワードは作成者の端末の保存だけ（閉じたら消す）", async () => {
+  globalThis.localStorage = fakeLocalStorage();
+  const room = await load();
+  room.saveOwnerKey("roomaaaa1111", "owner-key", "Kq7mZ2xR9tV4bN8wL3pY6hJ1cF5sD0gA");
+  assert.equal(room.loadOwnerKey("roomaaaa1111"), "owner-key");
+  assert.equal(room.loadOwnerPass("roomaaaa1111"), "Kq7mZ2xR9tV4bN8wL3pY6hJ1cF5sD0gA");
+  room.forgetOwnerKey("roomaaaa1111");
+  assert.equal(room.loadOwnerKey("roomaaaa1111"), null);
+  assert.equal(room.loadOwnerPass("roomaaaa1111"), null, "閉じたら、鍵もパスワードも消える");
+});
+
+test("作成者の鍵: 以前の形（作成者の鍵の文字だけ）も読める。パスワードは無い（null）", async () => {
+  globalThis.localStorage = fakeLocalStorage();
+  globalThis.localStorage.setItem(KEY, JSON.stringify({ roomaaaa1111: "old-key" }));
+  const room = await load();
+  assert.equal(room.loadOwnerKey("roomaaaa1111"), "old-key");
+  assert.equal(room.loadOwnerPass("roomaaaa1111"), null);
+});

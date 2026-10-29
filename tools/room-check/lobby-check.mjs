@@ -1,4 +1,5 @@
-// 練習の部屋の一覧・鍵・Close・自動終了の実動作の検査（wrangler dev などの Worker に対して、2 人分の WebSocket で確かめる）。
+// 練習の部屋の一覧・パスワード・Close・自動終了・作成の指定の実動作の検査（wrangler dev などの Worker に対して、2 人分の WebSocket で確かめる）。
+// 部屋は常に一覧に出る（名前は Worker がランダムに決める）。パスワードは作成のとき 40 字の英数字（クライアントが作る形）。
 //   node tools/room-check/lobby-check.mjs http://localhost:8787            … 一覧・鍵・Close・閉じた ID・作成の指定の無い入室・作成者の鍵の免除・入室の時間
 //   node tools/room-check/lobby-check.mjs http://localhost:8787 60         … 上に加えて、自動終了（ROOM_IDLE_SECONDS=60 で起動した Worker に対して。60 秒ほど待つ）
 // 確認用の Worker を立てるときは、wrangler dev --env dev --var ROOM_IDLE_SECONDS:60 のように、同じ秒数で起動する。
@@ -16,6 +17,8 @@ const ok = (cond, label) => {
 };
 const rid = () => "lobby" + randomBytes(6).toString("hex");           // 10 字以上の小文字の英数字
 const hexKey = () => randomBytes(16).toString("hex");                  // 作成者の鍵（16 進 32 字）
+const passKey = () => randomBytes(20).toString("hex");                  // 部屋のパスワード（英数字 40 字。クライアントは C# の乱数で作る）
+const ROOM_NAME = /^[0-9a-hjkmnp-tvwxyz]{8}$/;                          // 部屋の名前（Worker が作る。i・l・o・u は使わない）
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /** 接続 1 本。受け取ったメッセージは msgs に溜まり、close の code と reason は closed に入る。 */
@@ -51,21 +54,20 @@ async function listRooms() {
 
 const owner = hexKey();
 const room = rid();
-const name = "練習会";
-const pass = "合言葉123";
+const pass = passKey();
 
-// 1. 作成（一覧に出す・鍵つき）
-const a = connect(room, { name: "Alice", owner, create: { name, listed: true, pass } });
+// 1. 作成（部屋は常に一覧に出る。名前は Worker が決める。クライアントの名前は使わない）
+const a = connect(room, { name: "Alice", owner, create: { name: "クライアントの名前は無視", pass } });
 await a.opened;
 await settle(a);
 ok(a.welcome?.you.owner === true, "作成者は owner: true で入る");
-ok(a.welcome?.room.name === name && a.welcome?.room.locked === true, "welcome に部屋の名前と鍵つきが出る");
+ok(ROOM_NAME.test(a.welcome?.room.name ?? "") && a.welcome?.room.locked === true, "welcome に、Worker が決めた名前（8 字）と鍵つき（locked）が出る");
 
 // 2. 一覧（作成者が入ったあと）
 let list = await listRooms();
 ok(list.status === 200 && list.cache === "no-store", "GET /api/rooms は 200 で no-store");
 const row = list.body.rooms.find(r => r.id === room);
-ok(row && row.name === name && row.count === 1 && row.max === 8 && row.locked === true, "一覧に、名前・人数 1/8・鍵つきで出る");
+ok(row && row.name === a.welcome?.room.name && row.count === 1 && row.max === 8 && row.locked === true, "一覧に、名前・人数 1/8・鍵つきで出る（名前は Worker が決めた値）");
 ok(!("owner" in (row ?? {})) && !("pass" in (row ?? {})), "一覧には作成者の鍵や鍵の情報を出さない");
 
 // 3. 鍵が無い・違う（中身は届かない）
@@ -116,7 +118,7 @@ const late = connect(room, { name: "Carol", pass });
 await late.opened;
 await settle(late);
 ok(late.msgs.at(-1)?.t === "closed" && late.closed?.code === 4004, "閉じた ID には入れない（closed・4004）");
-const recreate = connect(room, { name: "Dan", owner: hexKey(), create: { name: "作り直し", listed: true } });
+const recreate = connect(room, { name: "Dan", owner: hexKey(), create: { pass } });
 await recreate.opened;
 await settle(recreate);
 ok(recreate.msgs.at(-1)?.t === "closed" && !recreate.welcome, "閉じた ID は、作成の指定があっても作り直せない");
@@ -127,34 +129,32 @@ const noCreate = connect(orphan, { name: "Eve" });
 await noCreate.opened;
 await settle(noCreate);
 ok(noCreate.msgs.length === 1 && noCreate.msgs[0].t === "closed" && noCreate.msgs[0].reason === "missing", "作成の指定が無く、部屋も無い入室は、部屋を作らずに閉じる（missing）");
-const orphanAgain = connect(orphan, { name: "Eve", owner: hexKey(), create: { name: "作成", listed: false } });
+const orphanAgain = connect(orphan, { name: "Eve", owner: hexKey(), create: { pass: passKey() } });
 await orphanAgain.opened;
 await settle(orphanAgain);
 ok(orphanAgain.welcome?.you.owner === true, "作成の指定がある最初の入室なら、同じ ID でも部屋を作る");
 
-// 10. 入室の時間（鍵つき。ローカルの計測）
+// 10. 入室の時間（鍵つき。ローカルの計測）・旧形式の部屋は作れない（鍵が無い作成は bad create）
 const timedRoom = rid();
-const t0 = connect(timedRoom, { name: "Timer", owner: hexKey(), create: { name: "計測", listed: false, pass: "計測の鍵123" } });
+const timedPass = passKey();
+const t0 = connect(timedRoom, { name: "Timer", owner: hexKey(), create: { pass: timedPass } });
 await t0.opened;
 await settle(t0);
-const plain = connect(timedRoom, { name: "Plain", pass: "計測の鍵123" });
+const plain = connect(timedRoom, { name: "Plain", pass: timedPass });
 await plain.opened;
 await settle(plain);
 const plainMs = plain.welcomeAt - plain.helloAt;
-const unlockedRoom = rid();
-const u0 = connect(unlockedRoom, { name: "Plain0", owner: hexKey(), create: { name: "計測0", listed: false } });
-await u0.opened;
-await settle(u0);
-const u1 = connect(unlockedRoom, { name: "Plain1" });
-await u1.opened;
-await settle(u1);
-console.log(`      （入室の時間（hello → welcome）: 鍵つき ${plainMs} ms・鍵なし ${u1.welcomeAt - u1.helloAt} ms。ローカル）`);
-ok(Number.isFinite(lockedMs), "入室の時間を計った");
+console.log(`      （入室の時間（hello → welcome）: 鍵つき ${plainMs} ms。ローカル）`);
+ok(Number.isFinite(lockedMs) && Number.isFinite(plainMs), "入室の時間を計った");
+const noPass = connect(rid(), { name: "NoPass", owner: hexKey(), create: {} });
+await noPass.opened;
+await settle(noPass);
+ok(noPass.msgs.at(-1)?.t === "error" && noPass.msgs.at(-1)?.msg === "bad create" && !noPass.welcome, "鍵の無い作成は bad create（部屋は作らない）");
 
 // 11. 自動終了（ROOM_IDLE_SECONDS の Worker に対してだけ）
 if (idleSeconds !== null) {
   const idleRoom = rid();
-  const c = connect(idleRoom, { name: "Dave", owner: hexKey(), create: { name: "寿命", listed: false } });
+  const c = connect(idleRoom, { name: "Dave", owner: hexKey(), create: { pass: passKey() } });
   await c.opened;
   await settle(c);
   const start = Date.now();

@@ -11,7 +11,7 @@
 
 <h1>みんなで練習</h1>
 <TouchPracticeGuide Embed="false" Items="TouchItems" Message="部屋の 3D ビューはキーボードとマウスで操作します。スマートフォンでは操作できないので、パソコンで開いてください。操作の流れは、次の記事で画像を見られます。" />
-<p class="lead practice-pc-only">URL を共有すると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
+<p class="lead practice-pc-only">部屋を作ると、一覧に出ます。一覧の部屋を選んでパスワードを入れると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
 
 @* 3D（C#）は、部屋の規則を Practice の RoomSession・3D を RoomCsEngine（Practice・Render）・WebSocket などを room-cs.js が持つ（Phase 3b S6・S7。three.js は使わない）。
    部屋の同期は worker/index.js の Durable Object(/api/rooms/<ID>/ws。このページが持つのは、部屋に入っているか(?room=<ID>)・ロビーに戻るかだけ)。
@@ -21,25 +21,7 @@
 <div id="room-lobby" class="card mb-4 practice-pc-only" hidden="@inRoom">
     <div class="card-body">
         <h2 class="h5">部屋を作る</h2>
-        <p class="mb-3">ログインは不要です。部屋を作ったら、表示される URL を一緒に練習する人に送ってください。</p>
-        <div class="row g-2 mb-2">
-            <div class="col-sm-6">
-                <label class="form-label small" for="room-create-name">部屋の名前（40 字まで。空なら「練習の部屋」）</label>
-                <input type="text" class="form-control room-lobby-field" id="room-create-name" maxlength="40" autocomplete="off" value="@createName" @oninput="OnCreateName" />
-            </div>
-            <div class="col-sm-6">
-                <label class="form-label small" for="room-create-pass">鍵（任意。64 字まで。空なら鍵なし）</label>
-                <input type="password" class="form-control room-lobby-field" id="room-create-pass" maxlength="64" autocomplete="new-password" value="@createPass" @oninput="OnCreatePass" />
-            </div>
-        </div>
-        <div class="mb-3">
-            <label class="form-label small" for="room-create-listed">練習の部屋の一覧に出すか（出すと、部屋の名前と人数が誰にでも見えます）</label>
-            <select class="form-select room-lobby-field" id="room-create-listed" @onchange="OnCreateListed">
-                <option value="no" selected="@(!createListed)">一覧に出さない（既定）</option>
-                <option value="yes" selected="@createListed">一覧に出す</option>
-            </select>
-        </div>
-        <p class="small text-body-secondary mb-3">URL を知っている人は誰でも入れて、内容を変えられます。個人情報は入れないでください。一覧に出さない部屋は、URL を知る人だけが入れます。</p>
+        <p class="mb-3">ログインは不要です。部屋を作ると、一覧に出ます。部屋の名前とパスワードは、自動で決まります。パスワードは、部屋を作った人の画面に表示されます。</p>
         <button type="button" class="btn btn-primary" id="room-create" @onclick="CreateRoom"><AvIcon Name="Add" /> 部屋を作る</button>
     </div>
 </div>
@@ -47,7 +29,7 @@
 <div id="room-list-card" class="card mb-4 practice-pc-only" hidden="@inRoom">
     <div class="card-body">
         <h2 class="h5">練習の部屋の一覧</h2>
-        <p class="small text-body-secondary mb-3">一覧に出ている部屋（参加者が 1 人以上いる部屋）を、10 秒ごとに読み直します。鍵つきの部屋は、鍵を入れて入れます。</p>
+        <p class="small text-body-secondary mb-3">一覧に出ている部屋（参加者が 1 人以上いる部屋）を、10 秒ごとに読み直します。部屋の「入る」を押して、パスワードを入れて入れます。</p>
         @if (listFailed)
         {
             <p class="small text-danger mb-2" role="status">一覧を読めませんでした。しばらくすると、もう一度読みます。</p>
@@ -63,42 +45,44 @@
             }
             else if (rooms.Count == 0)
             {
-                <li class="room-empty small text-body-secondary">今、一覧に出ている部屋はありません。部屋を作るとき「一覧に出す」を選ぶと、ここに出ます。</li>
+                <li class="room-empty small text-body-secondary">今、一覧に出ている部屋はありません。「部屋を作る」を押すと、ここに出ます。</li>
             }
             else
             {
                 @foreach (var r in rooms)
                 {
                     var full = IsFull(r);
+                    var open = expandedRoom == r.Id && !full;
                     <li class="room-card card h-100" data-room="@r.Id" @key="r.Id">
                         <div class="card-body d-flex flex-column gap-2">
                             <div class="d-flex justify-content-between align-items-start gap-2">
                                 <h3 class="h5 mb-0 room-card-name">@r.Name</h3>
-                                @if (r.Locked)
-                                {
-                                    <span class="room-card-lock-icon" role="img" aria-label="鍵"><AvIcon Name="Lock" /></span>
-                                }
+                                <span class="room-card-lock-icon" role="img" aria-label="パスワードあり"><AvIcon Name="Lock" /></span>
                             </div>
                             <p class="small mb-0 room-card-meta">
                                 <span class="room-card-count"><AvIcon Name="Groups" /> @r.Count / @r.Max 人</span>
                                 <span>@Elapsed(r.CreatedAt)</span>
                             </p>
                             <p class="small mb-0 room-card-status">
-                                <span class="room-card-pass">@(r.Locked ? "パスワードあり" : "鍵なし")</span>
+                                <span class="room-card-pass">パスワードあり</span>
                                 @if (full)
                                 {
                                     <span class="room-card-full">満員</span>
                                 }
                             </p>
-                            @if (r.Locked && !full)
-                            {
-                                <input type="password" class="form-control room-lobby-field room-row-pass" maxlength="64" autocomplete="off" aria-label="@PassLabel(r)" value="@RowPass(r.Id)" @oninput="e => OnRowPass(r.Id, e)" />
-                            }
                             @if (full)
                             {
                                 <p class="small mb-0" id="room-full-@r.Id">満員のため入れません。空くと、ここから入れるようになります。</p>
                             }
-                            <button type="button" class="btn btn-outline-primary room-lobby-field room-card-join" aria-label="@JoinLabel(r)" aria-describedby="@(full ? "room-full-" + r.Id : null)" disabled="@full" @onclick="() => JoinRoom(r)">入る</button>
+                            <button type="button" class="btn btn-outline-primary room-lobby-field room-card-join" aria-label="@JoinLabel(r)" aria-expanded="@(open ? "true" : "false")" aria-controls="room-pass-panel-@r.Id" aria-describedby="@(full ? "room-full-" + r.Id : null)" disabled="@full" @onclick="() => ToggleRoom(r.Id)">入る</button>
+                            @if (open)
+                            {
+                                <div class="room-pass-panel d-flex flex-column gap-2" id="room-pass-panel-@r.Id">
+                                    <label class="form-label small mb-0" for="room-pass-@r.Id">パスワード（部屋を作った人から聞いたもの）</label>
+                                    <input type="password" class="form-control room-lobby-field room-row-pass" id="room-pass-@r.Id" maxlength="64" autocomplete="off" aria-label="@PassLabel(r)" value="@RowPass(r.Id)" @oninput="e => OnRowPass(r.Id, e)" />
+                                    <button type="button" class="btn btn-primary room-lobby-field" @onclick="() => JoinRoom(r)">この部屋に入る</button>
+                                </div>
+                            }
                         </div>
                     </li>
                 }
@@ -109,7 +93,7 @@
 
 <div id="room-closed" class="card mb-4 practice-pc-only" hidden="@(!inRoom || room.ClosedReason is null)" role="status">
     <div class="card-body">
-        <h2 class="h5">この部屋は閉じられました</h2>
+        <h2 class="h5">@ClosedHeading</h2>
         <p class="mb-3">@ClosedText</p>
         <a class="btn btn-outline-primary btn-sm" href="/practice/room">みんなで練習のロビーへ</a>
     </div>
@@ -141,17 +125,17 @@
         {
             <div class="card mb-3 room-gate" id="room-gate" role="form" aria-labelledby="room-gate-title">
                 <div class="card-body">
-                    <h2 class="h6" id="room-gate-title">この部屋には鍵があります</h2>
+                    <h2 class="h6" id="room-gate-title">この部屋にはパスワードがあります</h2>
                     @if (room.Gate == "limited")
                     {
-                        <p class="small text-danger">鍵の入力が続けて違ったため、しばらく入れません（あと約 @Minutes(room.PassLimitMs) 分）。</p>
+                        <p class="small text-danger">パスワードの入力が続けて違ったため、しばらく入れません（あと約 @Minutes(room.PassLimitMs) 分）。</p>
                     }
                     else
                     {
-                        <p class="small">@(room.Gate == "wrongpass" ? "鍵が違います。" : "")部屋の作成者から聞いた鍵を入力してください。</p>
+                        <p class="small">@(room.Gate == "wrongpass" ? "パスワードが違います。" : "")部屋を作った人から聞いたパスワードを入力してください。</p>
                     }
                     <div class="input-group input-group-sm">
-                        <input type="password" class="form-control room-lobby-field" id="room-gate-pass" maxlength="64" autocomplete="off" aria-label="鍵" value="@gatePass" @oninput="OnGatePass" disabled="@(room.Gate == "limited")" />
+                        <input type="password" class="form-control room-lobby-field" id="room-gate-pass" maxlength="64" autocomplete="off" aria-label="パスワード" value="@gatePass" @oninput="OnGatePass" disabled="@(room.Gate == "limited")" />
                         <button type="button" class="btn btn-primary room-lobby-field" id="room-gate-submit" disabled="@(room.Gate == "limited")" @onclick="SubmitGate">入る</button>
                     </div>
                 </div>
@@ -174,12 +158,16 @@
                 {
                     <div class="alert alert-warning small" id="room-idle" role="alert">操作が無いため、あと約 @Minutes(idleMs) 分で部屋を閉じます。操作すると延びます。</div>
                 }
-                <label class="form-label small" for="room-url">この URL を送ると、同じ部屋に入れます</label>
-                <div class="input-group input-group-sm mb-3">
-                    <input type="text" class="form-control" id="room-url" readonly value="@(csActive ? roomUrl : null)" />
-                    <button type="button" class="btn btn-outline-primary" id="room-copy" @onclick="CopyUrl">@(copied ? "コピーしました" : "コピー")</button>
-                </div>
-                <p class="small text-body-secondary mb-3">URL を知っている人は誰でも入れて、内容を変えられます。個人情報は入れないでください。</p>
+                @if (csActive && room.OwnerPass is { } ownerPass)
+                {
+                    <label class="form-label small" for="room-pass">この部屋のパスワード（作成者の画面だけに出ます）</label>
+                    <div class="input-group input-group-sm mb-2">
+                        <input type="text" class="form-control" id="room-pass" readonly value="@ownerPass" />
+                        <button type="button" class="btn btn-outline-primary" id="room-copy" @onclick="CopyPass">@(copied ? "コピーしました" : "コピー")</button>
+                    </div>
+                    <p class="small text-body-secondary mb-3">一緒に練習する人には、このパスワードを別の手段（Discord など）で伝えてください。</p>
+                }
+                <p class="small text-body-secondary mb-3">この部屋は一覧に出ます。入るにはパスワードが必要です。パスワードを知る人は誰でも入れて、内容を変えられます。個人情報は入れないでください。</p>
                 <label class="form-label small" for="room-name">表示名（ほかの人に見えます。20 文字まで）</label>
                 <input type="text" class="form-control form-control-sm mb-3" id="room-name" maxlength="20" autocomplete="nickname" value="@(csActive ? nameInitial : null)" @oninput="OnNameInput" />
                 <h3 class="h6">参加している人</h3>
@@ -211,7 +199,7 @@
                     <li>ほかの人が動かしているオブジェクトは、終わるまで動かせません（その人の色の枠が付きます）</li>
                     <li>ほかの人が変更すると、<kbd>Ctrl</kbd>+<kbd>Z</kbd> でそれより前には戻せません</li>
                     <li>「視点に合わせる」で、その人と同じ視点で見られます（自分で視点を動かすと解除）</li>
-                    <li>一覧に出した部屋の名前と人数は、誰にでも見えます。鍵つきの部屋も、鍵を知っている人は入れます</li>
+                    <li>部屋は一覧に出ます。部屋の名前（ランダムな字）と人数は、誰にでも見えます。入るにはパスワードが必要です</li>
                     <li>1 部屋 8 人まで、オブジェクトは 200 個まで。操作（変更・ロック・移動）が 30 分無いと部屋は閉じられ、中身は消えます</li>
                 </ul>
             </div>
@@ -224,6 +212,10 @@
 @code {
     /// <summary>部屋の ID の形(worker/index.js と同じ。小文字の英数字 10〜32 字。短い ID は受け付けない。末尾は \z: .NET の $ は末尾の改行の前にも一致するので、"abcdef1234\n" を通してしまい、JS の /^…$/ と食い違う)</summary>
     private static readonly System.Text.RegularExpressions.Regex RoomRe = new("^[a-z0-9]{10,32}\\z", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    /// <summary>部屋のパスワードの文字（英数字の 62 字。作成のとき、この中から一様に選ぶ）。</summary>
+    private const string PassChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private const int PassLength = 40;
 
     private static readonly IReadOnlyList<(string? Href, string Text)> Crumbs = [("/practice", "操作の練習"), (null, "みんなで練習")];
 
@@ -248,22 +240,19 @@
     private IRoomCs? cs;
     private PracticeHud hud = new();
     private RoomHud room = new("", "", "", [], null);
-    private string roomUrl = "";
     private string nameInitial = "";
 
-    // ロビー: 作成のフォーム・一覧（null は読み込み中）・鍵の入力
+    // ロビー: 作成のボタン・一覧（null は読み込み中）・開いている部屋のパスワード欄
     private IRoomDirectory? directory;
     private IReadOnlyList<RoomListItem>? rooms;
     private bool listFailed;
     private string? joinMessage;
-    private string createName = "";
-    private string createPass = "";
-    private bool createListed;
+    private string? expandedRoom;
     private readonly Dictionary<string, string> rowPass = [];
     private CancellationTokenSource? listCts;
     private string gatePass = "";
 
-    // 次に入る部屋の指定（作成・一覧からの鍵）。移動の前に置き、その部屋の始めに 1 回だけ使う（鍵を URL に載せない）
+    // 次に入る部屋の指定（作成の鍵・一覧からのパスワード）。移動の前に置き、その部屋の始めに 1 回だけ使う（鍵を URL に載せない）
     private string? pendingRoomId;
     private RoomStartOptions? pendingStart;
 
@@ -272,10 +261,14 @@
 
     private string StatusClass => string.IsNullOrEmpty(room.StatusKind) ? "" : $"is-{room.StatusKind}";
 
+    private string ClosedHeading => room.ClosedReason == "limit" ? "部屋を作れませんでした" : "この部屋は閉じられました";
+
     private string ClosedText => room.ClosedReason switch
     {
         "owner" => "作成者がこの部屋を閉じました。部屋の中身は消えました。",
         "idle" => "30 分のあいだ操作が無かったため、部屋を閉じました。部屋の中身は消えました。",
+        "expired" => "この部屋は期限切れです（以前の形式の部屋は、中身を読めないため使えません）。部屋を作り直してください。",
+        "limit" => "部屋を作る回数の上限に達しました。しばらくしてから、もう一度部屋を作ってください。",
         _ => "この部屋は閉じられています。",
     };
 
@@ -322,8 +315,7 @@
             await PracticeCsAssemblies.LoadAsync(Services);
             // 読み込んでいるあいだに、ページを離れた・部屋が替わった(この始め方は古い)。次の部屋の始め方に任せる
             if (disposed || startedRoom != roomId) return;
-            roomUrl = Nav.Uri;
-            created = await RoomCsLoader.CreateAsync(roomId, roomUrl, Query("debug") == "1", TakePending(roomId));
+            created = await RoomCsLoader.CreateAsync(roomId, Query("debug") == "1", TakePending(roomId));
             if (disposed || startedRoom != roomId) return;   // created は finally で破棄する
             StopCs();                                        // 同じ画面に、前の部屋が残っていれば先に解放する
             cs = created;
@@ -391,11 +383,11 @@
 
     private void ToggleFollow(string id) => cs?.ToggleFollow(id);
 
-    /// <summary>鍵を入れて入り直す（鍵の画面）。空なら何もしない。</summary>
+    /// <summary>パスワードを入れて入り直す(パスワードの画面)。空なら何もしない。</summary>
     private void SubmitGate()
     {
-        if (cs is null || string.IsNullOrEmpty(gatePass)) return;
-        cs.SubmitPass(gatePass);
+        if (cs is null || string.IsNullOrWhiteSpace(gatePass)) return;
+        cs.SubmitPass(gatePass.Trim());
         gatePass = "";
     }
 
@@ -407,11 +399,11 @@
         if (ok && cs is not null) cs.RequestClose();
     }
 
-    /// <summary>URL をコピーする。ラベルは 1.5 秒のあと「コピー」に戻る。C# 版の描画の中では、JavaScript のタイマーで待つ。</summary>
-    private async Task CopyUrl()
+    /// <summary>部屋のパスワードをコピーする。ラベルは 1.5 秒のあと「コピー」に戻る。C# 版の描画の中では、JavaScript のタイマーで待つ。</summary>
+    private async Task CopyPass()
     {
         if (cs is null) return;
-        await cs.CopyUrlAsync();
+        await cs.CopyPassAsync();
         copied = true;
         StateHasChanged();
         await PracticeCsJsTutorial.DelayAsync(1500);
@@ -420,38 +412,43 @@
         StateHasChanged();
     }
 
-    /// <summary>部屋を作る: ID と作成者の鍵（16 バイトの乱数）を作り、作成の指定を次の部屋として置いてから、その部屋へ移動する。</summary>
+    /// <summary>部屋を作る: ID・名前（サーバーが決める）・パスワード（40 字の英数字・一様な乱数）・作成者の鍵（16 バイトの乱数）を作り、次の部屋の指定として置いてから、その部屋へ移動する。</summary>
     private void CreateRoom()
     {
         var bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(10);
         var id = new string(bytes.Select(b => "0123456789abcdefghijklmnopqrstuvwxyz"[b % 36]).ToArray());
         var ownerKey = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
-        var name = createName.Trim();
         pendingRoomId = id;
-        pendingStart = new RoomStartOptions(
-            CreateName: name.Length == 0 ? "練習の部屋" : name,
-            Listed: createListed,
-            CreatePass: createPass.Length == 0 ? null : createPass,
-            OwnerKey: ownerKey);
-        createPass = "";
+        pendingStart = new RoomStartOptions(CreatePass: RandomPass(), OwnerKey: ownerKey);
         // ?debug=1 は、作った部屋へも引き継ぐ
         var extra = Query("debug") == "1" ? "&debug=1" : "";
         Nav.NavigateTo($"/practice/room?room={id}{extra}");
     }
 
-    /// <summary>一覧の部屋に入る。鍵つきは、入力した鍵を次の部屋の最初の hello に使う（URL には載せない）。</summary>
+    /// <summary>部屋のパスワード: PassChars の 40 字を、暗号論的乱数で一様に選ぶ（RandomNumberGenerator.GetInt32 は、偏りの無い一様な値を返す）。</summary>
+    private static string RandomPass() =>
+        new(Enumerable.Range(0, PassLength).Select(_ => PassChars[System.Security.Cryptography.RandomNumberGenerator.GetInt32(PassChars.Length)]).ToArray());
+
+    /// <summary>一覧の部屋の「入る」: その部屋のパスワード欄を開く（閉じているものは開き、開いているものは閉じる）。</summary>
+    private void ToggleRoom(string id)
+    {
+        joinMessage = null;
+        expandedRoom = expandedRoom == id ? null : id;
+    }
+
+    /// <summary>一覧の部屋に入る。入力したパスワードは、次の部屋の最初の hello に使う（URL には載せない）。パスワードが違えば、部屋の画面で案内する。</summary>
     private void JoinRoom(RoomListItem r)
     {
         joinMessage = null;
         if (!RoomRe.IsMatch(r.Id) || IsFull(r)) return;   // 満員のボタンは無効。念のため、ここでも入らない
-        var pass = RowPass(r.Id);
-        if (r.Locked && pass.Length == 0)
+        var pass = RowPass(r.Id).Trim();
+        if (pass.Length == 0)
         {
-            joinMessage = $"「{r.Name}」は鍵つきです。鍵を入力してから「入る」を押してください。";
+            joinMessage = $"「{r.Name}」に入るには、パスワードを入力してください。";
             return;
         }
         pendingRoomId = r.Id;
-        pendingStart = new RoomStartOptions(Pass: r.Locked ? pass : null);
+        pendingStart = new RoomStartOptions(Pass: pass);
         Nav.NavigateTo($"/practice/room?room={r.Id}");
     }
 
@@ -463,12 +460,9 @@
     /// <summary>入るボタンの名前（スクリーンリーダーには「部屋名 に入る」と読ませる）。</summary>
     private static string JoinLabel(RoomListItem r) => $"{r.Name} に入る";
 
-    /// <summary>鍵の欄の名前（部屋ごと）。</summary>
-    private static string PassLabel(RoomListItem r) => $"{r.Name} の鍵";
+    /// <summary>パスワードの欄の名前（部屋ごと）。</summary>
+    private static string PassLabel(RoomListItem r) => $"{r.Name} のパスワード";
 
-    private void OnCreateName(ChangeEventArgs e) => createName = e.Value?.ToString() ?? "";
-    private void OnCreatePass(ChangeEventArgs e) => createPass = e.Value?.ToString() ?? "";
-    private void OnCreateListed(ChangeEventArgs e) => createListed = e.Value?.ToString() == "yes";
     private void OnRowPass(string id, ChangeEventArgs e) => rowPass[id] = e.Value?.ToString() ?? "";
     private void OnGatePass(ChangeEventArgs e) => gatePass = e.Value?.ToString() ?? "";
 

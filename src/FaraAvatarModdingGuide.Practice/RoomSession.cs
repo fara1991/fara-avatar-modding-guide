@@ -29,17 +29,20 @@ public interface IRoomTransport
     /// <summary>この部屋の作成者の鍵(端末に保存したもの。無ければ null)。</summary>
     string? LoadOwnerKey(string roomId);
 
-    /// <summary>作成者の鍵を保存する(部屋を作ったとき)。</summary>
-    void SaveOwnerKey(string roomId, string key);
+    /// <summary>作成者の鍵と部屋のパスワードを保存する(部屋を作ったとき)。パスワードは作成者の端末だけに残る(閉じたら消す)。</summary>
+    void SaveOwnerKey(string roomId, string key, string pass);
+
+    /// <summary>この部屋のパスワード(作成者の端末に保存したもの。無ければ null)。作成者の画面で、確認・コピーに使う。</summary>
+    string? LoadOwnerPass(string roomId);
 
     /// <summary>作成者の鍵を消す(部屋が閉じたとき)。</summary>
     void ForgetOwnerKey(string roomId);
 }
 
-/// <summary>部屋を作る指定(作成の hello に載せる)。OwnerKey は作成者の鍵(16 バイトの乱数を 16 進にしたもの)。鍵・作成者の鍵はメモリ上だけで扱う。</summary>
-public sealed record RoomCreateOptions(string Name, bool Listed, string? Pass, string OwnerKey);
+/// <summary>部屋を作る指定(作成の hello に載せる)。Pass は部屋のパスワード(英数字 32 字以上)。OwnerKey は作成者の鍵(16 バイトの乱数を 16 進にしたもの)。どちらもメモリと端末の保存だけで扱う。</summary>
+public sealed record RoomCreateOptions(string Pass, string OwnerKey);
 
-/// <summary>部屋に入る指定。Pass は一覧から入るときなどに、最初の hello で使う鍵。Create は作成するとき。</summary>
+/// <summary>部屋に入る指定。Pass は一覧から入るときなどに、最初の hello で使うパスワード。Create は作成するとき。</summary>
 public sealed record RoomJoinOptions(string? Pass = null, RoomCreateOptions? Create = null);
 
 /// <summary>鍵の状態(鍵の入力を待っている・違った・試しすぎて拒否された)。None は鍵の画面を出さない。</summary>
@@ -119,6 +122,7 @@ public sealed class RoomSession : IDisposable
     private double nameDirtyAt = -1;
     private string? pass;          // 鍵(入力された、または最初の hello に使った鍵)。自動の再接続では、このメモリの鍵を送る
     private string? ownerKey;      // 作成者の鍵(この端末が作った部屋のもの)
+    private string? ownerPass;     // 部屋のパスワード(この端末が作った部屋のもの。作成者の画面で確認・コピーに出す)
     private bool createPending;    // 作成の指定を、まだ welcome の前に送る(welcome のあとは送らない)
 
     public RoomSession(ViewportCore core, IRoomTransport transport, string roomId, string name, RoomJoinOptions? join = null)
@@ -150,10 +154,13 @@ public sealed class RoomSession : IDisposable
     public RoomGate Gate { get; private set; } = RoomGate.None;
     /// <summary>試しすぎて拒否されているあいだの残り(ms)。Gate が PassLimited のときだけ。</summary>
     public double PassLimitMs { get; private set; }
-    /// <summary>閉じられた理由("owner" 作成者が閉じた・"idle" 30 分操作が無かった・"closed" その他)。閉じたら null 以外。</summary>
+    /// <summary>閉じられた理由("owner" 作成者が閉じた・"idle" 30 分操作が無かった・"expired" 旧形式の部屋・"limit" 部屋の作成の回数の上限・"closed" その他)。閉じたら null 以外。</summary>
     public string? ClosedReason { get; private set; }
     /// <summary>閉じる前の警告の残り(ms)。警告が無いときは null。</summary>
     public double? IdleWarnMs { get; private set; }
+
+    /// <summary>作成者の画面に出す、部屋のパスワード(作成者だけ。ほかの人・作成者でない接続には null)。</summary>
+    public string? OwnerPass => Me is { Owner: true } ? ownerPass : null;
 
     /// <summary>画面に出る状態が変わった(ステータス・参加者・表示名・追従など)。</summary>
     public event Action? Changed;
@@ -163,6 +170,7 @@ public sealed class RoomSession : IDisposable
     {
         pass = join.Pass ?? join.Create?.Pass;
         ownerKey = join.Create?.OwnerKey ?? transport.LoadOwnerKey(roomId);
+        ownerPass = join.Create?.Pass ?? transport.LoadOwnerPass(roomId);
         createPending = join.Create is not null;
         tickTimer = transport.Timer(TickMs, true, Tick);
         pingTimer = transport.Timer(PingMs, true, Ping);
@@ -228,7 +236,7 @@ public sealed class RoomSession : IDisposable
     public void SubmitPass(string value)
     {
         if (disposed || ClosedReason is not null) return;
-        pass = value;
+        pass = value.Trim();   // 貼り付けた文字の前後の空白（末尾の改行など）は、鍵の一部にしない
         Gate = RoomGate.None;
         PassLimitMs = 0;
         retries = 0;
@@ -294,7 +302,7 @@ public sealed class RoomSession : IDisposable
         if (create is not null)
         {
             ownerKey = create.OwnerKey;
-            transport.SaveOwnerKey(roomId, create.OwnerKey);
+            transport.SaveOwnerKey(roomId, create.OwnerKey, create.Pass);
         }
         transport.Send(id, RoomWire.Hello(Name, ownerKey, pass, create));
     }
@@ -317,6 +325,8 @@ public sealed class RoomSession : IDisposable
         Changed?.Invoke();
         // 閉じられた部屋・鍵の入力待ち・鍵の拒否: 自動では再接続しない（画面の案内に任せる）
         if (code == 4004) { ClosedReason ??= "closed"; transport.ForgetOwnerKey(roomId); return; }
+        // 作成の回数の上限（4005）: 部屋は作られていない。保存した鍵・パスワードは消し、つなぎ直さない
+        if (code == 4005) { ClosedReason ??= "limit"; transport.ForgetOwnerKey(roomId); SetStatus("部屋を作る回数の上限に達しました。しばらくしてからもう一度", "warn"); return; }
         if (code == 4003)
         {
             if (Gate == RoomGate.None) Gate = RoomGate.NeedPass;   // 理由のメッセージが無かったら、鍵を聞く
@@ -396,7 +406,7 @@ public sealed class RoomSession : IDisposable
     private void ApplyClosed(JsonElement m)
     {
         var reason = TryStr(m, "reason", out var r) ? r : "";
-        ClosedReason = reason is "owner" or "idle" ? reason : "closed";
+        ClosedReason = reason is "owner" or "idle" or "expired" or "limit" ? reason : "closed";
         transport.ForgetOwnerKey(roomId);
         SetStatus("部屋は閉じられました", "warn");
     }

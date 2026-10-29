@@ -9,9 +9,12 @@
 // - 遅れて入った人には、Durable Object に保存したシーンを丸ごと送る
 // - 同じオブジェクトへの変更は、サーバーに届いた順（後勝ち）。操作中のオブジェクトはロックできる
 // - 受け取ったメッセージはすべてここで形式と値の範囲を確かめる（不正なものは捨てる）
-// - 作成は、最初の hello の create だけ（一覧に出すか・鍵・作成者の鍵）。作成後は変えられない。create の無い hello で部屋が無ければ、作らずに閉じる
+// - 部屋は常に一覧に出る。部屋の名前は Worker が決めるランダムな文字列。鍵（パスワード）は作成のときクライアントが作る英数字 32 字以上（平文は保存せず、ソルト付き SHA-256 のハッシュだけを残す）
+// - 作成は、最初の hello の create だけ（鍵・作成者の鍵）。作成後は変えられない。create の無い hello で部屋が無ければ、作らずに閉じる
+// - 部屋の作成は接続元ごとに数える（1 分に 5 部屋・JST の 1 日に 30 部屋まで。RoomDirectory に、秘密鍵つき HMAC のハッシュで持つ。超えたら 4005 で閉じる）。既存の部屋に入るのは数えない
 // - 作成の処理は、部屋ごとに直列にする（同時の hello で、作成者や鍵が上書きされないように）
 // - 作成者の鍵が合う接続は、鍵を免除する。ほかの人は、鍵が合うまで部屋の中身（welcome・参加者・オブジェクト）を送らない（needpass・wrongpass・passlimit のあと 4003 で閉じる）
+// - 旧形式の部屋（鍵の保存形が v2 でない）は中身を読めないので、入ろうとしたら「期限切れ」として閉じる（expired・4004）
 // - 成功した操作（オブジェクトの変更・ロック・解除・移動の適用）が 30 分（ROOM_IDLE_SECONDS で変えられる）無ければ部屋を閉じる。2 分前に idlewarn で知らせる
 // - 作成者（作成者の鍵を持つ接続）だけが「部屋を閉じる」（close）できる。閉じた部屋の ID は 10 分、「閉じた」目印で拒否する
 // - ping は Durable Object を起こさずに自動で返す（WebSocket Hibernation）。応答の時刻で、切れた接続を見つけて外す
@@ -19,8 +22,11 @@ import { DurableObject } from "cloudflare:workers";
 // 報告の受け口とメンテナンスの判定は、共通部品（fara-blazor-component）の同じファイルを使う（各サイトに同じコピーを持たない）
 import { handleReport } from "../external/fara-blazor-component/worker/report.js";
 import { getMaintenance, maintenanceResponse } from "../external/fara-blazor-component/worker/maintenance.js";
+import { errorSummary } from "../external/fara-blazor-component/worker/error-summary.js";
 // 報告の 1 日の送信回数の制限（送信元ごと 3 回まで）の Durable Object。バインディング REPORT_LIMITER（wrangler.toml）があるときだけ働く
 export { ReportRateLimiter } from "../external/fara-blazor-component/worker/report-rate-limit.js";
+// JST の暦日と次の 0 時（部屋の作成の 1 日の数え方と、RoomDirectory の掃除に使う。報告と同じ区切り）
+import { jstDay, nextJstMidnight } from "../external/fara-blazor-component/worker/report-rate-limit.js";
 
 // ---------------------------------------------------------------- 上限
 export const LIMITS = {
@@ -50,7 +56,6 @@ export const LIMITS = {
   viewAngleMax: 1000,       // 視点の角度（theta）の絶対値の上限
   viewPhiMax: 4,            // 視点の角度（phi）の絶対値の上限
   viewNameLength: 8,        // 視点の先生役の名前の長さ
-  roomNameLength: 40,       // 部屋名の長さ
   roomIdleMs: 30 * 60 * 1000, // 成功した操作（オブジェクトの変更・ロック・解除・移動）が無いまま、これだけたつと部屋を閉じる。ROOM_IDLE_SECONDS で変えられる
   roomWarnMs: 2 * 60 * 1000,  // 閉じる前に、これだけ前から idlewarn で知らせる（部屋の時間が短いときは、その半分まで）
   roomPersistMs: 10 * 1000,   // 最後の操作の時刻を storage に書く間隔（書き込みを減らす。再起動のとき、この分だけ早く閉じることがある）
@@ -60,9 +65,12 @@ export const LIMITS = {
   listMax: 50,                // 一覧に返す件数
   listStoreMax: 200,          // 一覧に登録できる件数（これを超えたら登録しない）
   listCacheMs: 5 * 1000,      // 一覧を Worker の中で覚える時間（一覧は参考情報。古くても問題にならない）
-  passMax: 64,                // 鍵の長さ（文字）
-  passIterations: 100000,     // PBKDF2-SHA256 の反復回数（既定。Workers の Web Crypto の上限。ROOM_PASS_ITERATIONS で 10000〜100000 に変えられる）
-  passFailMax: 5,             // 鍵の間違い（接続元ごと・部屋ごと）。これだけ続けると拒否する
+  passMin: 32,                // 鍵の長さ（文字）。クライアントが作るのは 40 字。これより短い鍵は、作成では受け付けない
+  passMax: 64,                // 鍵の長さの上限（文字）
+  createPerMinute: 5,         // 部屋の作成（接続元ごと）。createWindowMs のあいだに作れる数
+  createWindowMs: 60 * 1000,
+  createPerDay: 30,           // 部屋の作成（接続元ごと）。JST の 1 日に作れる数
+  passFailMax: 5,            // 鍵の間違い（接続元ごと・部屋ごと）。これだけ続けると拒否する
   passFailWindowMs: 10 * 60 * 1000, // 間違いを数える時間窓
   passBlockMs: 10 * 60 * 1000,      // 拒否する時間
 };
@@ -74,6 +82,16 @@ const ROOM_ID = /^[a-z0-9]{10,32}$/;
 const OBJ_ID = /^[a-z0-9]{1,24}$/;
 // 作成者の鍵（クライアントが作る 128 ビットの乱数。16 進 32 字）
 const OWNER_KEY = /^[0-9a-f]{32}$/;
+// 鍵（作成のとき）: 英数字の passMin〜passMax 字
+const PASS_PATTERN = new RegExp(`^[A-Za-z0-9]{${LIMITS.passMin},${LIMITS.passMax}}$`);
+// 鍵の保存形のバージョン（2 = ソルト付き SHA-256。これ以外の保存形の部屋は、期限切れとして閉じる）
+const PASS_VERSION = 2;
+// 部屋の名前（Worker が作る）: 紛らわしい文字（i・l・o・u）を除いた 32 字。byte & 31 で選ぶので偏らない
+const ROOM_NAME_CHARS = "0123456789abcdefghjkmnpqrstvwxyz";
+const ROOM_NAME_LENGTH = 8;
+// 部屋の作成の回数を数える接続元の識別子（秘密鍵つきの HMAC。用途ラベルで鍵を分ける）
+const CREATE_LIMIT_LABEL = "fara-avatar-modding-guide/room-create-limit/v1";
+const CREATE_HASH = /^[0-9a-f]{32}$/;
 const DIRECTORY_NAME = "main";
 // 一覧の覚え（Worker の isolate ごと。env.ROOM_DIRECTORY の束縛をキーにする）
 const listCache = new WeakMap();
@@ -205,18 +223,20 @@ function cleanView(v) {
 
 /**
  * 作成の指定（最初の hello の create）。不正なら null。
- * owner（作成者の鍵）は hello の owner で渡し、ここでは形だけ確かめる。pass は空なら鍵なし。
+ * owner（作成者の鍵）は hello の owner で渡し、ここでは形だけ確かめる。鍵（pass）は必須で、英数字 passMin〜passMax 字。
+ * 部屋の名前は Worker が作る（クライアントの名前は受け取らない。一覧に出る名前を、クライアントに決めさせないため）。
  */
 export function parseCreate(c, owner) {
-  if (!c || typeof c !== "object" || typeof c.listed !== "boolean") return null;
+  if (!c || typeof c !== "object") return null;
   if (typeof owner !== "string" || !OWNER_KEY.test(owner)) return null;
-  if (c.pass !== undefined && c.pass !== null && c.pass !== "" && (typeof c.pass !== "string" || [...c.pass].length > LIMITS.passMax)) return null;
-  return {
-    name: cleanName(c.name, LIMITS.roomNameLength) || "練習の部屋",
-    listed: c.listed,
-    pass: typeof c.pass === "string" && c.pass !== "" ? c.pass : null,
-    owner,
-  };
+  if (typeof c.pass !== "string" || !PASS_PATTERN.test(c.pass)) return null;
+  return { pass: c.pass, owner };
+}
+
+/** 部屋の名前（ランダム。ROOM_NAME_CHARS の 8 字。byte & 31 で選ぶので偏らない） */
+export function randomRoomName() {
+  const bytes = crypto.getRandomValues(new Uint8Array(ROOM_NAME_LENGTH));
+  return [...bytes].map(b => ROOM_NAME_CHARS[b & 31]).join("");
 }
 
 // ---------------------------------------------------------------- 暗号（Web Crypto）
@@ -227,28 +247,48 @@ async function sha256Hex(text) {
   return hex(new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(text))));
 }
 
-/** PBKDF2-SHA256（ソルトつき）で鍵を導く。16 進の文字。 */
-async function derivePass(pass, saltHex, iterations) {
-  const key = await crypto.subtle.importKey("raw", encoder.encode(pass), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: unhex(saltHex), iterations }, key, 256);
-  return hex(new Uint8Array(bits));
+/** SHA-256(salt || 鍵) の 16 進。鍵は 32 字以上のランダムな値なので、遅いハッシュ（PBKDF2）は使わない。 */
+async function passDigest(saltBytes, pass) {
+  const body = encoder.encode(pass);
+  const data = new Uint8Array(saltBytes.length + body.length);
+  data.set(saltBytes, 0);
+  data.set(body, saltBytes.length);
+  return hex(new Uint8Array(await crypto.subtle.digest("SHA-256", data)));
 }
 
-/** 鍵の保存形 { salt, iter, hash }。平文は残さない。 */
-async function hashPass(pass, iterations) {
-  const salt = hex(crypto.getRandomValues(new Uint8Array(16)));
-  return { salt, iter: iterations, hash: await derivePass(pass, salt, iterations) };
+/** 鍵の保存形 { v, salt, hash }。ソルトは 16 バイトの乱数。平文は残さない。 */
+async function hashPass(pass) {
+  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+  return { v: PASS_VERSION, salt: hex(saltBytes), hash: await passDigest(saltBytes, pass) };
 }
 
-/** 鍵が合うか（保存形と同じ条件で導き、定数時間で比べる） */
+/** 鍵が合うか（保存形と同じ条件で作り、定数時間で比べる） */
 async function verifyPass(pass, stored) {
-  return sameText(await derivePass(pass, stored.salt, stored.iter), stored.hash);
+  return sameText(await passDigest(unhex(stored.salt), pass), stored.hash);
 }
 
-/** 反復回数（ROOM_PASS_ITERATIONS。10000〜100000 の整数だけ受け付け、それ以外は既定の LIMITS.passIterations） */
-export function passIterationsOf(env) {
-  const n = Number(env?.ROOM_PASS_ITERATIONS);
-  return Number.isInteger(n) && n >= 10000 && n <= 100000 ? n : LIMITS.passIterations;
+/** 旧形式の部屋か（鍵の保存形が v2 でない。PBKDF2 の時代の部屋・鍵なしの部屋）。読めないので、期限切れとして閉じる。 */
+export function isLegacyRoom(meta) {
+  return Boolean(meta) && meta.pass?.v !== PASS_VERSION;
+}
+
+/** 秘密鍵つきの HMAC（用途ラベルで鍵を導く）。16 進の文字。 */
+async function derivedHmacHex(secret, label, text) {
+  const master = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const derived = await crypto.subtle.sign("HMAC", master, encoder.encode(label));
+  const key = await crypto.subtle.importKey("raw", derived, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return hex(new Uint8Array(await crypto.subtle.sign("HMAC", key, encoder.encode(text))));
+}
+
+/**
+ * 部屋の作成を数える接続元の識別子（32 字の 16 進）。netKey(IP) を秘密鍵つき HMAC にかけたもの。IP そのものは残さない。
+ * 秘密鍵（TURNSTILE_SECRET）か接続元（CF-Connecting-IP）が無いときは null（数えない）。
+ */
+export async function roomCreateKeyOf(request, env) {
+  const secret = env?.TURNSTILE_SECRET;
+  const ip = request?.headers?.get?.("CF-Connecting-IP");
+  if (!secret || !ip) return null;
+  return (await derivedHmacHex(secret, CREATE_LIMIT_LABEL, netKey(ip))).slice(0, 32);
 }
 
 /** 16 進の文字の比較（長さが違えば false。途中で打ち切らない） */
@@ -291,7 +331,7 @@ export class Room extends DurableObject {
     this.chain = Promise.resolve(); // 部屋の作成・鍵の確認を直列にする（同時の hello で、作成者や鍵が上書きされないように）
     this.loading = null;   // 読み込みの途中（同時に 2 回読まない）
     this.inited = false;   // 部屋を作った（作成の指定を受けた hello のあと）
-    this.meta = null;      // { name, listed, createdAt, pass: {salt, iter, hash} | null, ownerHash } 作成のときに決まる
+    this.meta = null;      // { name, createdAt, pass: {v, salt, hash}, ownerHash } 作成のときに決まる
     this.opAt = 0;         // 最後の成功した操作（オブジェクトの変更・ロック・解除・移動の適用）の時刻
     this.opPersisted = 0;  // storage に書いた opAt
     this.warnFor = null;   // idlewarn を出したときの opAt。opAt と同じなら、その操作の区間では警告を出し済み
@@ -399,16 +439,16 @@ export class Room extends DurableObject {
 
   /**
    * 部屋を作る（作成の指定を受けた最初の hello のとき。serial の中で呼ぶ）。立方体を 1 つ置き、作成の指定（meta）を保存する。
-   * 作成者の鍵は SHA-256 のハッシュだけ、鍵は PBKDF2 のハッシュだけを残す。
+   * 部屋の名前は Worker が決める。作成者の鍵は SHA-256 のハッシュだけ、鍵は（ソルト付き SHA-256 の）ハッシュだけを残す。
    */
   async initRoom(create) {
     const now = Date.now();
     // Blender の初期状態と同じく立方体を 1 つ置く
     const cube = { id: "cube0", kind: "cube", name: "Cube", p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] };
-    const pass = create.pass ? await hashPass(create.pass, passIterationsOf(this.env)) : null;
+    const pass = await hashPass(create.pass);
     const ownerHash = await sha256Hex(create.owner);
     this.objects = new Map([[cube.id, cube]]);
-    this.meta = { name: create.name, listed: create.listed, createdAt: now, pass, ownerHash };
+    this.meta = { name: randomRoomName(), createdAt: now, pass, ownerHash };
     this.opAt = now;
     this.opPersisted = now;
     this.warnFor = null;
@@ -552,7 +592,7 @@ export class Room extends DurableObject {
     const id = crypto.randomUUID().replace(/-/g, "").slice(0, 10);
     this.ctx.acceptWebSocket(pair[1]);
     // 色は hello のときに決める（参加している人の色と重ならないように）。ipKey は接続元の数え方（鍵の間違い）に使う
-    pair[1].serializeAttachment({ id, color: null, name: "", joined: false, at: Date.now(), ipKey: await ipKeyOf(request) });
+    pair[1].serializeAttachment({ id, color: null, name: "", joined: false, at: Date.now(), ipKey: await ipKeyOf(request), createKey: await roomCreateKeyOf(request, this.env) });
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
 
@@ -822,6 +862,24 @@ export class Room extends DurableObject {
     });
   }
 
+  /**
+   * 部屋を作ってよいか（接続元ごとの回数。RoomDirectory の hitCreate）。超えたら false。
+   * 秘密鍵・接続元・RoomDirectory が無いとき、数えられなかったときは通す（fail-open）。ログには要約と秘密鍵の無い旨だけを出す（IP・ハッシュは出さない）。
+   */
+  async createAllowed(ws) {
+    if (!this.env?.TURNSTILE_SECRET) { console.error("部屋の作成の回数を数えられないため、制限せずに通します（秘密鍵が無い）"); return true; }
+    const key = ws.deserializeAttachment()?.createKey;
+    const dir = this.env?.ROOM_DIRECTORY;
+    if (!key || !dir) return true;
+    try {
+      const r = await dir.get(dir.idFromName(DIRECTORY_NAME)).hitCreate(key, Date.now());
+      return r?.allowed === true;
+    } catch (e) {
+      console.error(`部屋の作成の回数を数えられないため、制限せずに通します: ${errorSummary(e)}`);
+      return true;
+    }
+  }
+
   /** この接続が作成者か（作成者の鍵の SHA-256 が、部屋の記録と一致するか） */
   async isOwner(key) {
     if (!this.meta?.ownerHash || typeof key !== "string" || !OWNER_KEY.test(key)) return false;
@@ -836,6 +894,8 @@ export class Room extends DurableObject {
     if (me.joined) return;
     const closed = await this.closedRecord();
     if (closed || this.gone) { this.send(ws, { t: "closed", reason: closed?.reason ?? "closed" }); ws.close(4004, "closed"); return; }
+    // 旧形式の部屋（PBKDF2 の時代・鍵なし）は中身を読めない。入ろうとした人には期限切れとして閉じる（部屋の中身は消す）
+    if (this.inited && isLegacyRoom(this.meta)) { await this.closeRoom("expired"); return; }
     // 作成・部屋の有無は、直列の中で決める（同時の hello で 2 回作らない）
     const hasCreate = msg.create !== undefined && msg.create !== null;
     const outcome = await this.serial(async () => {
@@ -843,11 +903,13 @@ export class Room extends DurableObject {
       if (!hasCreate) return "missing";
       const create = parseCreate(msg.create, msg.owner);
       if (!create) return "bad";
+      if (!(await this.createAllowed(ws))) return "limited";
       await this.initRoom(create);
       return "created";
     });
     if (outcome === "missing") { this.send(ws, { t: "closed", reason: "missing" }); ws.close(4004, "closed"); return; }
     if (outcome === "bad") return this.invalid(ws, "bad create");
+    if (outcome === "limited") { this.send(ws, { t: "closed", reason: "limit" }); ws.close(4005, "rate limited"); return; }
     if (me.joined) return;
     // 作成者は鍵を免除する（作成者の鍵が合う接続。作成したばかりの人も含む）
     const owner = outcome === "created" || await this.isOwner(msg.owner);
@@ -902,7 +964,7 @@ export class Room extends DurableObject {
   // ---------------------------------------------------------------- 一覧（RoomDirectory）
   /** 一覧に出す部屋は、人数が変わったときに登録を更新する。作成直後の猶予が過ぎて誰もいなければ外す。失敗しても部屋は続ける。 */
   async syncDirectory() {
-    if (!this.env?.ROOM_DIRECTORY || !this.roomId || !this.meta?.listed || this.gone) return;
+    if (!this.env?.ROOM_DIRECTORY || !this.roomId || !this.meta || this.gone) return;
     try {
       const stub = this.env.ROOM_DIRECTORY.get(this.env.ROOM_DIRECTORY.idFromName(DIRECTORY_NAME));
       const count = this.peers().length;
@@ -913,7 +975,7 @@ export class Room extends DurableObject {
 
   /** 一覧から外す（閉じたとき・誰もいなくなって猶予が過ぎたとき）。失敗は無視する。 */
   async unlist() {
-    if (!this.env?.ROOM_DIRECTORY || !this.roomId || !this.meta?.listed) return;
+    if (!this.env?.ROOM_DIRECTORY || !this.roomId || !this.meta) return;
     try {
       await this.env.ROOM_DIRECTORY.get(this.env.ROOM_DIRECTORY.idFromName(DIRECTORY_NAME)).remove(this.roomId);
     } catch { /* 一覧が無くても部屋は動かす */ }
@@ -923,8 +985,41 @@ export class Room extends DurableObject {
 /**
  * 練習の部屋の一覧（固定名の 1 つの Durable Object）。Room が、作成・参加者の変化・閉じたとき・定期の更新で登録を書き換える。
  * 一覧に出すのは、参加者が 1 人以上いる部屋（作成直後の猶予を除く）。登録が listTtlMs のあいだ更新されなければ、一覧から消す。
+ * 部屋の作成の回数（接続元の識別子ごと。c:<hash> の行）も、ここで数える（hitCreate）。行は alarm（JST の 0 時）で掃除する。
  */
 export class RoomDirectory extends DurableObject {
+  /**
+   * 部屋の作成の回数を数える。1 分（createWindowMs）に createPerMinute 部屋まで、JST の 1 日に createPerDay 部屋まで。
+   * 通せば { allowed: true }（数えた）。上限なら { allowed: false, reason }（数えない）。
+   */
+  async hitCreate(hash, now = Date.now()) {
+    if (typeof hash !== "string" || !CREATE_HASH.test(hash)) return { allowed: false, reason: "invalid" };
+    const key = `c:${hash}`;
+    const row = (await this.ctx.storage.get(key)) ?? {};
+    const day = jstDay(new Date(now));
+    const recent = (Array.isArray(row.t) ? row.t : []).filter(t => now - t < LIMITS.createWindowMs);
+    const today = row.day === day && Number.isInteger(row.n) ? row.n : 0;
+    if (recent.length >= LIMITS.createPerMinute) return { allowed: false, reason: "minute" };
+    if (today >= LIMITS.createPerDay) return { allowed: false, reason: "day" };
+    await this.ctx.storage.put(key, { t: [...recent, now], day, n: today + 1 });
+    if ((await this.ctx.storage.getAlarm()) === null) await this.ctx.storage.setAlarm(nextJstMidnight(new Date(now)).getTime());
+    return { allowed: true };
+  }
+
+  /** 掃除（JST の 0 時）。前の日の行と、1 分の窓の外の行を消す。行が残れば、次の 0 時に予約する。 */
+  async alarm() {
+    const now = Date.now();
+    const today = jstDay(new Date(now));
+    const rows = await this.ctx.storage.list({ prefix: "c:" });
+    const stale = [];
+    for (const [key, row] of rows) {
+      const recent = Array.isArray(row?.t) && row.t.some(t => now - t < LIMITS.createWindowMs);
+      if (row?.day !== today && !recent) stale.push(key);
+    }
+    for (let i = 0; i < stale.length; i += 128) await this.ctx.storage.delete(stale.slice(i, i + 128));   // 一度に 128 件まで
+    if (rows.size > stale.length) await this.ctx.storage.setAlarm(nextJstMidnight(new Date(now)).getTime());
+  }
+
   /** 登録（作成・更新）。件数の上限を超えるときは登録しない（false） */
   async upsert(entry, now = Date.now()) {
     const e = cleanEntry(entry);

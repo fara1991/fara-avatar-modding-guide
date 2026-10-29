@@ -14,7 +14,6 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
     private static RoomCsEngine? active;   // JavaScript からの接続・タイマーの通知を受ける先(同時に 1 つだけ動く)
 
     private readonly string roomId;
-    private readonly string url;
     private RoomSession? session;
     private int attachment = -1;
     private string lastCursors = "";
@@ -22,11 +21,10 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
 
     private readonly RoomJoinOptions? join;
 
-    private RoomCsEngine(string roomId, string url, bool debug, RoomJoinOptions? join)
+    private RoomCsEngine(string roomId, bool debug, RoomJoinOptions? join)
         : base("room-viewport", "room-gl", () => false, debug)
     {
         this.roomId = roomId;
-        this.url = url;
         this.join = join;
     }
 
@@ -34,7 +32,7 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
     public static Task ImportRoomAsync() => importingRoom.RunAsync(() => JSHost.ImportAsync("room-cs", "../js/room-cs.js"));
 
     /// <summary>部屋を作る(読み込みのあと)。Start() で入る。join は、作成や鍵(一覧から入るとき)の指定。</summary>
-    public static RoomCsEngine Create(string roomId, string url, bool debug, RoomJoinOptions? join = null) => new(roomId, url, debug, join);
+    public static RoomCsEngine Create(string roomId, bool debug, RoomJoinOptions? join = null) => new(roomId, debug, join);
 
     private RoomTransport transport = null!;
 
@@ -72,8 +70,8 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
     /// <summary>「視点に合わせる」(押した人の id)。</summary>
     public void ToggleFollow(string id) => session?.ToggleFollow(id);
 
-    /// <summary>URL をコピーする(失敗したら、入力欄の文字を選ぶ)。</summary>
-    public Task CopyUrlAsync() => RoomJs.Copy(url, "room-url");
+    /// <summary>部屋のパスワードをコピーする(作成者の画面だけ。作成者でなければ何もしない)。</summary>
+    public Task CopyPassAsync() => session?.OwnerPass is { } pass ? RoomJs.Copy(pass, "room-pass") : Task.CompletedTask;
 
     /// <summary>鍵を入れて入り直す(鍵の画面の送信)。</summary>
     public void SubmitPass(string pass) => session?.SubmitPass(pass);
@@ -123,13 +121,13 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
         var peers = new List<RoomHudPeer>();
         if (s.Me is { } me) peers.Add(new RoomHudPeer(me.Id, me.Name, me.Color, Self: true, Following: false));
         foreach (var p in s.Peers) peers.Add(new RoomHudPeer(p.Id, p.Name, p.Color, Self: false, Following: s.Follow == p.Id));
-        return new RoomHud(s.StatusText, s.StatusKind, s.Name, peers, s.Follow, gate, s.PassLimitMs, s.ClosedReason, s.IdleWarnMs, s.Me?.Owner ?? false, s.RoomName, s.Locked);
+        return new RoomHud(s.StatusText, s.StatusKind, s.Name, peers, s.Follow, gate, s.PassLimitMs, s.ClosedReason, s.IdleWarnMs, s.Me?.Owner ?? false, s.RoomName, s.Locked, s.OwnerPass);
     }
 
     private string RoomSignature()
     {
         var r = BuildRoom();
-        var parts = new List<string> { r.Status, r.StatusKind, r.Follow ?? "", r.Gate, r.PassLimitMs.ToString(System.Globalization.CultureInfo.InvariantCulture), r.ClosedReason ?? "", r.IdleWarnMs?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", r.IsOwner.ToString(), r.RoomName, r.Locked.ToString() };
+        var parts = new List<string> { r.Status, r.StatusKind, r.Follow ?? "", r.Gate, r.PassLimitMs.ToString(System.Globalization.CultureInfo.InvariantCulture), r.ClosedReason ?? "", r.IdleWarnMs?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", r.IsOwner.ToString(), r.RoomName, r.Locked.ToString(), r.OwnerPass ?? "" };
         foreach (var p in r.Peers) parts.Add($"{p.Id}\u0001{p.Name}\u0001{p.Color}\u0001{p.Self}\u0001{p.Following}");
         return string.Join("\u0002", parts);
     }
@@ -166,7 +164,8 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
         public double Now() => RoomJs.Now();
         public void SaveName(string name) => RoomJs.SaveName(name);
         public string? LoadOwnerKey(string roomId) => RoomJs.LoadOwnerKey(roomId);
-        public void SaveOwnerKey(string roomId, string key) => RoomJs.SaveOwnerKey(roomId, key);
+        public void SaveOwnerKey(string roomId, string key, string pass) => RoomJs.SaveOwnerKey(roomId, key, pass);
+        public string? LoadOwnerPass(string roomId) => RoomJs.LoadOwnerPass(roomId);
         public void ForgetOwnerKey(string roomId) => RoomJs.ForgetOwnerKey(roomId);
     }
 }
@@ -208,7 +207,10 @@ internal static partial class RoomJs
     internal static partial string? LoadOwnerKey(string roomId);
 
     [JSImport("saveOwnerKey", "room-cs")]
-    internal static partial void SaveOwnerKey(string roomId, string key);
+    internal static partial void SaveOwnerKey(string roomId, string key, string? pass);
+
+    [JSImport("loadOwnerPass", "room-cs")]
+    internal static partial string? LoadOwnerPass(string roomId);
 
     [JSImport("forgetOwnerKey", "room-cs")]
     internal static partial void ForgetOwnerKey(string roomId);
@@ -239,10 +241,10 @@ internal static partial class RoomJs
 /// <summary>部屋の画面(Razor)が読む状態。Practice の型を使わない(遅れて読み込むため)。</summary>
 /// <summary>
 /// Gate は "none"・"needpass"・"wrongpass"・"limited"（鍵の画面）。ClosedReason は閉じた理由（null は開いている）。IdleWarnMs は閉じる前の残り（null は無い）。
-/// IsOwner は作成者(閉じられる)。RoomName と Locked は部屋の名前と鍵つきか。
+/// IsOwner は作成者(閉じられる)。RoomName と Locked は部屋の名前と鍵つきか。OwnerPass は作成者の画面に出す部屋のパスワード(作成者以外・保存が無いときは null)。
 /// </summary>
 public sealed record RoomHud(string Status, string StatusKind, string Name, IReadOnlyList<RoomHudPeer> Peers, string? Follow,
-    string Gate = "none", double PassLimitMs = 0, string? ClosedReason = null, double? IdleWarnMs = null, bool IsOwner = false, string RoomName = "", bool Locked = false);
+    string Gate = "none", double PassLimitMs = 0, string? ClosedReason = null, double? IdleWarnMs = null, bool IsOwner = false, string RoomName = "", bool Locked = false, string? OwnerPass = null);
 
 /// <summary>参加者 1 人(一覧の 1 行)。</summary>
 public sealed record RoomHudPeer(string Id, string Name, string Color, bool Self, bool Following);
@@ -259,34 +261,34 @@ public interface IRoomCs : IDisposable
     void ChangeNPanel(string prop, string axis, string value);
     void NameTyped(string value);
     void ToggleFollow(string id);
-    Task CopyUrlAsync();
+    Task CopyPassAsync();
     void SubmitPass(string pass);
     void RequestClose();
 }
 
 /// <summary>
 /// 部屋に入る指定(画面から渡す。Web の型だけ。鍵・作成者の鍵はメモリだけで扱う)。
-/// 一覧から鍵つきの部屋に入るときは Pass。部屋を作るときは Create（名前・一覧に出すか・鍵・作成者の鍵）。
+/// 一覧から部屋に入るときは Pass（パスワード）。部屋を作るときは CreatePass（部屋のパスワード）と OwnerKey（作成者の鍵）。
 /// </summary>
-public sealed record RoomStartOptions(string? Pass = null, string? CreateName = null, bool Listed = false, string? CreatePass = null, string? OwnerKey = null);
+public sealed record RoomStartOptions(string? Pass = null, string? CreatePass = null, string? OwnerKey = null);
 
 /// <summary>部屋の C# 版の入口(Practice・Render を遅れて読み込んだあとに作る)。</summary>
 public static class RoomCsLoader
 {
-    public static async Task<IRoomCs> CreateAsync(string roomId, string url, bool debug, RoomStartOptions? start = null)
+    public static async Task<IRoomCs> CreateAsync(string roomId, bool debug, RoomStartOptions? start = null)
     {
         await PracticeCsEngine.ImportAsync();
         await PracticeCsEngine.ImportHelperAsync();
         await RoomCsEngine.ImportRoomAsync();
-        return RoomCsEngine.Create(roomId, url, debug, ToJoin(start));
+        return RoomCsEngine.Create(roomId, debug, ToJoin(start));
     }
 
     /// <summary>画面の指定を、Practice の入ったあとの型に直す（鍵の指定が無ければ null）。</summary>
     private static RoomJoinOptions? ToJoin(RoomStartOptions? start)
     {
         if (start is null) return null;
-        RoomCreateOptions? create = start.OwnerKey is { } key && start.CreateName is { } name
-            ? new RoomCreateOptions(name, start.Listed, string.IsNullOrEmpty(start.CreatePass) ? null : start.CreatePass, key)
+        RoomCreateOptions? create = start.OwnerKey is { } key && start.CreatePass is { Length: > 0 } pass
+            ? new RoomCreateOptions(pass, key)
             : null;
         return new RoomJoinOptions(string.IsNullOrEmpty(start.Pass) ? null : start.Pass, create);
     }
