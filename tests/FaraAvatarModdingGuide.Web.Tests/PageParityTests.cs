@@ -42,6 +42,24 @@ public class PageParityTests : WebTestContext
         Assert.Contains("fbc-page-column--wide", cut.Markup);                       // PC で横幅 72rem（長文のページ）
     }
 
+    private const string PrivacyRevised = "最終改定:2026年10月29日";
+
+    [Fact]
+    public void Privacy_states_what_is_sent_stored_and_for_how_long()
+    {
+        var cut = Render<Privacy>();
+        var text = TestData.TextOf(cut.Markup);
+        Assert.Contains(PrivacyRevised, text);
+        Assert.Contains("暗号化せずそのまま保存", text);                      // 作成者の端末のパスワードは平文
+        Assert.Contains("パスワードの有無", text);                            // 一覧に出る項目
+        Assert.Contains("保存の期間", text);
+        Assert.NotEmpty(cut.FindAll("table tbody tr"));                      // 外部のサービスの表
+        Assert.Equal(4, cut.FindAll("table thead th").Count);
+        Assert.DoesNotContain("サーバーには送りません）", text);              // 見出しの言い過ぎを戻さない
+        Assert.DoesNotContain("匿名", text);
+        Assert.DoesNotContain("avatar-modding-guide.", text);                // 保存キー名は書かない
+    }
+
     [Fact]
     public void Home_cards_are_the_same_as_the_static_cards()
     {
