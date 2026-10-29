@@ -901,7 +901,7 @@
     | Handy Weight Edit | スクロールでウェイトを少しずつ調整 | 有料 |
     | Better FBX Importer & Exporter | FBX の入出力 | 有料。設定に注意（[法線](/qa#better-fbx-exporter-normals)） |
     | RestoreSymmetry | 左右対称の復元 | 古いアドオン。fork あり |
-    | CATS Blender Plugin | 当時の定番（最適化、ポーズのレストポーズ適用、Decimation 等） | 本家は更新停止。2.9 以降で不具合報告あり。後継の Unofficial 版の対応バージョンを確認 |
+    | CATS Blender Plugin | 当時の定番（最適化、ポーズのレストポーズ適用、Decimation など） | 本家は更新停止。2.9 以降で不具合報告あり。後継の Unofficial 版の対応バージョンを確認 |
     - 配布先は [アドオン](/addons) のページにまとめています。
     - アドオンは対応している Blender のバージョンが決まっているので、Blender を更新する前に確認します。
     - どのアドオンを入れていたか忘れないよう、メモしておくと移行が楽です。
