@@ -218,4 +218,28 @@ public class RoomLobbyTests : WebTestContext
         Assert.Contains("読み込み中…", cut.Find("#room-list").TextContent);
         Assert.Contains("部屋を作る", cut.Markup);
     }
+
+    [Fact]
+    public void A_room_password_is_40_letters_and_digits_and_differs_each_time()
+    {
+        var a = RoomPassFactory.Create();
+        var b = RoomPassFactory.Create();
+        Assert.Matches("^[A-Za-z0-9]{40}$", a);
+        Assert.Matches("^[A-Za-z0-9]{40}$", b);
+        Assert.NotEqual(a, b);
+        Assert.Equal(62, RoomPassFactory.Chars.Distinct().Count());   // 62 字（英数字）を一様に使う
+    }
+
+    [Fact]
+    public void Submitting_the_open_password_form_joins_the_room_with_the_typed_password()
+    {
+        directory.Rooms = [new RoomListItem("roomcccc7777", "鍵つき", 1, 8, true, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())];
+        var cut = RenderLobby();
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("#room-list li[data-room]")));
+        cut.Find("#room-list li[data-room] button").Click();
+        cut.Find("#room-list input[type=password]").Input("  合言葉を貼り付け  ");
+        cut.Find("#room-list form").Submit();   // Enter と同じ送信
+        var nav = Services.GetRequiredService<NavigationManager>();
+        Assert.Matches(@"\?room=roomcccc7777$", nav.Uri);
+    }
 }

@@ -238,6 +238,20 @@ internal static partial class RoomJs
     internal static partial void ClearDebug();
 }
 
+/// <summary>部屋のパスワードを作る（作成のとき。英数字 40 字を、暗号論的乱数で一様に選ぶ。Worker は英数字 32〜64 字だけ受け付ける）。</summary>
+public static class RoomPassFactory
+{
+    /// <summary>パスワードに使う文字（英数字の 62 字）。</summary>
+    public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    /// <summary>パスワードの長さ。</summary>
+    public const int Length = 40;
+
+    /// <summary>新しいパスワード。RandomNumberGenerator.GetInt32 は偏りの無い一様な値を返す。</summary>
+    public static string Create() =>
+        new(Enumerable.Range(0, Length).Select(_ => Chars[System.Security.Cryptography.RandomNumberGenerator.GetInt32(Chars.Length)]).ToArray());
+}
+
 /// <summary>部屋の画面(Razor)が読む状態。Practice の型を使わない(遅れて読み込むため)。</summary>
 /// <summary>
 /// Gate は "none"・"needpass"・"wrongpass"・"limited"（鍵の画面）。ClosedReason は閉じた理由（null は開いている）。IdleWarnMs は閉じる前の残り（null は無い）。

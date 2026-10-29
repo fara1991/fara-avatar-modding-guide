@@ -778,7 +778,7 @@ public class RoomSessionTests
         Assert.Equal(1, t.Opened);   // つなぎ直さない（部屋は作られていない）
         Assert.False(t.OwnerKeys.ContainsKey("abcdef12"), "保存した作成者の鍵は消す");
         Assert.False(t.OwnerPasses.ContainsKey("abcdef12"), "保存したパスワードも消す");
-        Assert.Equal("部屋を作る回数の上限に達しました。しばらくしてからもう一度", s.StatusText);
+        Assert.Equal("部屋を作れるのは、1 分に 1 部屋・1 日に 3 部屋までです。しばらくしてからもう一度お試しください", s.StatusText);
     }
 
     [Fact]
@@ -832,6 +832,36 @@ public class RoomSessionTests
         s.SubmitPass(RoomPass + "\n");
         s.OnOpen(2);
         Assert.Equal(Q("{'t':'hello','name':'Alice','pass':'" + RoomPass + "'}"), t.Outbound[^1]);
+    }
+
+    [Fact]
+    public void An_outdated_client_is_told_to_reload_and_its_saved_keys_are_forgotten()
+    {
+        var t = new FakeTransport();
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
+        s.Start();
+        s.OnOpen(1);
+        s.OnMessage(1, Q("{'t':'closed','reason':'outdated'}"));
+        s.OnClose(1, 4006);
+        Assert.Equal("outdated", s.ClosedReason);
+        Assert.Equal(1, t.Opened);   // つなぎ直さない
+        Assert.False(t.OwnerKeys.ContainsKey("abcdef12"));
+        Assert.Contains("再読み込み", s.StatusText);
+    }
+
+    [Fact]
+    public void A_full_server_closes_with_4007_and_the_room_is_reported_as_full_without_reconnecting()
+    {
+        var t = new FakeTransport();
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
+        s.Start();
+        s.OnOpen(1);
+        s.OnMessage(1, Q("{'t':'closed','reason':'full'}"));
+        s.OnClose(1, 4007);
+        Assert.Equal("full", s.ClosedReason);
+        Assert.Equal(1, t.Opened);
+        Assert.False(t.OwnerKeys.ContainsKey("abcdef12"));
+        Assert.Contains("最大 8 部屋", s.StatusText);
     }
 
     [Fact]

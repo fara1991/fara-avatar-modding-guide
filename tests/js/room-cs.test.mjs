@@ -32,14 +32,14 @@ test("作成者の鍵: 同じ部屋の鍵は上書きし、件数は 1 つのま
   room.saveOwnerKey("roomaaaa1111", "aaaa");
   room.saveOwnerKey("roomaaaa1111", "bbbb");
   assert.equal(room.loadOwnerKey("roomaaaa1111"), "bbbb");
-  assert.deepEqual(Object.keys(JSON.parse(globalThis.localStorage.getItem(KEY))), ["roomaaaa1111"]);
+  assert.deepEqual(JSON.parse(globalThis.localStorage.getItem(KEY)).map(e => e.id), ["roomaaaa1111"]);
 });
 
 test("作成者の鍵: 20 件を超えたら、いちばん古いものから消す", async () => {
   globalThis.localStorage = fakeLocalStorage();
   const room = await load();
   for (let i = 0; i < 22; i++) room.saveOwnerKey(`room${String(i).padStart(8, "0")}`, `key${i}`);
-  const ids = Object.keys(JSON.parse(globalThis.localStorage.getItem(KEY)));
+  const ids = JSON.parse(globalThis.localStorage.getItem(KEY)).map(e => e.id);
   assert.equal(ids.length, 20);
   assert.equal(ids[0], "room00000002", "最初の 2 件は消えている");
   assert.equal(room.loadOwnerKey("room00000000"), null);
@@ -93,4 +93,21 @@ test("作成者の鍵: 以前の形（作成者の鍵の文字だけ）も読め
   const room = await load();
   assert.equal(room.loadOwnerKey("roomaaaa1111"), "old-key");
   assert.equal(room.loadOwnerPass("roomaaaa1111"), null);
+});
+
+test("作成者の鍵: 部屋の ID が 10 桁の数字だけでも、新しい順（保存の順）で消す（オブジェクトの整数キーの並びに頼らない）", async () => {
+  globalThis.localStorage = fakeLocalStorage();
+  const room = await load();
+  room.saveOwnerKey("9000000000", "oldest");          // 整数として大きい ID を最初に保存する
+  for (let i = 0; i < 20; i++) room.saveOwnerKey(`100000000${i}`, `key${i}`);
+  assert.equal(room.loadOwnerKey("9000000000"), null, "いちばん古い（最初に保存した）部屋が消える");
+  assert.equal(room.loadOwnerKey("1000000000"), "key0");
+});
+
+test("作成者の鍵: 以前のオブジェクトの形（{ ID: { k, p } }）も読み替える", async () => {
+  globalThis.localStorage = fakeLocalStorage();
+  globalThis.localStorage.setItem(KEY, JSON.stringify({ roomaaaa1111: { k: "kk", p: "pp" } }));
+  const room = await load();
+  assert.equal(room.loadOwnerKey("roomaaaa1111"), "kk");
+  assert.equal(room.loadOwnerPass("roomaaaa1111"), "pp");
 });

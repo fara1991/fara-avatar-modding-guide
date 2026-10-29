@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { register } from "node:module";
 import { nextJstMidnight } from "../external/fara-blazor-component/worker/report-rate-limit.js";
 
-let worker, Room, RoomDirectory, parseCreate, cleanName, LIMITS, netKey, randomRoomName, roomCreateKeyOf, isLegacyRoom;
+let worker, Room, RoomDirectory, parseCreate, cleanName, LIMITS, netKey, randomRoomName, roomCreateKeyOf, isLegacyRoom, perMinuteOf, perDayOf, maxTotalOf;
 
 before(async () => {
   // "cloudflare:workers" を、DurableObject だけを持つ空のモジュールにする
@@ -27,6 +27,9 @@ before(async () => {
   randomRoomName = mod.randomRoomName;
   roomCreateKeyOf = mod.roomCreateKeyOf;
   isLegacyRoom = mod.isLegacyRoom;
+  perMinuteOf = mod.perMinuteOf;
+  perDayOf = mod.perDayOf;
+  maxTotalOf = mod.maxTotalOf;
   cleanName = mod.cleanName;
   LIMITS = mod.LIMITS;
 });
@@ -458,10 +461,10 @@ test("作成: 部屋は常に一覧に出る。名前は Worker が決めるラ�
 });
 
 test("作成: 鍵の無い作成（pass が無い・空・短い・長い・英数字でない）は bad create（部屋は作らない）", async () => {
-  for (const pass of [undefined, "", "a".repeat(31), "合言葉".repeat(12), "a".repeat(65)]) {
+  for (const pass of ["合言葉".repeat(12), "a".repeat(65), "a b".padEnd(40, "c")]) {
     const { room, ctx, storage } = fakeRoom();
     const a = connect(ctx, "a1");
-    await room.webSocketMessage(a, JSON.stringify({ t: "hello", name: "Alice", owner: OWNER, create: pass === undefined ? {} : { pass } }));
+    await room.webSocketMessage(a, JSON.stringify({ t: "hello", name: "Alice", owner: OWNER, create: { pass } }));
     assert.deepEqual(a.sent.at(-1), { t: "error", msg: "bad create" }, String(pass));
     assert.equal(storage.has("init"), false);
   }
@@ -794,12 +797,23 @@ test("旧形式の判定: 鍵の保存形が v2 でない部屋（PBKDF2 の時�
   assert.equal(isLegacyRoom(null), false, "部屋の記録が無いのは旧形式ではない（まだ作られていない）");
 });
 
-test("作成の指定が不正なら bad create（部屋は作らない）", async () => {
+test("作成の指定が不正なら bad create（部屋は作らない）。鍵の型や作成者の鍵の形が違う場合", async () => {
   const { room, ctx, storage } = fakeRoom();
   const a = connect(ctx, "a1");
-  await room.webSocketMessage(a, JSON.stringify({ t: "hello", name: "Alice", owner: OWNER, create: { pass: 5 } }));
+  await room.webSocketMessage(a, JSON.stringify({ t: "hello", name: "Alice", owner: "short", create: { pass: PASS32 } }));
   assert.deepEqual(a.sent.at(-1), { t: "error", msg: "bad create" });
   assert.equal(storage.has("init"), false);
+});
+
+test("古い版の作成（鍵が無い・短い）は outdated で 4006 に閉じる（再読み込みを案内する。接続を開いたままにしない）", async () => {
+  for (const create of [{ name: "練習の部屋", listed: true }, { pass: "" }, { pass: "a".repeat(31) }]) {
+    const { room, ctx, storage } = fakeRoom();
+    const a = connect(ctx, "a1");
+    await room.webSocketMessage(a, JSON.stringify({ t: "hello", name: "Alice", owner: OWNER, create }));
+    assert.deepEqual(a.sent.at(-1), { t: "closed", reason: "outdated" }, JSON.stringify(create));
+    assert.equal(a.closed?.code, 4006);
+    assert.equal(storage.has("init"), false);
+  }
 });
 
 // ---------------------------------------------------------------- 監査の指摘への対応（既存の部屋・作成の順序・同時の処理・IPv6・免除・成功した操作・一覧の覚え）
@@ -1007,7 +1021,7 @@ test("鍵なしの旧い部屋（pass が null）も、期限切れとして閉�
   assert.deepEqual(b.sent, [{ t: "closed", reason: "expired" }]);
 });
 
-// ---------------------------------------------------------------- 部屋の作成の回数（接続元ごと・1 分 5 部屋・JST の 1 日 30 部屋）
+// ---------------------------------------------------------------- 部屋の作成の回数（接続元ごと・1 分 1 部屋・JST の 1 日 3 部屋）
 /** 作成の回数の数え先（RoomDirectory の本物を使い、storage は偽物）。 */
 function directoryFor() {
   const dirStorage = fakeStorage();
@@ -1030,7 +1044,7 @@ async function createFrom(ip, env, roomId = "roomaaaa" + Math.random().toString(
 const limited = (ws) => ws.sent.some(m => m.t === "closed" && m.reason === "limit") && ws.closed?.code === 4005;
 const created = (ws) => ws.sent.some(m => m.t === "welcome");
 
-test("部屋の作成の回数: 同じ接続元は 1 分に 5 部屋まで。6 部屋目は 4005 で閉じる（理由は rate limited・closed: limit）", async () => {
+test("部屋の作成の回数: 同じ接続元は 1 分に 1 部屋まで。2 部屋目は 4005 で閉じる（理由は rate limited・closed: limit）", async () => {
   const { env } = directoryFor();
   const e = { TURNSTILE_SECRET: "test-secret", ROOM_DIRECTORY: env() };
   await withClock(T0, async () => {
@@ -1075,7 +1089,7 @@ test("部屋の作成の回数: 1 分たつと戻る（窓は 1 分。古い作�
   });
 });
 
-test("部屋の作成の回数: 1 日 30 部屋まで（JST の暦日）。日が変わると戻る", async () => {
+test("部屋の作成の回数: 1 日 3 部屋まで（JST の暦日）。日が変わると戻る", async () => {
   const { env } = directoryFor();
   const e = { TURNSTILE_SECRET: "test-secret", ROOM_DIRECTORY: env() };
   const day = nextJstMidnight(new Date(T0)).getTime() - 24 * 60 * 60 * 1000;   // 同じ JST の日の中
@@ -1136,7 +1150,7 @@ test("部屋の作成の回数: 秘密鍵が無いとき・接続元が無いと
 });
 
 test("部屋の作成の回数: 数える側（RoomDirectory）が例外を出しても、作成は通す（fail-open。ログは要約だけで IP を出さない）", async () => {
-  const broken = { idFromName: (n) => n, get: () => ({ hitCreate: async () => { throw new Error("storage down"); } }) };
+  const broken = { idFromName: (n) => n, get: () => ({ reserveRoom: async () => { throw new Error("storage down"); } }) };
   const logs = [];
   const saved = console.error;
   console.error = (...args) => logs.push(args.join(" "));
@@ -1202,4 +1216,220 @@ test("鍵の間違いの数え方: 同時の 5 回の間違いも取りこぼさ
     return ws;
   });
   assert.equal(next.sent[0].t, "passlimit", "同時でも 5 回として数え、正しい鍵でも拒否する");
+});
+
+// ---------------------------------------------------------------- レビューの指摘への対応（旧形式の部屋・一覧の上限・鍵の間違いの鍵・同時の作成の数え方）
+test("旧形式の部屋に参加者がいても、第三者の hello で参加者は閉じられない（入ろうとした接続だけ expired）。部屋のデータは消えない", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  storage.set("init", true);
+  storage.set("meta", { name: "旧い部屋", createdAt: T0, pass: { salt: "00".repeat(16), iter: 100000, hash: "11".repeat(32) }, ownerHash: "22".repeat(32) });
+  storage.set("opAt", T0);
+  storage.set("o:cube0", { id: "cube0", kind: "cube", name: "Cube", p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] });
+  const peer = connect(ctx, "p1");
+  peer.serializeAttachment({ id: "p1", color: "#f97316", name: "Peer", joined: true, at: T0 });
+  const stranger = connect(ctx, "s1");
+  await room.webSocketMessage(stranger, joinHello("Mallory", { pass: PASS32 }));
+  assert.deepEqual(stranger.sent, [{ t: "closed", reason: "expired" }]);
+  assert.equal(stranger.closed?.code, 4004);
+  assert.equal(peer.sent.some(m => m.t === "closed"), false, "参加者は閉じられない");
+  assert.equal(peer.closed, null);
+  assert.equal(room.gone, false);
+  assert.equal(storage.has("o:cube0"), true, "部屋のデータは消えない");
+});
+
+test("旧形式の部屋で参加者が 0 人なら、入ろうとした人が閉じ、部屋の中身も消す", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  storage.set("init", true);
+  storage.set("meta", { name: "旧", createdAt: T0, pass: null, ownerHash: "22".repeat(32) });
+  storage.set("opAt", T0);
+  storage.set("o:cube0", { id: "cube0", kind: "cube", name: "Cube", p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] });
+  const b = connect(ctx, "b1");
+  await room.webSocketMessage(b, joinHello("Bob", { pass: PASS32 }));
+  assert.deepEqual(b.sent, [{ t: "closed", reason: "expired" }]);
+  assert.equal(storage.has("o:cube0"), false);
+});
+
+test("鍵の間違い: 秘密鍵が無いときは数えない（fail-open。合っていれば入れる）。秘密鍵があるときは、接続元の鍵は秘密鍵つき HMAC（32 字）で、IP の SHA-256 ではない", async () => {
+  const { createHash } = await import("node:crypto");
+  const dir = directoryFor();
+  // 秘密鍵が無い: 何度間違えても passlimit にならない
+  const noKey = fakeRoom({ TURNSTILE_SECRET: undefined, ROOM_DIRECTORY: dir.env() });
+  noKey.room.roomId = ROOM;
+  await withUpgradeStubs(async (made) => {
+    await noKey.room.fetch(new Request("https://avatar-dev.example/", { headers: { "CF-Connecting-IP": "203.0.113.20" } }));
+    await noKey.room.webSocketMessage(made.at(-1), createHello("Alice", { pass: PASS32 }));
+  });
+  for (let i = 0; i < LIMITS.passFailMax + 2; i++) {
+    const w = await withUpgradeStubs(async (made) => {
+      await noKey.room.fetch(new Request("https://avatar-dev.example/", { headers: { "CF-Connecting-IP": "203.0.113.20" } }));
+      await noKey.room.webSocketMessage(made.at(-1), joinHello("Bob", { pass: "まちがい" }));
+      return made.at(-1);
+    });
+    assert.equal(w.sent[0].t, "wrongpass", `試行 ${i + 1}: 数えないので passlimit にならない`);
+  }
+  // 秘密鍵がある: 行の鍵は HMAC（32 字）。IP から作った素の SHA-256 の行は無い
+  const withKey = fakeRoom({ TURNSTILE_SECRET: "test-secret", ROOM_DIRECTORY: dir.env() });
+  withKey.room.roomId = ROOM;
+  await withUpgradeStubs(async (made) => {
+    await withKey.room.fetch(new Request("https://avatar-dev.example/", { headers: { "CF-Connecting-IP": "203.0.113.21" } }));
+    await withKey.room.webSocketMessage(made.at(-1), createHello("Alice", { pass: PASS32 }));
+    await withKey.room.fetch(new Request("https://avatar-dev.example/", { headers: { "CF-Connecting-IP": "203.0.113.21" } }));
+    await withKey.room.webSocketMessage(made.at(-1), joinHello("Bob", { pass: "まちがい" }));
+  });
+  const failKeys = [...withKey.storage.keys()].filter(k => k.startsWith("fail:"));
+  assert.equal(failKeys.length, 1);
+  assert.match(failKeys[0], /^fail:[0-9a-f]{32}$/);
+  const unkeyed = createHash("sha256").update(netKey("203.0.113.21")).digest("hex").slice(0, 16);
+  assert.equal(failKeys.includes(`fail:${unkeyed}`), false, "秘密鍵の無い SHA-256 の鍵は使わない");
+});
+
+test("IPv6 の大文字と小文字は同じ接続元（netKey は小文字にそろえる）", () => {
+  assert.equal(netKey("2001:DB8:0:1::5"), netKey("2001:db8:0:1::5"));
+});
+
+test("同時の 6 本の作成（hitCreate）: 1 分の上限の分だけ通り、残りは弾かれる（直列に数える）", async () => {
+  const dir = new RoomDirectory({ storage: fakeStorage() }, {});
+  const hash = "a".repeat(32);
+  const results = await withClock(T0, async () => Promise.all(Array.from({ length: 6 }, () => dir.hitCreate(hash, T0))));
+  assert.equal(results.filter(r => r.allowed).length, LIMITS.createPerMinute);
+  assert.equal(results.filter(r => !r.allowed).length, 6 - LIMITS.createPerMinute);
+});
+
+test("一覧の上限: 一覧に出る登録（1 人以上・猶予内）で上限に達したら、新しい登録は入らない。期限切れの行や 0 人の古い行は数えず、消す", async () => {
+  const dir = new RoomDirectory({ storage: fakeStorage() }, {});
+  const now = T0;
+  const entry = (i, count, createdAt, updatedAt = now) => ({ id: `room${String(i).padStart(6, "0")}`, name: "n", count, max: LIMITS.participants, locked: true, createdAt, updatedAt });
+  // 1 人以上の行で上限まで埋める
+  for (let i = 0; i < LIMITS.listStoreMax; i++) assert.equal(await dir.upsert(entry(i, 1, now - 1000), now), true);
+  assert.equal(await dir.upsert(entry(900, 1, now - 1000), now), false, "一覧に出る行で上限なら、新しい登録は入らない");
+  // 期限切れの行（更新が途絶えた）は、上限の数に入らず消える
+  const dir2 = new RoomDirectory({ storage: fakeStorage() }, {});
+  for (let i = 0; i < LIMITS.listStoreMax; i++) await dir2.upsert(entry(i, 1, now - 1000, now - LIMITS.listTtlMs - 1), now - LIMITS.listTtlMs - 1);
+  assert.equal(await dir2.upsert(entry(900, 1, now - 1000), now), true, "期限切れの行で埋まっていれば、登録できる");
+  // 0 人で猶予を過ぎた行は、一覧に出ないので上限に数えない
+  const dir3 = new RoomDirectory({ storage: fakeStorage() }, {});
+  for (let i = 0; i < LIMITS.listStoreMax; i++) await dir3.upsert(entry(i, 0, now - LIMITS.listGraceMs - 1), now);
+  assert.equal(await dir3.upsert(entry(900, 1, now - 1000), now), true, "一覧に出ない行は数えない");
+});
+
+// ---------------------------------------------------------------- 1 分 1 部屋・1 日 3 部屋、全体で最大 8 部屋（ユーザー決定）
+/** 接続元 ip から部屋を 1 つ作り、その部屋（Room）と接続を返す。 */
+async function openAt(ip, env, roomId = "roomaaaa" + Math.random().toString(36).slice(2, 8).padEnd(6, "x")) {
+  const { room, ctx } = fakeRoom(env);
+  room.roomId = roomId;
+  const ws = await withUpgradeStubs(async (made) => {
+    await room.fetch(new Request("https://avatar-dev.example/", { headers: { "CF-Connecting-IP": ip } }));
+    const w = made.at(-1);
+    await room.webSocketMessage(w, createHello("Alice"));
+    return w;
+  });
+  return { room, ws, ctx };
+}
+const fullRoom = (ws) => ws.sent.some(m => m.t === "closed" && m.reason === "full") && ws.closed?.code === 4007;
+const roomEnv = (dir, extra = {}) => ({ TURNSTILE_SECRET: "test-secret", ROOM_DIRECTORY: dir.env(), ...extra });
+
+test("全体の上限: 同時に存在する部屋は 8 部屋まで。9 部屋目は full（4007）で閉じる（接続元が違えば、枠の数だけ作れる）", async () => {
+  const dir = directoryFor();
+  for (let i = 0; i < LIMITS.roomMaxTotal; i++) assert.ok(created(await openAt("203.0.113." + (30 + i), roomEnv(dir)).then(r => r.ws)), i + 1 + " 部屋目は作れる");
+  const ninth = (await openAt("203.0.113.90", roomEnv(dir))).ws;
+  assert.ok(fullRoom(ninth), "9 部屋目は作れない");
+  assert.equal(ninth.sent.at(-1).reason, "full");
+});
+
+test("全体の上限: 部屋が閉じると枠が空き、9 部屋目が作れる（閉じた部屋の予約は消える）", async () => {
+  const dir = directoryFor();
+  const first = [];
+  for (let i = 0; i < LIMITS.roomMaxTotal; i++) first.push(await openAt("203.0.113." + (40 + i), roomEnv(dir)));
+  assert.ok(fullRoom((await openAt("203.0.113.99", roomEnv(dir))).ws));
+  // 1 つ目の部屋を、作成者が閉じる（作成者の鍵の接続）
+  first[0].ws.sent.length = 0;
+  await first[0].room.webSocketMessage(first[0].ws, JSON.stringify({ t: "close" }));
+  assert.ok(created(await openAt("203.0.113.100", roomEnv(dir)).then(r => r.ws)), "枠が空いたので作れる");
+});
+
+test("全体の上限: TTL（listTtlMs のあいだ更新が無い）で消えた予約は数えない", async () => {
+  const dir = new RoomDirectory({ storage: fakeStorage() }, {});
+  for (let i = 0; i < LIMITS.roomMaxTotal; i++) assert.equal((await dir.reserveRoom("roomaaaa" + String(i).padStart(2, "0"), null, T0)).allowed, true);
+  assert.equal((await dir.reserveRoom("roombbbb0000", null, T0)).reason, "full");
+  assert.equal((await dir.reserveRoom("roombbbb0000", null, T0 + LIMITS.listTtlMs + 1)).allowed, true, "更新が途絶えた予約は消えているので、作れる");
+});
+
+test("全体の上限: 予約を更新し続けている部屋は、TTL を過ぎても数える（touchRoom）", async () => {
+  const dir = new RoomDirectory({ storage: fakeStorage() }, {});
+  for (let i = 0; i < LIMITS.roomMaxTotal; i++) await dir.reserveRoom("roomaaaa" + String(i).padStart(2, "0"), null, T0);
+  for (let i = 0; i < LIMITS.roomMaxTotal; i++) await dir.touchRoom("roomaaaa" + String(i).padStart(2, "0"), T0 + LIMITS.listTtlMs);
+  assert.equal((await dir.reserveRoom("roombbbb0000", null, T0 + LIMITS.listTtlMs + 1000)).reason, "full");
+});
+
+test("全体の上限: 同時に 9 本の作成が来ても、作られる部屋は 8 つだけ（予約は直列）", async () => {
+  const dir = directoryFor();
+  // 接続は 1 本ずつ受け付け（WebSocketPair の試験用の差し替えを、同時に使わない）、作成の送信だけを同時にする
+  const rooms = [];
+  for (let i = 0; i < LIMITS.roomMaxTotal + 1; i++) rooms.push(await openAtPending("203.0.113." + (120 + i), roomEnv(dir)).accept());
+  const results = await Promise.all(rooms.map(r => r.go()));
+  assert.equal(results.filter(w => created(w)).length, LIMITS.roomMaxTotal);
+  assert.equal(results.filter(w => fullRoom(w)).length, 1);
+});
+
+/** 接続を用意しておき、go() で create を送る（同時の試行のため）。 */
+function openAtPending(ip, env) {
+  const { room, ctx } = fakeRoom(env);
+  room.roomId = "roomaaaa" + Math.random().toString(36).slice(2, 8).padEnd(6, "x");
+  let ws = null;
+  return {
+    accept: async () => {
+      ws = await withUpgradeStubs(async (made) => {
+        await room.fetch(new Request("https://avatar-dev.example/", { headers: { "CF-Connecting-IP": ip } }));
+        return made.at(-1);
+      });
+      return { go: async () => { await room.webSocketMessage(ws, createHello("Alice")); return ws; } };
+    },
+    ctx,
+  };
+}
+
+test("順序: 全体の上限で弾かれたときは、接続元の枠を消費しない（満員のあとで空いたら、すぐ作り直せる）", async () => {
+  const dir = directoryFor();
+  const filled = [];
+  for (let i = 0; i < LIMITS.roomMaxTotal; i++) filled.push(await openAt("203.0.113." + (150 + i), roomEnv(dir)));
+  const x = "203.0.113.200";
+  assert.ok(fullRoom((await openAt(x, roomEnv(dir))).ws), "全体で満員");
+  await filled[0].room.webSocketMessage(filled[0].ws, JSON.stringify({ t: "close" }));
+  assert.ok(created((await openAt(x, roomEnv(dir))).ws), "同じ接続元の 1 分の枠は消費されていないので、すぐ作れる");
+});
+
+test("1 分 1 部屋: 2 部屋目は 1 分以内なら弾かれ（limit）、1 分後に通る", async () => {
+  const dir = directoryFor();
+  await withClock(T0, async (tick) => {
+    assert.ok(created((await openAt("203.0.113.210", roomEnv(dir))).ws));
+    assert.ok(limited((await openAt("203.0.113.210", roomEnv(dir))).ws), "1 分以内は弾く");
+    tick(LIMITS.createWindowMs - 1000);
+    assert.ok(limited((await openAt("203.0.113.210", roomEnv(dir))).ws), "1 分まで足りないあいだは、まだ弾く");
+    tick(2000);
+    assert.ok(created((await openAt("203.0.113.210", roomEnv(dir))).ws), "1 分たったら通る");
+  });
+});
+
+test("1 日 3 部屋: 4 部屋目は、1 分の枠が空いていても日の上限で弾かれる（JST の暦日）", async () => {
+  const dir = directoryFor();
+  const day = nextJstMidnight(new Date(T0)).getTime() - 24 * 60 * 60 * 1000;
+  await withClock(day + 60_000, async (tick) => {
+    for (let i = 0; i < LIMITS.createPerDay; i++) {
+      assert.ok(created((await openAt("203.0.113.220", roomEnv(dir))).ws), (i + 1) + " 部屋目は通る");
+      tick(LIMITS.createWindowMs + 1000);
+    }
+    assert.ok(limited((await openAt("203.0.113.220", roomEnv(dir))).ws), "4 部屋目は日の上限で弾く");
+  });
+});
+
+test("env の上限: ROOM_CREATE_PER_MINUTE・ROOM_CREATE_PER_DAY・ROOM_MAX_TOTAL で変えられる。範囲外・数でない値は既定", () => {
+  assert.equal(perMinuteOf({ ROOM_CREATE_PER_MINUTE: "3" }), 3);
+  assert.equal(perMinuteOf({ ROOM_CREATE_PER_MINUTE: "0" }), LIMITS.createPerMinute);
+  assert.equal(perMinuteOf({ ROOM_CREATE_PER_MINUTE: "61" }), LIMITS.createPerMinute);
+  assert.equal(perMinuteOf({ ROOM_CREATE_PER_MINUTE: "1.5" }), LIMITS.createPerMinute);
+  assert.equal(perDayOf({ ROOM_CREATE_PER_DAY: "10" }), 10);
+  assert.equal(perDayOf({ ROOM_CREATE_PER_DAY: "x" }), LIMITS.createPerDay);
+  assert.equal(maxTotalOf({ ROOM_MAX_TOTAL: "50" }), 50);
+  assert.equal(maxTotalOf({ ROOM_MAX_TOTAL: "51" }), LIMITS.roomMaxTotal);
+  assert.equal(maxTotalOf({}), 8);
 });

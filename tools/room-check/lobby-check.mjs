@@ -1,4 +1,7 @@
 // 練習の部屋の一覧・パスワード・Close・自動終了・作成の指定の実動作の検査（wrangler dev などの Worker に対して、2 人分の WebSocket で確かめる）。
+// 接続元ごとの作成の上限（既定は 1 分 1 部屋・1 日 3 部屋、全体で 8 部屋）を、この検査が続けて作れる値にして起動する:
+//   wrangler dev --env dev --port 8840 --ip 127.0.0.1 --var ROOM_CREATE_PER_MINUTE:60 --var ROOM_CREATE_PER_DAY:1000 --var ROOM_MAX_TOTAL:50
+// 既定の値のままでの上限の確かめは、worker/index.test.mjs（上限・順序・TTL・同時の作成）で行う。
 // 部屋は常に一覧に出る（名前は Worker がランダムに決める）。パスワードは作成のとき 40 字の英数字（クライアントが作る形）。
 //   node tools/room-check/lobby-check.mjs http://localhost:8787            … 一覧・鍵・Close・閉じた ID・作成の指定の無い入室・作成者の鍵の免除・入室の時間
 //   node tools/room-check/lobby-check.mjs http://localhost:8787 60         … 上に加えて、自動終了（ROOM_IDLE_SECONDS=60 で起動した Worker に対して。60 秒ほど待つ）
