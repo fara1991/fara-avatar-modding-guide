@@ -420,14 +420,14 @@
   articles: [avatar-clothing/unity-setup]
 
 - id: follow-body-shape
-  question: 体型の変更（シェイプキー）に服を合わせたい
+  question: 体形の変更（シェイプキー）に服を合わせたい
   reading: たいけいのへんこう（しぇいぷきー）にふくをあわせたい
   answer: MA Blendshape Sync
   answer_en: MA Blendshape Sync
   menu: 服のメッシュの Inspector > Add Component > Modular Avatar > MA Blendshape Sync
   menu_en: Add Component > Modular Avatar > MA Blendshape Sync
   note: 体のブレンドシェイプの値を、服の同じ（または指定した）名前のブレンドシェイプに同期する。服側にも同じ形のシェイプキーが必要。
-  aliases: [シェイプキーを同期, 胸の大きさに合わせる]
+  aliases: [シェイプキーを同期, 胸の大きさに合わせる, 体型に合わせる]
   tags: [Unity, Modular Avatar]
   articles: [avatar-clothing/unity-setup]
 
