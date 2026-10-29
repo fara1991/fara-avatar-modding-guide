@@ -63,11 +63,11 @@ public class PracticeTests : WebTestContext
     }
 
     [Theory]
-    [InlineData("abcdef1234", "abcdef1234")]                                // 10 字(作成 UI の長さ。既存の共有 URL も通る)
-    [InlineData("abcdef123456", "abcdef123456")]
-    [InlineData("ABCDEF123456", "abcdef123456")]                            // 小文字にそろえる(room.js・Worker と同じ)
-    [InlineData("abcdefghijklmnopqrstuvwxyz012345", "abcdefghijklmnopqrstuvwxyz012345")]   // 32 字
-    public void Room_page_with_a_valid_room_shows_the_room_without_a_javascript_3d(string parameter, string expectedRoom)
+    [InlineData("abcdef1234")]                                // 10 字(作成 UI の長さ。既存の共有 URL も通る)
+    [InlineData("abcdef123456")]
+    [InlineData("ABCDEF123456")]                            // 小文字にそろえる(room.js・Worker と同じ)
+    [InlineData("abcdefghijklmnopqrstuvwxyz012345")]   // 32 字
+    public void Room_page_with_a_valid_room_shows_the_room_without_a_javascript_3d(string parameter)
     {
         var entry = Entry();
         var cut = RenderRoom(parameter);

@@ -23,7 +23,9 @@ public class FilterFallbackTests : WebTestContext
     [Fact]
     public void When_filter_json_cannot_be_read_typing_does_not_hide_every_item()
     {
-        Services.AddSingleton(new FilterTextStore(new HttpClient(new FailingHandler()) { BaseAddress = new Uri("http://localhost/") }));   // 後から登録したものが使われる
+        using var handler = new FailingHandler();
+        using var http = new HttpClient(handler) { BaseAddress = new Uri("http://localhost/") };
+        Services.AddSingleton(new FilterTextStore(http));   // 後から登録したものが使われる
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost/tips");
         var cut = Render<Tips>();
         cut.Find(".tips-filter input").Input("ピンク");
@@ -76,8 +78,9 @@ public class ContentShapeTests
 {
     private static async Task<ContentStore> LoadAsync(string json)
     {
-        var handler = new StubHandler(json);
-        var store = new ContentStore(new HttpClient(handler) { BaseAddress = new Uri("http://localhost/") });
+        using var handler = new StubHandler(json);
+        using var http = new HttpClient(handler) { BaseAddress = new Uri("http://localhost/") };
+        var store = new ContentStore(http);
         await store.LoadAsync();
         return store;
     }

@@ -221,12 +221,17 @@ public static class SiteBuilder
             info.ArgumentList.Add(arg);
         }
         using var process = Process.Start(info) ?? throw new InvalidOperationException($"{options.Node} を起動できません");
-        var stdout = process.StandardOutput.ReadToEndAsync();
-        var stderr = process.StandardError.ReadToEndAsync();
-        process.WaitForExit();
+        // 出力は、イベントで読む（同期の待ち .Result を使わない。パイプが詰まらないよう、終了まで読み続ける）
+        var stdout = new StringBuilder();
+        var stderr = new StringBuilder();
+        process.OutputDataReceived += (_, e) => { if (e.Data is not null) lock (stdout) stdout.AppendLine(e.Data); };
+        process.ErrorDataReceived += (_, e) => { if (e.Data is not null) lock (stderr) stderr.AppendLine(e.Data); };
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        process.WaitForExit();   // 引数なし = 出力のイベントが終わるまで待つ
         if (process.ExitCode != 0)
-            throw new InvalidOperationException($"fara-blazor-component の build-pages.mjs が失敗しました（終了コード {process.ExitCode}）:\n{stderr.Result}{stdout.Result}");
-        Console.WriteLine(stdout.Result.Trim());
+            throw new InvalidOperationException($"fara-blazor-component の build-pages.mjs が失敗しました（終了コード {process.ExitCode}）:\n{stderr}{stdout}");
+        Console.WriteLine(stdout.ToString().Trim());
     }
 
     /// <summary>

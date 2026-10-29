@@ -9,10 +9,15 @@ dotnet_diagnostic.CS4014.severity = error
 dotnet_diagnostic.VSTHRD100.severity = error
 dotnet_diagnostic.CA1816.severity = error
 dotnet_diagnostic.IDE0059.severity = error
+dotnet_diagnostic.CA1031.severity = error
+dotnet_diagnostic.CA2000.severity = error
+dotnet_diagnostic.VSTHRD002.severity = error
+dotnet_diagnostic.VSTHRD003.severity = error
+dotnet_diagnostic.VSTHRD103.severity = error
+# kit の写しにない行（kit のファイルは変えず、このサイトの上書きだけで締める）: 既定が warning のルールで、違反 0 件になったもの
+dotnet_diagnostic.CA1416.severity = error
+dotnet_diagnostic.CS8602.severity = error
+dotnet_diagnostic.VSTHRD200.severity = error
+dotnet_diagnostic.xUnit1026.severity = error
 
-# warning: 違反が残る（件数は docs/lint.md の「このサイトの件数」）。ノイズが多い・直すと挙動に触れるため、error にしない
-dotnet_diagnostic.CA1031.severity = warning
-dotnet_diagnostic.CA2000.severity = warning
-dotnet_diagnostic.VSTHRD002.severity = warning
-dotnet_diagnostic.VSTHRD003.severity = warning
-dotnet_diagnostic.VSTHRD103.severity = warning
+# 直せずに残した抑止（SuppressMessage。理由はそれぞれの Justification）は PR・docs/lint.md を見る。kit のプロジェクト（external/）にはこのファイルは効かない

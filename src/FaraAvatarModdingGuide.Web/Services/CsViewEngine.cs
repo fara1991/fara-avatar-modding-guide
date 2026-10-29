@@ -46,10 +46,10 @@ public abstract class CsViewEngine : IDisposable
     public event Action? Changed;
 
     /// <summary>gl.js を読み込む(ページごとではなく、1 回だけ)。</summary>
-    public static Task ImportAsync() => importing.RunAsync(() => JSHost.ImportAsync("gl", "../js/gl.js"));
+    public static Task ImportAsync() => importing.RunAsync(() => BrowserJs.ImportAsync("gl", "../js/gl.js"));
 
     /// <summary>practice-cs.js を読み込む(1 回だけ)。</summary>
-    public static Task ImportHelperAsync() => importingHelper.RunAsync(() => JSHost.ImportAsync("practice-cs", "../js/practice-cs.js"));
+    public static Task ImportHelperAsync() => importingHelper.RunAsync(() => BrowserJs.ImportAsync("practice-cs", "../js/practice-cs.js"));
 
     /// <summary>ビューのオプション(最初のシーン・視点・ホイールの扱いなど)。</summary>
     protected abstract ViewportOptions CreateOptions();

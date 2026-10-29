@@ -53,11 +53,15 @@ public class SearchParityTests
             };
             foreach (var arg in new[] { Path.Combine(JsDir, "search-reference.mjs"), indexFile, Path.Combine(JsDir, "search-queries.json"), outFile }) info.ArgumentList.Add(arg);
             using var process = Process.Start(info) ?? throw new InvalidOperationException("node を起動できません（CI では actions/setup-node が要ります）");
-            var stdout = process.StandardOutput.ReadToEndAsync();
-            var stderr = process.StandardError.ReadToEndAsync();
-            process.WaitForExit();
+            var stdout = new StringBuilder();
+            var stderr = new StringBuilder();
+            process.OutputDataReceived += (_, e) => { if (e.Data is not null) lock (stdout) stdout.AppendLine(e.Data); };
+            process.ErrorDataReceived += (_, e) => { if (e.Data is not null) lock (stderr) stderr.AppendLine(e.Data); };
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            process.WaitForExit();   // 引数なし = 出力のイベントが終わるまで待つ
             if (process.ExitCode != 0)
-                return (false, $"search-reference.mjs が失敗しました（終了コード {process.ExitCode}）:" + Environment.NewLine + stderr.Result + stdout.Result, null);
+                return (false, $"search-reference.mjs が失敗しました（終了コード {process.ExitCode}）:" + Environment.NewLine + stderr + stdout, null);
             return (true, "", JsonSerializer.Deserialize<JsonElement[]>(File.ReadAllText(outFile, Encoding.UTF8))!);
         }
         finally

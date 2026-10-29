@@ -70,7 +70,7 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
     public void ToggleFollow(string id) => session?.ToggleFollow(id);
 
     /// <summary>部屋のパスワードをコピーする(作成者の画面だけ。画面が渡した文字をコピーする。作成者でなければ何もしない)。</summary>
-    public Task CopyPassAsync(string pass) => session?.OwnerPass is not null ? RoomJs.Copy(pass) : Task.CompletedTask;
+    public Task CopyPassAsync(string pass) => session?.OwnerPass is not null ? RoomJs.CopyAsync(pass) : Task.CompletedTask;
 
     /// <summary>鍵を入れて入り直す(鍵の画面の送信)。</summary>
     public void SubmitPass(string pass) => session?.SubmitPass(pass);
@@ -175,7 +175,7 @@ internal static partial class RoomJs
     private static readonly RetryableTask importing = new();
 
     /// <summary>room-cs.js を読み込む(1 回だけ)。部屋の画面と、ロビーの作成者の鍵の確認が使う(Practice の型を使わない)。</summary>
-    internal static Task ImportAsync() => importing.RunAsync(() => JSHost.ImportAsync("room-cs", "../js/room-cs.js"));
+    internal static Task ImportAsync() => importing.RunAsync(() => BrowserJs.ImportAsync("room-cs", "../js/room-cs.js"));
 
     [JSImport("setHandlers", "room-cs")]
     internal static partial void SetHandlers(
@@ -233,7 +233,7 @@ internal static partial class RoomJs
     internal static partial void PlaceCursors(string boxId, string json);
 
     [JSImport("copy", "room-cs")]
-    internal static partial Task Copy(string text);
+    internal static partial Task CopyAsync(string text);
 
     [JSImport("setDebug", "room-cs")]
     internal static partial void SetDebug(string json);

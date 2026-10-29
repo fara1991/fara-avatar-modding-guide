@@ -38,6 +38,7 @@ public class RetryableTaskTests
     }
 
     [Fact]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "TaskCompletionSource で「まだ終わっていない開始」をテストが自分で操作する。待つのは自分で作った Task（デッドロックの心配は無い）")]
     public async Task Callers_during_a_pending_start_share_it_and_fail_together()
     {
         var once = new RetryableTask();

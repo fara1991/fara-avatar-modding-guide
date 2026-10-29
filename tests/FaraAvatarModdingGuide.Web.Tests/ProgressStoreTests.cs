@@ -163,7 +163,7 @@ public class ProgressStoreTests
     public void When_storage_is_unavailable_the_page_still_works_for_this_visit()
     {
         var js = new FakeStorageJs { Broken = true };
-        var store = new ProgressStore(js);
+        using var store = new ProgressStore(js);
         Assert.False(store.IsDone("a/b"));
         store.Set("a/b", true);                                      // 保存は失敗しても、例外にしない
         Assert.True(store.IsDone("a/b"));                            // このページの中では、完了になる

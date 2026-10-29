@@ -84,7 +84,7 @@ public class RoomSessionTests
     public void Hello_is_sent_on_open_with_the_name()
     {
         var t = new FakeTransport();
-        var s = new RoomSession(NewCore(), t, "abcdef12", "Alice");
+        using var s = new RoomSession(NewCore(), t, "abcdef12", "Alice");
         s.Start();
         Assert.Equal("接続中…", s.StatusText);
         s.OnOpen(1);
@@ -238,7 +238,7 @@ public class RoomSessionTests
     public void Ping_is_sent_only_while_the_socket_is_open()
     {
         var t = new FakeTransport();
-        var s = new RoomSession(NewCore(), t, "abcdef12", "Alice");
+        using var s = new RoomSession(NewCore(), t, "abcdef12", "Alice");
         s.Start();
         s.Ping();
         Assert.Empty(t.Outbound);
@@ -420,7 +420,7 @@ public class RoomSessionTests
     {
         var core = NewCore();
         var t = new FakeTransport();
-        var s = new RoomSession(core, t, "abcdef12", "Alice");
+        using var s = new RoomSession(core, t, "abcdef12", "Alice");
         s.Start();
         s.OnOpen(1);
         s.OnMessage(1, Q("{'t':'welcome','you':{'id':'me1','name':'Alice','color':'#f97316'},'peers':[]}"));   // objects が無い
@@ -494,7 +494,7 @@ public class RoomSessionTests
     public void A_socket_that_is_not_the_current_one_is_not_greeted()
     {
         var t = new FakeTransport();
-        var s = new RoomSession(NewCore(), t, "abcdef12", "Alice");
+        using var s = new RoomSession(NewCore(), t, "abcdef12", "Alice");
         s.Start();
         s.OnOpen(99);
         Assert.Empty(t.Outbound);

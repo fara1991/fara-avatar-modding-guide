@@ -53,7 +53,7 @@ public class StaticFrameTests : WebTestContext
         var typography = SiteTheme.Create().Typography;
         Assert.Equal(typography.Default.FontSize, Var("--mud-typography-default-size"));
         Assert.Equal(typography.Body2.FontSize, Var("--mud-typography-body2-size"));
-        Assert.Equal(typography.Body2.LineHeight.ToString(System.Globalization.CultureInfo.InvariantCulture), Var("--mud-typography-body2-lineheight"));
+        Assert.Equal(typography.Body2.LineHeight!.ToString(System.Globalization.CultureInfo.InvariantCulture), Var("--mud-typography-body2-lineheight"));
     }
 
     [Fact]

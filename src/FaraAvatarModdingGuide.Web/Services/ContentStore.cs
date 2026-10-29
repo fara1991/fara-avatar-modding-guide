@@ -24,12 +24,12 @@ public sealed class ContentStore(HttpClient http)
             // JSON として読めても形が違う({} など)ときは、読み込み失敗として扱う(各ページが null 参照で落ちて、空白になるのを防ぐ)
             Error = SiteContentValidation.Check(loaded);
             if (Error is null) Content = loaded;
-            else Console.Error.WriteLine($"[avatar] {Error}");
+            else await Console.Error.WriteLineAsync($"[avatar] {Error}");
         }
         catch (Exception e) when (e is HttpRequestException or System.Text.Json.JsonException or TaskCanceledException)
         {
             Error = e.Message;
-            Console.Error.WriteLine($"[avatar] data/content.json を読めません: {e.Message}");
+            await Console.Error.WriteLineAsync($"[avatar] data/content.json を読めません: {e.Message}");
         }
     }
 }

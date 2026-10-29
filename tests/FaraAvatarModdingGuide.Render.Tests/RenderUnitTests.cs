@@ -40,7 +40,8 @@ public class RenderUnitTests(ITestOutputHelper output)
         core.Objects[0].Position = new Vec3(-4, 0, 0);
         core.Objects[1].Position = new Vec3(4, 0, 0);
         core.SetXray(true);
-        var frame = new SceneRenderer(core).Build();
+        using var renderer = new SceneRenderer(core);
+        var frame = renderer.Build();
         var labels = frame.Items.Select(i => i.Label).ToList();
         var firstTransparent = frame.Items.ToList().FindIndex(i => i.Transparent);
         Assert.True(firstTransparent > 0);
@@ -60,7 +61,7 @@ public class RenderUnitTests(ITestOutputHelper output)
     public void Buffers_are_uploaded_once_and_again_only_when_the_shape_changes()
     {
         var core = NewCore("cube");
-        var renderer = new SceneRenderer(core);
+        using var renderer = new SceneRenderer(core);
         var first = renderer.Build();
         Assert.NotEmpty(first.Uploads);
         Assert.Empty(renderer.Build().Uploads);        // 何も変わらなければ送らない
@@ -82,7 +83,7 @@ public class RenderUnitTests(ITestOutputHelper output)
     public void Deleted_objects_release_their_buffers()
     {
         var core = NewCore("cube", "cone");
-        var renderer = new SceneRenderer(core);
+        using var renderer = new SceneRenderer(core);
         renderer.Build();
         core.SetSelection([core.Objects[1]]);
         Key(core, "Delete");
@@ -97,7 +98,7 @@ public class RenderUnitTests(ITestOutputHelper output)
         var core = NewCore("cube");
         core.SetSelection([core.Objects[0]]);
         core.SetMirror(true);
-        var renderer = new SceneRenderer(core);
+        using var renderer = new SceneRenderer(core);
         Key(core, "Tab");
         Key(core, "KeyA");
         core.SetXray(true);
