@@ -263,7 +263,7 @@
   body: |-
     **VRChat から Unity のバージョンを上げるよう言われたら**
 
-    VRChat が指定するパッチバージョンに上げ、合わせて VRChat SDK も更新します。同じマイナー系列（例: 2022.3.x）内の更新ならプロジェクトはそのまま移行できることが多いですが、事前にバックアップを取ります。
+    VRChat が指定するパッチバージョンに上げ、合わせて VRChat SDK も更新します。同じマイナー系列（例: 2022.3.x）内の更新ならプロジェクトはそのまま移行できることが多いです。ただし、事前にバックアップを取ります。
 
     - VCC / ALCOM や Unity Hub から、指定されたバージョンの Unity をインストールし、プロジェクトのバージョンを切り替えます。
     - Unity を上げたら VRChat SDK も最新に更新します。
@@ -799,7 +799,7 @@
     - 膝を二重関節にして Unity の Constraint でつなぐと、膝を曲げたときの形がきれいになります。
     - 腕にツイストボーンを入れると、ひねったときに肘や手首が痩せるのを防げます。費用対効果のバランスがよい改善です。
     - VRChat では 2024 年以降、軽量な **VRC Constraint** が使えます（Unity 標準の Constraint からの変換機能もあります）。
-    - VRM 0.x では Constraint が使えません。VRM 1.0 には独自の Constraint があり、Unity の Rotation Constraint はソースのグローバル座標、VRM 1.0 の Rotation Constraint はローカル座標に対する変化で制約するという違いがあります。
+    - VRM 0.x では Constraint が使えません。VRM 1.0 には独自の Constraint があります。Unity の Rotation Constraint はソースのグローバル座標、VRM 1.0 の Rotation Constraint はローカル座標に対する変化で制約する、という違いがあります。
   tags: [Blender, Unity, リギング]
   source: discord
 
