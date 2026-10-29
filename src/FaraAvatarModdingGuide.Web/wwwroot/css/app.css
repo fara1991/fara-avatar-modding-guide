@@ -1647,3 +1647,155 @@ h1:focus {
     min-height: 44px;
     align-self: flex-start;
 }
+
+/* ---------- プライバシーポリシー ----------
+   長文を読みやすくする。行が長くなりすぎないよう PC でも 56rem までにし（kit の --wide は 72rem）、見出しの階層・下線・余白、リストと段落の間隔、リンクの見分けを整える。
+   静的 HTML（Build の PageBodies.Privacy）と Blazor（Pages/Privacy.razor）は同じ DOM なので、この CSS で同じ見た目になる */
+.privacy-page {
+    max-width: 56rem;
+    margin-left: 0;
+    line-height: 1.85;
+}
+
+.privacy-page .lead {
+    margin-bottom: 0.4rem;
+    font-size: 1.05rem;
+}
+
+.privacy-page .privacy-dates {
+    margin-bottom: 1.5rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.9rem;
+}
+
+.privacy-page p,
+.privacy-page ul {
+    margin-bottom: 0.9rem;
+}
+
+.privacy-page ul {
+    padding-left: 1.5rem;
+}
+
+.privacy-page li + li {
+    margin-top: 0.4rem;
+}
+
+.privacy-page h2 {
+    margin: 2.5rem 0 0.9rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border-strong);
+    font-size: 1.3rem;
+    line-height: 1.5;
+}
+
+.privacy-page section:first-of-type > h2 {
+    margin-top: 1.5rem;
+}
+
+.privacy-page h3 {
+    margin: 1.6rem 0 0.5rem;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: var(--lavender);
+}
+
+[data-bs-theme="light"] .privacy-page h3 {
+    color: var(--violet-deep);
+}
+
+/* 本文のリンクは、色と下線で見分ける */
+.privacy-page a {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+.privacy-page a:hover {
+    text-decoration-thickness: 2px;
+}
+
+/* 外部のサービスの表。広い画面は 4 列の表、狭い画面（768px 未満）は 1 行ずつのカードにして、横にスクロールさせない */
+.privacy-table-wrap {
+    margin: 0 0 1rem;
+}
+
+.privacy-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    line-height: 1.65;
+}
+
+.privacy-table th,
+.privacy-table td {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.privacy-table thead th {
+    background: var(--surface);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.privacy-table tbody th {
+    width: 22%;
+    font-weight: 700;
+}
+
+.privacy-table tbody tr:nth-child(even) {
+    background: rgba(168, 85, 247, 0.05);
+}
+
+@media (max-width: 767.98px) {
+    .privacy-table,
+    .privacy-table tbody,
+    .privacy-table tr,
+    .privacy-table th,
+    .privacy-table td {
+        display: block;
+    }
+
+    .privacy-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    .privacy-table tbody tr {
+        margin-bottom: 0.8rem;
+        border: 1px solid var(--border-strong);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .privacy-table th,
+    .privacy-table td {
+        padding: 0.4rem 0.8rem;
+        border: 0;
+    }
+
+    .privacy-table tbody th {
+        width: auto;
+        padding-top: 0.6rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .privacy-table td::before {
+        content: attr(data-label);
+        display: block;
+        color: var(--bs-secondary-color);
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+
+    .privacy-table td:last-child {
+        padding-bottom: 0.6rem;
+    }
+}

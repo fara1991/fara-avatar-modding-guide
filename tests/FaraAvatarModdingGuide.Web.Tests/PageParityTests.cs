@@ -66,6 +66,11 @@ public class PageParityTests : WebTestContext
         Assert.DoesNotContain("SHA-256", text);
         Assert.DoesNotContain("AdSense", text);
         Assert.DoesNotContain("avatar-modding-guide.", text);                // 保存キー名は書かない
+        // 閲覧者に要らない実装の用語は出さない（「ブラウザの保存領域」「元に戻せない形」など平易に書く）
+        foreach (var jargon in new[] { "ハッシュ", "トークン", "localStorage", "sessionStorage", "秘密の鍵", "秘密の乱数", "部屋の ID", "ID の目印" })
+            Assert.DoesNotContain(jargon, text);
+        Assert.Equal(6, cut.FindAll("table tbody th").Count);                // 狭い幅のカード表示の見出しになる行頭のセル
+        Assert.All(cut.FindAll("table tbody td"), td => Assert.False(string.IsNullOrEmpty(td.GetAttribute("data-label"))));
     }
 
     [Fact]
