@@ -111,3 +111,58 @@ test("作成者の鍵: 以前のオブジェクトの形（{ ID: { k, p } }）�
   assert.equal(room.loadOwnerKey("roomaaaa1111"), "kk");
   assert.equal(room.loadOwnerPass("roomaaaa1111"), "pp");
 });
+
+test("作成者の鍵（同じ端末の別のタブ）: 別の読み込み（別のタブ）でも、保存した作成者の鍵が同じように読める", async () => {
+  globalThis.localStorage = fakeLocalStorage();
+  const tabA = await load();
+  tabA.saveOwnerKey("roomaaaa1111", "0123456789abcdef0123456789abcdef", "pass40");
+  const tabB = await import("../../src/FaraAvatarModdingGuide.Web/wwwroot/js/room-cs.js?another-tab");
+  assert.equal(tabB.loadOwnerKey("roomaaaa1111"), "0123456789abcdef0123456789abcdef");
+  assert.equal(tabB.loadOwnerKey("roombbbb2222"), null, "ほかの部屋の鍵は読めない");
+});
+
+/** document の偽物（コピーの予備の経路だけ見る）。body に入った textarea と、execCommand の呼び出しを記録する。 */
+function fakeDocument(log) {
+  const body = {
+    appendChild(el) { log.appended.push(el); return el; },
+  };
+  return {
+    body,
+    createElement(tag) {
+      const el = {
+        tag,
+        value: "",
+        style: {},
+        setAttribute(k, v) { this[k] = v; },
+        select() { log.selected.push(this.value); },
+        remove() { log.removed.push(this.value); },
+      };
+      return el;
+    },
+    execCommand(cmd) { log.commands.push(cmd); return true; },
+  };
+}
+
+test("コピー: クリップボードが使えれば、渡された文字をそのままコピーする（入力欄は使わない）", async () => {
+  const written = [];
+  Object.defineProperty(globalThis, "navigator", { value: { clipboard: { writeText: async t => { written.push(t); } } }, configurable: true });
+  const room = await load();
+  await room.copy("Kq7mZ2xR9tV4bN8wL3pY6hJ1cF5sD0gAbCdEfGhI");
+  assert.deepEqual(written, ["Kq7mZ2xR9tV4bN8wL3pY6hJ1cF5sD0gAbCdEfGhI"]);
+  delete globalThis.navigator;
+});
+
+test("コピー: クリップボードが使えないときは、一時的な textarea に入れて選び、すぐ消す（入力欄の id に頼らない）", async () => {
+  const log = { appended: [], selected: [], removed: [], commands: [] };
+  Object.defineProperty(globalThis, "navigator", { value: { clipboard: { writeText: async () => { throw new Error("denied"); } } }, configurable: true });
+  globalThis.document = fakeDocument(log);
+  const room = await load();
+  await room.copy("secret-pass");
+  delete globalThis.document;
+  delete globalThis.navigator;
+  assert.equal(log.appended.length, 1, "一時的な textarea を 1 つ作る");
+  assert.equal(log.appended[0].value, "secret-pass");
+  assert.deepEqual(log.selected, ["secret-pass"]);
+  assert.deepEqual(log.commands, ["copy"]);
+  assert.deepEqual(log.removed, ["secret-pass"], "コピーの後で消す");
+});

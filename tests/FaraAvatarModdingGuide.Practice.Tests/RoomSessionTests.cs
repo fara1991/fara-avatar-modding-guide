@@ -766,6 +766,37 @@ public class RoomSessionTests
     }
 
     [Fact]
+    public void Another_tab_on_the_creators_device_joins_with_the_shared_owner_key_and_no_pass()
+    {
+        // 同じ端末（同じ保存 t）の 2 つ目のタブ。作成したタブは開いたまま
+        var t = new FakeTransport();
+        using var creator = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
+        creator.Start();
+        creator.OnOpen(1);
+        creator.OnMessage(1, Q(Welcome.Replace("'color':'#f97316'}", "'color':'#f97316','owner':true}")));
+
+        using var tab = NewSession(t);
+        tab.Start();
+        tab.OnOpen(2);
+        Assert.Equal(Q("{'t':'hello','name':'Alice','owner':'" + OwnerKey + "'}"), t.Outbound[^1]);   // パスワードは送らない
+        tab.OnMessage(2, Q(Welcome.Replace("'color':'#f97316'}", "'color':'#f97316','owner':true}")));
+        Assert.True(tab.Me!.Owner);
+        Assert.Equal(RoomPass, tab.OwnerPass);   // 作成者の画面のパスワードも、同じ保存から出る
+    }
+
+    [Fact]
+    public void A_saved_owner_key_for_another_room_is_not_sent_to_this_room()
+    {
+        var t = new FakeTransport();
+        t.OwnerKeys["abcdef12"] = OwnerKey;
+        using var other = new RoomSession(NewCore(), t, "zzzz9999", "Alice", null);
+        other.Start();
+        other.OnOpen(1);
+        Assert.Equal(Q("{'t':'hello','name':'Alice'}"), Assert.Single(t.Outbound));   // 作成者の鍵は部屋ごと
+        Assert.Null(other.OwnerPass);
+    }
+
+    [Fact]
     public void The_create_limit_closes_without_reconnecting_and_forgets_the_saved_keys()
     {
         var t = new FakeTransport();

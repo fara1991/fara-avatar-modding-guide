@@ -21,7 +21,7 @@
 <div id="room-lobby" class="card mb-4 practice-pc-only" hidden="@inRoom">
     <div class="card-body">
         <h2 class="h5">部屋を作る</h2>
-        <p class="mb-3">ログインは不要です。部屋を作ると、一覧に出ます。部屋の名前とパスワードは、自動で決まります。パスワードは、部屋を作った人の画面に表示されます。</p>
+        <p class="mb-3">ログインは不要です。部屋を作ると、一覧に出ます。部屋の名前とパスワードは、自動で決まります。パスワードは、部屋を作った人の画面に伏せ字で出ます（「パスワードを表示」を押すと見えます）。</p>
         <button type="button" class="btn btn-primary" id="room-create" @onclick="CreateRoom"><AvIcon Name="Add" /> 部屋を作る</button>
     </div>
 </div>
@@ -74,7 +74,7 @@
                             {
                                 <p class="small mb-0" id="room-full-@r.Id">満員のため入れません。空くと、ここから入れるようになります。</p>
                             }
-                            <button type="button" class="btn btn-outline-primary room-lobby-field room-card-join" aria-label="@JoinLabel(r)" aria-expanded="@(open ? "true" : "false")" aria-controls="room-pass-panel-@r.Id" aria-describedby="@(full ? "room-full-" + r.Id : null)" disabled="@full" @onclick="() => ToggleRoom(r.Id)">入る</button>
+                            <button type="button" class="btn btn-outline-primary room-lobby-field room-card-join" aria-label="@JoinLabel(r)" aria-expanded="@(open ? "true" : "false")" aria-controls="room-pass-panel-@r.Id" aria-describedby="@(full ? "room-full-" + r.Id : null)" disabled="@full" @onclick="() => ToggleRoom(r)">入る</button>
                             @if (open)
                             {
                                 <form class="room-pass-panel d-flex flex-column gap-2" id="room-pass-panel-@r.Id" @onsubmit="() => JoinRoom(r)" @onsubmit:preventDefault>
@@ -160,11 +160,7 @@
                 }
                 @if (csActive && room.OwnerPass is { } ownerPass)
                 {
-                    <label class="form-label small" for="room-pass">この部屋のパスワード（作成者の画面だけに出ます）</label>
-                    <div class="input-group input-group-sm mb-2">
-                        <input type="text" class="form-control" id="room-pass" readonly value="@ownerPass" />
-                        <button type="button" class="btn btn-outline-primary" id="room-copy" @onclick="CopyPass">@(copied ? "コピーしました" : "コピー")</button>
-                    </div>
+                    <OwnerPassView RoomId="@(RoomId ?? "")" Pass="@ownerPass" Copied="@copied" OnCopy="CopyPass" />
                     <p class="small text-body-secondary mb-1">一緒に練習する人には、このパスワードを別の手段（Discord など）で伝えてください。</p>
                     <p class="small text-body-secondary mb-3">パスワードは、入れたい人にだけ伝えてください。知っている人は誰でも入れて、内容を変えられます。</p>
                 }
@@ -241,6 +237,7 @@
 
     // ロビー: 作成のボタン・一覧（null は読み込み中）・開いている部屋のパスワード欄
     private IRoomDirectory? directory;
+    private IRoomOwnerKeys? ownerKeys;
     private IReadOnlyList<RoomListItem>? rooms;
     private bool listFailed;
     private string? joinMessage;
@@ -279,6 +276,7 @@
     {
         // 一覧は、ロビーでだけ読み直す（部屋の中・Dispose のあとは止める）
         directory = Services.GetService<IRoomDirectory>();
+        ownerKeys = Services.GetService<IRoomOwnerKeys>();
         if (directory is not null)
         {
             listCts = new CancellationTokenSource();
@@ -407,10 +405,10 @@
     }
 
     /// <summary>部屋のパスワードをコピーする。ラベルは 1.5 秒のあと「コピー」に戻る。C# 版の描画の中では、JavaScript のタイマーで待つ。</summary>
-    private async Task CopyPass()
+    private async Task CopyPass(string pass)
     {
         if (cs is null) return;
-        await cs.CopyPassAsync();
+        await cs.CopyPassAsync(pass);
         copied = true;
         StateHasChanged();
         await PracticeCsJsTutorial.DelayAsync(1500);
@@ -433,12 +431,34 @@
     }
 
 
-    /// <summary>一覧の部屋の「入る」: その部屋のパスワード欄を開く（閉じているものは開き、開いているものは閉じる）。</summary>
-    private void ToggleRoom(string id)
+    /// <summary>
+    /// 一覧の部屋の「入る」。この端末に作成者の鍵がある部屋（作った人の端末）なら、パスワードを聞かずに入る（鍵は送らず、作成者の鍵で入る。合わなければ部屋の画面で鍵を聞く）。
+    /// ほかは、パスワード欄を開く（閉じているものは開き、開いているものは閉じる）。鍵は押した時点で読む（ロビーを開いたあとで作られた部屋も含む）。
+    /// </summary>
+    private async Task ToggleRoom(RoomListItem r)
     {
         joinMessage = null;
-        expandedRoom = expandedRoom == id ? null : id;
-        focusPassInput = expandedRoom is not null;
+        if (!RoomRe.IsMatch(r.Id) || IsFull(r)) return;   // 満員のボタンは無効。念のため、ここでも入らない
+        if (expandedRoom == r.Id)
+        {
+            expandedRoom = null;
+            return;
+        }
+        if (await HasOwnerKeyAsync(r.Id))
+        {
+            EnterRoom(r.Id, null);
+            return;
+        }
+        expandedRoom = r.Id;
+        focusPassInput = true;
+    }
+
+    /// <summary>この端末に、この部屋の作成者の鍵があるか（読めなければ無いものとして扱い、パスワード欄を開く）。</summary>
+    private async Task<bool> HasOwnerKeyAsync(string roomId)
+    {
+        if (ownerKeys is null) return false;
+        try { return await ownerKeys.HasAsync(roomId); }
+        catch (Exception) { return false; }   // 保存を読めない環境でも、パスワードでの入室は使える
     }
 
     /// <summary>一覧の部屋に入る。入力したパスワードは、次の部屋の最初の hello に使う（URL には載せない）。パスワードが違えば、部屋の画面で案内する。</summary>
@@ -452,9 +472,15 @@
             joinMessage = $"「{r.Name}」に入るには、パスワードを入力してください。";
             return;
         }
-        pendingRoomId = r.Id;
-        pendingStart = new RoomStartOptions(Pass: pass);
-        Nav.NavigateTo($"/practice/room?room={r.Id}");
+        EnterRoom(r.Id, new RoomStartOptions(Pass: pass));
+    }
+
+    /// <summary>部屋の画面へ移る。start が null なら、鍵は送らない（作成者の鍵だけで入る。直接 URL と同じ）。</summary>
+    private void EnterRoom(string id, RoomStartOptions? start)
+    {
+        pendingRoomId = id;
+        pendingStart = start;
+        Nav.NavigateTo($"/practice/room?room={id}");
     }
 
     private string RowPass(string id) => rowPass.TryGetValue(id, out var v) ? v : "";

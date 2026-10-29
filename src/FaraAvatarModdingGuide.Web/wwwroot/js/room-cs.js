@@ -169,14 +169,26 @@ export function placeCursors(boxId, json) {
   }
 }
 
-/** URL をコピーする。失敗したら、入力欄（urlInputId）の文字を選んでコピーする（room.js と同じ）。 */
-export async function copy(text, urlInputId) {
+/**
+ * 文字（部屋のパスワードなど）をコピーする。クリックの時点で C# から渡された文字を使い、画面には置かない。
+ * クリップボードが使えないときは、一時的な textarea に入れて選び、すぐ消す（予備の方法）。
+ */
+export async function copy(text) {
   try {
     await navigator.clipboard.writeText(text);
-  } catch {
-    const input = document.getElementById(urlInputId);
-    input?.select();
+    return;
+  } catch { /* 下の予備の方法へ */ }
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.style.position = "fixed";
+  area.style.opacity = "0";
+  document.body.appendChild(area);
+  try {
+    area.select();
     document.execCommand?.("copy");
+  } finally {
+    area.remove();
   }
 }
 
