@@ -722,30 +722,12 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         """;
 
     private const string PracticeRoomBody = """
-        <p class="lead practice-pc-only">URL を共有すると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
+        <p class="lead practice-pc-only">部屋を作ると、一覧に出ます。一覧の部屋を選んでパスワードを入れると、同じ 3D ビューを何人かで同時に操作できます。先生役が動かして見せたり、手順を一緒に確かめたりするときに。</p>
 
         <div id="room-lobby" class="card mb-4 practice-pc-only">
             <div class="card-body">
                 <h2 class="h5">部屋を作る</h2>
-                <p class="mb-3">ログインは不要です。部屋を作ったら、表示される URL を一緒に練習する人に送ってください。</p>
-                <div class="row g-2 mb-2">
-                    <div class="col-sm-6">
-                        <label class="form-label small" for="room-create-name">部屋の名前（40 字まで。空なら「練習の部屋」）</label>
-                        <input type="text" class="form-control room-lobby-field" id="room-create-name" maxlength="40" autocomplete="off" value="" />
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="form-label small" for="room-create-pass">鍵（任意。64 字まで。空なら鍵なし）</label>
-                        <input type="password" class="form-control room-lobby-field" id="room-create-pass" maxlength="64" autocomplete="new-password" value="" />
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small" for="room-create-listed">練習の部屋の一覧に出すか（出すと、部屋の名前と人数が誰にでも見えます）</label>
-                    <select class="form-select room-lobby-field" id="room-create-listed">
-                        <option value="no" selected>一覧に出さない（既定）</option>
-                        <option value="yes">一覧に出す</option>
-                    </select>
-                </div>
-                <p class="small text-body-secondary mb-3">URL を知っている人は誰でも入れて、内容を変えられます。個人情報は入れないでください。一覧に出さない部屋は、URL を知る人だけが入れます。</p>
+                <p class="mb-3">ログインは不要です。部屋を作ると、一覧に出ます。部屋の名前とパスワードは、自動で決まります。パスワードは、部屋を作った人の画面に表示されます。</p>
                 <button type="button" class="btn btn-primary" id="room-create">{{ICON_ADD}} 部屋を作る</button>
             </div>
         </div>
@@ -753,7 +735,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         <div id="room-list-card" class="card mb-4 practice-pc-only">
             <div class="card-body">
                 <h2 class="h5">練習の部屋の一覧</h2>
-                <p class="small text-body-secondary mb-3">一覧に出ている部屋（参加者が 1 人以上いる部屋）を、10 秒ごとに読み直します。鍵つきの部屋は、鍵を入れて入れます。</p>
+                <p class="small text-body-secondary mb-3">一覧に出ている部屋（参加者が 1 人以上いる部屋）を、10 秒ごとに読み直します。部屋の「入る」を押して、パスワードを入れて入れます。</p>
                 <ul class="room-list list-unstyled mb-0" id="room-list" role="list" aria-live="polite">
                     <li class="room-empty small text-body-secondary">読み込み中…</li>
                 </ul>
@@ -782,12 +764,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
                         <span class="room-status small" id="room-status" role="status">接続中…</span>
                     </div>
                     <div class="card-body">
-                        <label class="form-label small" for="room-url">この URL を送ると、同じ部屋に入れます</label>
-                        <div class="input-group input-group-sm mb-3">
-                            <input type="text" class="form-control" id="room-url" readonly />
-                            <button type="button" class="btn btn-outline-primary" id="room-copy">コピー</button>
-                        </div>
-                        <p class="small text-body-secondary mb-3">URL を知っている人は誰でも入れて、内容を変えられます。個人情報は入れないでください。</p>
+                        <p class="small text-body-secondary mb-3">この部屋は一覧に出ます。入るにはパスワードが必要です。パスワードを知る人は誰でも入れて、内容を変えられます。個人情報は入れないでください。</p>
                         <label class="form-label small" for="room-name">表示名（ほかの人に見えます。20 文字まで）</label>
                         <input type="text" class="form-control form-control-sm mb-3" id="room-name" maxlength="20" autocomplete="nickname" />
                         <h3 class="h6">参加している人</h3>
@@ -803,7 +780,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
                             <li>ほかの人が動かしているオブジェクトは、終わるまで動かせません（その人の色の枠が付きます）</li>
                             <li>ほかの人が変更すると、<kbd>Ctrl</kbd>+<kbd>Z</kbd> でそれより前には戻せません</li>
                             <li>「視点に合わせる」で、その人と同じ視点で見られます（自分で視点を動かすと解除）</li>
-                            <li>一覧に出した部屋の名前と人数は、誰にでも見えます。鍵つきの部屋も、鍵を知っている人は入れます</li>
+                            <li>部屋は一覧に出ます。部屋の名前（ランダムな字）と人数は、誰にでも見えます。入るにはパスワードが必要です</li>
                             <li>1 部屋 8 人まで、オブジェクトは 200 個まで。操作（変更・ロック・移動）が 30 分無いと部屋は閉じられ、中身は消えます</li>
                         </ul>
                     </div>
@@ -846,13 +823,13 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
                     <li>ライト／ダークの設定・サイドバーの状態</li>
                     <li>読んだ記事のチェック（読み進めた状況）</li>
                     <li>「みんなで練習」で入力した表示名</li>
-                    <li>「みんなで練習」で作った部屋の作成者の鍵（この端末だけに保存します。作成者が部屋を閉じると、閉じたときに接続していた端末では消えます。閉じた部屋の鍵は、ほかの端末に残っていても使えません。新しい順に 20 件まで）</li>
+                    <li>「みんなで練習」で作った部屋の作成者の鍵と部屋のパスワード（この端末だけに保存します。部屋を閉じると、接続していた端末では消えます。閉じた部屋の鍵は、ほかの端末に残っていても使えません。新しい順に 20 件まで）</li>
                 </ul>
             </section>
 
             <section class="mb-4">
                 <h2 class="h5">「みんなで練習」で扱う情報</h2>
-                <p>共同練習の部屋では、部屋に入った人の表示名と、置いたオブジェクトの位置・種類などが、部屋にいる人どうしで共有されます。この内容は、Cloudflare の中の部屋ごとの保存領域に置き、部屋を閉じたとき、または操作（オブジェクトの変更・ロック・移動など）が 30 分無いときに、自動的に消します。部屋を作るときに「一覧に出す」を選んだ部屋は、部屋の名前・人数・鍵のあり無し・作成からの時間が、練習の部屋の一覧で誰にでも見えます。部屋の鍵（パスワード）は平文では保存せず、ハッシュ（PBKDF2-SHA256・ソルト付き）だけを保存します。作成者の鍵（作成のとき端末で作る秘密の乱数）は、サーバーにはハッシュだけを保存し、作成者の端末（ブラウザの localStorage）に残します。この鍵が合う接続は、部屋の鍵を入れなくても入れます。鍵の間違いの回数は、接続元の IP アドレスから作ったハッシュで数え、部屋を閉じるときに消します（IP アドレスそのものは保存しません）。表示名と部屋の名前には、本名など個人を特定できるものを使わないでください。</p>
+                <p>共同練習の部屋では、部屋に入った人の表示名と、置いたオブジェクトの位置・種類などが、部屋にいる人どうしで共有されます。この内容は、Cloudflare の中の部屋ごとの保存領域に置き、部屋を閉じたとき、または操作（オブジェクトの変更・ロック・移動など）が 30 分無いときに、自動的に消します。部屋は一覧に出ます。一覧には、部屋の名前（作成のときサーバーがランダムに決めた文字）・人数・作成からの時間が、誰にでも見えます。部屋のパスワードは、サーバーには平文で保存せず、ソルト付きの SHA-256 のハッシュだけを保存します。パスワードは、部屋を作った人の端末（ブラウザの localStorage）にも残り、その人の画面にだけ表示されます。作成者の鍵（作成のとき端末で作る秘密の乱数）は、サーバーにはハッシュだけを保存し、作成者の端末に残します。この鍵が合う接続は、パスワードを入れなくても入れます。部屋を作った回数は、接続元の IP アドレスから作った、秘密の鍵つきのハッシュで、1 分に 1 部屋・1 日に 3 部屋まで数えます。同時に存在する部屋は、全体で最大 8 部屋までです（IP アドレスそのものは保存しません。日本時間の翌日 0 時に消します）。パスワードの間違いの回数は、接続元の IP アドレスから作った、秘密の鍵つきのハッシュで数え、部屋を閉じるときに消します（秘密の鍵が設定されていないときは数えません）。表示名には、本名など個人を特定できるものを使わないでください。部屋には個人情報を入れないでください。</p>
             </section>
 
             <section class="mb-4">

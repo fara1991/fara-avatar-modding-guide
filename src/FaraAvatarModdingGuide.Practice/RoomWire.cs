@@ -93,10 +93,7 @@ public static class RoomWire
         if (pass is not null) sb.Append(',').Append(Key("pass")).Append(Str(pass));
         if (create is not null)
         {
-            sb.Append(',').Append(Key("create")).Append('{').Append(Key("name")).Append(Str(create.Name))
-                .Append(',').Append(Key("listed")).Append(create.Listed ? "true" : "false");
-            if (create.Pass is not null) sb.Append(',').Append(Key("pass")).Append(Str(create.Pass));
-            sb.Append('}');
+            sb.Append(',').Append(Key("create")).Append('{').Append(Key("pass")).Append(Str(create.Pass)).Append('}');
         }
         return sb.Append('}').ToString();
     }

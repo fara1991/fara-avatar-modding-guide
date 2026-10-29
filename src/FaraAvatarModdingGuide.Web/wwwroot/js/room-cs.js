@@ -3,7 +3,7 @@
 // 通知は、C# が setHandlers で渡した関数に、接続の番号つきで届ける（onOpen(id) / onMessage(id, text) / onClose(id, code)）。
 // 使い方の決まり(room.js と同じ): 同時に 1 つの部屋だけ。C# が Dispose で退室し、close の通知は C# 側で無視される。
 const NAME_KEY = "avatar-modding-guide.name";
-// 作った部屋の作成者の鍵 { 部屋の ID: 鍵 }（この端末で作った、閉じていない部屋だけ。新しい順に最大 20 件）
+// 作った部屋の作成者の鍵とパスワード { 部屋の ID: { k, p } }（この端末で作った、閉じていない部屋だけ。新しい順に最大 20 件。閉じたら消す）
 const ROOMS_KEY = "avatar-modding-guide.rooms";
 const ROOMS_MAX = 20;
 
@@ -80,42 +80,55 @@ export function saveName(name) {
   try { localStorage.setItem(NAME_KEY, name); } catch { /* 保存できなくても続ける */ }
 }
 
-/** 作成者の鍵の表（読めなければ空の表。保存できない環境でも例外にしない）。 */
+/**
+ * 保存の形: [{ id: 部屋の ID, k: 作成者の鍵, p: 部屋のパスワード（無いこともある）, at: 保存した時刻 }]（古いものから順）。
+ * 配列にするのは、部屋の ID が 10 桁の数字だけのとき、オブジェクトのキーは整数として並び、「新しい順」が崩れるため。
+ * 以前の形（{ 部屋の ID: 作成者の鍵 } と { 部屋の ID: { k, p } }）も読み替える（並びは、読み替えた順）。
+ */
+function normalizeEntry(id, v) {
+  if (typeof v === "string") return { id, k: v, p: null, at: 0 };
+  if (v && typeof v === "object" && typeof v.k === "string") return { id, k: v.k, p: typeof v.p === "string" ? v.p : null, at: Number.isFinite(v.at) ? v.at : 0 };
+  return null;
+}
+
+/** 保存の表（読めなければ空。保存できない環境でも例外にしない）。 */
 function readRooms() {
   try {
-    const v = JSON.parse(localStorage.getItem(ROOMS_KEY) ?? "{}");
-    return v && typeof v === "object" && !Array.isArray(v) ? v : {};
+    const v = JSON.parse(localStorage.getItem(ROOMS_KEY) ?? "[]");
+    if (Array.isArray(v)) return v.map(e => (e && typeof e.id === "string" ? normalizeEntry(e.id, e) : null)).filter(Boolean);
+    if (v && typeof v === "object") return Object.entries(v).map(([id, val]) => normalizeEntry(id, val)).filter(Boolean);
+    return [];
   } catch {
-    return {};
+    return [];
   }
 }
 
-function writeRooms(map) {
-  try { localStorage.setItem(ROOMS_KEY, JSON.stringify(map)); } catch { /* 保存できなくても続ける */ }
+function writeRooms(list) {
+  try { localStorage.setItem(ROOMS_KEY, JSON.stringify(list)); } catch { /* 保存できなくても続ける */ }
 }
 
 /** この部屋の作成者の鍵（この端末で作った部屋のもの。無ければ null）。 */
 export function loadOwnerKey(roomId) {
-  const key = readRooms()[roomId];
-  return typeof key === "string" ? key : null;
+  return readRooms().find(e => e.id === roomId)?.k ?? null;
 }
 
-/** 作成者の鍵を保存する（部屋を作ったとき）。古いものから消して、ROOMS_MAX 件に保つ。 */
-export function saveOwnerKey(roomId, key) {
-  const map = readRooms();
-  delete map[roomId];
-  map[roomId] = key;
-  const ids = Object.keys(map);
-  for (const id of ids.slice(0, Math.max(0, ids.length - ROOMS_MAX))) delete map[id];
-  writeRooms(map);
+/** この部屋のパスワード（この端末で作った部屋のもの。無ければ null。作成者の画面で、確認・コピーに使う）。 */
+export function loadOwnerPass(roomId) {
+  return readRooms().find(e => e.id === roomId)?.p ?? null;
+}
+
+/** 作成者の鍵とパスワードを保存する（部屋を作ったとき）。同じ部屋は作り直し、古いものから消して、ROOMS_MAX 件に保つ。 */
+export function saveOwnerKey(roomId, key, pass = null) {
+  const list = readRooms().filter(e => e.id !== roomId);
+  list.push({ id: roomId, k: key, p: typeof pass === "string" ? pass : null, at: Date.now() });
+  writeRooms(list.slice(-ROOMS_MAX));
 }
 
 /** 作成者の鍵を消す（部屋が閉じたとき）。 */
 export function forgetOwnerKey(roomId) {
-  const map = readRooms();
-  if (!(roomId in map)) return;
-  delete map[roomId];
-  writeRooms(map);
+  const list = readRooms();
+  const next = list.filter(e => e.id !== roomId);
+  if (next.length !== list.length) writeRooms(next);
 }
 
 /**

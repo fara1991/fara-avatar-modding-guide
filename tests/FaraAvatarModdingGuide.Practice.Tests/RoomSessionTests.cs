@@ -42,8 +42,10 @@ public class RoomSessionTests
         public void SaveName(string name) => Saved.Add(name);
         public Dictionary<string, string> OwnerKeys { get; } = [];
         public string? LoadOwnerKey(string roomId) => OwnerKeys.TryGetValue(roomId, out var k) ? k : null;
-        public void SaveOwnerKey(string roomId, string key) => OwnerKeys[roomId] = key;
-        public void ForgetOwnerKey(string roomId) => OwnerKeys.Remove(roomId);
+        public Dictionary<string, string> OwnerPasses { get; } = [];
+        public void SaveOwnerKey(string roomId, string key, string pass) { OwnerKeys[roomId] = key; OwnerPasses[roomId] = pass; }
+        public string? LoadOwnerPass(string roomId) => OwnerPasses.TryGetValue(roomId, out var p) ? p : null;
+        public void ForgetOwnerKey(string roomId) { OwnerKeys.Remove(roomId); OwnerPasses.Remove(roomId); }
 
         /// <summary>ms だけ時計を進め、期限の来たタイマーを呼ぶ。</summary>
         public void Advance(double ms)
@@ -575,6 +577,7 @@ public class RoomSessionTests
 
     // ---------------------------------------------------------------- 作成・鍵・Close・閉じた部屋・警告（サーバーの文字の形は worker/index.js と合わせる）
     private const string OwnerKey = "0123456789abcdef0123456789abcdef";
+    private const string RoomPass = "Kq7mZ2xR9tV4bN8wL3pY6hJ1cF5sD0gA";   // 部屋のパスワード（英数字 32 字以上）
 
     private static RoomSession NewSession(FakeTransport t, RoomJoinOptions? join = null) =>
         new(NewCore(), t, "abcdef12", "Alice", join);
@@ -583,10 +586,10 @@ public class RoomSessionTests
     public void Creating_sends_the_create_block_with_the_owner_key_and_saves_the_key()
     {
         var t = new FakeTransport();
-        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions("練習", true, null, OwnerKey)));
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
         s.Start();
         s.OnOpen(1);
-        Assert.Equal(Q("{'t':'hello','name':'Alice','owner':'" + OwnerKey + "','create':{'name':'練習','listed':true}}"), Assert.Single(t.Outbound));
+        Assert.Equal(Q("{'t':'hello','name':'Alice','owner':'" + OwnerKey + "','pass':'" + RoomPass + "','create':{'pass':'" + RoomPass + "'}}"), Assert.Single(t.Outbound));
         Assert.Equal(OwnerKey, t.OwnerKeys["abcdef12"]);
     }
 
@@ -594,23 +597,23 @@ public class RoomSessionTests
     public void Creating_with_a_pass_puts_the_pass_in_the_create_block_and_keeps_it_for_reconnects()
     {
         var t = new FakeTransport();
-        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions("練習", false, "合言葉", OwnerKey)));
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
         s.Start();
         s.OnOpen(1);
-        Assert.Contains(Q("'create':{'name':'練習','listed':false,'pass':'合言葉'}"), t.Outbound[0]);
+        Assert.Contains(Q("'create':{'pass':'" + RoomPass + "'}"), t.Outbound[0]);
         s.OnMessage(1, Q(Welcome.Replace("'objects'", "'room':{'name':'練習','locked':true},'objects'").Replace("'color':'#f97316'}", "'color':'#f97316','owner':true}")));
         s.OnClose(1, 1006);
         t.Advance(1000);
         s.OnOpen(2);
         // 再接続では、作成の指定は送らず、鍵と作成者の鍵は送る
-        Assert.Equal(Q("{'t':'hello','name':'Alice','owner':'" + OwnerKey + "','pass':'合言葉'}"), t.Outbound[^1]);
+        Assert.Equal(Q("{'t':'hello','name':'Alice','owner':'" + OwnerKey + "','pass':'" + RoomPass + "'}"), t.Outbound[^1]);
     }
 
     [Fact]
     public void Welcome_tells_the_owner_and_the_room_name_and_lock()
     {
         var t = new FakeTransport();
-        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions("練習", true, null, OwnerKey)));
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
         s.Start();
         s.OnOpen(1);
         s.OnMessage(1, Q(Welcome.Replace("'objects'", "'room':{'name':'練習部屋','locked':true},'objects'").Replace("'color':'#f97316'}", "'color':'#f97316','owner':true}")));
@@ -634,7 +637,7 @@ public class RoomSessionTests
     public void The_owner_sends_close_and_the_closed_message_stops_reconnecting()
     {
         var t = new FakeTransport();
-        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions("練習", true, null, OwnerKey)));
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
         s.Start();
         s.OnOpen(1);
         s.OnMessage(1, Q(Welcome.Replace("'color':'#f97316'}", "'color':'#f97316','owner':true}")));
@@ -740,7 +743,7 @@ public class RoomSessionTests
     public void The_create_block_is_not_sent_again_after_the_first_welcome()
     {
         var t = new FakeTransport();
-        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions("練習", false, null, OwnerKey)));
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
         s.Start();
         s.OnOpen(1);
         s.OnMessage(1, Q(Welcome));
@@ -760,6 +763,105 @@ public class RoomSessionTests
         s.Start();
         s.OnOpen(1);
         Assert.Equal(Q("{'t':'hello','name':'Alice','owner':'" + OwnerKey + "'}"), Assert.Single(t.Outbound));
+    }
+
+    [Fact]
+    public void The_create_limit_closes_without_reconnecting_and_forgets_the_saved_keys()
+    {
+        var t = new FakeTransport();
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
+        s.Start();
+        s.OnOpen(1);
+        s.OnMessage(1, Q("{'t':'closed','reason':'limit'}"));
+        s.OnClose(1, 4005);
+        Assert.Equal("limit", s.ClosedReason);
+        Assert.Equal(1, t.Opened);   // つなぎ直さない（部屋は作られていない）
+        Assert.False(t.OwnerKeys.ContainsKey("abcdef12"), "保存した作成者の鍵は消す");
+        Assert.False(t.OwnerPasses.ContainsKey("abcdef12"), "保存したパスワードも消す");
+        Assert.Equal("部屋を作れるのは、1 分に 1 部屋・1 日に 3 部屋までです。しばらくしてからもう一度お試しください", s.StatusText);
+    }
+
+    [Fact]
+    public void A_room_from_the_old_format_is_reported_as_expired_and_not_reconnected()
+    {
+        var t = new FakeTransport();
+        using var s = NewSession(t, new RoomJoinOptions(Pass: RoomPass));
+        s.Start();
+        s.OnOpen(1);
+        s.OnMessage(1, Q("{'t':'closed','reason':'expired'}"));
+        s.OnClose(1, 4004);
+        Assert.Equal("expired", s.ClosedReason);
+        Assert.Equal(1, t.Opened);
+    }
+
+    [Fact]
+    public void Only_the_owner_gets_the_room_pass_and_the_creating_device_keeps_it_after_a_reload()
+    {
+        var t = new FakeTransport();
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
+        s.Start();
+        s.OnOpen(1);
+        Assert.Null(s.OwnerPass);   // 入室（welcome）の前は見せない
+        s.OnMessage(1, Q(Welcome.Replace("'color':'#f97316'}", "'color':'#f97316','owner':true}")));
+        Assert.Equal(RoomPass, s.OwnerPass);
+
+        var other = new FakeTransport();
+        using var guest = NewSession(other, new RoomJoinOptions(Pass: RoomPass));
+        guest.Start();
+        guest.OnOpen(1);
+        guest.OnMessage(1, Q(Welcome));
+        Assert.Null(guest.OwnerPass);   // 作成者でない人には見せない
+
+        // 同じ端末で開き直す（作成の指定は無い）: 保存した作成者の鍵とパスワードで、作成者に戻り、パスワードを見せる
+        using var again = NewSession(t);
+        again.Start();
+        again.OnOpen(t.Opened);   // 接続の番号は、この端末の 2 本目（t は 1 本目と同じ）
+        again.OnMessage(t.Opened, Q(Welcome.Replace("'color':'#f97316'}", "'color':'#f97316','owner':true}")));
+        Assert.Equal(RoomPass, again.OwnerPass);
+    }
+
+    [Fact]
+    public void A_pasted_pass_is_trimmed_before_it_is_sent_again()
+    {
+        var t = new FakeTransport();
+        using var s = NewSession(t);
+        s.Start();
+        s.OnOpen(1);
+        s.OnMessage(1, Q("{'t':'needpass'}"));
+        s.OnClose(1, 4003);
+        s.SubmitPass(RoomPass + "\n");
+        s.OnOpen(2);
+        Assert.Equal(Q("{'t':'hello','name':'Alice','pass':'" + RoomPass + "'}"), t.Outbound[^1]);
+    }
+
+    [Fact]
+    public void An_outdated_client_is_told_to_reload_and_its_saved_keys_are_forgotten()
+    {
+        var t = new FakeTransport();
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
+        s.Start();
+        s.OnOpen(1);
+        s.OnMessage(1, Q("{'t':'closed','reason':'outdated'}"));
+        s.OnClose(1, 4006);
+        Assert.Equal("outdated", s.ClosedReason);
+        Assert.Equal(1, t.Opened);   // つなぎ直さない
+        Assert.False(t.OwnerKeys.ContainsKey("abcdef12"));
+        Assert.Contains("再読み込み", s.StatusText);
+    }
+
+    [Fact]
+    public void A_full_server_closes_with_4007_and_the_room_is_reported_as_full_without_reconnecting()
+    {
+        var t = new FakeTransport();
+        using var s = NewSession(t, new RoomJoinOptions(Create: new RoomCreateOptions(RoomPass, OwnerKey)));
+        s.Start();
+        s.OnOpen(1);
+        s.OnMessage(1, Q("{'t':'closed','reason':'full'}"));
+        s.OnClose(1, 4007);
+        Assert.Equal("full", s.ClosedReason);
+        Assert.Equal(1, t.Opened);
+        Assert.False(t.OwnerKeys.ContainsKey("abcdef12"));
+        Assert.Contains("最大 8 部屋", s.StatusText);
     }
 
     [Fact]

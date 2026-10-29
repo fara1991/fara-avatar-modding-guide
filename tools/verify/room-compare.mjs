@@ -88,7 +88,7 @@ async function run(browser, cs) {
   const snap = async (name, { wait = 400 } = {}) => {
     await sleep(wait);
     const main = page.locator("#room-main");
-    const buf = await main.screenshot({ animations: "disabled", mask: [page.locator("#room-url")] });
+    const buf = await main.screenshot({ animations: "disabled", mask: [page.locator("#room-pass")] });
     const dom = await page.evaluate(() => ({
       status: document.querySelector("#room-status")?.textContent ?? "",
       peers: [...document.querySelectorAll("#room-peers li")].map(li => li.textContent.replace(/\s+/g, " ").trim()).join(" | "),
