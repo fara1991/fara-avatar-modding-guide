@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- SEO-HEAD:START -->
+    <title>シェイプキーを改変に使う | Avatar Modding Guide</title>
+    <meta name="description" content="既存のアバターを改変するときのシェイプキーの扱い方です。Basis を触るときの注意、シェイプに反映、ほかのメッシュへの転送、モディファイアーとの関係、貫通防止・ヒール用・体形のキーの作り方。" />
+    <link rel="canonical" href="https://avatar-dev.fara-labs.com/learn/rigging/shape-keys-modding" />
+    <meta property="og:site_name" content="Avatar Modding Guide" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="シェイプキーを改変に使う | Avatar Modding Guide" />
+    <meta property="og:description" content="既存のアバターを改変するときのシェイプキーの扱い方です。Basis を触るときの注意、シェイプに反映、ほかのメッシュへの転送、モディファイアーとの関係、貫通防止・ヒール用・体形のキーの作り方。" />
+    <meta property="og:url" content="https://avatar-dev.fara-labs.com/learn/rigging/shape-keys-modding" />
+    <meta property="og:image" content="https://avatar-dev.fara-labs.com/og.png?v=1" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- SEO-HEAD:END -->
+    <!-- OGP 画像の大きさと説明。画像（og:image）そのものは SEO-HEAD の中に、Build が全ページに入れる(SiteBuilder の OgImageFile)。kit は width・height・alt を出さないので、全ページ共通の値をここに置く。
+         og:image の「後ろ」に並ぶ位置にする(SNS のクローラーは、直前の og:image に紐づけて読む)。画像を差し替えたら、SiteBuilder の OgImageVersion（?v=）と、ここの大きさ・説明を合わせる -->
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="紫色の方眼の床の上に、ワイヤーフレームの立体(立方体・円錐・球・トーラスなど)が浮かぶ絵" />
+    <base href="/" />
+    <!-- ファビコン。/favicon.ico は、ブラウザーがページの指定とは別に決まって取りに行く(無いと、存在しないパスなので 404 ページになる)。4 サイト共通の名前で、版は ?v=N で管理する(同じ名前のまま画像を直したら N を上げる)。SVG は対応するブラウザーで ico より優先して使われ、
+         apple-touch-icon は iOS のホーム画面用(不透明な背景つき)。ヘッダーのロゴとは別物(ロゴは画像を使わない) -->
+    <link rel="icon" href="/favicon.ico?v=2" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+    <!--
+        この index.html は、dotnet publish の出力としてテンプレートになる。Build（src/FaraAvatarModdingGuide.Build）が、
+        SEO-HEAD / SEO-BODY の区切りの間に、ページごとの head と本文を差し込んで、ページごとの HTML を書き出す。
+        WASM-ONLY の区切りで囲んだ部分（読み込み表示・Blazor のスクリプトなど）は、WebAssembly を使うページだけに残し、それ以外のページ（記事など）からは外す。
+        STATIC-ONLY の区切りで囲んだ部分は、その逆（WebAssembly を使わないページだけに残す）。
+        CSP（_headers）でインラインの script は止まるので、script は外部ファイルだけにする。
+    -->
+        <!-- 起動までの読み込み表示。静的な本文は、起動の前から見えたまま残す(本文を覆わない)。画面の右下に小さく「読み込み中…」だけを出す(操作は止めない:
+         pointer-events: none。45 秒たっても描かれないときだけ、案内と「再読み込み」のリンクに変わり、リンクだけ押せる)。
+         静的な本文の枠は、起動の後の画面と同じ構造・同じ位置(Build の StaticFrame)。起動すると、Blazor が #app の中身を置き換えて、boot-indicator.js(kit)がこの表示を外す。
+         最初に当てる(CSS の読み込み前にも色が合うように、インラインで書く)。60 秒の保険は、JS の RELEASE_MS と同じ秒数 -->
+    <style>
+        html, body { background: #f7f4fd; }
+        html[data-bs-theme="dark"], html[data-bs-theme="dark"] body { background: #0c0616; }
+        #boot-indicator {
+            position: fixed; right: 1rem; bottom: 3.4rem; z-index: 2147483000;
+            display: flex; align-items: center; gap: 0.6rem;
+            box-sizing: border-box; max-width: calc(100vw - 2rem); padding: 0.45rem 0.95rem;
+            border: 1px solid rgba(200, 170, 255, 0.3); border-radius: 999px;
+            background: rgba(26, 13, 51, 0.92); color: #f3edff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+            font-family: "Zen Kaku Gothic New", "Yu Gothic", system-ui, sans-serif;
+            pointer-events: none;
+            animation: boot-indicator-release 0s linear 60s forwards;
+        }
+        @keyframes boot-indicator-release { to { visibility: hidden; } }
+        .boot-indicator-spinner {
+            flex: none; width: 1rem; height: 1rem; box-sizing: border-box;
+            border: 0.17rem solid #c084fc; border-right-color: transparent; border-radius: 50%;
+            animation: boot-indicator-spin 0.75s linear infinite;
+        }
+        .boot-indicator-label { font-size: 0.8rem; font-weight: 700; line-height: 1.5; }
+        .boot-indicator-label:empty::before { content: "読み込み中…"; }
+        .boot-indicator-label a { color: #e9d5ff; font-weight: 700; text-decoration: underline; pointer-events: auto; }
+        #boot-indicator[data-state="slow"] { pointer-events: auto; }
+        #boot-indicator[data-state="slow"] .boot-indicator-spinner { animation: none; }
+        @keyframes boot-indicator-spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .boot-indicator-spinner { animation: none; }
+        }
+    </style>
+    <!-- JavaScript が無い環境: 読み込み表示は出さない。スマホは、サイドバー(ハンバーガーで開く一時的なメニュー。JavaScript が無いと開けない)を、本文とフッターの後ろに並べて出す(ページの移動に使える) -->
+    <noscript><style>
+        #boot-indicator { display: none; }
+        @media (max-width: 767.98px) {
+            .av-static { display: flex; flex-direction: column; }
+            .av-static .mud-main-content { order: 1; }
+            .av-static .fbc-sidebar { order: 2; display: block !important; position: static !important; width: auto !important; height: auto !important; overflow: visible !important; }
+        }
+    </style></noscript>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- display=block: フォントが届くまで文字を出さない。swap だと、フォールバックの字で描いてから Zen Kaku に差し替わり、折り返しが変わって本文が動く。記事ページ（learn/basics/transform.html）の CLS は、1024 で 0.23 → 0.10（各 3 回の平均・Playwright）。768 と 390 は差が小さい。0 にするには optional が要るが、初回の訪問で Zen Kaku が出なくなるので採用していない -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=block" rel="stylesheet" />
+        <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+        <!-- Bootstrap 5.3.3 から、このサイトで使っているクラスだけを取り出したもの（CDN の Bootstrap・Bootstrap Icons はやめた） -->
+    <link href="css/base.css" rel="stylesheet" />
+    <!-- 共通部品（fara-blazor-component）の CSS。サイトの app.css より前に読む（同じ強さの規則は app.css が勝つ） -->
+    <link href="_content/FaraBlazorComponent.Razor/css/fara-blazor-component.css" rel="stylesheet" />
+    <!-- 練習・記事内チュートリアルの見た目(SSR 版の site.css から移した)と、練習の JavaScript が出すアイコン(Bootstrap Icons のうち使うものだけを CSS にした) -->
+    <link href="css/bi-icons.css" rel="stylesheet" />
+    <link href="css/practice.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <!-- 描画の前に、保存されたテーマ（ライト／ダーク）と PC のサイドバーを隠す設定を html に反映する（kit の theme-init.js）。
+         data-storage-key・data-sidebar-key は、SiteOptions（Services/SiteInfo.cs の StorageKey・SidebarKey）と同じ値にする（違うと、起動の後にコンソールに警告が出る）。
+         storage-migrate.js は、SSR 版が保存していた形（文字列の light / dark）を、kit が読む形（JSON）に直す。theme-init.js より前に読む -->
+    <script src="js/storage-migrate.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/theme-init.js" data-storage-key="avatar-modding-guide.theme" data-sidebar-key="avatar-modding-guide.sidebar-hidden"></script>
+    <!-- 保存されたテーマが無い・読めないときの既定を、SSR 版と同じダークにする（theme-init.js は light にするので、直後に直す） -->
+    <script src="js/theme-default.js"></script>
+    <!-- STATIC-ONLY の区切りで囲んだ部分は、WebAssembly を使わないページ（記事など）だけに残す。「更新予定」の帯は、WebAssembly のページでは kit の MaintenanceBanner が出し、
+         静的 HTML のページでは、この notice.js が Worker の /api/maintenance を読んで出す -->
+    <!-- 背景の飾り(床の方眼と回る針金のアバター。2D の canvas)。全ページで 1 度だけ動く。ページを移っても、本文だけが替わるので、そのまま残る(多重に作らない) -->
+    <script src="js/bgscene.js" defer></script>
+    </head>
+<body>
+        <!-- 起動までの読み込み表示（右下の小さな表示）。#app の外に置く（Blazor が #app の中身を置き換えても残るので、boot-indicator.js（kit）が起動後に外す）。
+         静的な本文は、起動の前から見えたまま残す（検索エンジン・JavaScript が無い環境のため）。文言は CSS（:empty::before）で出す -->
+    <div id="boot-indicator" class="boot-indicator">
+        <div class="boot-indicator-spinner" aria-hidden="true"></div>
+        <span class="boot-indicator-label" role="status" aria-live="polite" aria-label="読み込み中"></span>
+    </div>
+        <div id="app">
+        <!-- SEO-BODY:START -->
+    <div class="entry-static av-static">
+<header class="mud-appbar mud-appbar-fixed-top mud-elevation-0 fbc-header">
+<div role="toolbar" class="mud-toolbar mud-toolbar-appbar">
+<div class="fbc-scroll-progress" aria-hidden="true" style="--scroll-progress: 0.0000;"></div>
+<span class="mud-button-root mud-icon-button mud-inherit-text mud-ripple mud-ripple-icon fbc-menu-toggle" aria-hidden="true"><span class="mud-icon-button-label"><svg class="mud-icon-root mud-svg-icon mud-icon-size-medium" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></span></span>
+<a class="fbc-brand" href="/" title="ホームへ">Avatar Modding Guide</a>
+<div class="av-search av-pc" role="search" aria-hidden="true">
+<svg class="av-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" class="av-search-input" placeholder="検索（例: 押し出し、Ctrl+R、ウェイト）" autocomplete="off" spellcheck="false" tabindex="-1" readonly="readonly" aria-hidden="true">
+<span class="av-search-hint" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+</div>
+<div class="av-sw av-pc" aria-hidden="true"><span class="av-sw-track"></span><span class="av-sw-thumb">
+<span class="av-sw-moon"><svg class="mud-icon-root mud-svg-icon mud-icon-size-medium" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><rect fill="none" height="24" width="24"/><path d="M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36c-0.98,1.37-2.58,2.26-4.4,2.26 c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg></span><span class="av-sw-sun"><svg class="mud-icon-root mud-svg-icon mud-icon-size-medium" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><rect fill="none" height="24" width="24"/><path d="M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0 c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2 c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1 C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06 c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41 l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41 c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36 c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg></span>
+</span></div>
+<span class="mud-button-root mud-icon-button mud-inherit-text mud-ripple mud-ripple-icon fbc-search-toggle av-sp" aria-hidden="true"><span class="mud-icon-button-label"><svg class="mud-icon-root mud-svg-icon mud-icon-size-medium" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></span></span>
+</div>
+</header>
+<aside id="fbc-sidebar" class="mud-drawer mud-drawer-fixed mud-drawer-pos-left mud-drawer--open mud-drawer--initial mud-drawer-sm mud-drawer-clipped-always mud-elevation-0 mud-drawer-mini fbc-sidebar">
+<div class="mud-drawer-content">
+<nav class="mud-navmenu mud-navmenu-default mud-navmenu-margin-none fbc-nav">
+<div class="mud-nav-item"><a href="/" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><div class="mud-nav-link-text">ホーム</div></a></div>
+<div class="mud-nav-item"><a href="/learn" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"/></svg><div class="mud-nav-link-text">目次</div></a></div>
+<div class="fbc-nav-section">Blender</div>
+<div class="mud-nav-item"><a href="/learn/getting-started" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g><rect fill="none" height="24" width="24"/></g><g><g><path d="M9.19,6.35c-2.04,2.29-3.44,5.58-3.57,5.89L2,10.69l4.05-4.05c0.47-0.47,1.15-0.68,1.81-0.55L9.19,6.35L9.19,6.35z M11.17,17c0,0,3.74-1.55,5.89-3.7c5.4-5.4,4.5-9.62,4.21-10.57c-0.95-0.3-5.17-1.19-10.57,4.21C8.55,9.09,7,12.83,7,12.83 L11.17,17z M17.65,14.81c-2.29,2.04-5.58,3.44-5.89,3.57L13.31,22l4.05-4.05c0.47-0.47,0.68-1.15,0.55-1.81L17.65,14.81 L17.65,14.81z M9,18c0,0.83-0.34,1.58-0.88,2.12C6.94,21.3,2,22,2,22s0.7-4.94,1.88-6.12C4.42,15.34,5.17,15,6,15 C7.66,15,9,16.34,9,18z M13,9c0-1.1,0.9-2,2-2s2,0.9,2,2s-0.9,2-2,2S13,10.1,13,9z"/></g></g></svg><div class="mud-nav-link-text">はじめに<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/basics" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></svg><div class="mud-nav-link-text">基本操作<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/modeling" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M18.25 7.6l-5.5-3.18c-.46-.27-1.04-.27-1.5 0L5.75 7.6c-.46.27-.75.76-.75 1.3v6.35c0 .54.29 1.03.75 1.3l5.5 3.18c.46.27 1.04.27 1.5 0l5.5-3.18c.46-.27.75-.76.75-1.3V8.9c0-.54-.29-1.03-.75-1.3zM7 14.96v-4.62l4 2.32v4.61l-4-2.31zm5-4.03L8 8.61l4-2.31 4 2.31-4 2.32zm1 6.34v-4.61l4-2.32v4.62l-4 2.31zM7 2H3.5C2.67 2 2 2.67 2 3.5V7h2V4h3V2zm10 0h3.5c.83 0 1.5.67 1.5 1.5V7h-2V4h-3V2zM7 22H3.5c-.83 0-1.5-.67-1.5-1.5V17h2v3h3v2zm10 0h3.5c.83 0 1.5-.67 1.5-1.5V17h-2v3h-3v2z"/></svg><div class="mud-nav-link-text">モデリング<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/materials" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g><rect fill="none" height="24" width="24"/></g><g><path d="M12,2C6.49,2,2,6.49,2,12s4.49,10,10,10c1.38,0,2.5-1.12,2.5-2.5c0-0.61-0.23-1.2-0.64-1.67c-0.08-0.1-0.13-0.21-0.13-0.33 c0-0.28,0.22-0.5,0.5-0.5H16c3.31,0,6-2.69,6-6C22,6.04,17.51,2,12,2z M17.5,13c-0.83,0-1.5-0.67-1.5-1.5c0-0.83,0.67-1.5,1.5-1.5 s1.5,0.67,1.5,1.5C19,12.33,18.33,13,17.5,13z M14.5,9C13.67,9,13,8.33,13,7.5C13,6.67,13.67,6,14.5,6S16,6.67,16,7.5 C16,8.33,15.33,9,14.5,9z M5,11.5C5,10.67,5.67,10,6.5,10S8,10.67,8,11.5C8,12.33,7.33,13,6.5,13S5,12.33,5,11.5z M11,7.5 C11,8.33,10.33,9,9.5,9S8,8.33,8,7.5C8,6.67,8.67,6,9.5,6S11,6.67,11,7.5z"/></g></svg><div class="mud-nav-link-text">マテリアルとテクスチャ<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/rigging" class="mud-nav-link mud-ripple active" aria-current="page"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/></svg><div class="mud-nav-link-text">リギング<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="fbc-nav-section">Unity</div>
+<div class="mud-nav-item"><a href="/learn/unity" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g fill-rule="evenodd"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/></g></svg><div class="mud-nav-link-text">アバターを整える<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="fbc-nav-section">VRChat</div>
+<div class="mud-nav-item"><a href="/learn/vrchat" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg><div class="mud-nav-link-text">アップロード<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/vrchat-features" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg><div class="mud-nav-link-text">メニュー・表情・揺れ<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="fbc-nav-section">通しで作る</div>
+<div class="mud-nav-item"><a href="/learn/modding" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path clip-rule="evenodd" d="M0 0h24v24H0z" fill="none"/><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg><div class="mud-nav-link-text">アバター改変<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="mud-nav-item"><a href="/learn/avatar-clothing" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g><rect fill="none" height="24" width="24"/></g><g><g><path d="M13.94,8.31C13.62,7.52,12.85,7,12,7s-1.62,0.52-1.94,1.31L7,16h3v6h4v-6h3L13.94,8.31z"/><circle cx="12" cy="4" r="2"/></g></g></svg><div class="mud-nav-link-text">衣装を作る<span class="category-progress ms-auto" hidden></span></div></a></div>
+<div class="fbc-nav-section">リファレンス</div>
+<div class="mud-nav-item"><a href="/shortcuts" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/><path d="M0 0h24v24H0zm0 0h24v24H0z" fill="none"/></svg><div class="mud-nav-link-text">ショートカット一覧</div></a></div>
+<div class="mud-nav-item"><a href="/glossary" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg><div class="mud-nav-link-text">用語集</div></a></div>
+<div class="mud-nav-item"><a href="/howto" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg><div class="mud-nav-link-text">何て名前？</div></a></div>
+<div class="mud-nav-item"><a href="/tips" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg><div class="mud-nav-link-text">TIPS</div></a></div>
+<div class="mud-nav-item"><a href="/qa" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg><div class="mud-nav-link-text">改変 Q&amp;A</div></a></div>
+<div class="mud-nav-item"><a href="/addons" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg><div class="mud-nav-link-text">アドオン</div></a></div>
+<div class="mud-nav-item"><a href="/links" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg><div class="mud-nav-link-text">リンク集</div></a></div>
+<div class="mud-nav-item"><a href="/changelog" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg><div class="mud-nav-link-text">更新履歴</div></a></div>
+<div class="fbc-nav-section">練習</div>
+<div class="mud-nav-item"><a href="/practice" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g><rect fill="none" height="24" width="24"/></g><g><g><path d="M21.58,16.09l-1.09-7.66C20.21,6.46,18.52,5,16.53,5H7.47C5.48,5,3.79,6.46,3.51,8.43l-1.09,7.66 C2.2,17.63,3.39,19,4.94,19h0c0.68,0,1.32-0.27,1.8-0.75L9,16h6l2.25,2.25c0.48,0.48,1.13,0.75,1.8,0.75h0 C20.61,19,21.8,17.63,21.58,16.09z M11,11H9v2H8v-2H6v-1h2V8h1v2h2V11z M15,10c-0.55,0-1-0.45-1-1c0-0.55,0.45-1,1-1s1,0.45,1,1 C16,9.55,15.55,10,15,10z M17,13c-0.55,0-1-0.45-1-1c0-0.55,0.45-1,1-1s1,0.45,1,1C18,12.55,17.55,13,17,13z"/></g></g></svg><div class="mud-nav-link-text">操作の練習</div></a></div>
+<div class="mud-nav-item"><a href="/practice/unity" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g fill-rule="evenodd"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/></g></svg><div class="mud-nav-link-text">Unity の練習</div></a></div>
+<div class="mud-nav-item"><a href="/practice/room" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><rect fill="none" height="24" width="24"/><g><path d="M12,12.75c1.63,0,3.07,0.39,4.24,0.9c1.08,0.48,1.76,1.56,1.76,2.73L18,18H6l0-1.61c0-1.18,0.68-2.26,1.76-2.73 C8.93,13.14,10.37,12.75,12,12.75z M4,13c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2s-2,0.9-2,2C2,12.1,2.9,13,4,13z M5.13,14.1 C4.76,14.04,4.39,14,4,14c-0.99,0-1.93,0.21-2.78,0.58C0.48,14.9,0,15.62,0,16.43V18l4.5,0v-1.61C4.5,15.56,4.73,14.78,5.13,14.1z M20,13c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2s-2,0.9-2,2C18,12.1,18.9,13,20,13z M24,16.43c0-0.81-0.48-1.53-1.22-1.85 C21.93,14.21,20.99,14,20,14c-0.39,0-0.76,0.04-1.13,0.1c0.4,0.68,0.63,1.46,0.63,2.29V18l4.5,0V16.43z M12,6c1.66,0,3,1.34,3,3 c0,1.66-1.34,3-3,3s-3-1.34-3-3C9,7.34,10.34,6,12,6z"/></g></svg><div class="mud-nav-link-text">みんなで練習</div></a></div>
+<div class="fbc-nav-section">サポート</div>
+<div class="mud-nav-item"><a href="/report" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/></svg><div class="mud-nav-link-text">問い合わせ</div></a></div>
+<div class="mud-nav-item"><a href="/privacy" class="mud-nav-link mud-ripple"><svg class="mud-icon-root mud-icon-default mud-svg-icon mud-icon-size-medium mud-nav-link-icon mud-nav-link-icon-default" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="img"><g><rect fill="none" height="24" width="24"/><path d="M12,1L3,5v6c0,5.55,3.84,10.74,9,12c5.16-1.26,9-6.45,9-12V5L12,1L12,1z M11,7h2v2h-2V7z M11,11h2v6h-2V11z"/></g></svg><div class="mud-nav-link-text">プライバシーポリシー</div></a></div>
+</nav>
+</div>
+</aside>
+<div class="mud-main-content">
+<main id="fbc-main" tabindex="-1"><article class="fbc-content">
+<nav aria-label="パンくず">
+<ol class="breadcrumb">
+<li class="breadcrumb-item"><a href="/learn">目次</a></li>
+<li class="breadcrumb-item"><a href="/learn#section-blender">Blender</a></li>
+<li class="breadcrumb-item"><a href="/learn/rigging">リギング</a></li>
+<li class="breadcrumb-item active" aria-current="page">シェイプキーを改変に使う</li>
+</ol>
+</nav>
+<header class="article-header mb-4" data-progress-page="rigging/shape-keys-modding">
+<h1>シェイプキーを改変に使う</h1>
+<div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary small">
+<span class="done-mark badge-done"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> 完了</span>
+<span class="badge bg-warning text-dark">中級</span>
+<span><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M18.25 7.6l-5.5-3.18c-.46-.27-1.04-.27-1.5 0L5.75 7.6c-.46.27-.75.76-.75 1.3v6.35c0 .54.29 1.03.75 1.3l5.5 3.18c.46.27 1.04.27 1.5 0l5.5-3.18c.46-.27.75-.76.75-1.3V8.9c0-.54-.29-1.03-.75-1.3zM7 14.96v-4.62l4 2.32v4.61l-4-2.31zm5-4.03L8 8.61l4-2.31 4 2.31-4 2.32zm1 6.34v-4.61l4-2.32v4.62l-4 2.31zM7 2H3.5C2.67 2 2 2.67 2 3.5V7h2V4h3V2zm10 0h3.5c.83 0 1.5.67 1.5 1.5V7h-2V4h-3V2zM7 22H3.5c-.83 0-1.5-.67-1.5-1.5V17h2v3h3v2zm10 0h3.5c.83 0 1.5-.67 1.5-1.5V17h-2v3h-3v2z"/></svg> Blender 4.5</span>
+<span><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg> 更新: 2026-10-11</span>
+</div>
+<p class="lead mt-2 mb-0">既存のアバターを改変するときのシェイプキーの扱い方です。Basis を触るときの注意、シェイプに反映、ほかのメッシュへの転送、モディファイアーとの関係、貫通防止・ヒール用・体形のキーの作り方。</p>
+</header>
+<details class="article-toc-mobile d-lg-none mb-4">
+<summary>この記事の目次（6）</summary>
+<ol class="toc-list">
+<li><a href="/learn/rigging/shape-keys-modding#この記事で扱うこと">この記事で扱うこと</a></li>
+<li><a href="/learn/rigging/shape-keys-modding#basis-を動かすときの注意">Basis を動かすときの注意</a></li>
+<li><a href="/learn/rigging/shape-keys-modding#改変でよく作るシェイプキー">改変でよく作るシェイプキー</a></li>
+<li><a href="/learn/rigging/shape-keys-modding#ほかのメッシュにシェイプキーを写す">ほかのメッシュにシェイプキーを写す</a></li>
+<li><a href="/learn/rigging/shape-keys-modding#シェイプキーとモディファイアー">シェイプキーとモディファイアー</a></li>
+<li><a href="/learn/rigging/shape-keys-modding#unity-での注意">Unity での注意</a></li>
+</ol>
+</details>
+<div class="row g-4">
+<div class="col-lg-9">
+<div class="article-body">
+<h2 id="この記事で扱うこと">この記事で扱うこと</h2>
+<p>シェイプキーの作り方と値の意味は <a href="/learn/rigging/shape-keys">シェイプキー</a> で扱いました。この記事では、<strong>もともとシェイプキーがたくさん入っているアバター</strong> を改変するときに困りやすいことをまとめます。</p>
+<p>アバターの顔や体には、表情・口の形・体形の調整など、数十〜百以上のシェイプキーが入っています。どれも <strong>Basis（基本の形）からの差分</strong> で形を持っているので、Basis を動かしたときの影響に注意が必要です。</p>
+<h2 id="basis-を動かすときの注意">Basis を動かすときの注意</h2>
+<h3 id="どのキーを編集しているか確かめる">どのキーを編集しているか確かめる</h3>
+<p>編集モードで頂点を動かすと、その変更は <strong>今選んでいる（アクティブな）シェイプキー</strong> に入ります。</p>
+<ul>
+<li>Basis 以外を選んだまま編集すると、オブジェクトモードに戻ったときに元の形に見える（そのキーの値が 0 のため）</li>
+<li>Basis を選んだまま編集すると、すべてのキーの元の形が変わる</li>
+</ul>
+<p>編集モードに入る前に、シェイプキーの一覧で <strong>どれが選ばれているか</strong> を必ず確かめてください（<a href="/qa#shapekey-edit-basis">Q&amp;A: Basis を編集したら元に戻る</a>）。</p>
+<h3 id="basis-の変更をほかのキーにも反映する">Basis の変更をほかのキーにも反映する</h3>
+<p>Basis で頂点を動かすと、ほかのキー（たとえば「笑顔」）は、動かす前の Basis との差分のままなので、値を上げたときに形がずれます。Basis で動かした変更をほかのキーにも同じだけ反映したいときは、</p>
+<ol>
+<li>編集モードで Basis を選んで頂点を動かす</li>
+<li>動かした頂点を選んだまま、<strong>頂点 &gt; シェイプに反映</strong>（Propagate to Shapes）を実行する</li>
+</ol>
+<p>これで、選んだ頂点の今の位置が、すべてのシェイプキーに反映されます。</p>
+<h3 id="いちばん安全なのは新しいキーで作ること">いちばん安全なのは、新しいキーで作ること</h3>
+<p>首を少し伸ばす、肩を下げる、といった体形の変更は、Basis を直接触らずに <strong>新しいシェイプキー</strong> として作り、値を 1 にして使うのが安全です。気に入らなければ値を 0 に戻すだけで元に戻せます。</p>
+<h2 id="改変でよく作るシェイプキー">改変でよく作るシェイプキー</h2>
+<table class="table-cards">
+<thead>
+<tr>
+<th>キー</th>
+<th>用途</th>
+<th>作り方のこつ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="キー">貫通防止（体を細くする）</td>
+<td data-label="用途">衣装から肌が突き抜けるのを防ぐ</td>
+<td data-label="作り方のこつ">体の、衣装で隠れる範囲だけを <kbd>Alt</kbd>+<kbd>S</kbd> で縮める。関節まわり・脇の下を中心に</td>
+</tr>
+<tr>
+<td data-label="キー">ヒール用の足</td>
+<td data-label="用途">ヒールのある靴に合わせて足の形を変える</td>
+<td data-label="作り方のこつ">ボーンを曲げず、足先を伸ばす形をキーで作る（VRChat ではボーンの角度はトラッキングで上書きされる）</td>
+</tr>
+<tr>
+<td data-label="キー">体形（胸・脚の太さ）</td>
+<td data-label="用途">体形を変える。衣装側にも同じ名前のキーを作る</td>
+<td data-label="作り方のこつ">衣装はサーフェス変形で体の変形を写すと早い（<a href="/learn/rigging/shape-keys">シェイプキー</a>）</td>
+</tr>
+<tr>
+<td data-label="キー">首の継ぎ目</td>
+<td data-label="用途">首すげ替えで首を少し伸ばす</td>
+<td data-label="作り方のこつ"><a href="/learn/modding/head-swap">首すげ替え</a></td>
+</tr>
+</tbody>
+</table>
+<p>衣装側にアバターと <strong>同じ名前</strong> のキーがあれば、Unity の <strong>MA Blendshape Sync</strong> でアバターの値に合わせて動かせます（<a href="/howto#follow-body-shape">何て名前？</a>）。</p>
+<div class="tip"><p>ヒールのある靴は、靴で素足が見えないなら「素足を極端に細くするキー」で隠す方法もあります（<a href="/qa#heel-shoes-fitting">Q&amp;A: ヒールのある靴を合わせる</a>）。</p>
+</div>
+<h2 id="ほかのメッシュにシェイプキーを写す">ほかのメッシュにシェイプキーを写す</h2>
+<h3 id="頂点数と並びが同じメッシュどうし">頂点数と並びが同じメッシュどうし</h3>
+<p>同じアバターの別バージョンなど、<strong>頂点の数と並び順が同じ</strong> メッシュの間なら、シェイプキーをそのまま写せます。</p>
+<ol>
+<li>オブジェクトモードで、写す元のメッシュを選び、<kbd>Shift</kbd>+クリックで写す先のメッシュを選ぶ（写す先がアクティブ）</li>
+<li>元のメッシュで、写したいシェイプキーを選んでおく</li>
+<li>写す先のシェイプキーの <strong>v</strong> メニューから <strong>シェイプキーを転送</strong>（Transfer Shape Key）を実行する</li>
+</ol>
+<p>転送先に同じ名前のキーがあると、おかしな形になることがあります。先に名前を変えるか消してから写します（<a href="/qa#shapekey-transfer">Q&amp;A: シェイプキーの転送</a>）。</p>
+<h3 id="形の違うメッシュ体から衣装へ">形の違うメッシュ（体から衣装へ）</h3>
+<p>体の体形キーを衣装に写すときは、頂点の数が違うので上の方法は使えません。<strong>サーフェス変形</strong> モディファイアーで体の変形を衣装に写し、<strong>シェイプキーとして保存</strong> します。手順は <a href="/learn/rigging/shape-keys">シェイプキー</a> の「服をアバターの体型に合わせる」にあります。</p>
+<h2 id="シェイプキーとモディファイアー">シェイプキーとモディファイアー</h2>
+<p>Blender では、<strong>シェイプキーのあるメッシュにはモディファイアーを適用できません</strong>（<a href="/tips#shape-key-modifier">TIPS</a>）。改変では次のように避けます。</p>
+<table>
+<thead>
+<tr>
+<th>したいこと</th>
+<th>方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="したいこと">ウェイトを体から写す</td>
+<td data-label="方法">データ転送モディファイアーではなく、ウェイトペイントモードの <strong>ウェイト &gt; ウェイトを転送</strong> を使う（適用が要らない）</td>
+</tr>
+<tr>
+<td data-label="したいこと">ソリッド化・ミラーを確定したい</td>
+<td data-label="方法">シェイプキーを作る前に適用しておく。すでにあるなら、シェイプキーを保ったまま適用できるアドオンを使う</td>
+</tr>
+<tr>
+<td data-label="したいこと">アーマチュアモディファイアー</td>
+<td data-label="方法">適用しない（そのまま残す）</td>
+</tr>
+<tr>
+<td data-label="したいこと">デシメート（ポリゴン削減）</td>
+<td data-label="方法">シェイプキーのあるメッシュでは適用できず、頂点数を変えるとシェイプキーが壊れることがある（<a href="/howto#decimate">何て名前？</a>）</td>
+</tr>
+</tbody>
+</table>
+<p>FBX に書き出すときは、<strong>モディファイアーを適用</strong> をオンにするとシェイプキーが書き出されません。シェイプキーのあるメッシュはオフにして書き出します（<a href="/learn/avatar-clothing/export-fbx">FBX に書き出す</a>）。</p>
+<h2 id="unity-での注意">Unity での注意</h2>
+<ul>
+<li>シェイプキーは Unity では <strong>BlendShape</strong> と呼ばれ、Skinned Mesh Renderer の BlendShapes に並びます</li>
+<li>表情のアニメーションは「メッシュ名 / シェイプキー名」で値を動かしています。<strong>シェイプキーの名前を変える</strong> と、表情が動かなくなります（<a href="/qa#merged-mesh-expression-broken">Q&amp;A</a>）</li>
+<li>シェイプキーを使うと陰影が乱れるときは、FBX の Model タブの <strong>Blend Shape Normals</strong> を None にする（<a href="/tips#fbx-import-settings-unity">TIPS</a>）</li>
+<li>Hierarchy で値を変えても、表情のアニメーションが値を上書きすることがあります（<a href="/qa#default-face-reverts">Q&amp;A: デフォルトの表情が戻る</a>）</li>
+</ul>
+</div>
+</div>
+<aside class="col-lg-3" aria-label="この記事の補足">
+<div class="article-aside">
+<nav class="article-toc d-none d-lg-block" aria-labelledby="article-toc-title">
+<div class="article-toc-title" id="article-toc-title">この記事の目次</div>
+<ol class="toc-list">
+<li><a href="/learn/rigging/shape-keys-modding#この記事で扱うこと">この記事で扱うこと</a></li>
+<li><a href="/learn/rigging/shape-keys-modding#basis-を動かすときの注意">Basis を動かすときの注意</a></li>
+<li><a href="/learn/rigging/shape-keys-modding#改変でよく作るシェイプキー">改変でよく作るシェイプキー</a></li>
+<li><a href="/learn/rigging/shape-keys-modding#ほかのメッシュにシェイプキーを写す">ほかのメッシュにシェイプキーを写す</a></li>
+<li><a href="/learn/rigging/shape-keys-modding#シェイプキーとモディファイアー">シェイプキーとモディファイアー</a></li>
+<li><a href="/learn/rigging/shape-keys-modding#unity-での注意">Unity での注意</a></li>
+</ol>
+</nav>
+<div class="card article-keys">
+<div class="card-header"><svg class="av-icon me-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/><path d="M0 0h24v24H0zm0 0h24v24H0z" fill="none"/></svg>この記事で使うキー</div>
+<ul class="list-group list-group-flush">
+<li class="list-group-item d-flex justify-content-between align-items-center gap-2"><kbd>Tab</kbd><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="small text-decoration-none">編集モード切り替え</a></li>
+<li class="list-group-item d-flex justify-content-between align-items-center gap-2"><kbd>G</kbd><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="small text-decoration-none">移動</a></li>
+<li class="list-group-item d-flex justify-content-between align-items-center gap-2"><kbd>S</kbd><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="small text-decoration-none">スケール</a></li>
+<li class="list-group-item d-flex justify-content-between align-items-center gap-2"><kbd>Alt+S</kbd><a href="/shortcuts?category=%E3%83%A2%E3%83%87%E3%83%AA%E3%83%B3%E3%82%B0" class="small text-decoration-none">収縮/膨張</a></li>
+<li class="list-group-item d-flex justify-content-between align-items-center gap-2"><kbd>O</kbd><a href="/shortcuts?category=%E7%B7%A8%E9%9B%86" class="small text-decoration-none">プロポーショナル編集</a></li>
+</ul>
+</div>
+</div>
+</aside>
+</div>
+<div class="article-complete d-flex flex-wrap align-items-center gap-3 mt-5">
+<button type="button" class="btn btn-progress" aria-pressed="false"><svg class="av-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg> このページを完了にする</button>
+<span class="small text-body-secondary">完了の記録はこのブラウザにだけ保存されます。</span>
+</div>
+<nav class="article-nav d-flex justify-content-between gap-3 mt-4 pt-4 border-top" aria-label="前後の記事">
+<a href="/learn/rigging/weight-check" class="btn btn-outline-secondary text-start"><small class="d-block text-body-secondary">← 前へ</small>ウェイトを確かめて直す</a>
+<a href="/learn/unity/editor-overview" class="btn btn-primary text-end"><small class="d-block">次へ →</small>Unity の画面の見方</a>
+</nav>
+</article></main>
+<footer class="fbc-footer"><div class="fbc-footer-line">
+<span class="fbc-footer-name">Avatar Modding Guide</span><span class="fbc-footer-sep" aria-hidden="true">|</span>
+<a href="/report?from=%2Flearn%2Frigging%2Fshape-keys-modding">問い合わせ</a><span class="fbc-footer-sep" aria-hidden="true">|</span>
+<a href="/privacy">プライバシーポリシー</a><span class="fbc-footer-sep" aria-hidden="true">|</span>
+<span>© 2026 <a href="https://fara-labs.com/">Fara</a></span>
+<span class="fbc-footer-socials"><a class="fbc-footer-social fbc-service-github" href="https://github.com/fara1991" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub" style="--brand: #6e40c9"><svg class="icon " viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" focusable="false" fill="currentColor" stroke="none"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3"/></svg></a><a class="fbc-footer-social fbc-service-twitter" href="https://twitter.com/game_fara" target="_blank" rel="noopener noreferrer" aria-label="Twitter" title="Twitter" style="--brand: #1d9bf0"><svg class="icon " viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" focusable="false" fill="currentColor" stroke="none"><path d="M23.95 4.57a10 10 0 0 1-2.82.77 4.96 4.96 0 0 0 2.16-2.72c-.95.55-2 .96-3.12 1.19a4.92 4.92 0 0 0-8.39 4.48A13.96 13.96 0 0 1 1.64 3.16a4.82 4.82 0 0 0-.67 2.48c0 1.71.87 3.21 2.19 4.1a4.9 4.9 0 0 1-2.23-.62v.06a4.92 4.92 0 0 0 3.95 4.83 5 5 0 0 1-2.21.08 4.94 4.94 0 0 0 4.6 3.42A9.87 9.87 0 0 1 0 19.54a14 14 0 0 0 7.56 2.21c9.05 0 14-7.5 14-13.98l-.02-.64A9.94 9.94 0 0 0 24 4.59z"/></svg></a><a class="fbc-footer-social fbc-service-twitch" href="https://twitch.tv/game_fara" target="_blank" rel="noopener noreferrer" aria-label="Twitch" title="Twitch" style="--brand: #9146ff"><svg class="icon " viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" focusable="false" fill="currentColor" stroke="none"><path d="M11.57 4.71h1.72v5.15h-1.72zm4.72 0H18v5.15h-1.71zM6 0 1.71 4.29v15.42h5.15V24l4.28-4.29h3.43L22.29 12V0zm14.57 11.14-3.43 3.43h-3.43l-3 3v-3H6.86V1.71h13.71z"/></svg></a><a class="fbc-footer-social fbc-service-discord" href="https://discord.com/invite/B38eCSYyk5" target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord" style="--brand: #5865f2"><svg class="icon " viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" focusable="false" fill="currentColor" stroke="none"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a></span>
+</div></footer>
+</div>
+</div>
+
+    <!-- SEO-BODY:END -->
+    </div>
+
+        <div id="blazor-error-ui">
+        エラーが発生しました。ページを再読み込みしてください。
+        <a href="" class="reload">再読み込み</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="js/startup.js"></script>
+    <script src="js/search-norm.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/page.js"></script>
+    <script src="js/head-sync.js"></script>
+    <script src="js/toc.js"></script>
+    <script src="js/search-ui.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/boot-indicator.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/fara-blazor-component.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/scroll-progress.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/report.js"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    </body>
+</html>
