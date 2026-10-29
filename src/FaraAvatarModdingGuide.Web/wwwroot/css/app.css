@@ -893,6 +893,25 @@ h1:focus {
     }
 }
 
+/* 幅 360〜379px のフッター。kit の既定（項目の間が 0.9rem、左右の余白 1rem）だと、「Avatar Modding Guide」と「プライバシーポリシー」と SNS 4 つで、
+   1 段目に「名前・問い合わせ・プライバシーポリシー」が入らず、SNS が 3 段目に落ちる（高さ 127px。390px 以上は 2 段の 83px）。
+   項目の間と左右の余白だけを詰める。文字の大きさ（12.48px）と、タップの判定（44px・段の間 22px）は kit のまま */
+@media (max-width: 379.98px) {
+    .fbc-footer {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .fbc-footer-line {
+        column-gap: 0.5rem;
+    }
+
+    /* © の作者名（44px の判定の箱）の右に、SNS の判定の箱が重ならないよう、間を 20px にする（段が同じ行に並ぶため） */
+    .fbc-footer-socials {
+        margin-left: 1.25rem;
+    }
+}
+
 /* ライト／ダークのスイッチ(MudSwitch の見た目。PC のヘッダー)。起動の前は MudBlazor の色の変数が無いので、色はここで決める(起動の後の見た目と同じ値) */
 .av-sw {
     position: relative;

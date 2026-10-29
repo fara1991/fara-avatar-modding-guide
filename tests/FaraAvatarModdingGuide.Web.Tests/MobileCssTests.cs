@@ -28,6 +28,15 @@ public class MobileCssTests
     }
 
     [Fact]
+    public void Footer_stays_in_two_rows_at_360px()
+    {
+        // 幅 360px では、名前・問い合わせ・プライバシーポリシーの 1 段目に入るよう、項目の間と左右の余白を詰める（kit の既定のままだと SNS が 3 段目に落ちる）
+        var narrow = MobileBlocks("379.98px");
+        Assert.Matches(@"\.fbc-footer-line\s*\{\s*column-gap:\s*0\.5rem;\s*\}", narrow);
+        Assert.Matches(@"\.fbc-footer\s*\{\s*padding-left:\s*0\.75rem;\s*padding-right:\s*0\.75rem;\s*\}", narrow);
+    }
+
+    [Fact]
     public void Article_cells_wrap_so_tables_fit_the_column_and_only_wide_tables_scroll_on_small_phones()
     {
         // 見出し（th）は keep-all のまま字の途中で折らない（PR #142）。本文のセル（td）は、語が列に入らないときだけ字の途中で折る（keep-all のままだと列より広くなり、右端が切れる）
