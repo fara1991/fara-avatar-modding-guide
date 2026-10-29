@@ -129,12 +129,39 @@ function fakeRoom(env = {}) {
   const sockets = [];
   const storage = new Map();
   const alarms = [];   // setAlarm で渡された時刻（DO のアラームは 1 つで、呼ぶたびに上書きされる）
+  // transaction の中で行った書き込みの記録（失敗のとき、ここから取り消す。外の書き込みは取り消さない）
+  let journal = null;
+  const record = k => { if (journal) journal.push([k, storage.has(k), storage.get(k)]); };
   const ctx = {
     storage: {
       list: async ({ prefix = "" } = {}) => new Map([...storage].filter(([k]) => k.startsWith(prefix))),
       get: async (k) => storage.get(k),
-      put: async (o, v) => { if (typeof o === "string") storage.set(o, v); else for (const [k, x] of Object.entries(o)) storage.set(k, x); },
-      delete: async (keys) => { for (const k of [].concat(keys)) storage.delete(k); },
+      // 1 回の put・delete は 128 件まで（DO の上限を再現する。超えたら例外。分けて書く回帰を検出する）。1 回の呼び出しは atomic
+      put: async (o, v) => {
+        if (typeof o === "string") { record(o); storage.set(o, v); return; }
+        const entries = Object.entries(o);
+        if (entries.length > 128) throw new Error("put は 1 回 128 件まで");
+        for (const [k, x] of entries) { record(k); storage.set(k, x); }
+      },
+      delete: async (keys) => {
+        const list = [].concat(keys);
+        if (list.length > 128) throw new Error("delete は 1 回 128 件まで");
+        for (const k of list) { record(k); storage.delete(k); }
+      },
+      // SQLite 版と同じ: 閉じ関数の中の書き込みだけを、失敗のとき取り消す（外の書き込みは取り消さない）
+      transaction: async (fn) => {
+        const outer = journal;
+        journal = [];
+        try {
+          const result = await fn();
+          journal = outer;
+          return result;
+        } catch (e) {
+          for (const [k, had, old] of journal.reverse()) { if (had) storage.set(k, old); else storage.delete(k); }
+          journal = outer;
+          throw e;
+        }
+      },
       setAlarm: async (t) => { alarms.push(t); },
       deleteAll: async () => storage.clear(),
     },
@@ -426,6 +453,8 @@ function fakeDirectory() {
     upsert: async (e) => { calls.push({ op: "upsert", e }); return true; },
     remove: async (id) => { calls.push({ op: "remove", id }); },
     list: async () => [],
+    // 作成の予約（作成の回数・全体の上限）は、このテストでは常に許可する（作成の確認は別のテストで確かめる）
+    reserveRoom: async () => ({ allowed: true }),
   };
   return { calls, idFromName: (n) => n, get: () => stub, last: () => calls.filter(c => c.op === "upsert").at(-1)?.e };
 }
@@ -735,7 +764,8 @@ test("一覧: 参加者の増減に合わせて登録の人数を更新し、誰
 });
 
 test("一覧: 一覧の登録がうまくいかなくても、部屋は動く（例外を外に出さない）", async () => {
-  const broken = { idFromName: () => "x", get: () => ({ upsert: async () => { throw new Error("down"); }, remove: async () => { throw new Error("down"); } }) };
+  // 登録（upsert・remove）だけが落ちる。作成の予約は許可する（作成の確認が落ちた場合は、別のテストで見送りを確かめる）
+  const broken = { idFromName: () => "x", get: () => ({ upsert: async () => { throw new Error("down"); }, remove: async () => { throw new Error("down"); }, reserveRoom: async () => ({ allowed: true }) }) };
   const { room, ctx } = fakeRoom({ ROOM_DIRECTORY: broken });
   room.roomId = ROOM;
   const a = connect(ctx, "a1");
@@ -980,6 +1010,315 @@ test("閉じる処理の途中で落ちても、閉じた印は残る（閉じ�
   assert.deepEqual(b.sent, [{ t: "closed", reason: "owner" }], "閉じた部屋は作り直せない");
 });
 
+// ---------------------------------------------------------------- 保存の失敗（メモリは変えず、本人にだけ返す）・同時入室（コールドスタート）
+const SAVE_FAILED = "保存に失敗しました。もう一度操作してください";
+const failPut = (ctx) => { ctx.storage.put = async () => { throw new Error("disk"); }; };
+
+test("同時の参加（コールドスタート）: 保存から起き直した直後に 9 人が同時に入っても、残りの 1 人だけが入る", async () => {
+  const { room, ctx } = fakeRoom();
+  const owner = connect(ctx, "c0");
+  await room.webSocketMessage(owner, createHello("Owner"));
+  const members = Array.from({ length: 6 }, (_, i) => connect(ctx, `m${i}`));
+  for (const [i, s] of members.entries()) await room.webSocketMessage(s, joinHello(`M${i}`, { pass: PASS32 }));
+  // 起き直し: 同じ ctx（接続と保存は残る）で Room を作り直す。メモリ（objects）は空、参加者は接続の印から数える
+  const cold = new Room(ctx, { TURNSTILE_SECRET: "test-secret" });
+  assert.equal(cold.objects, null);
+  const newcomers = Array.from({ length: 9 }, (_, i) => connect(ctx, `n${i}`));
+  await Promise.all(newcomers.map((s, i) => cold.webSocketMessage(s, joinHello(`N${i}`, { pass: PASS32 }))));
+  assert.equal(newcomers.filter(s => s.sent.some(m => m.t === "welcome")).length, 1, "入れるのは残りの 1 人だけ");
+  assert.equal(newcomers.filter(s => s.closed?.code === 4001).length, 8, "あふれた 8 人は満員で閉じる");
+  assert.equal(cold.peers().length, LIMITS.participants);
+});
+
+test("保存に失敗した ops: メモリは変えず、ほかの人へは何も送らず、本人にはエラーと今の状態を返す（本人の画面を戻す）", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await room.webSocketMessage(a, hello("Alice"));
+  await room.webSocketMessage(b, hello("Bob"));
+  const before = [...room.objects.values()];
+  a.sent.length = 0; b.sent.length = 0;
+  failPut(ctx);
+  const added = { id: "new1", kind: "cube", name: "X", p: [1, 0, 0], r: [0, 0, 0], s: [1, 1, 1] };
+  await room.webSocketMessage(a, JSON.stringify({ t: "ops", upsert: [added], delete: ["cube0"] }));
+  assert.deepEqual([...room.objects.values()], before, "メモリは変えていない");
+  assert.deepEqual(a.sent, [
+    { t: "error", msg: SAVE_FAILED },
+    { t: "ops", from: null, upsert: [before[0]], delete: ["new1"], failed: true },   // 本人の画面: new1 は無く、cube0 は残っている
+  ]);
+  assert.deepEqual(b.sent, [], "ほかの人には何も送らない");
+});
+
+test("保存に失敗した lock: 持たず、ほかの人へは何も送らない。本人にはエラーと今の locks を返す", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    await room.webSocketMessage(b, hello("Bob"));
+    tick(LIMITS.roomPersistMs);   // 書く間隔を過ぎさせる（この操作で opAt を書く）
+    a.sent.length = 0; b.sent.length = 0;
+    failPut(ctx);
+    await room.webSocketMessage(a, JSON.stringify({ t: "lock", ids: ["cube0"] }));
+    assert.equal(room.locks.size, 0);
+    assert.deepEqual(a.sent, [{ t: "error", msg: SAVE_FAILED }, { t: "lockdenied", ids: ["cube0"], seq: null }, { t: "locks", locks: {} }]);
+    assert.deepEqual(b.sent, []);
+  });
+});
+
+test("保存に失敗した unlock: 持ったままにする。ほかの人へは何も送らず、本人にはエラーと今の locks を返す", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    await room.webSocketMessage(b, hello("Bob"));
+    await room.webSocketMessage(a, JSON.stringify({ t: "lock", ids: ["cube0"] }));
+    tick(LIMITS.roomPersistMs);
+    a.sent.length = 0; b.sent.length = 0;
+    failPut(ctx);
+    await room.webSocketMessage(a, JSON.stringify({ t: "unlock" }));
+    assert.equal(room.locks.get("cube0")?.peer, "a1", "外れていない");
+    assert.deepEqual(a.sent, [{ t: "error", msg: SAVE_FAILED }, { t: "locks", locks: { cube0: "a1" } }]);
+    assert.deepEqual(b.sent, []);
+  });
+});
+
+test("保存に失敗した preview: メモリは変えず、ほかの人へは送らない。本人にはエラーだけ返す", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    await room.webSocketMessage(b, hello("Bob"));
+    tick(LIMITS.roomPersistMs);
+    a.sent.length = 0; b.sent.length = 0;
+    failPut(ctx);
+    await room.webSocketMessage(a, JSON.stringify({ t: "preview", objs: [{ id: "cube0", p: [5, 0, 0], r: [0, 0, 0], s: [1, 1, 1] }] }));
+    assert.deepEqual(room.objects.get("cube0").p, [0, 0, 0]);
+    assert.deepEqual(a.sent, [{ t: "error", msg: SAVE_FAILED }]);
+    assert.deepEqual(b.sent, []);
+  });
+});
+
+test("保存に失敗した close: 閉じた印が書けなければ、部屋は閉じず、作成者にエラーを返す（ほかの人は切られない）", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await room.webSocketMessage(a, hello("Alice"));
+  await room.webSocketMessage(b, hello("Bob"));
+  a.sent.length = 0; b.sent.length = 0;
+  failPut(ctx);
+  await room.webSocketMessage(a, JSON.stringify({ t: "close" }));
+  assert.equal(room.gone, false);
+  assert.equal(storage.has("closed"), false);
+  assert.deepEqual(a.sent, [{ t: "error", msg: SAVE_FAILED }]);
+  assert.equal(a.closed, null);
+  assert.equal(b.closed, null);
+  assert.deepEqual(b.sent, []);
+});
+
+test("保存に失敗した部屋の作成: 部屋はできず（メモリも変えない）、本人にはエラーを返して接続を閉じる（待たせない）", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  const a = connect(ctx, "a1");
+  failPut(ctx);
+  await room.webSocketMessage(a, hello("Alice"));
+  assert.equal(room.inited, false);
+  assert.equal(room.meta, null);
+  assert.equal(storage.has("init"), false);
+  assert.deepEqual(a.sent, [{ t: "error", msg: SAVE_FAILED }]);
+  assert.deepEqual(a.closed, { code: 1011, reason: "save failed" });
+});
+
+test("上限: 1 通の ops に新しい物が上限を超えて入っても、部屋の上限（200）までしか入らず、超えた分は too many objects と本人に返す", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  const a = connect(ctx, "a1");
+  await room.webSocketMessage(a, hello("Alice"));
+  // 1 件を短くして、16 KB の上限に収める（cube0 と合わせて 200 を超える）
+  const upsert = Array.from({ length: LIMITS.objects }, (_, i) => ({ id: `o${i}`, kind: "cube", p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] }));
+  a.sent.length = 0;
+  await room.webSocketMessage(a, JSON.stringify({ t: "ops", upsert }));
+  assert.equal(room.objects.size, LIMITS.objects);
+  assert.equal([...storage.keys()].filter(k => k.startsWith("o:")).length, LIMITS.objects, "保存も同じ数");
+  assert.deepEqual(a.sent.at(-2), { t: "error", msg: "too many objects" });
+  assert.deepEqual(a.sent.at(-1), { t: "ops", from: null, upsert: [], delete: ["o199"], rejected: true });
+});
+
+
+// ---------------------------------------------------------------- 途中失敗（transaction）・直列の鎖・閉じた部屋・タイムアウト
+const flush = () => new Promise(r => setTimeout(r, 0));
+
+test("保存の途中失敗（削除だけ失敗）: 同じ操作の追加も取り消す。保存もメモリも、操作の前のまま", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  const a = connect(ctx, "a1");
+  await room.webSocketMessage(a, hello("Alice"));
+  const before = [...room.objects.values()];
+  const keysBefore = [...storage.keys()].sort();
+  a.sent.length = 0;
+  ctx.storage.delete = async () => { throw new Error("disk"); };
+  const added = { id: "new1", kind: "cube", p: [1, 0, 0], r: [0, 0, 0], s: [1, 1, 1] };
+  await room.webSocketMessage(a, JSON.stringify({ t: "ops", upsert: [added], delete: ["cube0"] }));
+  assert.deepEqual([...room.objects.values()], before);
+  assert.deepEqual([...storage.keys()].sort(), keysBefore, "保存も変わらない（new1 は残らない）");
+  assert.equal(a.sent[0].msg, SAVE_FAILED);
+});
+
+test("保存の途中失敗（2 チャンク目）: 128 件を超える書き込みは、途中で失敗しても全部取り消す（1 チャンク目も残らない）", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  const a = connect(ctx, "a1");
+  await room.webSocketMessage(a, hello("Alice"));
+  const keysBefore = [...storage.keys()].sort();
+  const upsert = Array.from({ length: 130 }, (_, i) => ({ id: `n${i}`, kind: "cube", p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] }));
+  const realPut = ctx.storage.put;
+  let calls = 0;
+  ctx.storage.put = async (o, v) => { calls += 1; if (calls === 2) throw new Error("disk"); return realPut(o, v); };
+  a.sent.length = 0;
+  await room.webSocketMessage(a, JSON.stringify({ t: "ops", upsert }));
+  assert.equal(calls, 2, "128 件ずつ 2 回に分けて書いた");
+  assert.equal(room.objects.size, 1);
+  assert.deepEqual([...storage.keys()].sort(), keysBefore);
+  assert.equal(a.sent[0].msg, SAVE_FAILED);
+});
+
+test("128 件を超える書き込みは分けて保存し、成功したら保存とメモリが一致する", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  const a = connect(ctx, "a1");
+  await room.webSocketMessage(a, hello("Alice"));
+  const upsert = Array.from({ length: 130 }, (_, i) => ({ id: `n${i}`, kind: "cube", p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] }));
+  await room.webSocketMessage(a, JSON.stringify({ t: "ops", upsert }));
+  assert.equal(room.objects.size, 131);
+  assert.equal([...storage.keys()].filter(k => k.startsWith("o:")).length, 131);
+});
+
+test("作成の hello の待ちの間に閉じられた部屋は、作り直さない（init・meta を書かず、作成の回数の枠も使わない）", async () => {
+  let reserved = 0;
+  const env = { ROOM_DIRECTORY: { idFromName: n => n, get: () => ({ reserveRoom: async () => { reserved++; return { allowed: true }; } }) } };
+  const { room, ctx, storage } = fakeRoom(env);
+  const a = connect(ctx, "a1");
+  let release;
+  const blocker = room.serial(() => new Promise(r => { release = r; }));   // 直列の鎖を保留
+  const pending = room.webSocketMessage(a, createHello("Alice"));          // 作成の hello は、鎖の後ろで待つ
+  await flush(); await flush();
+  await room.closeRoom("idle");                                            // 直列の外で閉じる（以前の alarm の経路）
+  release();
+  await blocker;
+  await pending;
+  assert.equal(storage.has("init"), false);
+  assert.equal(storage.has("meta"), false);
+  assert.equal(storage.has("o:cube0"), false);
+  assert.equal(reserved, 0, "作成の回数の枠を使わない");
+  assert.deepEqual(a.closed, { code: 4004, reason: "closed" });
+});
+
+test("無操作の終了（alarm）も直列の鎖に載る: 鎖の保留の間は閉じず、解放されてから閉じる", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    let release;
+    const blocker = room.serial(() => new Promise(r => { release = r; }));
+    tick(LIMITS.roomIdleMs + 1000);
+    const alarming = room.alarm();
+    await flush(); await flush();
+    assert.equal(room.gone, false, "鎖の保留の間は閉じない");
+    release();
+    await blocker;
+    await alarming;
+    assert.equal(room.gone, true);
+    assert.deepEqual(a.sent.at(-1), { t: "closed", reason: "idle" });
+  });
+});
+
+test("無操作の終了（alarm）: 鎖の待ちの間に操作があれば、閉じない（閉じる条件を直列の中で確かめ直す）", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    let release;
+    const blocker = room.serial(() => new Promise(r => { release = r; }));
+    tick(LIMITS.roomIdleMs + 1000);
+    const op = room.webSocketMessage(a, JSON.stringify({ t: "ops", upsert: [{ id: "new1", kind: "cube", p: [1, 0, 0], r: [0, 0, 0], s: [1, 1, 1] }] }));
+    const alarming = room.alarm();
+    await flush(); await flush();
+    release();
+    await blocker;
+    await op;
+    await alarming;
+    assert.equal(room.gone, false, "操作で時刻が進んだので閉じない");
+  });
+});
+
+test("鍵の確認は、閉じられた部屋（meta が無い）では鍵を確かめずに閉じる（例外を出さない）", async () => {
+  const { room, ctx } = fakeRoom();
+  const owner = connect(ctx, "c0");
+  await room.webSocketMessage(owner, createHello("Owner"));
+  const b = connect(ctx, "b1");
+  await room.closeRoom("idle");
+  const ok = await room.passOk(b, b.deserializeAttachment(), { pass: PASS32 });
+  assert.equal(ok, false);
+  assert.deepEqual(b.closed, { code: 4004, reason: "closed" });
+});
+
+test("途中経過（preview）の保存が続けて失敗しても、本人へのエラーは間隔（previewErrMs）に 1 回だけ", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    await room.webSocketMessage(b, hello("Bob"));
+    tick(LIMITS.roomPersistMs);
+    a.sent.length = 0;
+    b.sent.length = 0;
+    failPut(ctx);
+    const pv = x => JSON.stringify({ t: "preview", objs: [{ id: "cube0", p: [x, 0, 0], r: [0, 0, 0], s: [1, 1, 1] }] });
+    a.sent.length = 0;
+    await room.webSocketMessage(a, pv(1));
+    tick(1000);
+    await room.webSocketMessage(a, pv(2));
+    tick(1000);
+    await room.webSocketMessage(a, pv(3));
+    assert.equal(a.sent.filter(m => m.t === "error").length, 1, "間隔の中では 1 回だけ");
+    tick(LIMITS.previewErrMs);
+    await room.webSocketMessage(a, pv(4));
+    assert.equal(a.sent.filter(m => m.t === "error").length, 2, "間隔が過ぎたら、もう一度知らせる");
+    assert.deepEqual(room.objects.get("cube0").p, [0, 0, 0]);
+    assert.deepEqual(b.sent, []);
+  });
+});
+
+test("一覧（作成の回数）の呼び出しが止まったら、上限の時間で打ち切って作成を見送る（fail-closed。閉じた理由は busy・4008。部屋は作らない）", async () => {
+  const saved = LIMITS.rpcTimeoutMs;
+  LIMITS.rpcTimeoutMs = 50;
+  try {
+    const env = { ROOM_DIRECTORY: { idFromName: n => n, get: () => ({ reserveRoom: () => new Promise(() => {}) }) } };
+    const { room, ctx, storage } = fakeRoom(env);
+    const a = connect(ctx, "a1");
+    await room.webSocketMessage(a, createHello("Alice"));
+    assert.equal(a.sent.some(m => m.t === "welcome"), false, "作らない");
+    assert.deepEqual(a.sent.at(-1), { t: "closed", reason: "busy" });
+    assert.deepEqual(a.closed, { code: 4008, reason: "busy" });
+    assert.equal(storage.has("init"), false, "部屋の保存も書かない");
+  } finally {
+    LIMITS.rpcTimeoutMs = saved;
+  }
+});
+
+test("直列の鎖は、途中の処理が例外で終わっても、次の処理へ進む", async () => {
+  const { room } = fakeRoom();
+  await room.serial(() => { throw new Error("x"); }).catch(() => {});
+  let ran = false;
+  await room.serial(() => { ran = true; });
+  assert.equal(ran, true);
+});
+
+test("transaction: 閉じ関数の外の書き込みは、失敗しても取り消されない（取り消すのは閉じ関数の中の書き込みだけ・SQLite 版と同じ）", async () => {
+  const { ctx, storage } = fakeRoom();
+  await ctx.storage.put("outer", 1);
+  await ctx.storage.transaction(async () => { await ctx.storage.put("inner", 2); throw new Error("abort"); }).catch(() => {});
+  assert.equal(storage.get("outer"), 1);
+  assert.equal(storage.has("inner"), false);
+});
+
 test("操作の数え方: 拒否された・適用されなかった操作（存在しない対象の preview・不正な ops）は、寿命を延ばさない", async () => {
   const { room, ctx } = fakeRoom();
   const a = connect(ctx, "a1");
@@ -1183,14 +1522,16 @@ test("部屋の作成の回数: 秘密鍵が無いとき・接続元が無いと
   assert.equal(logs.join("\n").includes("test-secret"), false);
 });
 
-test("部屋の作成の回数: 数える側（RoomDirectory）が例外を出しても、作成は通す（fail-open。ログは要約だけで IP を出さない）", async () => {
+test("部屋の作成の回数: 数える側（RoomDirectory）が例外を出したら、作成は見送る（fail-closed。ログは要約だけで IP を出さない）", async () => {
   const broken = { idFromName: (n) => n, get: () => ({ reserveRoom: async () => { throw new Error("storage down"); } }) };
   const logs = [];
   const saved = console.error;
   console.error = (...args) => logs.push(args.join(" "));
   try {
     const ws = await createFrom("203.0.113.11", { TURNSTILE_SECRET: "test-secret", ROOM_DIRECTORY: broken });
-    assert.ok(created(ws), "数えられなくても作れる");
+    assert.equal(created(ws), false, "数えられなければ作らない（fail-closed）");
+    assert.deepEqual(ws.sent.at(-1), { t: "closed", reason: "busy" });
+    assert.deepEqual(ws.closed, { code: 4008, reason: "busy" });
   } finally {
     console.error = saved;
   }

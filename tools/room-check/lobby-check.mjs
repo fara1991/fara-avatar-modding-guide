@@ -154,7 +154,7 @@ await orphanAgain.opened;
 await settle(orphanAgain);
 ok(orphanAgain.welcome?.you.owner === true, "作成の指定がある最初の入室なら、同じ ID でも部屋を作る");
 
-// 10. 入室の時間（鍵つき。ローカルの計測）・旧形式の部屋は作れない（鍵が無い作成は bad create）
+// 10. 入室の時間（鍵つき。ローカルの計測）・古い版の作成は作れない（鍵が無い作成は outdated・4006。Worker の isOutdatedCreate）
 const timedRoom = rid();
 const timedPass = passKey();
 const t0 = connect(timedRoom, { name: "Timer", owner: hexKey(), create: { pass: timedPass } });
@@ -169,7 +169,7 @@ ok(Number.isFinite(lockedMs) && Number.isFinite(plainMs), "入室の時間を計
 const noPass = connect(rid(), { name: "NoPass", owner: hexKey(), create: {} });
 await noPass.opened;
 await settle(noPass);
-ok(noPass.msgs.at(-1)?.t === "error" && noPass.msgs.at(-1)?.msg === "bad create" && !noPass.welcome, "鍵の無い作成は bad create（部屋は作らない）");
+ok(noPass.msgs.at(-1)?.t === "closed" && noPass.msgs.at(-1)?.reason === "outdated" && noPass.closed?.code === 4006 && !noPass.welcome, "鍵の無い作成は outdated（4006。再読み込みを案内する。部屋は作らない）");
 
 // 11. 自動終了（ROOM_IDLE_SECONDS の Worker に対してだけ）
 if (idleSeconds !== null) {
