@@ -980,6 +980,141 @@ test("閉じる処理の途中で落ちても、閉じた印は残る（閉じ�
   assert.deepEqual(b.sent, [{ t: "closed", reason: "owner" }], "閉じた部屋は作り直せない");
 });
 
+// ---------------------------------------------------------------- 保存の失敗（メモリは変えず、本人にだけ返す）・同時入室（コールドスタート）
+const SAVE_FAILED = "保存に失敗しました。もう一度操作してください";
+const failPut = (ctx) => { ctx.storage.put = async () => { throw new Error("disk"); }; };
+
+test("同時の参加（コールドスタート）: 保存から起き直した直後に 9 人が同時に入っても、残りの 1 人だけが入る", async () => {
+  const { room, ctx } = fakeRoom();
+  const owner = connect(ctx, "c0");
+  await room.webSocketMessage(owner, createHello("Owner"));
+  const members = Array.from({ length: 6 }, (_, i) => connect(ctx, `m${i}`));
+  for (const [i, s] of members.entries()) await room.webSocketMessage(s, joinHello(`M${i}`, { pass: PASS32 }));
+  // 起き直し: 同じ ctx（接続と保存は残る）で Room を作り直す。メモリ（objects）は空、参加者は接続の印から数える
+  const cold = new Room(ctx, { TURNSTILE_SECRET: "test-secret" });
+  assert.equal(cold.objects, null);
+  const newcomers = Array.from({ length: 9 }, (_, i) => connect(ctx, `n${i}`));
+  await Promise.all(newcomers.map((s, i) => cold.webSocketMessage(s, joinHello(`N${i}`, { pass: PASS32 }))));
+  assert.equal(newcomers.filter(s => s.sent.some(m => m.t === "welcome")).length, 1, "入れるのは残りの 1 人だけ");
+  assert.equal(newcomers.filter(s => s.closed?.code === 4001).length, 8, "あふれた 8 人は満員で閉じる");
+  assert.equal(cold.peers().length, LIMITS.participants);
+});
+
+test("保存に失敗した ops: メモリは変えず、ほかの人へは何も送らず、本人にはエラーと今の状態を返す（本人の画面を戻す）", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await room.webSocketMessage(a, hello("Alice"));
+  await room.webSocketMessage(b, hello("Bob"));
+  const before = [...room.objects.values()];
+  a.sent.length = 0; b.sent.length = 0;
+  failPut(ctx);
+  const added = { id: "new1", kind: "cube", name: "X", p: [1, 0, 0], r: [0, 0, 0], s: [1, 1, 1] };
+  await room.webSocketMessage(a, JSON.stringify({ t: "ops", upsert: [added], delete: ["cube0"] }));
+  assert.deepEqual([...room.objects.values()], before, "メモリは変えていない");
+  assert.deepEqual(a.sent, [
+    { t: "error", msg: SAVE_FAILED },
+    { t: "ops", from: null, upsert: [before[0]], delete: ["new1"] },   // 本人の画面: new1 は無く、cube0 は残っている
+  ]);
+  assert.deepEqual(b.sent, [], "ほかの人には何も送らない");
+});
+
+test("保存に失敗した lock: 持たず、ほかの人へは何も送らない。本人にはエラーと今の locks を返す", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    await room.webSocketMessage(b, hello("Bob"));
+    tick(LIMITS.roomPersistMs);   // 書く間隔を過ぎさせる（この操作で opAt を書く）
+    a.sent.length = 0; b.sent.length = 0;
+    failPut(ctx);
+    await room.webSocketMessage(a, JSON.stringify({ t: "lock", ids: ["cube0"] }));
+    assert.equal(room.locks.size, 0);
+    assert.deepEqual(a.sent, [{ t: "error", msg: SAVE_FAILED }, { t: "locks", locks: {} }]);
+    assert.deepEqual(b.sent, []);
+  });
+});
+
+test("保存に失敗した unlock: 持ったままにする。ほかの人へは何も送らず、本人にはエラーと今の locks を返す", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    await room.webSocketMessage(b, hello("Bob"));
+    await room.webSocketMessage(a, JSON.stringify({ t: "lock", ids: ["cube0"] }));
+    tick(LIMITS.roomPersistMs);
+    a.sent.length = 0; b.sent.length = 0;
+    failPut(ctx);
+    await room.webSocketMessage(a, JSON.stringify({ t: "unlock" }));
+    assert.equal(room.locks.get("cube0")?.peer, "a1", "外れていない");
+    assert.deepEqual(a.sent, [{ t: "error", msg: SAVE_FAILED }, { t: "locks", locks: { cube0: "a1" } }]);
+    assert.deepEqual(b.sent, []);
+  });
+});
+
+test("保存に失敗した preview: メモリは変えず、ほかの人へは送らない。本人にはエラーだけ返す", async () => {
+  const { room, ctx } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await withClock(T0, async (tick) => {
+    await room.webSocketMessage(a, hello("Alice"));
+    await room.webSocketMessage(b, hello("Bob"));
+    tick(LIMITS.roomPersistMs);
+    a.sent.length = 0; b.sent.length = 0;
+    failPut(ctx);
+    await room.webSocketMessage(a, JSON.stringify({ t: "preview", objs: [{ id: "cube0", p: [5, 0, 0], r: [0, 0, 0], s: [1, 1, 1] }] }));
+    assert.deepEqual(room.objects.get("cube0").p, [0, 0, 0]);
+    assert.deepEqual(a.sent, [{ t: "error", msg: SAVE_FAILED }]);
+    assert.deepEqual(b.sent, []);
+  });
+});
+
+test("保存に失敗した close: 閉じた印が書けなければ、部屋は閉じず、作成者にエラーを返す（ほかの人は切られない）", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  const a = connect(ctx, "a1");
+  const b = connect(ctx, "b2");
+  await room.webSocketMessage(a, hello("Alice"));
+  await room.webSocketMessage(b, hello("Bob"));
+  a.sent.length = 0; b.sent.length = 0;
+  failPut(ctx);
+  await room.webSocketMessage(a, JSON.stringify({ t: "close" }));
+  assert.equal(room.gone, false);
+  assert.equal(storage.has("closed"), false);
+  assert.deepEqual(a.sent, [{ t: "error", msg: SAVE_FAILED }]);
+  assert.equal(a.closed, null);
+  assert.equal(b.closed, null);
+  assert.deepEqual(b.sent, []);
+});
+
+test("保存に失敗した部屋の作成: 部屋はできず（メモリも変えない）、本人にはエラーを返して接続を閉じる（待たせない）", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  const a = connect(ctx, "a1");
+  failPut(ctx);
+  await room.webSocketMessage(a, hello("Alice"));
+  assert.equal(room.inited, false);
+  assert.equal(room.meta, null);
+  assert.equal(storage.has("init"), false);
+  assert.deepEqual(a.sent, [{ t: "error", msg: SAVE_FAILED }]);
+  assert.deepEqual(a.closed, { code: 1011, reason: "save failed" });
+});
+
+test("上限: 1 通の ops に新しい物が上限を超えて入っても、部屋の上限（200）までしか入らず、超えた分は too many objects と本人に返す", async () => {
+  const { room, ctx, storage } = fakeRoom();
+  const a = connect(ctx, "a1");
+  await room.webSocketMessage(a, hello("Alice"));
+  // 1 件を短くして、16 KB の上限に収める（cube0 と合わせて 200 を超える）
+  const upsert = Array.from({ length: LIMITS.objects }, (_, i) => ({ id: `o${i}`, kind: "cube", p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] }));
+  a.sent.length = 0;
+  await room.webSocketMessage(a, JSON.stringify({ t: "ops", upsert }));
+  assert.equal(room.objects.size, LIMITS.objects);
+  assert.equal([...storage.keys()].filter(k => k.startsWith("o:")).length, LIMITS.objects, "保存も同じ数");
+  assert.deepEqual(a.sent.at(-2), { t: "error", msg: "too many objects" });
+  assert.deepEqual(a.sent.at(-1), { t: "ops", from: null, upsert: [], delete: ["o199"], rejected: true });
+});
+
+
 test("操作の数え方: 拒否された・適用されなかった操作（存在しない対象の preview・不正な ops）は、寿命を延ばさない", async () => {
   const { room, ctx } = fakeRoom();
   const a = connect(ctx, "a1");

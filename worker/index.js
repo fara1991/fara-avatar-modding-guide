@@ -96,6 +96,8 @@ const CREATE_HASH = /^[0-9a-f]{32}$/;
 // 鍵の間違いを数える接続元の識別子（作成の制限とは別の用途ラベル）
 const FAIL_LIMIT_LABEL = "fara-avatar-modding-guide/room-fail-limit/v1";
 const DIRECTORY_NAME = "main";
+// 保存できなかったときに、送った本人へ返す（ほかの人には何も送らない）
+const SAVE_FAILED_MSG = "保存に失敗しました。もう一度操作してください";
 // 一覧の覚え（Worker の isolate ごと。env.ROOM_DIRECTORY の束縛をキーにする）
 const listCache = new WeakMap();
 
@@ -475,12 +477,14 @@ export class Room extends DurableObject {
     const cube = { id: "cube0", kind: "cube", name: "Cube", p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] };
     const pass = await hashPass(create.pass);
     const ownerHash = await sha256Hex(create.owner);
+    const meta = { name: randomRoomName(), createdAt: now, pass, ownerHash };
+    // 保存が済んでから、メモリに入れる（書けなければ、何も変えずに例外。join が本人に返す）
+    await this.ctx.storage.put({ init: true, "o:cube0": cube, meta, opAt: now, roomId: this.roomId });
     this.objects = new Map([[cube.id, cube]]);
-    this.meta = { name: randomRoomName(), createdAt: now, pass, ownerHash };
+    this.meta = meta;
     this.opAt = now;
     this.opPersisted = now;
     this.warnFor = null;
-    await this.ctx.storage.put({ init: true, "o:cube0": cube, meta: this.meta, opAt: now, roomId: this.roomId });
     this.inited = true;
     await this.schedule();
   }
@@ -519,9 +523,13 @@ export class Room extends DurableObject {
     if (now >= end) return this.closeRoom("idle");
     // 閉じる前の警告（その操作の区間で 1 回だけ。成功した操作があると、opAt が進んで、また出せるようになる）
     if (this.warnFor !== this.opAt && now >= end - this.warnLead()) {
-      this.warnFor = this.opAt;
-      await this.ctx.storage.put("warnFor", this.opAt);
-      this.broadcast({ t: "idlewarn", ms: end - now });
+      // 保存してから反映して知らせる。書いているあいだに操作があれば、知らせない（次のアラームで判断し直す）
+      const at = this.opAt;
+      await this.ctx.storage.put("warnFor", at);
+      if (!this.gone && this.opAt === at) {
+        this.warnFor = at;
+        this.broadcast({ t: "idlewarn", ms: end - now });
+      }
     }
     // 切れた接続を外したとき・誰かいるときは、一覧の登録を更新する（外したあとに空なら、一覧から消える）
     if (pruned || this.peers().length) await this.syncDirectory();
@@ -529,27 +537,63 @@ export class Room extends DurableObject {
   }
 
   /**
-   * 成功した操作（オブジェクトの変更・ロック・解除・移動の適用）があった。時刻を進め、出ていた警告は取り消す（全員に ms: null）。
+   * 成功した操作（オブジェクトの変更・ロック・解除・移動の適用）の時刻（opAt）を、書く間隔（roomPersistMs）を過ぎていれば storage に書く。書いたら true。
+   * 書けなかったら例外。メモリは変えない（呼び出し側は、成功してから applyOp でメモリに反映する）。
+   */
+  async persistOpAt(now) {
+    if (now - this.opPersisted < LIMITS.roomPersistMs) return false;
+    await this.ctx.storage.put("opAt", now);
+    return true;
+  }
+
+  /**
+   * 保存のあと、成功した操作をメモリに反映する（時刻を進め、出ていた警告は取り消す。全員に ms: null）。persistOpAt のあとに呼ぶ。
    * 拒否された操作・不正なメッセージ・ping は、ここを通らない。
    */
-  async noteOp() {
-    const now = Date.now();
+  applyOp(now, wrote) {
     if (this.warnFor !== null && this.warnFor === this.opAt) this.broadcast({ t: "idlewarn", ms: null });
     this.opAt = now;
-    if (now - this.opPersisted >= LIMITS.roomPersistMs) {
-      this.opPersisted = now;
-      await this.ctx.storage.put("opAt", now);
+    if (wrote) this.opPersisted = now;
+  }
+
+  /** 保存に失敗した: メモリは変えていない。送った本人にだけ、エラーと（あれば）正しい状態を返す。ほかの人には何も送らない。 */
+  saveFailed(ws, e, resync = []) {
+    console.error("部屋の保存に失敗: " + errorSummary(e));
+    this.send(ws, { t: "error", msg: SAVE_FAILED_MSG });
+    for (const m of resync) this.send(ws, m);
+  }
+
+  /** 送った本人の画面を合わせる: ids の今の状態（ある物は upsert、無い物は delete）。保存に失敗したときに使う。 */
+  stateOf(ids) {
+    const upsert = [], del = [];
+    for (const id of new Set(ids)) {
+      const o = this.objects.get(id);
+      if (o) upsert.push(o); else del.push(id);
     }
+    return { t: "ops", from: null, upsert, delete: del };
+  }
+
+  /** 直列の鎖で処理する（状態を変える処理の順番を守る）。閉じた部屋なら、閉じたことを伝えて切断する */
+  serialOp(ws, fn) {
+    return this.serial(() => {
+      if (this.gone) {
+        this.send(ws, { t: "closed", reason: this.goneReason ?? "closed" });
+        try { ws.close(4004, "closed"); } catch { /* 閉じ済み */ }
+        return;
+      }
+      return fn();
+    });
   }
 
   /**
    * 部屋を閉じる（作成者の close・成功した操作が 30 分無い）。
-   * 順序: 閉じた印を先に書く（途中で落ちても、部屋は閉じたままになる）→ 一覧から外す → 中身を消す → アラーム。
+   * 順序: 閉じた印を先に書く（書けなければ、何も変えずに例外）→ 接続に知らせて閉じる → 一覧から外す → 中身を消す → アラーム。
    * 閉じた印（closed）だけは残し、LIMITS.closedMs のあいだ同じ ID を拒否する（アラームで消す）。
    */
   async closeRoom(reason) {
     const now = Date.now();
     const closed = { at: now, reason };
+    await this.ctx.storage.put("closed", closed);
     this.gone = true;
     this.goneReason = reason;
     const msg = JSON.stringify({ t: "closed", reason });
@@ -557,7 +601,6 @@ export class Room extends DurableObject {
       try { ws.send(msg); } catch { /* 切断済み */ }
       try { ws.close(4004, "closed"); } catch { /* 閉じ済み */ }
     }
-    await this.ctx.storage.put("closed", closed);
     await this.unlist();
     try { await this.env?.ROOM_DIRECTORY?.get(this.env.ROOM_DIRECTORY.idFromName(DIRECTORY_NAME)).releaseRoom(this.roomId); } catch { /* 枠は TTL で空く */ }
     const keys = [...(await this.ctx.storage.list()).keys()].filter(k => k !== "closed");
@@ -748,106 +791,16 @@ export class Room extends DurableObject {
         this.broadcast({ t: "view", from: me.id, view }, ws);
         return;
       }
-      case "lock": {
-        const ids = cleanIds(msg.ids, LIMITS.lockIds);
-        if (!ids) return this.invalid(ws, "bad lock");
-        const busy = this.lockedByOthers(ids, me.id);
-        // ほかの人が持っているものは、取れない（拒否した操作は、寿命を延ばさない）
-        if (busy.length) { this.send(ws, { t: "lockdenied", ids: busy, seq: msg.seq ?? null }); return; }
-        const now = Date.now();
-        // 同じ人が同じものを続けて持っている時間（since）。取り直しの間隔が lockGapMs 以内なら、同じ保持の続きとみなす
-        const held = ids.map(id => {
-          const h = this.holds.get(id);
-          const since = h && h.peer === me.id && now - h.last <= LIMITS.lockGapMs ? h.since : now;
-          this.holds.set(id, { peer: me.id, since, last: now });
-          return { id, since };
-        });
-        const changed = this.releaseLocks(me.id);
-        if (held.some(h => now - h.since >= LIMITS.lockMaxMs)) {
-          // 上限に達した: 持っている全部を解除して知らせる（この人の取り直しは、上の続きとして扱うので通らない）。寿命は延ばさない
-          if (changed) this.broadcast(this.locksMessage());
-          this.send(ws, { t: "lockexpired", ids });
-          await this.schedule();
-          return;
-        }
-        for (const h of held) this.locks.set(h.id, { peer: me.id, until: Math.min(now + LIMITS.lockMs, h.since + LIMITS.lockMaxMs) });
-        await this.noteOp();   // 成功したロック（取り直しを含む）は操作
-        this.broadcast(this.locksMessage());
-        await this.schedule();   // 期限が切れたときに起きて、ほかの人へ知らせる
-        // 上限が近いときは、持っている人に知らせる（操作が途中で外れないように、残りの時間を渡す）
-        const left = Math.min(...held.map(h => h.since + LIMITS.lockMaxMs - now));
-        if (left <= LIMITS.lockWarnMs) this.send(ws, { t: "lockwarn", ids, ms: left });
-        return;
-      }
-      case "unlock": {
-        // 解除は、実際に持っていたものを外したときだけ操作に数える
-        if (this.releaseLocks(me.id)) {
-          await this.noteOp();
-          this.broadcast(this.locksMessage());
-        }
-        return;
-      }
-      case "preview": {
-        // 操作中の変形（保存しない）。ほかの人がロックしているものは送らない。適用されたものがあるときだけ操作に数える
-        if (!Array.isArray(msg.objs) || msg.objs.length > LIMITS.lockIds) return this.invalid(ws, "bad preview");
-        const objs = msg.objs.map(cleanTransform);
-        if (objs.some(o => !o)) return this.invalid(ws, "bad preview");
-        const ok = objs.filter(o => this.objects.has(o.id) && !this.lockedByOthers([o.id], me.id).length);
-        if (ok.length) {
-          await this.noteOp();
-          this.broadcast({ t: "preview", from: me.id, objs: ok }, ws);
-        }
-        return;
-      }
-      case "ops": {
-        // 確定した変更: upsert（追加・変形）と delete。どちらも、無い・null は空。配列でなければ不正
-        const upsert = msg.upsert ?? [];
-        const del = cleanIds(msg.delete ?? []);
-        if (!Array.isArray(upsert) || upsert.length > LIMITS.objects || !del) return this.invalid(ws, "bad ops");
-        const objs = upsert.map(cleanObject);
-        if (objs.some(o => !o)) return this.invalid(ws, "bad object");
-        const busy = this.lockedByOthers([...objs.map(o => o.id), ...del], me.id);
-        const applied = { upsert: [], delete: [] };
-        const puts = {};
-        for (const o of objs) {
-          if (busy.includes(o.id)) continue;
-          if (!this.objects.has(o.id) && this.objects.size >= LIMITS.objects) { this.send(ws, { t: "error", msg: "too many objects" }); continue; }
-          this.objects.set(o.id, o);
-          puts[`o:${o.id}`] = o;
-          applied.upsert.push(o);
-        }
-        const removes = [];
-        let unlocked = false;
-        for (const id of del) {
-          if (busy.includes(id) || !this.objects.has(id)) continue;
-          this.objects.delete(id);
-          if (this.locks.delete(id)) unlocked = true;
-          removes.push(`o:${id}`);
-          applied.delete.push(id);
-        }
-        if (Object.keys(puts).length) await this.putChunked(puts);
-        if (removes.length) await this.deleteChunked(removes);
-        if (applied.upsert.length || applied.delete.length) {
-          await this.noteOp();   // 適用された変更だけが操作
-          this.broadcast({ t: "ops", from: me.id, ...applied }, ws);
-        }
-        // 消したオブジェクトのロックも外れたことを全員に知らせる
-        if (unlocked) this.broadcast(this.locksMessage());
-        // 反映できなかったもの（ロック中・上限）は、送った人に正しい状態を返す
-        const rejected = [...objs.filter(o => !applied.upsert.includes(o)).map(o => o.id), ...del.filter(id => !applied.delete.includes(id))];
-        if (rejected.length) {
-          this.send(ws, {
-            t: "ops", from: null, rejected: true,
-            upsert: rejected.map(id => this.objects.get(id)).filter(Boolean),
-            delete: rejected.filter(id => !this.objects.has(id)),
-          });
-        }
-        return;
-      }
+      case "lock":
+        return this.serialOp(ws, () => this.doLock(ws, me, msg));
+      case "unlock":
+        return this.serialOp(ws, () => this.doUnlock(ws, me));
+      case "preview":
+        return this.serialOp(ws, () => this.doPreview(ws, me, msg));
+      case "ops":
+        return this.serialOp(ws, () => this.doOps(ws, me, msg));
       case "close":
-        // 部屋を閉じる（作成者だけ）。作成者でなければ、何もしないで理由だけ返す
-        if (!me.owner) return this.send(ws, { t: "error", msg: "not owner" });
-        return this.closeRoom("owner");
+        return this.serialOp(ws, () => this.doClose(ws, me));
       case "ping":
         this.send(ws, { t: "pong" });
         return;
@@ -855,6 +808,156 @@ export class Room extends DurableObject {
         return this.invalid(ws, "unknown type");
     }
   }
+
+  /**
+   * ロック（直列に実行する）。取れるかを見てから、保存し、成功したら持つ。保存に失敗したら、持たないまま本人に返す。
+   * 上限（lockMaxMs）に達していれば、持っている全部を解除して知らせる（保存はしない。寿命は延ばさない）。
+   */
+  async doLock(ws, me, msg) {
+    const ids = cleanIds(msg.ids, LIMITS.lockIds);
+    if (!ids) return this.invalid(ws, "bad lock");
+    const busy = this.lockedByOthers(ids, me.id);
+    // ほかの人が持っているものは、取れない（拒否した操作は、寿命を延ばさない）
+    if (busy.length) { this.send(ws, { t: "lockdenied", ids: busy, seq: msg.seq ?? null }); return; }
+    const now = Date.now();
+    // 同じ人が同じものを続けて持っている時間（since）。取り直しの間隔が lockGapMs 以内なら、同じ保持の続きとみなす（読むだけ）
+    const held = ids.map(id => {
+      const h = this.holds.get(id);
+      return { id, since: h && h.peer === me.id && now - h.last <= LIMITS.lockGapMs ? h.since : now };
+    });
+    if (held.some(h => now - h.since >= LIMITS.lockMaxMs)) {
+      // 上限に達した: 持っている全部を解除して知らせる（この人の取り直しは、上の続きとして扱う）。寿命は延ばさない
+      this.setHolds(held, me.id, now);
+      if (this.releaseLocks(me.id)) this.broadcast(this.locksMessage());
+      this.send(ws, { t: "lockexpired", ids });
+      await this.schedule();
+      return;
+    }
+    let wrote;
+    try {
+      wrote = await this.persistOpAt(now);   // 成功したロック（取り直しを含む）は操作
+    } catch (e) {
+      return this.saveFailed(ws, e, [this.locksMessage()]);
+    }
+    // 待つあいだに閉じた・離れた人の分は、持たない
+    if (this.gone || ws.deserializeAttachment()?.left) return;
+    this.setHolds(held, me.id, now);
+    this.releaseLocks(me.id);
+    for (const h of held) this.locks.set(h.id, { peer: me.id, until: Math.min(now + LIMITS.lockMs, h.since + LIMITS.lockMaxMs) });
+    this.applyOp(now, wrote);
+    this.broadcast(this.locksMessage());
+    await this.schedule();   // 期限が切れたときに起きて、ほかの人へ知らせる
+    // 上限が近いときは、持っている人に知らせる（操作が途中で外れないように、残りの時間を渡す）
+    const left = Math.min(...held.map(h => h.since + LIMITS.lockMaxMs - now));
+    if (left <= LIMITS.lockWarnMs) this.send(ws, { t: "lockwarn", ids, ms: left });
+  }
+
+  /** 保持の記録（同じ人が続けて持っている時間の判定に使う） */
+  setHolds(held, peer, now) {
+    for (const h of held) this.holds.set(h.id, { peer, since: h.since, last: now });
+  }
+
+  /** 解除（直列）。実際に持っていたものを外したときだけ操作に数える。保存に失敗したら、持ったままで本人に返す。 */
+  async doUnlock(ws, me) {
+    if (![...this.locks.values()].some(l => l.peer === me.id)) return;
+    const now = Date.now();
+    let wrote;
+    try {
+      wrote = await this.persistOpAt(now);
+    } catch (e) {
+      return this.saveFailed(ws, e, [this.locksMessage()]);
+    }
+    if (this.gone) return;
+    this.releaseLocks(me.id);
+    this.applyOp(now, wrote);
+    this.broadcast(this.locksMessage());
+  }
+
+  /** 操作中の変形（直列）。保存はしない（操作の時刻だけ）。ほかの人がロックしているものは送らない。適用されたものがあるときだけ操作に数える。 */
+  async doPreview(ws, me, msg) {
+    if (!Array.isArray(msg.objs) || msg.objs.length > LIMITS.lockIds) return this.invalid(ws, "bad preview");
+    const objs = msg.objs.map(cleanTransform);
+    if (objs.some(o => !o)) return this.invalid(ws, "bad preview");
+    const ok = objs.filter(o => this.objects.has(o.id) && !this.lockedByOthers([o.id], me.id).length);
+    if (!ok.length) return;
+    const now = Date.now();
+    let wrote;
+    try {
+      wrote = await this.persistOpAt(now);
+    } catch (e) {
+      return this.saveFailed(ws, e);
+    }
+    if (this.gone) return;
+    this.applyOp(now, wrote);
+    this.broadcast({ t: "preview", from: me.id, objs: ok }, ws);
+  }
+
+  /**
+   * オブジェクトの確定（直列）。写し（next）の上で結果を作り、保存してから、メモリを変えて知らせる。
+   * 保存に失敗したら、メモリは変えず、送った本人にだけエラーと今の状態を返す（本人の画面を戻す）。ほかの人には何も送らない。
+   */
+  async doOps(ws, me, msg) {
+    // 確定した変更: upsert（追加・変形）と delete。どちらも、無い・null は空。配列でなければ不正
+    const upsert = msg.upsert ?? [];
+    const del = cleanIds(msg.delete ?? []);
+    if (!Array.isArray(upsert) || upsert.length > LIMITS.objects || !del) return this.invalid(ws, "bad ops");
+    const objs = upsert.map(cleanObject);
+    if (objs.some(o => !o)) return this.invalid(ws, "bad object");
+    const busy = this.lockedByOthers([...objs.map(o => o.id), ...del], me.id);
+    const next = new Map(this.objects);
+    const applied = { upsert: [], delete: [] };
+    let full = false;
+    for (const o of objs) {
+      if (busy.includes(o.id)) continue;
+      if (!next.has(o.id) && next.size >= LIMITS.objects) { full = true; continue; }
+      next.set(o.id, o);
+      applied.upsert.push(o);
+    }
+    for (const id of del) {
+      if (busy.includes(id) || !next.has(id)) continue;
+      next.delete(id);
+      applied.delete.push(id);
+    }
+    const unlocked = applied.delete.some(id => this.locks.has(id));   // 消したものを持っていた（ロックが外れる）
+    const changed = applied.upsert.length > 0 || applied.delete.length > 0;
+    const now = Date.now();
+    let wrote = false;
+    try {
+      const puts = Object.fromEntries(applied.upsert.map(o => [`o:${o.id}`, o]));
+      // 操作の時刻（opAt）は、書く間隔を過ぎていれば、オブジェクトと同じ書き込みに入れる（片方だけ残らないように）。適用された変更だけが操作
+      if (changed && now - this.opPersisted >= LIMITS.roomPersistMs) { puts.opAt = now; wrote = true; }
+      if (Object.keys(puts).length) await this.putChunked(puts);
+      if (applied.delete.length) await this.deleteChunked(applied.delete.map(id => `o:${id}`));
+    } catch (e) {
+      return this.saveFailed(ws, e, [this.stateOf([...objs.map(o => o.id), ...del])]);
+    }
+    if (this.gone) return;
+    this.objects = next;
+    for (const id of applied.delete) this.locks.delete(id);
+    if (changed) {
+      this.applyOp(now, wrote);
+      this.broadcast({ t: "ops", from: me.id, ...applied }, ws);
+    }
+    // 消したオブジェクトのロックも外れたことを全員に知らせる
+    if (unlocked) this.broadcast(this.locksMessage());
+    if (full) this.send(ws, { t: "error", msg: "too many objects" });
+    // 反映できなかったもの（ロック中・上限）は、送った人に正しい状態を返す
+    const rejected = [...objs.filter(o => !applied.upsert.includes(o)).map(o => o.id), ...del.filter(id => !applied.delete.includes(id))];
+    if (rejected.length) this.send(ws, { ...this.stateOf(rejected), rejected: true });
+  }
+
+  /** 部屋を閉じる（直列。作成者だけ）。閉じた印が書けなかったときは、部屋は閉じたままで、作成者にエラーを返す。 */
+  async doClose(ws, me) {
+    if (!me.owner) return this.send(ws, { t: "error", msg: "not owner" });
+    try {
+      await this.closeRoom("owner");
+    } catch (e) {
+      // 閉じたあとの後始末の失敗は、外へ出す（部屋はもう閉じている）。印が書けなかっただけなら、本人にエラーを返す
+      if (this.gone) throw e;
+      this.saveFailed(ws, e);
+    }
+  }
+
 
   /**
    * 鍵の確認（鍵つきの部屋で、作成者でない人だけ）。合わなければ理由を送って 4003 で閉じ、false を返す。
@@ -953,7 +1056,8 @@ export class Room extends DurableObject {
       if (verdict !== "ok") return verdict;
       await this.initRoom(create);
       return "created";
-    });
+    }).catch(e => this.joinSaveFailed(ws, e));
+    if (outcome === undefined) return;   // 保存に失敗した（接続は閉じている）
     if (outcome === "missing") { this.send(ws, { t: "closed", reason: "missing" }); ws.close(4004, "closed"); return; }
     if (outcome === "bad") return this.invalid(ws, "bad create");
     if (outcome === "outdated") { this.send(ws, { t: "closed", reason: "outdated" }); ws.close(4006, "outdated"); return; }
@@ -962,9 +1066,19 @@ export class Room extends DurableObject {
     if (me.joined) return;
     // 作成者は鍵を免除する（作成者の鍵が合う接続。作成したばかりの人も含む）
     const owner = outcome === "created" || await this.isOwner(msg.owner);
-    if (!owner && this.meta?.pass && !(await this.passOk(ws, me, msg))) return;
+    if (!owner && this.meta?.pass) {
+      // 鍵が合わない・保存に失敗した（どちらも接続は閉じている）ときは、参加しない
+      const passed = await this.passOk(ws, me, msg).catch(e => this.joinSaveFailed(ws, e));
+      if (passed !== true) return;
+    }
     // ここから同期の処理（await の後に人数を確かめ、joined を立てるまで await を挟まない。同時に来た hello で人数を超えないように）
     if (me.joined) return;
+    // 待つあいだに閉じられていたら、入れない（閉じた部屋の中身は送らない）
+    if (this.gone || !this.objects) {
+      this.send(ws, { t: "closed", reason: this.goneReason ?? "closed" });
+      try { ws.close(4004, "closed"); } catch { /* 閉じ済み */ }
+      return;
+    }
     if (this.peers().length >= LIMITS.participants) { ws.close(4001, "full"); return; }
     me.name = cleanName(msg.name) || "ゲスト";
     const used = new Set(this.peers().map(p => p.color));
@@ -986,16 +1100,23 @@ export class Room extends DurableObject {
     await this.syncDirectory();
   }
 
+  /** 参加の途中で保存に失敗した: 本人にエラーを返し、接続を閉じる（参加していない。待たせたままにしない）。 */
+  joinSaveFailed(ws, e) {
+    this.saveFailed(ws, e);
+    try { ws.close(1011, "save failed"); } catch { /* 閉じ済み */ }
+  }
+
+  // 切断も、直列の鎖で処理する（保存を待つ操作の途中で離れた人のロックを、後から残さないように）
   async webSocketClose(ws, code) {
     await this.load();
-    this.leave(ws);
+    await this.serial(() => this.leave(ws));
     await this.syncDirectory();
     try { ws.close(code === 1005 ? 1000 : code, "bye"); } catch { /* 閉じ済み */ }
   }
 
   async webSocketError(ws) {
     await this.load();
-    this.leave(ws);
+    await this.serial(() => this.leave(ws));
     await this.syncDirectory();
   }
 
