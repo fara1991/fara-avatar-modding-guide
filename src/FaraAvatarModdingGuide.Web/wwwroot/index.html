@@ -33,14 +33,14 @@
          静的な本文の枠は、起動の後の画面と同じ構造・同じ位置(Build の StaticFrame)。起動すると、Blazor が #app の中身を置き換えて、boot-indicator.js(kit)がこの表示を外す。
          最初に当てる(CSS の読み込み前にも色が合うように、インラインで書く)。60 秒の保険は、JS の RELEASE_MS と同じ秒数 -->
     <style>
-        html, body { background: #f7f4fd; }
-        html[data-bs-theme="dark"], html[data-bs-theme="dark"] body { background: #0c0616; }
+        html, body { background: #f1f8f9; }
+        html[data-bs-theme="dark"], html[data-bs-theme="dark"] body { background: #071318; }
         #boot-indicator {
             position: fixed; right: 1rem; bottom: 3.4rem; z-index: 2147483000;
             display: flex; align-items: center; gap: 0.6rem;
             box-sizing: border-box; max-width: calc(100vw - 2rem); padding: 0.45rem 0.95rem;
             border: 1px solid rgba(200, 170, 255, 0.3); border-radius: 999px;
-            background: rgba(26, 13, 51, 0.92); color: #f3edff;
+            background: rgba(8, 24, 30, 0.92); color: #e8f4f6;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
             font-family: "Zen Kaku Gothic New", "Yu Gothic", system-ui, sans-serif;
             pointer-events: none;
@@ -49,12 +49,12 @@
         @keyframes boot-indicator-release { to { visibility: hidden; } }
         .boot-indicator-spinner {
             flex: none; width: 1rem; height: 1rem; box-sizing: border-box;
-            border: 0.17rem solid #c084fc; border-right-color: transparent; border-radius: 50%;
+            border: 0.17rem solid #3cc6d6; border-right-color: transparent; border-radius: 50%;
             animation: boot-indicator-spin 0.75s linear infinite;
         }
         .boot-indicator-label { font-size: 0.8rem; font-weight: 700; line-height: 1.5; }
         .boot-indicator-label:empty::before { content: "読み込み中…"; }
-        .boot-indicator-label a { color: #e9d5ff; font-weight: 700; text-decoration: underline; pointer-events: auto; }
+        .boot-indicator-label a { color: #c6f3f9; font-weight: 700; text-decoration: underline; pointer-events: auto; }
         #boot-indicator[data-state="slow"] { pointer-events: auto; }
         #boot-indicator[data-state="slow"] .boot-indicator-spinner { animation: none; }
         @keyframes boot-indicator-spin { to { transform: rotate(360deg); } }

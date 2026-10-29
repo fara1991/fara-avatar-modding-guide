@@ -1045,7 +1045,7 @@
     margin-left: -6px;
     padding: 0 6px;
     border-radius: 4px;
-    background: rgba(168, 85, 247, 0.6);
+    background: rgba(var(--accent-rgb), 0.6);
     animation: vp-pulse 1.2s ease-in-out 3;
 }
 
@@ -1088,8 +1088,8 @@
 }
 
 @keyframes vp-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); }
-    50% { box-shadow: 0 0 0 4px rgba(168, 85, 247, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.7); }
+    50% { box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0); }
 }
 
 /* ---------- 記事内チュートリアル（::: practice、wwwroot/js/tutorial.js） ---------- */
@@ -1269,7 +1269,7 @@
 
 .practice-embed.is-focused .tut-vp {
     border-color: var(--violet);
-    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.45);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.45);
 }
 
 /* 画面下のキー表示。押すと沈む */
@@ -1501,7 +1501,7 @@
     --bs-btn-color: var(--bs-body-color);
     --bs-btn-border-color: var(--border-strong);
     --bs-btn-hover-color: var(--bs-body-color);
-    --bs-btn-hover-bg: rgba(168, 85, 247, 0.12);
+    --bs-btn-hover-bg: rgba(var(--accent-rgb), 0.12);
     --bs-btn-hover-border-color: var(--violet);
 }
 
