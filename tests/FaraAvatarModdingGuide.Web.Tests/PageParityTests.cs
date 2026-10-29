@@ -43,6 +43,27 @@ public class PageParityTests : WebTestContext
     }
 
     [Fact]
+    public void Privacy_states_what_is_sent_stored_and_for_how_long()
+    {
+        var text = TestData.TextOf(Render<Privacy>().Markup);
+        Assert.Contains("制定:2026年10月22日最終改定:2026年10月29日", text);
+        Assert.DoesNotContain("サーバーには送りません）", text);                      // 見出しの言い過ぎを戻さない
+        Assert.Contains("暗号化せずそのまま保存", text);                              // 作成者の端末のパスワードは平文
+        Assert.Contains("avatar-scroll", text);
+        Assert.Contains("avatar-modding-guide.tutorials", text);
+        Assert.Contains("このサイトはCookieを設定しません", text);
+        Assert.Contains("パスワードの有無", text);                                    // 一覧に出る項目
+        Assert.Contains("最大人数", text);
+        Assert.Contains("保存の期間", text);
+        Assert.Contains("送信日時", text);
+        Assert.DoesNotContain("匿名", text);
+        var cut = Render<Privacy>();
+        var rows = cut.FindAll("table tbody tr").Select(r => r.QuerySelector("td")!.TextContent).ToArray();
+        Assert.Equal(new[] { "Google Fonts", "Cloudflare Web Analytics", "Cloudflare Turnstile", "Cloudflare（配信・部屋）", "Discord", "GitHub" }, rows);
+        Assert.Equal(4, cut.FindAll("table thead th").Count);
+    }
+
+    [Fact]
     public void Home_cards_are_the_same_as_the_static_cards()
     {
         Assert.Equal(PageBodies.HomeCards.Select(c => (c.Href, c.Icon, c.Title, c.Text)).ToArray(), Home.Cards);

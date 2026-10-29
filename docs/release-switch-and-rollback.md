@@ -63,7 +63,7 @@ git push           # develop の保護があるときは、revert の PR を dev
 - `develop` への push で、戻った `deploy.yml`（旧 SSR 版: `dotnet run -- --export dist`）が動き、avatar-dev が旧 SSR 版に戻る。revert は、統合で入った変更（WebAssembly 版の実装・Phase 5 の削除・CI・wrangler.toml・Worker・テスト・ドキュメント）をまとめて取り消す。統合のあとに `develop` に入った変更は残る。
 - 旧 SSR 版の Worker は変数 `MAINTENANCE`（`_MODE` なし）を読む。メンテナンス表示が要るときは、ダッシュボードで `MAINTENANCE` を作り直す（付け替えで消していた場合）。
 - 同じ内容をもう一度統合したいときは、その revert コミットを revert する（`git revert <revert のコミット>`）。
-- 共同練習の部屋（Durable Object `Room`）は、旧版と新版で同じクラス・同じマイグレーション（`v1`）で、24 時間で内容が消える。戻しても、部屋の保存形式の食い違いは起きない。localStorage のキーも移行前から変えていないので、読者の進捗・テーマは両方で共通。
+- 共同練習の部屋（Durable Object `Room`）は、旧版と新版で同じクラス・同じマイグレーション（`v1`）で、操作が 30 分無いと終了して内容が消える。戻しても、部屋の保存形式の食い違いは起きない。localStorage のキーも移行前から変えていないので、読者の進捗・テーマは両方で共通。
 
 ### 3.2 本番に WebAssembly 版が出たあとに、旧 SSR 版に戻す
 
