@@ -107,6 +107,23 @@ await a2.opened;
 await settle(a2);
 ok(a2.welcome?.you.owner === true, "作成者の鍵が合えば、鍵なしで入れる（免除）");
 
+// 6b. 同じ端末の別のタブ（作成者の鍵だけ。pass は送らない）は、鍵なしで入る。別の部屋では、同じ作成者の鍵でも免除されない
+const tab = connect(room, { name: "Alice", owner });
+await tab.opened;
+await settle(tab);
+ok(tab.welcome?.you.owner === true, "同じ端末の別のタブ（作成者の鍵だけ）は、鍵なしで入る");
+const otherRoom = rid();
+const otherCreator = connect(otherRoom, { name: "Dan", owner: hexKey(), create: { pass: passKey() } });
+await otherCreator.opened;
+await settle(otherCreator);
+const wrongRoom = connect(otherRoom, { name: "Alice", owner });
+await wrongRoom.opened;
+await settle(wrongRoom);
+ok(!wrongRoom.welcome && wrongRoom.msgs.some(m => m.t === "needpass") && wrongRoom.closed?.code === 4003, "同じ作成者の鍵でも、別の部屋では鍵を聞かれる（needpass・4003）");
+otherCreator.ws.close();
+tab.ws.close();
+await sleep(200);
+
 // 7. 作成者が閉じる
 a2.send({ t: "close" });
 await Promise.all([a2.done, b.done]);

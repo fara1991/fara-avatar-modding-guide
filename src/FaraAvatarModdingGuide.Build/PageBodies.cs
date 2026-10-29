@@ -727,7 +727,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         <div id="room-lobby" class="card mb-4 practice-pc-only">
             <div class="card-body">
                 <h2 class="h5">部屋を作る</h2>
-                <p class="mb-3">ログインは不要です。部屋を作ると、一覧に出ます。部屋の名前とパスワードは、自動で決まります。パスワードは、部屋を作った人の画面に表示されます。</p>
+                <p class="mb-3">ログインは不要です。部屋を作ると、一覧に出ます。部屋の名前とパスワードは、自動で決まります。パスワードは、部屋を作った人の画面に伏せ字で出ます（「パスワードを表示」を押すと見えます）。</p>
                 <button type="button" class="btn btn-primary" id="room-create">{{ICON_ADD}} 部屋を作る</button>
             </div>
         </div>

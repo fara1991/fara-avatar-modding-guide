@@ -28,9 +28,24 @@ public class RoomLobbyTests : WebTestContext
         }
     }
 
+    /// <summary>
+    /// この端末に保存された作成者の鍵の偽物（localStorage の代わり）。同じ端末の別のタブは、同じ Keys を読む（ロビーを開いたままでも、押したときに見える）。
+    /// Fail を入れると、保存を読めないときの振る舞いを確かめられる。
+    /// </summary>
+    private sealed class FakeOwnerKeys : IRoomOwnerKeys
+    {
+        public HashSet<string> Keys { get; } = [];
+        public Exception? Fail { get; set; }
+
+        public Task<bool> HasAsync(string roomId) =>
+            Fail is null ? Task.FromResult(Keys.Contains(roomId)) : Task.FromException<bool>(Fail);
+    }
+
     private readonly FakeDirectory directory = new();
+    private readonly FakeOwnerKeys ownerKeys = new();
     private bool entrySet;
     private bool directorySet;
+    private bool ownerKeysSet;
 
     /// <summary>入口（practice-entry.js）の模擬。1 回だけ設定する（タッチだけの端末の判定などは、PracticeTests と同じく、ここでは扱わない）。</summary>
     private void SetupEntry()
@@ -51,6 +66,11 @@ public class RoomLobbyTests : WebTestContext
         {
             directorySet = true;
             Services.AddSingleton<IRoomDirectory>(directory);
+        }
+        if (!ownerKeysSet)
+        {
+            ownerKeysSet = true;
+            Services.AddSingleton<IRoomOwnerKeys>(ownerKeys);
         }
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost/practice/room");
         return Render<PracticeRoom>();
@@ -241,5 +261,73 @@ public class RoomLobbyTests : WebTestContext
         cut.Find("#room-list form").Submit();   // Enter と同じ送信
         var nav = Services.GetRequiredService<NavigationManager>();
         Assert.Matches(@"\?room=roomcccc7777$", nav.Uri);
+    }
+
+    [Fact]
+    public void The_creators_device_joins_from_the_list_without_asking_for_the_password()
+    {
+        directory.Rooms = [new RoomListItem("roombbbb2222", "自分の部屋", 1, 8, true, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())];
+        ownerKeys.Keys.Add("roombbbb2222");   // この端末で作った部屋（作成者の鍵が保存されている）
+        var cut = RenderLobby();
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("#room-list li[data-room]")));
+        cut.Find("#room-list li[data-room] button").Click();
+        var nav = Services.GetRequiredService<NavigationManager>();
+        cut.WaitForAssertion(() => Assert.Matches(@"\?room=roombbbb2222$", nav.Uri));   // パスワードの欄は出ず、そのまま入る
+        Assert.Empty(cut.FindAll("#room-list input[type=password]"));
+        Assert.DoesNotContain("pass", nav.Uri, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void The_key_is_read_when_the_button_is_pressed_so_a_room_made_in_another_tab_after_the_lobby_opened_also_joins_directly()
+    {
+        directory.Rooms = [new RoomListItem("roomeeee5555", "後から作った部屋", 1, 8, true, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())];
+        var cut = RenderLobby();   // このタブのロビーは、部屋を作られる前に開いている
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("#room-list li[data-room]")));
+        ownerKeys.Keys.Add("roomeeee5555");   // 別のタブで部屋を作り、鍵を保存した（同じ端末の保存）
+        cut.Find("#room-list li[data-room] button").Click();
+        var nav = Services.GetRequiredService<NavigationManager>();
+        cut.WaitForAssertion(() => Assert.Matches(@"\?room=roomeeee5555$", nav.Uri));
+        Assert.Empty(cut.FindAll("#room-list input[type=password]"));
+    }
+
+    [Fact]
+    public void Another_device_or_a_key_for_another_room_is_still_asked_for_the_password()
+    {
+        directory.Rooms =
+        [
+            new RoomListItem("roombbbb2222", "鍵つき", 1, 8, true, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
+            new RoomListItem("roomffff6666", "ほかの人の部屋", 1, 8, true, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
+        ];
+        ownerKeys.Keys.Add("roomzzzz9999");   // 別の部屋の作成者の鍵だけがある
+        var cut = RenderLobby();
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("#room-list li[data-room]").Count));
+        cut.FindAll("#room-list li[data-room] button")[0].Click();
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("#room-list input[type=password]")));
+        var nav = Services.GetRequiredService<NavigationManager>();
+        Assert.DoesNotMatch(@"\?room=roombbbb2222", nav.Uri);
+    }
+
+    [Fact]
+    public void When_the_saved_key_cannot_be_read_the_lobby_falls_back_to_the_password_field()
+    {
+        directory.Rooms = [new RoomListItem("roombbbb2222", "鍵つき", 1, 8, true, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())];
+        ownerKeys.Fail = new InvalidOperationException("storage denied");
+        var cut = RenderLobby();
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("#room-list li[data-room]")));
+        cut.Find("#room-list li[data-room] button").Click();
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("#room-list input[type=password]")));
+        Assert.DoesNotMatch(@"\?room=roombbbb2222", Services.GetRequiredService<NavigationManager>().Uri);   // 入室はせず、欄で聞く
+    }
+
+    [Fact]
+    public void The_password_field_in_the_list_is_a_password_box_that_accepts_a_paste()
+    {
+        directory.Rooms = [new RoomListItem("roombbbb2222", "鍵つき", 1, 8, true, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())];
+        var cut = RenderLobby();
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("#room-list li[data-room]")));
+        cut.Find("#room-list li[data-room] button").Click();
+        var input = cut.Find("#room-list input");
+        Assert.Equal("password", input.GetAttribute("type"));   // 伏せ字（●）で出す
+        Assert.Equal("off", input.GetAttribute("autocomplete"));
     }
 }

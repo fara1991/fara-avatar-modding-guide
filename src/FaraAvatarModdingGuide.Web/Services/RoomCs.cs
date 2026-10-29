@@ -10,7 +10,6 @@ namespace FaraAvatarModdingGuide.Web.Services;
 /// </summary>
 public sealed class RoomCsEngine : CsViewEngine, IRoomCs
 {
-    private static readonly RetryableTask importingRoom = new();
     private static RoomCsEngine? active;   // JavaScript からの接続・タイマーの通知を受ける先(同時に 1 つだけ動く)
 
     private readonly string roomId;
@@ -29,7 +28,7 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
     }
 
     /// <summary>room-cs.js を読み込む(1 回だけ)。</summary>
-    public static Task ImportRoomAsync() => importingRoom.RunAsync(() => JSHost.ImportAsync("room-cs", "../js/room-cs.js"));
+    public static Task ImportRoomAsync() => RoomJs.ImportAsync();
 
     /// <summary>部屋を作る(読み込みのあと)。Start() で入る。join は、作成や鍵(一覧から入るとき)の指定。</summary>
     public static RoomCsEngine Create(string roomId, bool debug, RoomJoinOptions? join = null) => new(roomId, debug, join);
@@ -70,8 +69,8 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
     /// <summary>「視点に合わせる」(押した人の id)。</summary>
     public void ToggleFollow(string id) => session?.ToggleFollow(id);
 
-    /// <summary>部屋のパスワードをコピーする(作成者の画面だけ。作成者でなければ何もしない)。</summary>
-    public Task CopyPassAsync() => session?.OwnerPass is { } pass ? RoomJs.Copy(pass, "room-pass") : Task.CompletedTask;
+    /// <summary>部屋のパスワードをコピーする(作成者の画面だけ。画面が渡した文字をコピーする。作成者でなければ何もしない)。</summary>
+    public Task CopyPassAsync(string pass) => session?.OwnerPass is not null ? RoomJs.Copy(pass) : Task.CompletedTask;
 
     /// <summary>鍵を入れて入り直す(鍵の画面の送信)。</summary>
     public void SubmitPass(string pass) => session?.SubmitPass(pass);
@@ -173,6 +172,11 @@ public sealed class RoomCsEngine : CsViewEngine, IRoomCs
 /// <summary>wwwroot/js/room-cs.js(WebSocket・タイマー・localStorage・ポインター・クリップボード)の呼び出し。</summary>
 internal static partial class RoomJs
 {
+    private static readonly RetryableTask importing = new();
+
+    /// <summary>room-cs.js を読み込む(1 回だけ)。部屋の画面と、ロビーの作成者の鍵の確認が使う(Practice の型を使わない)。</summary>
+    internal static Task ImportAsync() => importing.RunAsync(() => JSHost.ImportAsync("room-cs", "../js/room-cs.js"));
+
     [JSImport("setHandlers", "room-cs")]
     internal static partial void SetHandlers(
         [JSMarshalAs<JSType.Function<JSType.Number>>] Action<int> onOpen,
@@ -229,13 +233,32 @@ internal static partial class RoomJs
     internal static partial void PlaceCursors(string boxId, string json);
 
     [JSImport("copy", "room-cs")]
-    internal static partial Task Copy(string text, string urlInputId);
+    internal static partial Task Copy(string text);
 
     [JSImport("setDebug", "room-cs")]
     internal static partial void SetDebug(string json);
 
     [JSImport("clearDebug", "room-cs")]
     internal static partial void ClearDebug();
+}
+
+/// <summary>
+/// ロビーが、部屋を押した時点で「この端末に作成者の鍵があるか」を調べる口。一覧の「入る」は、作成者の端末なら鍵を聞かずに入る（サーバーが鍵の一致を確かめる）。
+/// 保存は端末（localStorage）なので、ロビーを開いたあとで作られた部屋の鍵も、押したときに読む。
+/// </summary>
+public interface IRoomOwnerKeys
+{
+    Task<bool> HasAsync(string roomId);
+}
+
+/// <summary>localStorage の作成者の鍵を、room-cs.js で読む(ブラウザだけ)。Practice の型を使わない(遅れて読むため)。</summary>
+public sealed class BrowserRoomOwnerKeys : IRoomOwnerKeys
+{
+    public async Task<bool> HasAsync(string roomId)
+    {
+        await RoomJs.ImportAsync();
+        return RoomJs.LoadOwnerKey(roomId) is not null;
+    }
 }
 
 /// <summary>部屋のパスワードを作る（作成のとき。英数字 40 字を、暗号論的乱数で一様に選ぶ。Worker は英数字 32〜64 字だけ受け付ける）。</summary>
@@ -275,7 +298,7 @@ public interface IRoomCs : IDisposable
     void ChangeNPanel(string prop, string axis, string value);
     void NameTyped(string value);
     void ToggleFollow(string id);
-    Task CopyPassAsync();
+    Task CopyPassAsync(string pass);
     void SubmitPass(string pass);
     void RequestClose();
 }

@@ -1617,3 +1617,33 @@ h1:focus {
 .room-card-join {
     margin-top: auto;
 }
+
+/* 作成者のパスワード（伏せ字・表示）。40 字の ● も、狭い幅（360px）で折り返して、横に広がらないようにする。タップ領域は 44px 以上 */
+.room-pass-group {
+    flex-wrap: wrap;
+}
+
+/* 欄は 1 行を全部使う（ボタンは次の行に並ぶ）。折り返しは文字の途中でもよい */
+.room-pass-group > .room-pass-value {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    font-family: var(--bs-font-monospace);
+}
+
+.room-pass-group > .room-pass-value.is-masked {
+    letter-spacing: 0.1em;
+    color: var(--bs-secondary-color);
+}
+
+.room-pass-group > .room-pass-btn {
+    flex: 1 1 0;
+    min-width: 44px;
+    min-height: 44px;
+    align-self: flex-start;
+}

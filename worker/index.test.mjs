@@ -580,6 +580,40 @@ test("作成者の鍵: 再接続（タブを開き直した・回線が切れた
   assert.equal(other.sent.find(m => m.t === "welcome").you.owner, false);
 });
 
+test("作成者の鍵（同じ端末の別タブ）: 作成したタブが開いたままでも、別の接続は鍵を送らず owner だけで入れる（免除）", async () => {
+  const { room, ctx } = fakeRoom();
+  const creator = connect(ctx, "a1");
+  await room.webSocketMessage(creator, createHello("Alice"));
+  const tab = connect(ctx, "a2");
+  await room.webSocketMessage(tab, joinHello("Alice", { owner: OWNER }));   // pass は無い（クライアントは一覧からの入室で、保存の鍵だけを送る）
+  assert.equal(tab.sent.find(m => m.t === "welcome")?.you.owner, true);
+  assert.equal(tab.sent.some(m => m.t === "needpass" || m.t === "wrongpass"), false);
+});
+
+test("作成者の鍵の免除は、その部屋だけ: 別の人の鍵（pass なし）は needpass で 4003 に閉じる", async () => {
+  const { room, ctx } = fakeRoom();
+  const creator = connect(ctx, "a1");
+  await room.webSocketMessage(creator, createHello("Alice"));
+  const other = connect(ctx, "b1");
+  await room.webSocketMessage(other, joinHello("Bob", { owner: OTHER }));
+  assert.deepEqual(other.sent, [{ t: "needpass" }]);
+  assert.equal(other.closed?.code, 4003);
+});
+
+test("作成者の鍵の免除は、別の部屋には効かない: 同じ作成者の鍵でも、別の部屋は needpass（pass なし）", async () => {
+  const { room: roomA, ctx: ctxA } = fakeRoom();
+  const creatorA = connect(ctxA, "a1");
+  await roomA.webSocketMessage(creatorA, createHello("Alice"));
+  // 別の部屋（ID は違うが、同じ作成者の鍵を持つ人が居る）。その部屋の作成者は別の鍵
+  const { room: roomB, ctx: ctxB } = fakeRoom();
+  const creatorB = connect(ctxB, "c1");
+  await roomB.webSocketMessage(creatorB, createHello("Carol", { owner: OTHER }));
+  const sameKeyElsewhere = connect(ctxB, "c2");
+  await roomB.webSocketMessage(sameKeyElsewhere, joinHello("Alice", { owner: OWNER }));
+  assert.deepEqual(sameKeyElsewhere.sent, [{ t: "needpass" }]);
+  assert.equal(sameKeyElsewhere.closed?.code, 4003);
+});
+
 test("Close: 作成者だけが閉じられる。作成者でない人の close は、閉じずに not owner を返す", async () => {
   const { room, ctx } = fakeRoom();
   const a = connect(ctx, "a1");

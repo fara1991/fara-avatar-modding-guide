@@ -16,6 +16,8 @@ var http = new HttpClient { BaseAddress = baseAddress };
 builder.Services.AddSingleton(http);
 // 練習の部屋の一覧（GET /api/rooms）。画面は、この口だけを読む（テストでは偽物に替える）
 builder.Services.AddScoped<FaraAvatarModdingGuide.Web.Services.IRoomDirectory, FaraAvatarModdingGuide.Web.Services.HttpRoomDirectory>();
+// この端末に作成者の鍵があるか（ロビーの「入る」で、パスワードを聞かずに入るかの判断）。テストでは偽物に替える
+builder.Services.AddScoped<FaraAvatarModdingGuide.Web.Services.IRoomOwnerKeys, FaraAvatarModdingGuide.Web.Services.BrowserRoomOwnerKeys>();
 
 // 起動に要る 3 つ（サイトの設定 data/site.json・メンテナンスの状態 /api/maintenance・記事などのデータ data/content.json）を、同時に読み始める
 // （順に待つと、通信 3 回分の往復が起動に足される）。メンテナンスの状態は 2 秒で打ち切り、読めなければ通常（kit の MaintenanceInfo）。
