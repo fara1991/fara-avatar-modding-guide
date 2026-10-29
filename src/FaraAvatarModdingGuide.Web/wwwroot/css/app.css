@@ -3,53 +3,155 @@
    それぞれのフェーズ（2〜3）で WebAssembly 側に移すときに足す。
    Bootstrap のクラスは base.css（Bootstrap 5.3.3 から使うクラスだけを取り出したもの）。色は :root の変数（--bs-*・--violet など）で決める。 */
 
-/* ---------- テーマ（fara-labs.com と同じ紫系のダークテーマ。色は :root の変数で管理） ---------- */
-:root,
-[data-bs-theme="dark"] {
-    --violet: #a855f7;
-    --violet-deep: #7c3aed;
-    --lavender: #c4b5fd;
-    --pink: #f0abfc;
-    --indigo: #818cf8;
-    --cyan: #67e8f9;
-    --surface: rgba(34, 20, 60, 0.55);
-    --border: rgba(200, 170, 255, 0.14);
-    --border-strong: rgba(200, 170, 255, 0.3);
-    --grad: linear-gradient(120deg, #c084fc 0%, #e879f9 45%, #818cf8 100%);
+/* ============================================================
+   テーマ（このサイトの色と角丸）。色を変えるときは、このブロックだけを見る。
+   落ち着いたティール〜シアン寄りの、涼しい色味（学習ガイドなので目に優しく、主張は強くしない）。
+   kit（fara-blazor-component）の --fbc-* と Bootstrap の --bs-* は、ここで上書きする（kit は変えない）。
+   MudBlazor の色は Services/AvatarTheme.cs（MainLayout が CustomTheme で渡す）。ここと同じ値にそろえる。
+   旧来の名前（--violet・--violet-deep・--lavender・--pink・--indigo・--cyan）は、次の新しい名前の別名（practice.css などが使う）。
+   ============================================================ */
 
-    --bs-body-bg: #0c0616;
-    --bs-body-bg-rgb: 12, 6, 22;
-    --bs-body-color: #f3edff;
-    --bs-body-color-rgb: 243, 237, 255;
+/* ---- ダーク（既定）。:root[data-bs-theme="dark"] は、kit の同じセレクター（--fbc-muted など）に勝つため ---- */
+:root,
+[data-bs-theme="dark"],
+:root[data-bs-theme="dark"] {
+    /* アクセント */
+    --accent: #2bb8c9;            /* 主なアクセント（アイコン・枠・強調。文字の上に白は乗せない） */
+    --accent-deep: #0e7490;       /* 主ボタンの地（白い文字が乗る。コントラスト 5.4） */
+    --accent-soft: #7fd8e6;       /* リンク・h3・淡いアクセントの文字（地 #071318 の上で 11.5） */
+    --accent-alt: #5aa9e6;        /* グラデーションの終わり・バッジ（青寄り） */
+    --accent-code: #8fe3cf;       /* インラインコード（ミント） */
+    --accent-hover: #a5f3fc;      /* リンクのホバー */
+    --accent-rgb: 43, 184, 201;   /* 半透明の面・影（rgba(var(--accent-rgb), 0.14)） */
+    --accent-deep-rgb: 14, 116, 144;
+    --tip: #6aa8f7;               /* ヒントの囲み（青）。注意の囲みは琥珀のまま */
+    --tip-rgb: 106, 168, 247;
+    --grad: linear-gradient(120deg, #2dd4bf 0%, #22d3ee 50%, #60a5fa 100%);
+    --accent-badge-grad: linear-gradient(135deg, #0e7490, #2563eb);   /* 白い文字が乗るバッジ・手順の丸（コントラスト 5 以上） */
+
+    /* 面・線 */
+    --surface: rgba(10, 44, 54, 0.55);
+    --border: rgba(130, 215, 230, 0.15);
+    --border-strong: rgba(130, 215, 230, 0.32);
+    --kbd-bg: #0f2630;
+    --focus-ring: #9ae6f0;
+
+    /* 旧来の名前（別名） */
+    --violet: var(--accent);
+    --violet-deep: var(--accent-deep);
+    --lavender: var(--accent-soft);
+    --pink: var(--accent-code);
+    --indigo: var(--accent-alt);
+    --cyan: var(--tip);
+
+    /* Bootstrap */
+    --bs-body-bg: #071318;
+    --bs-body-bg-rgb: 7, 19, 24;
+    --bs-body-color: #e8f4f6;
+    --bs-body-color-rgb: 232, 244, 246;
     --bs-emphasis-color: #ffffff;
     --bs-emphasis-color-rgb: 255, 255, 255;
-    --bs-secondary-color: #b4a7d1;
-    --bs-secondary-color-rgb: 180, 167, 209;
-    --bs-secondary-bg: #1a1030;
-    --bs-tertiary-color: #7f7399;
-    --bs-tertiary-bg: #140a26;
-    --bs-heading-color: #f3edff;
+    --bs-secondary-color: #9db8bf;
+    --bs-secondary-color-rgb: 157, 184, 191;
+    --bs-secondary-bg: #0f2a33;
+    --bs-tertiary-color: #6f8c94;
+    --bs-tertiary-bg: #0b1f26;
+    --bs-heading-color: #e8f4f6;
     --bs-border-color: var(--border);
     --bs-border-color-translucent: var(--border);
-    --bs-primary: var(--violet);
-    --bs-primary-rgb: 168, 85, 247;
-    --bs-primary-text-emphasis: var(--lavender);
-    --bs-primary-bg-subtle: #2a194a;
-    --bs-primary-border-subtle: #5b3a9a;
-    --bs-link-color: var(--lavender);
-    --bs-link-color-rgb: 196, 181, 253;
-    --bs-link-hover-color: #e879f9;
-    --bs-link-hover-color-rgb: 232, 121, 249;
-    --bs-code-color: var(--pink);
+    --bs-border-radius: 0.5rem;
+    --bs-primary: var(--accent);
+    --bs-primary-rgb: 43, 184, 201;
+    --bs-primary-text-emphasis: var(--accent-soft);
+    --bs-primary-bg-subtle: #0f3440;
+    --bs-primary-border-subtle: #1d6b7c;
+    --bs-link-color: var(--accent-soft);
+    --bs-link-color-rgb: 127, 216, 230;
+    --bs-link-hover-color: var(--accent-hover);
+    --bs-link-hover-color-rgb: 165, 243, 252;
+    --bs-code-color: var(--accent-code);
     --bs-font-sans-serif: "Zen Kaku Gothic New", "Outfit", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
+
+    /* kit（--fbc-*） */
+    --fbc-header-bg: linear-gradient(90deg, #071a21 0%, #0d2f3a 100%);
+    --fbc-header-accent: linear-gradient(90deg, #2dd4bf 0%, #22d3ee 100%);
+    --fbc-header-track: rgba(45, 212, 191, 0.22);
+    --fbc-sidebar-bg: linear-gradient(180deg, rgba(7, 22, 28, 0.92) 0%, rgba(11, 38, 48, 0.92) 60%, rgba(15, 50, 62, 0.92) 100%);
+    --fbc-sidebar-text: #d4e4e8;
+    --fbc-body-bg: #071318;
+    --fbc-border: rgba(130, 215, 230, 0.16);
+    --fbc-muted: #9db8bf;
+    --fbc-field-bg: rgba(10, 36, 44, 0.7);
+    --fbc-brand: #2bb8c9;
+    --fbc-grad: var(--grad);
+    --fbc-focus: #a5f3fc;
+    --fbc-maintenance-bg: #071318;
+    --fbc-maintenance-text: #e8f4f6;
+    --fbc-maintenance-muted: #9db8bf;
 }
 
-/* 背景の飾り: Blender の 3D ビューのような、奥へ延びる床の方眼と、回る針金のアバター（js/bgscene.js が canvas に描く）。ここは、地の色だけ。
-   地の色は html に塗る（body に塗ると、body の背景が、z-index: -1 の canvas（#site-scene）を覆ってしまう）。
+/* ---- ライト ---- */
+[data-bs-theme="light"],
+:root[data-bs-theme="light"] {
+    --accent: #0e7490;
+    --accent-deep: #0e7490;
+    --accent-soft: #0b6a82;       /* リンク・h3（地 #f1f8f9 の上で 5.8） */
+    --accent-alt: #2563eb;
+    --accent-code: #0f766e;
+    --accent-hover: #0891b2;
+    --accent-rgb: 14, 116, 144;
+    --accent-deep-rgb: 14, 116, 144;
+    --tip: #2563eb;
+    --tip-rgb: 37, 99, 235;
+    --grad: linear-gradient(120deg, #0d9488 0%, #0e7490 50%, #2563eb 100%);
+
+    --surface: #ffffff;
+    --border: #cfe4e8;
+    --border-strong: #9fcdd6;
+    --kbd-bg: #ffffff;
+    --focus-ring: #0b5568;
+
+    --bs-body-bg: #f1f8f9;
+    --bs-body-bg-rgb: 241, 248, 249;
+    --bs-body-color: #10262d;
+    --bs-body-color-rgb: 16, 38, 45;
+    --bs-emphasis-color: #000000;
+    --bs-emphasis-color-rgb: 0, 0, 0;
+    --bs-secondary-color: #476670;
+    --bs-secondary-color-rgb: 71, 102, 112;
+    --bs-secondary-bg: #e3f0f2;
+    --bs-tertiary-color: #6f8d96;
+    --bs-tertiary-bg: #ebf4f6;
+    --bs-heading-color: #10262d;
+    --bs-primary: #0e7490;
+    --bs-primary-rgb: 14, 116, 144;
+    --bs-primary-text-emphasis: #0b5568;
+    --bs-primary-bg-subtle: #dff3f6;
+    --bs-primary-border-subtle: #9fd3dd;
+    --bs-link-color: #0b6a82;
+    --bs-link-color-rgb: 11, 106, 130;
+    --bs-link-hover-color: #0891b2;
+    --bs-link-hover-color-rgb: 8, 145, 178;
+    --bs-code-color: #0f766e;
+
+    --fbc-body-bg: #f1f8f9;
+    --fbc-border: #cfe4e8;
+    --fbc-muted: #476670;
+    --fbc-field-bg: rgba(255, 255, 255, 0.7);
+    --fbc-brand: #0e7490;
+    --fbc-maintenance-bg: #071318;
+}
+
+/* 地の色。html に塗る（body に塗ると、body の背景が、z-index: -1 の canvas（#site-scene）を覆ってしまう）。
    index.html の起動中の表示（インラインの style）も html と body に同じ色を塗るので、同じ強さで、あとから読む app.css が勝つようにしてある */
 html,
 html[data-bs-theme="dark"] {
-    background: linear-gradient(180deg, #0a0716 0%, #100a26 100%);
+    background: linear-gradient(180deg, #061116 0%, #0a1f27 100%);
+    background-attachment: fixed;
+}
+
+html[data-bs-theme="light"] {
+    background: #f1f8f9;
     background-attachment: fixed;
 }
 
@@ -58,53 +160,70 @@ html[data-bs-theme] body {
     background: transparent;
 }
 
-/* ライトテーマ（サイドバーの紫は共通） */
-[data-bs-theme="light"] {
-    --surface: #ffffff;
-    --border: #d8cdf2;
-    --border-strong: #c4b5fd;
-    --bs-body-bg: #f7f4fd;
-    --bs-body-bg-rgb: 247, 244, 253;
-    --bs-body-color: #1e1433;
-    --bs-body-color-rgb: 30, 20, 51;
-    --bs-emphasis-color: #000000;
-    --bs-emphasis-color-rgb: 0, 0, 0;
-    --bs-secondary-color: #6b5f8a;
-    --bs-secondary-color-rgb: 107, 95, 138;
-    --bs-secondary-bg: #efe9fb;
-    --bs-tertiary-color: #8b80a8;
-    --bs-tertiary-bg: #f1ecfa;
-    --bs-heading-color: #1e1433;
-    --bs-primary: #7c3aed;
-    --bs-primary-rgb: 124, 58, 237;
-    --bs-primary-text-emphasis: #5b21b6;
-    --bs-primary-bg-subtle: #ede9fe;
-    --bs-primary-border-subtle: #c4b5fd;
-    --bs-link-color: #6d28d9;
-    --bs-link-color-rgb: 109, 40, 217;
-    --bs-link-hover-color: #a855f7;
-    --bs-link-hover-color-rgb: 168, 85, 247;
-    --bs-code-color: #b02a8f;
+/* kit の部品の、固定の色（サイドバー・メンテナンス画面・主ボタン）。kit の CSS の後に読むので、同じ詳細度で上書きできる */
+.fbc-sidebar.mud-drawer {
+    background-color: #08181e;
+    border-right-color: rgba(130, 215, 230, 0.14);
 }
 
-html[data-bs-theme="light"] {
-    background: #f7f4fd;
-    background-attachment: fixed;
+.fbc-sidebar .mud-nav-link {
+    color: #e3f0f2;
+}
+
+.fbc-sidebar .mud-nav-link.active .mud-icon-root,
+.fbc-sidebar .mud-nav-link.active .mud-nav-link-icon {
+    color: #c6f3f9 !important;
+}
+
+/* サイドバーはどちらのテーマでも濃い地。いまのページの文字は、明るい水色（MudBlazor の主色はライトでは地と近いため）。
+   詳細度は MudBlazor の (0,5,0) より高くする */
+.fbc-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) {
+    color: #b4f0f7;
+}
+
+.fbc-maintenance h1 {
+    color: #7fd8e6;
+}
+
+.fbc-btn-primary.mud-button-root {
+    background: linear-gradient(135deg, #0e7490, #0b6a82);
+    box-shadow: 0 10px 30px -8px rgba(14, 116, 144, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.fbc-skip-link {
+    color: #10262d;
+}
+
+/* 見た目（このサイトの性格。レイアウトは変えない）: 角丸を少し大きく、h2 の左に細いアクセントの線 */
+.article-body h2 {
+    padding-left: 0.7rem;
+    border-left: 4px solid var(--accent);
+    border-radius: 2px;
+}
+
+.article-body .tip,
+.article-body .warning {
+    border-radius: 8px;
+}
+
+.card,
+.article-card {
+    border-radius: 0.6rem;
 }
 
 [data-bs-theme="light"] .btn-outline-primary {
-    --bs-btn-color: #6d28d9;
+    --bs-btn-color: var(--accent-soft);
 }
 
 [data-bs-theme="light"] kbd {
-    background-color: #ffffff;
-    border-color: #c4b5fd;
-    color: #1e1433;
+    background-color: var(--kbd-bg);
+    border-color: var(--border-strong);
+    color: var(--bs-body-color);
 }
 
 [data-bs-theme="light"] .article-body .tip {
-    background: rgba(103, 232, 249, 0.18);
-    border-color: #0891b2;
+    background: rgba(var(--tip-rgb), 0.1);
+    border-color: var(--tip);
 }
 
 [data-bs-theme="light"] .article-body .warning {
@@ -113,11 +232,11 @@ html[data-bs-theme="light"] {
 }
 
 [data-bs-theme="light"] .article-keys .card-header {
-    background: #ede9fe;
+    background: var(--bs-primary-bg-subtle);
 }
 
 [data-bs-theme="light"] .card {
-    box-shadow: 0 2px 10px rgba(80, 40, 140, 0.08);
+    box-shadow: 0 2px 10px rgba(10, 70, 90, 0.08);
 }
 
 /* ---------- ロードマップ ---------- */
@@ -166,7 +285,7 @@ html[data-bs-theme="light"] {
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--violet), var(--indigo));
+    background: var(--accent-badge-grad);
     color: white;
     font-weight: 600;
     display: flex;
@@ -195,7 +314,7 @@ html[data-bs-theme="light"] {
 
 .tip-card:target {
     border-color: var(--violet);
-    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.45);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.45);
 }
 
 .tip-anchor {
@@ -226,7 +345,7 @@ html[data-bs-theme="light"] {
 .tip-tag {
     padding: 0 7px;
     border-radius: 999px;
-    background: rgba(168, 85, 247, 0.14);
+    background: rgba(var(--accent-rgb), 0.14);
     color: var(--bs-secondary-color);
     font-size: 0.72rem;
 }
@@ -342,7 +461,7 @@ html[data-bs-theme="light"] {
 
 .link-item:target {
     border-radius: 6px;
-    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.45);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.45);
 }
 
 .link-name {
@@ -424,8 +543,8 @@ html[data-bs-theme="light"] {
 }
 
 .article-body .tip {
-    border-color: var(--cyan);
-    background: rgba(103, 232, 249, 0.08);
+    border-color: var(--tip);
+    background: rgba(var(--tip-rgb), 0.1);
 }
 
 .article-body .warning {
@@ -455,7 +574,7 @@ html[data-bs-theme="light"] {
 
 .article-keys .card-header {
     font-weight: 600;
-    background: rgba(168, 85, 247, 0.12);
+    background: rgba(var(--accent-rgb), 0.12);
 }
 
 .article-nav .btn {
@@ -469,7 +588,7 @@ html[data-bs-theme="light"] {
 }
 
 kbd {
-    background-color: #1e1233;
+    background-color: var(--kbd-bg);
     border: 1px solid var(--border-strong);
     border-bottom-width: 2px;
     border-radius: 4px;
@@ -572,14 +691,14 @@ kbd {
 
 .toc-list a.is-current {
     border-left-color: var(--violet);
-    background: rgba(168, 85, 247, 0.14);
+    background: rgba(var(--accent-rgb), 0.14);
     color: var(--bs-emphasis-color);
     font-weight: 700;
 }
 
 [data-bs-theme="light"] .toc-list a.is-current {
-    border-left-color: #6d28d9;
-    background: #ede9fe;
+    border-left-color: var(--accent-deep);
+    background: var(--bs-primary-bg-subtle);
 }
 
 .article-aside .article-keys .list-group-item {
@@ -637,14 +756,14 @@ kbd {
     font-weight: 600;
     font-size: clamp(2rem, 4.2vw, 3.4rem);
     line-height: 1.1;
-    background: linear-gradient(135deg, #d1c4e9 0%, #b39ddb 45%, #9575cd 100%);
+    background: linear-gradient(135deg, #c6f3f9 0%, #7fd8e6 45%, #4fb8cf 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 }
 
 [data-bs-theme="light"] .home-title {
-    background: linear-gradient(120deg, #7c3aed 0%, #6d28d9 100%);
+    background: linear-gradient(120deg, #0e7490 0%, #0b5568 100%);
     -webkit-background-clip: text;
     background-clip: text;
 }
@@ -676,8 +795,8 @@ h1, h2, h3, .navbar-brand {
     --bs-btn-border-color: var(--violet-deep);
     --bs-btn-hover-bg: var(--violet);
     --bs-btn-hover-border-color: var(--violet);
-    --bs-btn-active-bg: #6d28d9;
-    --bs-btn-active-border-color: #6d28d9;
+    --bs-btn-active-bg: #0b5568;
+    --bs-btn-active-border-color: #0b5568;
 }
 
 .btn-outline-primary {
@@ -690,7 +809,7 @@ h1, h2, h3, .navbar-brand {
 }
 
 .badge.bg-primary {
-    background: linear-gradient(135deg, var(--violet), var(--indigo)) !important;
+    background: var(--accent-badge-grad) !important;
 }
 
 h1:focus {
@@ -730,14 +849,6 @@ h1:focus {
 }
 
 /* キーボードのフォーカス（背景に合わせて見える 2px の枠） */
-:root {
-    --focus-ring: #c4b5fd;
-}
-
-[data-bs-theme="light"] {
-    --focus-ring: #5b21b6;
-}
-
 :root body :focus-visible {
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
@@ -761,11 +872,11 @@ h1:focus {
 /* 本文の後ろに、半透明の地の色を敷く。図形と方眼は、本文の後ろでも見えるように、地は 0.4 にとどめる（0.8 だと図形がほとんど見えない）。
    文字の色と地のコントラストは、最も濃い図形の上でも WCAG AA（4.5 以上）を超える（ライト 11 前後・ダーク 9 前後の見積もり） */
 .fbc-content {
-    background: rgb(12 8 28 / 0.4);
+    background: rgb(6 18 24 / 0.4);
 }
 
 [data-bs-theme="light"] .fbc-content {
-    background: rgb(247 244 253 / 0.4);
+    background: rgb(241 248 249 / 0.4);
 }
 
 /* サイトの本文の幅と余白。SSR 版の .content（px-4 = 1.5rem）に合わせる */
@@ -799,7 +910,7 @@ h1:focus {
     --mud-zindex-drawer: 1100;
     --mud-zindex-appbar: 1300;
     --mud-elevation-0: none;
-    --mud-default-borderradius: 6px;
+    --mud-default-borderradius: 8px;
     --mud-typography-default-family: 'Zen Kaku Gothic New', system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic UI', Meiryo, sans-serif;
     --mud-typography-default-size: .875rem;
     --mud-typography-default-weight: 400;
@@ -928,7 +1039,7 @@ h1:focus {
     width: 34px;
     height: 14px;
     border-radius: 7px;
-    background: #a855f7;
+    background: #2bb8c9;
     opacity: 0.5;
 }
 
@@ -939,7 +1050,7 @@ h1:focus {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: #a855f7;
+    background: #2bb8c9;
     box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
 }
 
@@ -1020,7 +1131,7 @@ h1:focus {
     margin-left: 0.4rem;
     padding: 1px 8px;
     border-radius: 999px;
-    background: rgba(168, 85, 247, 0.18);
+    background: rgba(var(--accent-rgb), 0.18);
     color: var(--bs-body-color);
     font-family: "Outfit", system-ui, sans-serif;
     font-size: 0.75rem;
@@ -1097,7 +1208,7 @@ h1:focus {
 }
 
 [data-bs-theme="light"] .category-progress {
-    background: #ede9fe;
+    background: var(--bs-primary-bg-subtle);
 }
 
 [data-bs-theme="light"] .category-progress.is-complete {
@@ -1134,7 +1245,7 @@ h1:focus {
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
-    color: #b9acd6;
+    color: #a9c4cb;
     pointer-events: none;
 }
 
@@ -1151,12 +1262,12 @@ h1:focus {
 }
 
 .av-search-input::placeholder {
-    color: #b9acd6;
+    color: #a9c4cb;
 }
 
 .av-search-input:focus {
     outline: none;
-    border-color: #c084fc;
+    border-color: #b4f0f7;
     background: rgba(255, 255, 255, 0.14);
 }
 
@@ -1206,7 +1317,7 @@ h1:focus {
 }
 
 [data-bs-theme="light"] .av-search-list {
-    box-shadow: 0 12px 40px rgba(80, 40, 140, 0.18);
+    box-shadow: 0 12px 40px rgba(10, 70, 90, 0.18);
 }
 
 .av-search-item,
@@ -1226,7 +1337,7 @@ h1:focus {
 
 .av-search-item:hover,
 .av-search-item.is-active {
-    background: rgba(168, 85, 247, 0.18);
+    background: rgba(var(--accent-rgb), 0.18);
     color: inherit;
 }
 
@@ -1333,7 +1444,7 @@ h1:focus {
     html.fbc-search-open .fbc-search-sheet {
         padding: 8px 56px 8px 12px;
         background: linear-gradient(90deg, #140a26 0%, #241243 100%);
-        border-bottom: 1px solid rgba(200, 170, 255, 0.14);
+        border-bottom: 1px solid rgba(130, 215, 230, 0.14);
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
     }
 
@@ -1417,7 +1528,7 @@ h1:focus {
 }
 
 .search-result:hover {
-    background: rgba(168, 85, 247, 0.08);
+    background: rgba(var(--accent-rgb), 0.08);
     border-color: var(--border-strong);
 }
 
@@ -1455,12 +1566,12 @@ h1:focus {
 
 /* 静的 HTML のサイドバーの「いまのページ」の強調(詳細度は MudBlazor の .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) = 0,5,0 より高くする。負けると、色の変数が無い起動前は灰色・背景透明になる)。起動の後は MudBlazor が色の変数(--mud-palette-*)から決める色を、同じ値で直接書く(ダーク／ライト) */
 .av-static .fbc-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
-    color: #a855f7;
+    color: #b4f0f7;
     background-color: rgba(173, 173, 177, 0.06);
 }
 
 [data-bs-theme="light"] .av-static .fbc-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
-    color: #7c3aed;
+    color: #b4f0f7;
     background-color: rgba(0, 0, 0, 0.06);
 }
 
@@ -1746,7 +1857,7 @@ h1:focus {
 }
 
 .privacy-table tbody tr:nth-child(even) {
-    background: rgba(168, 85, 247, 0.05);
+    background: rgba(var(--accent-rgb), 0.05);
 }
 
 @media (max-width: 767.98px) {
@@ -1822,6 +1933,7 @@ label,
     word-break: normal;
     word-break: auto-phrase;
     overflow-wrap: break-word;
+}
 
 /* ---------- 記事の読みやすさ（ページ内レイアウトの見直し） ---------- */
 
@@ -1863,7 +1975,7 @@ label,
     height: 1.7rem;
     border: 1px solid var(--border-strong);
     border-radius: 50%;
-    background: rgba(168, 85, 247, 0.18);
+    background: rgba(var(--accent-rgb), 0.18);
     color: var(--bs-emphasis-color);
     font-size: 0.85rem;
     font-weight: 700;
@@ -1872,7 +1984,7 @@ label,
 }
 
 [data-bs-theme="light"] .article-body > ol > li::before {
-    background: rgba(124, 58, 237, 0.1);
+    background: rgba(var(--accent-deep-rgb), 0.1);
 }
 
 /* 手順の中の入れ子の箇条書きと画像は、バッジの右（文字の左端）に揃える */

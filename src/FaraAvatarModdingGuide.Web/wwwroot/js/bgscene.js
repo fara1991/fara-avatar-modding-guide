@@ -111,16 +111,16 @@
 
   // 置く物の形と色。br は、形をすっぽり包む球の半径（重ならない距離を測るのに使う）。配置・回り方・漂い方は、下の layout が決める
   var SHAPES = [
-    { m: cone(0.5, 1.1, 16), br: 0.62, hue: [168, 85, 247] },
-    { m: icosphere(0.62), br: 0.62, hue: [196, 181, 253] },
-    { m: cube(), br: 0.87, hue: [124, 58, 237] },
-    { m: torus(0.5, 0.2, 18, 10), br: 0.7, hue: [192, 132, 252] },
-    { m: uvSphere(0.5, 14, 9), br: 0.5, hue: [147, 114, 255] },
-    { m: cylinder(0.38, 1.0, 16), br: 0.55, hue: [168, 85, 247] },
-    { m: cube(), br: 0.87, hue: [147, 114, 255] },
-    { m: icosphere(0.58), br: 0.58, hue: [196, 181, 253] },
-    { m: cone(0.45, 1.0, 16), br: 0.56, hue: [192, 132, 252] },
-    { m: torus(0.5, 0.2, 18, 10), br: 0.7, hue: [168, 85, 247] },
+    { m: cone(0.5, 1.1, 16), br: 0.62, hue: [34, 166, 184] },
+    { m: icosphere(0.62), br: 0.62, hue: [150, 222, 232] },
+    { m: cube(), br: 0.87, hue: [14, 116, 144] },
+    { m: torus(0.5, 0.2, 18, 10), br: 0.7, hue: [78, 196, 212] },
+    { m: uvSphere(0.5, 14, 9), br: 0.5, hue: [64, 160, 214] },
+    { m: cylinder(0.38, 1.0, 16), br: 0.55, hue: [34, 166, 184] },
+    { m: cube(), br: 0.87, hue: [64, 160, 214] },
+    { m: icosphere(0.58), br: 0.58, hue: [150, 222, 232] },
+    { m: cone(0.45, 1.0, 16), br: 0.56, hue: [78, 196, 212] },
+    { m: torus(0.5, 0.2, 18, 10), br: 0.7, hue: [34, 166, 184] },
   ];
   // 広い画面（PC）と縦長の画面（スマホ）で、図形の大きさと数（配置は、本文の領域の中での 0〜1 の位置で持つので、画面の大きさが少し変わっても崩れない）
   var MODES = {
@@ -277,13 +277,13 @@
       ctx.moveTo(tr.p[0][0] * dpr, tr.p[0][1] * dpr); ctx.lineTo(tr.p[1][0] * dpr, tr.p[1][1] * dpr); ctx.lineTo(tr.p[2][0] * dpr, tr.p[2][1] * dpr);
       ctx.closePath(); ctx.fill();
       // 面のつなぎ目に、細い線（Blender の「ワイヤーのオーバーレイ」のように）
-      ctx.globalAlpha = alpha * 0.36 * k; ctx.strokeStyle = dark ? "rgb(230,215,255)" : "rgb(60,30,130)"; ctx.stroke();
+      ctx.globalAlpha = alpha * 0.36 * k; ctx.strokeStyle = dark ? "rgb(205,240,246)" : "rgb(10,70,90)"; ctx.stroke();
     });
     ctx.globalAlpha = 1;
   }
 
   function draw(t) {
-    var color = dark ? "179,136,255" : "101,31,255";
+    var color = dark ? "96,206,222" : "14,116,144";
     var k = dark ? 1 : 0.55;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);

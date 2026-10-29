@@ -16,8 +16,8 @@ public class ContentBackgroundTests
     private const double MaxContentAlpha = 0.5;
 
     [Theory]
-    [InlineData(@"(?m)^\.fbc-content\s*\{\s*background:\s*rgb\(12 8 28 / ([0-9.]+)\);")]
-    [InlineData(@"(?m)^\[data-bs-theme=""light""\] \.fbc-content\s*\{\s*background:\s*rgb\(247 244 253 / ([0-9.]+)\);")]
+    [InlineData(@"(?m)^\.fbc-content\s*\{\s*background:\s*rgb\(6 18 24 / ([0-9.]+)\);")]
+    [InlineData(@"(?m)^\[data-bs-theme=""light""\] \.fbc-content\s*\{\s*background:\s*rgb\(241 248 249 / ([0-9.]+)\);")]
     public void The_content_background_stays_translucent_so_the_scene_shows_through(string pattern)
     {
         var match = Regex.Match(AppCss, pattern);

@@ -46,11 +46,12 @@ public class StaticFrameTests : WebTestContext
     [Fact]
     public void Css_variables_for_the_static_frame_equal_the_site_theme()
     {
-        var layout = SiteTheme.Create().LayoutProperties;
+        var layout = FaraAvatarModdingGuide.Web.Services.AvatarTheme.Create().LayoutProperties;
+        Assert.Equal(layout.DefaultBorderRadius, Var("--mud-default-borderradius"));
         Assert.Equal(layout.AppbarHeight, Var("--mud-appbar-height"));
         Assert.Equal(layout.DrawerWidthLeft, Var("--mud-drawer-width-left"));
         Assert.Equal(layout.DrawerMiniWidthLeft, Var("--mud-drawer-width-mini-left"));
-        var typography = SiteTheme.Create().Typography;
+        var typography = FaraAvatarModdingGuide.Web.Services.AvatarTheme.Create().Typography;
         Assert.Equal(typography.Default.FontSize, Var("--mud-typography-default-size"));
         Assert.Equal(typography.Body2.FontSize, Var("--mud-typography-body2-size"));
         Assert.Equal(typography.Body2.LineHeight!.ToString(System.Globalization.CultureInfo.InvariantCulture), Var("--mud-typography-body2-lineheight"));
@@ -59,11 +60,11 @@ public class StaticFrameTests : WebTestContext
     [Fact]
     public void Static_switch_and_active_colors_equal_the_site_palette()
     {
-        var theme = SiteTheme.Create();
+        var theme = FaraAvatarModdingGuide.Web.Services.AvatarTheme.Create();
         string Rgba(MudBlazor.Utilities.MudColor c) => $"#{c.R:x2}{c.G:x2}{c.B:x2}";
         Assert.Contains($"background-color: rgba(173, 173, 177, 0.06)", AppCss);
-        Assert.Contains($"color: {Rgba(theme.PaletteDark.Primary)};", AppCss);       // ダークのいまのページの文字・スイッチのつまみ
-        Assert.Contains($"color: {Rgba(theme.PaletteLight.Primary)};", AppCss);      // ライト
+        // サイドバー（どちらのテーマでも濃い地）のいまのページの文字は、明るいアクセント #b4f0f7（MudBlazor の主色はライトでは地と近いため、CSS で直接決める）
+        Assert.Equal(2, Regex.Matches(AppCss, @"\.av-static \.fbc-sidebar[^{}]*\.mud-nav-link\.active\s*{[^}]*color: #b4f0f7;").Count);
         Assert.Contains($"background: {Rgba(theme.PaletteDark.Primary)};", AppCss);
     }
 
