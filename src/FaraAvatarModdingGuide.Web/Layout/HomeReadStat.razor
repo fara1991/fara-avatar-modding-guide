@@ -1,0 +1,8 @@
+@inherits ProgressAware
+@inject ContentStore Store
+@* ホームの「読んだ記事: 16/50（32%）」。1 件も読んでいなければ隠す（静的 HTML も hidden のまま。起動したら、記録があれば出す）。静的 HTML（Build の PageBodies.Home）と同じ構造 *@
+@{
+    var ids = Store.Content?.ArticleIds() ?? [];
+    var done = Progress.CountDone(ids);
+}
+<span class="home-read" hidden="@(done == 0)">@HomeCards.ReadStat(done, ids.Count)</span>

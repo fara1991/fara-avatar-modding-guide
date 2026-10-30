@@ -125,12 +125,40 @@ public class PageCatalogTests
     }
 
     [Fact]
-    public void Home_lists_every_section_and_the_three_latest_changelog_entries()
+    public void Home_has_a_card_for_every_theme_with_progress_and_the_four_links()
     {
         var home = Pages.Single(p => p.Path == "/").Main;
-        foreach (var section in Site.Sections) Assert.Contains($"id=\"section-{section.Id}\"", home);
-        foreach (var entry in Site.Changelog.Take(PageBodies.RecentChangelogCount)) Assert.Contains(System.Net.WebUtility.HtmlEncode(entry.Title), home);
-        Assert.Equal(8, Regex.Matches(home, "class=\"card h-100 text-decoration-none article-card\"").Count);
+        foreach (var section in Site.Sections.Where(s => Site.CategoriesIn(s.Id).Count > 0)) Assert.Contains($"id=\"section-{section.Id}\"", home);
+        var themes = Site.Categories.Where(c => Site.ArticlesOf(c.Id).Count > 0).ToList();
+        Assert.Equal(themes.Count, Regex.Matches(home, "class=\"home-card is-").Count);
+        foreach (var c in themes) Assert.Contains($"href=\"/learn/{c.Id}\"", home);
+        // 進み具合は文字でも出し（色だけに頼らない）、バーは progressbar（静的 HTML では読んだ記事は 0 件）
+        Assert.Equal(themes.Count, Regex.Matches(home, "role=\"progressbar\" aria-label=\"[^\"]+\" aria-valuemin=\"0\" aria-valuemax=\"\\d+\" aria-valuenow=\"0\"").Count);
+        Assert.Equal(themes.Count, Regex.Matches(home, "<span class=\"home-badge is-todo\">これから</span>").Count);
+        foreach (var (href, _, title) in HomeCards.Links) Assert.Contains($"<a href=\"{href}\">", home);
+        Assert.Contains("知りたいことを入力（例: ウェイト、ループカット）", home);
+        Assert.Contains("おすすめの順に読む", home);
+        Assert.Contains("やりたいことから探す", home);
+    }
+
+    [Theory]
+    [InlineData(0, 4, "todo", "これから")]
+    [InlineData(2, 5, "go", "読んでいる途中")]
+    [InlineData(5, 5, "done", "全部読んだ")]
+    public void Home_card_state_is_decided_by_the_read_count(int done, int total, string state, string label)
+    {
+        Assert.Equal(state, HomeCards.State(done, total));
+        Assert.Equal(label, HomeCards.StateLabel(state));
+    }
+
+    [Fact]
+    public void Home_card_meta_shows_the_difficulty_range_in_gentle_words()
+    {
+        ArticleDto A(string d) => Site.Articles[0] with { Difficulty = d };
+        Assert.Equal("2 記事 · やさしい", HomeCards.Meta([A("初級"), A("初級")]));
+        Assert.Equal("2 記事 · やさしい〜ふつう", HomeCards.Meta([A("初級"), A("中級")]));
+        Assert.Equal("3 記事 · ふつう〜むずかしい", HomeCards.Meta([A("上級"), A("中級"), A("中級")]));
+        Assert.Equal("読んだ記事: 16/50（32%）", HomeCards.ReadStat(16, 50));
     }
 
     [Theory]

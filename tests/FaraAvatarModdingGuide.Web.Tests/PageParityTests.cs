@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using FaraAvatarModdingGuide.Build;
 using FaraAvatarModdingGuide.Web.Pages;
 using Bunit;
@@ -74,22 +75,38 @@ public class PageParityTests : WebTestContext
     }
 
     [Fact]
-    public void Home_cards_are_the_same_as_the_static_cards()
-    {
-        Assert.Equal(PageBodies.HomeCards.Select(c => (c.Href, c.Icon, c.Title, c.Text)).ToArray(), Home.Cards);
-        Assert.Equal(PageBodies.RecentChangelogCount, Home.RecentCount);
-    }
-
-    [Fact]
-    public void Home_roadmap_has_the_same_structure_classes_as_the_static_page()
+    public void Home_has_the_same_structure_classes_as_the_static_page()
     {
         var cut = Render<Home>();
-        foreach (var cls in new[] { "home-header", "home-title", "roadmap-section", "roadmap-step", "roadmap-marker", "roadmap-articles", "changelog-recent" })
+        foreach (var cls in new[] { "home-header", "home-title", "home-go", "home-search", "home-chips", "home-stat", "home-read", "home-group", "home-grid", "home-card", "home-badge", "home-bar", "home-links" })
         {
             Assert.Contains(cls, cut.Markup);
             Assert.Contains(cls, StaticMain("/"));
         }
-        Assert.Equal(TestData.Content.Articles.Count, cut.FindAll(".roadmap-articles li").Count);
+        var themes = TestData.Content.Categories.Count(c => TestData.Content.ArticlesOf(c.Id).Count > 0);
+        Assert.Equal(themes, cut.FindAll(".home-card").Count);
+        Assert.Equal(themes, cut.FindAll(".home-card [role=progressbar]").Count);
+        Assert.Equal(4, cut.FindAll(".home-links a").Count);
+    }
+
+    [Fact]
+    public void Home_card_reflects_the_read_articles_with_text_and_progressbar()
+    {
+        var store = Services.GetRequiredService<FaraAvatarModdingGuide.Web.Services.ProgressStore>();
+        var category = TestData.Content.Categories.First(c => TestData.Content.ArticlesOf(c.Id).Count >= 2);
+        var articles = TestData.Content.ArticlesOf(category.Id);
+        store.Set(articles[0].Id, true);
+        var cut = Render<Home>();
+        var card = cut.FindAll(".home-card").Single(c => c.GetAttribute("href") == "/learn/" + category.Id);
+        Assert.Contains("読んでいる途中", card.TextContent);
+        Assert.Contains($"読んだ 1/{articles.Count}", card.TextContent);
+        var bar = card.QuerySelector("[role=progressbar]")!;
+        Assert.Equal("1", bar.GetAttribute("aria-valuenow"));
+        Assert.Equal(articles.Count.ToString(), bar.GetAttribute("aria-valuemax"));
+        Assert.False(cut.Find(".home-read").HasAttribute("hidden"));                   // 1 件でも読んだら「読んだ記事: …」を出す
+        foreach (var a in articles) store.Set(a.Id, true);
+        cut = Render<Home>();
+        Assert.Contains("全部読んだ", cut.FindAll(".home-card").Single(c => c.GetAttribute("href") == "/learn/" + category.Id).TextContent);
     }
 }
 
