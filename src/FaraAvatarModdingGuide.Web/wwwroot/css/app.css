@@ -2756,10 +2756,5 @@ label,
     }
 }
 
-/* iOS（WebKit）だけ、ページの端を引っ張ったときのゴム伸びを止める。-webkit-touch-callout は iOS の WebKit だけが持つ。
-   Android の Chrome の「引っ張って更新」は、overscroll-behavior を指定すると無効になるので、ここには入れない */
-@supports (-webkit-touch-callout: none) {
-    html {
-        overscroll-behavior-y: none;
-    }
-}
+/* ページの端のゴム伸び・「引っ張って更新」には、overscroll-behavior を指定しない。iOS の Chrome で、引っ張って更新が無効になるため。
+   ゴム伸びで見える領域は、html の単色の背景色でサイトの色にしている */
