@@ -2546,3 +2546,148 @@ label,
         min-height: 44px;
     }
 }
+
+/* ---------- 記事のページ（B 案）: 中央に 1 本の本文（読みやすい幅）+ 右に「このページの内容」。末尾に「同じテーマの記事」 ---------- */
+.article-page {
+    max-width: 72rem;
+    margin: 0 auto;
+}
+
+/* テーマ（カテゴリ）へのリンク。「実践：アバター用衣装の作成 · 6/6 本目」 */
+.article-cat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    margin-bottom: 0.6rem;
+    padding: 0 14px 0 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--bs-body-color);
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.article-cat:hover {
+    border-color: var(--accent);
+}
+
+.article-cat .home-tile {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.article-cat .home-tile .av-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.article-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+}
+
+.article-main {
+    min-width: 0;
+}
+
+@media (min-width: 992px) {
+    .article-cols.has-aside {
+        grid-template-columns: minmax(0, 48rem) 16rem;
+        column-gap: 3rem;
+    }
+}
+
+/* 同じテーマの記事（番号つき。いまの記事は強調、読んだ記事は番号を緑に） */
+.article-related {
+    margin: 3rem 0 0;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.article-related-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.article-related-desc {
+    margin: 0.2rem 0 1rem;
+    color: var(--bs-secondary-color);
+}
+
+.article-related-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.article-related-list a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--bs-body-color);
+    font-size: 0.92rem;
+    line-height: 1.45;
+    text-decoration: none;
+}
+
+.article-related-list a:hover {
+    border-color: var(--accent);
+}
+
+.article-related-list a[aria-current="page"] {
+    border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.18);
+    font-weight: 700;
+}
+
+.article-related-no {
+    display: grid;
+    flex: none;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 50%;
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.article-related-list a[aria-current="page"] .article-related-no {
+    border-color: transparent;
+    background: var(--accent-badge-grad);
+    color: #fff;
+}
+
+.article-related-list li.is-done .article-related-no {
+    border-color: transparent;
+    background: rgba(74, 222, 128, 0.16);
+    color: #86efac;
+}
+
+[data-bs-theme="light"] .article-related-list li.is-done .article-related-no {
+    background: rgba(22, 163, 74, 0.14);
+    color: #166534;
+}
+
+.article-related-name {
+    flex: 1 1 auto;
+}
+
+@media (max-width: 640px) {
+    .article-related-list {
+        grid-template-columns: 1fr;
+    }
+}
