@@ -144,15 +144,21 @@
 
 /* 地の色。html に塗る（body に塗ると、body の背景が、z-index: -1 の canvas（#site-scene）を覆ってしまう）。
    index.html の起動中の表示（インラインの style）も html と body に同じ色を塗るので、同じ強さで、あとから読む app.css が勝つようにしてある */
+/* 単色の background-color を、グラデーションとは別に必ず持たせる。iOS（WebKit）は background-attachment: fixed を無視し、ゴム伸び（端を引っ張って出る領域）には
+   グラデーションが塗られず黒になるため、その領域はこの単色（グラデーションの端の色）で塗られる。color-scheme は、その領域・スクロールバー・入力部品の配色をテーマに合わせる */
 html,
 html[data-bs-theme="dark"] {
     background: linear-gradient(180deg, #061116 0%, #0a1f27 100%);
+    background-color: #061116;
     background-attachment: fixed;
+    color-scheme: dark;
 }
 
 html[data-bs-theme="light"] {
     background: #f1f8f9;
+    background-color: #f1f8f9;
     background-attachment: fixed;
+    color-scheme: light;
 }
 
 html body,
@@ -935,11 +941,6 @@ h1:focus {
 
     .av-static .av-sp {
         display: flex;
-    }
-
-    .av-static .mud-main-content {
-        display: block;
-        min-height: 0;
     }
 
     .av-static .fbc-content {
@@ -2246,8 +2247,11 @@ label,
 
 /* さがす欄（大きめ）。入力欄そのものではなく、枠（form）にフォーカスの輪郭を出す */
 .home-search {
+    box-sizing: border-box;
     display: flex;
     flex: 1 1 320px;
+    min-width: 0;
+    max-width: 100%;
     align-items: center;
     gap: 0.6rem;
     max-width: 560px;
@@ -2271,13 +2275,18 @@ label,
 }
 
 .home-search-input {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    width: 0;   /* 入力欄の固有の幅（size 属性・長い案内文）を持たせない。WebKit でも、残りの幅に縮む */
     min-width: 0;
     min-height: 48px;
     border: 0;
     background: transparent;
     color: inherit;
     font-size: 1rem;   /* 16px 未満だと、iOS は入力のとき拡大する */
+}
+
+.home-search > .btn {
+    flex: none;
 }
 
 .home-search-input:focus,
@@ -2717,5 +2726,40 @@ label,
 @media (max-width: 640px) {
     .article-related-list {
         grid-template-columns: 1fr;
+    }
+}
+
+/* スマホ（ページ全体がスクロールする設定）: 短いページでもフッターを画面の下端に付ける。
+   kit の CSS は本文の直後にフッターを出すため、404 や練習のロビーなど短いページで、フッターの下に空白が出ていた。本文を縦の flex にして、余りを本文に回す */
+@media (max-width: 767.98px) {
+    .fbc-page.fbc-page-scroll .mud-main-content {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+    .fbc-page.fbc-page-scroll .mud-main-content > main {
+        flex: 1 0 auto;
+    }
+
+    .fbc-page.fbc-page-scroll .fbc-footer {
+        flex: none;
+    }
+}
+
+/* スマホの幅のフッター。リンクのタップ領域（44px の ::after）がフッターの下に 11px はみ出し、padding-bottom（8px）を超えた 3px が
+   文書のスクロール範囲に入っていた。はみ出す分（11px）を余白に取る。ホームバーのある端末では、その分も足す */
+@media (max-width: 599.98px) {
+    .fbc-footer {
+        padding-bottom: calc(11px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* iOS（WebKit）だけ、ページの端を引っ張ったときのゴム伸びを止める。-webkit-touch-callout は iOS の WebKit だけが持つ。
+   Android の Chrome の「引っ張って更新」は、overscroll-behavior を指定すると無効になるので、ここには入れない */
+@supports (-webkit-touch-callout: none) {
+    html {
+        overscroll-behavior-y: none;
     }
 }
