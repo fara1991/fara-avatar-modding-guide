@@ -97,9 +97,11 @@ async function metrics(page) {
   return { nodes: m.Nodes, documents: m.Documents, listeners: m.JSEventListeners, heapMB: Math.round(m.JSHeapUsedSize / 1048576) };
 }
 
-/** 画面内の移動(再読み込みなし): サイドバーのリンクを押す */
+/** 画面内の移動(再読み込みなし): 上のヘッダーのリンクを押す（ヘッダーに無いページは Blazor.navigateTo） */
 async function go(page, href) {
-  await page.locator(`.fbc-nav a[href="${href}"], .fbc-nav a[href="${href.replace(/^\//, "")}"]`).first().click();   // サイドバーの href は <base> に対する相対(learn/basics)
+  const link = page.locator(`.av-topnav-links a[href="${href}"]`).first();
+  if (await link.count()) await link.click();
+  else await page.evaluate((h) => window.Blazor.navigateTo(h), href);
   await page.waitForFunction((h) => location.pathname + location.search === h || location.pathname === h.split("?")[0], href, { timeout: 30000 });
 }
 

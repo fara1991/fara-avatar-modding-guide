@@ -86,7 +86,7 @@ internal static class StaticFrame
 
     /// <summary>
     /// 上のヘッダーの各リンク(Web の AvTopNav と同じ構造・同じ class。項目・並び・強調は Shared の HeaderNav)。
-    /// 幅ごとの見せ方は CSS: 1181px 以上は横に並べて「もっと見る」、768〜1180px は「メニュー」1 つ。768px 未満の縦のメニュー(.av-nav-flat)は、
+    /// 幅ごとの見せ方は CSS: 1280px 以上は横に並べて「もっと見る」、768〜1279px は「メニュー」1 つ。768px 未満の縦のメニュー(.av-nav-flat)は、
     /// 起動の後はハンバーガーの中に出る。静的 HTML では出さず、JavaScript が無いスマホだけ、本文の後ろに出す(index.html の noscript)。path が null(404.html)は、どれも強調しない。
     /// </summary>
     public static string TopNav(string? path)
