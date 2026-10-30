@@ -20,7 +20,7 @@ public static class SiteNav
             new(null, new[]
             {
                 new NavEntry("", "ホーム", "Home", Exact: true),
-                new NavEntry("learn", "目次", "FormatListNumbered", Exact: true),
+                new NavEntry("learn", "記事一覧", "FormatListNumbered", Exact: true),
             }),
         };
 
@@ -38,11 +38,11 @@ public static class SiteNav
 
         sections.Add(new NavSection("リファレンス", new[]
         {
-            new NavEntry("shortcuts", "ショートカット一覧", "Keyboard"),
+            new NavEntry("shortcuts", "ショートカットキー", "Keyboard"),
             new NavEntry("glossary", "用語集", "Article"),
             new NavEntry("howto", "何て名前？", "HelpOutline"),
-            new NavEntry("tips", "TIPS", "Lightbulb"),
-            new NavEntry("qa", "改変 Q&A", "Chat"),
+            new NavEntry("tips", "困ったときのコツ（TIPS）", "Lightbulb"),
+            new NavEntry("qa", "よくある質問（改変 Q&A）", "Chat"),
             new NavEntry("addons", "アドオン", "Extension"),
             new NavEntry("links", "リンク集", "Link"),
             new NavEntry("changelog", "更新履歴", "History"),

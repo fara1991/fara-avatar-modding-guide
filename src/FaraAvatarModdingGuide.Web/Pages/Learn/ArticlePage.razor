@@ -48,7 +48,7 @@ else
     @if (headings.Count > 0)
     {
         <details class="article-toc-mobile d-lg-none mb-4">
-            <summary>この記事の目次（@headings.Count）</summary>
+            <summary>このページの内容（@headings.Count）</summary>
             <ol class="toc-list">
                 @foreach (var h in headings)
                 {
@@ -72,7 +72,7 @@ else
                     @if (headings.Count > 0)
                     {
                         <nav class="article-toc d-none d-lg-block" aria-labelledby="article-toc-title">
-                            <div class="article-toc-title" id="article-toc-title">この記事の目次</div>
+                            <div class="article-toc-title" id="article-toc-title">このページの内容</div>
                             <ol class="toc-list">
                                 @foreach (var h in headings)
                                 {
@@ -103,20 +103,20 @@ else
         <button type="button" class="@("btn btn-progress" + (done ? " is-done" : ""))" aria-pressed="@(done ? "true" : "false")" @onclick="() => Progress.Set(article.Id, !done)">
             @if (done)
             {
-                <AvIcon Name="CheckCircle" /><text> 完了済み（クリックで取り消す）</text>
+                <AvIcon Name="CheckCircle" /><text> 読んだ（クリックで取り消す）</text>
             }
             else
             {
-                <AvIcon Name="RadioButtonUnchecked" /><text> このページを完了にする</text>
+                <AvIcon Name="RadioButtonUnchecked" /><text> このページを「読んだ」にする</text>
             }
         </button>
-        <span class="small text-body-secondary">完了の記録はこのブラウザにだけ保存されます。</span>
+        <span class="small text-body-secondary">『読んだ』の印は、このブラウザにだけ残ります。</span>
     </div>
 
     <nav class="article-nav d-flex justify-content-between gap-3 mt-4 pt-4 border-top" aria-label="前後の記事">
         @if (prev is not null)
         {
-            <a href="@prev.Url" class="btn btn-outline-secondary text-start"><small class="d-block text-body-secondary">← 前へ</small>@prev.Title</a>
+            <a href="@prev.Url" class="btn btn-outline-secondary text-start"><small class="d-block text-body-secondary">← 前の記事</small>@prev.Title</a>
         }
         else
         {
@@ -124,7 +124,7 @@ else
         }
         @if (next is not null)
         {
-            <a href="@next.Url" class="btn btn-primary text-end"><small class="d-block">次へ →</small>@next.Title</a>
+            <a href="@next.Url" class="btn btn-primary text-end"><small class="d-block">次の記事 →</small>@next.Title</a>
         }
     </nav>
 }
@@ -213,7 +213,7 @@ else
 
     private IReadOnlyList<(string? Href, string Text)> Crumbs(SiteContent content)
     {
-        var crumbs = new List<(string?, string)> { ("/learn", "目次") };
+        var crumbs = new List<(string?, string)> { ("/learn", "記事一覧") };
         if (content.SectionOf(category!) is { } section) crumbs.Add(($"/learn#section-{section.Id}", section.Title));
         crumbs.Add(($"/learn/{category!.Id}", category.Title));
         crumbs.Add((null, article!.Title));

@@ -2,10 +2,10 @@
 @inject ContentStore Store
 @inject SiteSettings Settings
 
-<PageTitle>@PageTitles.Compose("ショートカット一覧", Settings.Title)</PageTitle>
+<PageTitle>@PageTitles.Compose("ショートカットキー", Settings.Title)</PageTitle>
 
 @* 静的 HTML（Build の PageBodies.Shortcuts）と同じ構造・class。カテゴリの絞り込みは ?category=（URL で共有できる）。全件を描いて、合わない行を隠す *@
-<h1>ショートカット一覧</h1>
+<h1>ショートカットキー</h1>
 <p class="lead">Blender でよく使うキーボードショートカットを機能別に整理しました。</p>
 
 @if (Store.Content is not { } content)
@@ -25,7 +25,7 @@ else
 
     <div class="table-responsive">
         <table class="table table-striped table-hover align-middle">
-            <thead class="table-dark"><tr><th>ショートカット</th><th>機能</th><th>カテゴリ</th><th>説明</th></tr></thead>
+            <thead class="table-dark"><tr><th>ショートカット</th><th>機能</th><th>テーマ</th><th>説明</th></tr></thead>
             <tbody id="shortcut-rows">
                 @foreach (var x in content.Shortcuts)
                 {

@@ -437,7 +437,7 @@ class Tutorial {
     if (page && all && window.faraProgress) {
       const was = window.faraProgress.isDone(page);
       window.faraProgress.set(page, true);
-      text = was ? "このページは完了済みです。" : "このページを「完了」にしました。";
+      text = was ? "このページは「読んだ」にしてあります。" : "このページを「読んだ」にしました。";
     } else if (!all) {
       text = "このページには、ほかにもチュートリアルがあります。";
     }

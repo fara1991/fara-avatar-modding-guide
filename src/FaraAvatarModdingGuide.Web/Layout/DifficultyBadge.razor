@@ -1,6 +1,6 @@
 @if (!string.IsNullOrEmpty(Difficulty))
 {
-    <span class="badge @SiteLookups.DifficultyClass(Difficulty)">@Difficulty</span>
+    <span class="badge @SiteLookups.DifficultyClass(Difficulty)">@SiteLookups.DifficultyLabel(Difficulty)</span>
 }
 
 @code {

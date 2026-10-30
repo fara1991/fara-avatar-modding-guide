@@ -4,7 +4,7 @@
     var done = Progress.CountDone(Ids);
     var total = Ids.Count;
 }
-<span class="@ClassName(done, total)" hidden="@(done == 0)" title="@(done == 0 ? null : $"{total} ページ中 {done} ページ完了")">@(done == 0 ? "" : $"{done}/{total}")</span>
+<span class="@ClassName(done, total)" hidden="@(done == 0)" title="@(done == 0 ? null : $"{total} 記事のうち {done} 記事を読みました")">@(done == 0 ? "" : $"{done}/{total}")</span>
 
 @code {
     /// <summary>このカテゴリの記事の id。</summary>

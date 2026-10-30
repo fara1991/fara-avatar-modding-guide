@@ -20,7 +20,7 @@ internal static class Fragments
     public static string DifficultyBadge(string? difficulty)
     {
         if (string.IsNullOrEmpty(difficulty)) return "";
-        return $"<span class=\"badge {SiteLookups.DifficultyClass(difficulty)}\">{E(difficulty)}</span>";
+        return $"<span class=\"badge {SiteLookups.DifficultyClass(difficulty)}\">{E(SiteLookups.DifficultyLabel(difficulty))}</span>";
     }
 
     /// <summary>パンくず。最後の項目だけリンクにしない。</summary>
@@ -108,11 +108,11 @@ internal static class Fragments
         $"<span class=\"category-progress{(extraClass.Length == 0 ? "" : " " + extraClass)}\" hidden></span>";
 
     /// <summary>目次の記事の横の「完了」のチェック（完了の記録があるときだけ、WebAssembly が見せる）。</summary>
-    public static string DoneMark() => $"<span class=\"done-mark\" title=\"完了\" aria-label=\"完了\" role=\"img\">{Icon("CheckCircle")}</span>";
+    public static string DoneMark() => $"<span class=\"done-mark\" title=\"読んだ\" aria-label=\"読んだ\" role=\"img\">{Icon("CheckCircle")}</span>";
 
     /// <summary>「完了」の印（記事の見出しの横・記事カードの右上。完了の記録があるときだけ、WebAssembly が見せる）。</summary>
     public static string DoneBadge(string extraClass = "") =>
-        $"<span class=\"done-mark badge-done{(extraClass.Length == 0 ? "" : " " + extraClass)}\">{Icon("CheckCircle")} 完了</span>";
+        $"<span class=\"done-mark badge-done{(extraClass.Length == 0 ? "" : " " + extraClass)}\">{Icon("CheckCircle")} 読んだ</span>";
 
     /// <summary>
     /// 完了したページの件数と「次に読む」リンク（Web の ProgressSummary.razor と同じ構造）。
@@ -124,12 +124,12 @@ internal static class Fragments
         sb.Line($"<div class=\"progress-summary card mb-4\"{(hideWhenEmpty ? " hidden" : "")}>");
         sb.Line("<div class=\"card-body d-flex flex-wrap align-items-center gap-3\">");
         sb.Line("<div class=\"flex-grow-1\">");
-        sb.Line($"<div class=\"fw-semibold\">{Icon("TaskAlt", "me-1")}<span>{articles.Count} ページ中 0 ページ完了</span></div>");
+        sb.Line($"<div class=\"fw-semibold\">{Icon("TaskAlt", "me-1")}<span>{articles.Count} 記事のうち 0 記事を読みました</span></div>");
         sb.Line("<div class=\"progress-track mt-2\" aria-hidden=\"true\"><span style=\"width: 0%\"></span></div>");
         sb.Line("</div>");
         // 何も完了していないときの「次に読む」は、最初の記事（完了の記録があれば、WebAssembly が、まだ読んでいない最初の記事に替える）
         if (articles.Count > 0) sb.Line($"<a class=\"btn btn-primary\" href=\"/learn/{E(articles[0].Id)}\">次に読む: <span>{E(articles[0].Title)}</span> {Icon("ArrowForward")}</a>");
-        if (showReset) sb.Line($"<button type=\"button\" class=\"btn btn-sm btn-outline-secondary\">{Icon("RestartAlt")} 記録を消す</button>");
+        if (showReset) sb.Line($"<button type=\"button\" class=\"btn btn-sm btn-outline-secondary\">{Icon("RestartAlt")} 「読んだ」の印を消す</button>");
         sb.Line("</div>");
         if (showNote) sb.Line($"<div class=\"card-footer small text-body-secondary\">{ProgressNote}</div>");
         sb.Line("</div>");
@@ -137,5 +137,5 @@ internal static class Fragments
     }
 
     /// <summary>学習の進み具合の説明（/learn の ProgressSummary の下）。</summary>
-    public const string ProgressNote = "各ページの最後にある「このページを完了にする」で記録できます（ページ内の「やってみよう」を最後まで進めても完了になります）。記録はこのブラウザにだけ保存され、ログインは不要です。別のブラウザや端末には引き継がれません。";
+    public const string ProgressNote = "各ページの最後にある「このページを『読んだ』にする」で印を付けられます（ページ内の「やってみよう」を最後まで進めても「読んだ」になります）。『読んだ』の印は、このブラウザにだけ残り、ログインは不要です。別のブラウザや端末には引き継がれません。";
 }

@@ -68,7 +68,16 @@ public static class SiteLookups
         _ => "bg-dark",
     };
 
-    /// <summary>難易度のバッジの色。</summary>
+    /// <summary>むずかしさの表示名（front matter の初級・中級・上級を、やさしい言葉で出す）。Content の検索の副題（ContentService.DifficultyLabel）と同じ対応。</summary>
+    public static string DifficultyLabel(string? difficulty) => difficulty switch
+    {
+        "初級" => "やさしい",
+        "中級" => "ふつう",
+        "上級" => "むずかしい",
+        _ => difficulty ?? "",
+    };
+
+    /// <summary>むずかしさのバッジの色。</summary>
     public static string DifficultyClass(string? difficulty) => difficulty switch
     {
         "初級" => "bg-success",

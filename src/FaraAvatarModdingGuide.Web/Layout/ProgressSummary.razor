@@ -11,7 +11,7 @@
 <div class="progress-summary card mb-4" hidden="@(HideWhenEmpty && done == 0)">
     <div class="card-body d-flex flex-wrap align-items-center gap-3">
         <div class="flex-grow-1">
-            <div class="fw-semibold"><AvIcon Name="TaskAlt" Class="me-1" /><span>@ids.Count ページ中 @done ページ完了</span></div>
+            <div class="fw-semibold"><AvIcon Name="TaskAlt" Class="me-1" /><span>@ids.Count 記事のうち @done 記事を読みました</span></div>
             <div class="progress-track mt-2" aria-hidden="true"><span style="@($"width: {(ids.Count == 0 ? 0 : done * 100.0 / ids.Count).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%")"></span></div>
         </div>
         @if (next is not null)
@@ -20,7 +20,7 @@
         }
         @if (ShowReset)
         {
-            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="ResetAsync"><AvIcon Name="RestartAlt" /> 記録を消す</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="ResetAsync"><AvIcon Name="RestartAlt" /> 「読んだ」の印を消す</button>
         }
     </div>
     @if (ShowNote)
@@ -36,10 +36,10 @@
     [Parameter] public bool ShowNote { get; set; }
 
     /// <summary>学習の進み具合の説明。Build の Fragments.ProgressNote と同じ文（Web.Tests が確かめる）。</summary>
-    internal const string ProgressNote = "各ページの最後にある「このページを完了にする」で記録できます（ページ内の「やってみよう」を最後まで進めても完了になります）。記録はこのブラウザにだけ保存され、ログインは不要です。別のブラウザや端末には引き継がれません。";
+    internal const string ProgressNote = "各ページの最後にある「このページを『読んだ』にする」で印を付けられます（ページ内の「やってみよう」を最後まで進めても「読んだ」になります）。『読んだ』の印は、このブラウザにだけ残り、ログインは不要です。別のブラウザや端末には引き継がれません。";
 
     private async Task ResetAsync()
     {
-        if (await JS.InvokeAsync<bool>("confirm", "完了の記録をすべて消します。よろしいですか？")) Progress.Reset();
+        if (await JS.InvokeAsync<bool>("confirm", "「読んだ」の印をすべて消します。よろしいですか？")) Progress.Reset();
     }
 }
