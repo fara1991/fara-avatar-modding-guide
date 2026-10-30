@@ -58,13 +58,10 @@ public class StaticFrameTests : WebTestContext
     }
 
     [Fact]
-    public void Static_switch_and_active_colors_equal_the_site_palette()
+    public void Static_switch_colors_equal_the_site_palette()
     {
         var theme = FaraAvatarModdingGuide.Web.Services.AvatarTheme.Create();
         string Rgba(MudBlazor.Utilities.MudColor c) => $"#{c.R:x2}{c.G:x2}{c.B:x2}";
-        Assert.Contains($"background-color: rgba(173, 173, 177, 0.06)", AppCss);
-        // サイドバー（どちらのテーマでも濃い地）のいまのページの文字は、明るいアクセント #b4f0f7（MudBlazor の主色はライトでは地と近いため、CSS で直接決める）
-        Assert.Equal(2, Regex.Matches(AppCss, @"\.av-static \.fbc-sidebar[^{}]*\.mud-nav-link\.active\s*{[^}]*color: #b4f0f7;").Count);
         Assert.Contains($"background: {Rgba(theme.PaletteDark.Primary)};", AppCss);
     }
 
@@ -88,56 +85,52 @@ public class StaticFrameTests : WebTestContext
     [Theory]
     [InlineData("/")]
     [InlineData("/learn")]
-    [InlineData("/learn/basics")]
+    [InlineData("/learn/getting-started")]
+    [InlineData("/learn/getting-started/install")]
     [InlineData("/learn/basics/transform")]
     [InlineData("/glossary")]
+    [InlineData("/tips")]
     [InlineData("/practice")]
     [InlineData("/practice/unity")]
+    [InlineData("/practice/room")]
+    [InlineData("/shortcuts")]
     [InlineData("/report")]
     [InlineData("/privacy")]
-    public void Sidebar_items_and_highlight_equal_the_rendered_sidebar(string path)
+    public void Header_links_and_highlight_equal_the_rendered_header(string path)
     {
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost" + path);
-        var cut = Render<AvNavMenu>(p => p.Add(x => x.Groups, NavGroups.Build(TestData.Content)));
-        var rendered = cut.FindAll("a.mud-nav-link").Select(a => (Href: a.GetAttribute("href")!, Text: a.TextContent.Trim(), Active: a.ClassList.Contains("active"))).ToList();
-        var sections = cut.FindAll(".fbc-nav-section").Select(d => d.TextContent.Trim()).ToList();
+        var cut = Render<AvTopNav>();
+        var rendered = cut.FindAll(".av-topnav-links a").Select(a => (Text: a.TextContent.Trim(), Href: a.GetAttribute("href"), Current: a.GetAttribute("aria-current"))).ToList();
+        var renderedFlat = cut.FindAll(".av-nav-flat a").Select(a => (Text: a.TextContent.Trim(), Href: a.GetAttribute("href"), Current: a.GetAttribute("aria-current"))).ToList();
 
-        var html = StaticFrame.Sidebar(TestData.Content, path);
-        var staticLinks = Regex.Matches(html, "<a href=\"/(?<href>[^\"]*)\" class=\"(?<cls>[^\"]*)\".*?<div class=\"mud-nav-link-text\">(?<text>.*?)(?:<span class=\"category-progress[^>]*></span>)?</div></a>", RegexOptions.Singleline)
-            .Select(m => (Href: m.Groups["href"].Value, Text: System.Net.WebUtility.HtmlDecode(m.Groups["text"].Value).Trim(), Active: m.Groups["cls"].Value.Contains("active"))).ToList();
-        var staticSections = Regex.Matches(html, "<div class=\"fbc-nav-section\">(.*?)</div>").Select(m => System.Net.WebUtility.HtmlDecode(m.Groups[1].Value)).ToList();
+        (string Text, string? Href, string? Current) Parse(Match m) =>
+            (System.Net.WebUtility.HtmlDecode(m.Groups["text"].Value).Trim(), m.Groups["href"].Value, m.Groups["cur"].Success ? "page" : null);
+        const string Link = "<a class=\"[^\"]*\" href=\"(?<href>[^\"]*)\"(?<cur> aria-current=\"page\")?>(?:<svg.*?</svg>)?(?<text>[^<]*)</a>";
 
-        Assert.Equal(rendered, staticLinks);
-        Assert.Equal(sections, staticSections);
-        Assert.Single(staticLinks, l => l.Active);                       // ちょうど 1 つだけ強調
+        var html = StaticFrame.TopNav(path);
+        var links = Regex.Match(html, "<div class=\"av-topnav-links\">.*?</details></div>", RegexOptions.Singleline).Value;
+        var staticLinks = Regex.Matches(links, Link, RegexOptions.Singleline).Select(Parse).ToList();
+        Assert.Equal(rendered, staticLinks.Select(l => (l.Text, (string?)l.Href, l.Current)).ToList());
+
+        var staticFlat = Regex.Matches(StaticFrame.NoScriptMenu(path), Link, RegexOptions.Singleline).Select(Parse).ToList();
+        Assert.Equal(renderedFlat, staticFlat.Select(l => (l.Text, (string?)l.Href, l.Current)).ToList());
+        Assert.Equal(HeaderNav.Main.Count + HeaderNav.More.Count, staticFlat.Count);
+        Assert.True(staticFlat.Count(l => l.Current == "page") <= 1);   // 強調は多くても 1 つ
     }
 
     [Fact]
-    public void Sidebar_highlights_nothing_when_there_is_no_page_like_the_404()
+    public void Header_highlights_nothing_when_there_is_no_page_like_the_404()
     {
-        Assert.DoesNotContain("active", Regex.Replace(StaticFrame.Sidebar(TestData.Content, null), "category-progress|mud-drawer--[a-z]+", ""));
+        Assert.DoesNotContain("aria-current", StaticFrame.TopNav(null));
+        Assert.DoesNotContain("data-active", StaticFrame.TopNav(null));
+        Assert.DoesNotContain("aria-current", StaticFrame.NoScriptMenu(null));
     }
 
     [Fact]
     public void Static_nav_icons_are_the_same_svg_as_the_rendered_ones()
     {
         // 静的 HTML のサイドバーのアイコンの path が、WebAssembly の IconMap(MudBlazor の定数)と同じ
-        foreach (var entry in SiteNav.Build(TestData.Content).SelectMany(s => s.Items))
+        foreach (var entry in HeaderNav.More)
             Assert.Equal(SiteIcons.SvgMarkup(entry.Icon), FaraAvatarModdingGuide.Web.Services.IconMap.Get(entry.Icon));
-    }
-
-    [Fact]
-    public void Static_active_highlight_selector_is_more_specific_than_mudblazor_s_without_important()
-    {
-        // MudBlazor: .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) = (0,5,0)。静的な枠のルールは、これより詳細度が高いこと
-        // (負けると、色の変数が無い起動前は灰色・背景透明になり、起動の瞬間に強調が現れる)。!important は使わない
-        var rules = Regex.Matches(AppCss, @"(?<sel>[^{}]*\.av-static \.fbc-sidebar[^{}]*\.mud-nav-link\.active)\s*\{(?<body>[^}]*)\}").ToList();
-        Assert.Equal(2, rules.Count);                                    // ダークとライト
-        foreach (var rule in rules)
-        {
-            var sel = rule.Groups["sel"].Value;
-            Assert.Contains(".mud-navmenu.mud-navmenu-default", sel);
-            Assert.DoesNotContain("!important", rule.Groups["body"].Value);
-        }
     }
 }

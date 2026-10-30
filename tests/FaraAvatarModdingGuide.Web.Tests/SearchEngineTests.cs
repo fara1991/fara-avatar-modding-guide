@@ -14,7 +14,7 @@ public class SearchEngineTests
     [Fact]
     public void Yougo_finds_the_glossary_page_first_and_moderingu_finds_modeling()
     {
-        Assert.Equal("用語集", Titles("yougo", 1)[0]);
+        Assert.Equal("言葉の意味（用語集）", Titles("yougo", 1)[0]);
         Assert.Equal("モデリング", Titles("moderingu", 1)[0]);
     }
 

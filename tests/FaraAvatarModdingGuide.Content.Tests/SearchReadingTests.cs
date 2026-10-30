@@ -56,8 +56,8 @@ public class SearchReadingTests
     {
         var index = Load().BuildSearchIndex();
         var glossary = index.Single(e => e.Type == "page" && e.Url == "/glossary");
-        Assert.Equal("用語集", glossary.Title);
-        Assert.Equal("ようごしゅう", glossary.Reading);
+        Assert.Equal("言葉の意味（用語集）", glossary.Title);
+        Assert.Equal("ようごしゅうことばのいみ", glossary.Reading);
 
         var modeling = index.Single(e => e.Type == "category" && e.Url == "/learn/modeling");
         Assert.Equal("もでりんぐ", modeling.Reading);

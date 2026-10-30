@@ -20,6 +20,7 @@ Avatar Modding Guide（https://avatar.fara-labs.com/）。.NET 10 / Blazor WebAs
 - `src/FaraAvatarModdingGuide.Build`: 本文入りの静的 HTML・`data/*.json`・robots・sitemap・`_headers`・`_redirects` を、`dotnet publish` の出力に書き足す。本番用（`--env production`）と確認用（`--env develop`）で内容が違う（sitemap・noindex・canonical）
 - `src/FaraAvatarModdingGuide.Content`・`Shared`: 記事を読む部分（ビルド時のみ）と、Build と Web が共有する型
 - ルートの `wwwroot/` は `images/`（画像）と `og.png`（OGP。4 サイト共通の名前、URL は `/og.png?v=N`）だけ（Build がコピーする。画像は以前 tools/tutorial-images が書いた。S7 で消した。作り方は docs/phase3b-design.md の §17.7）
+- 上のヘッダー（サイドバーは無い。B 案）: 各リンクは Shared の `HeaderNav`（項目・強調の規則）から、Web の `Layout/AvTopNav.razor`（kit の `SiteLayout` の `ShowDrawer=false` + `TopNav` + `CollapseTopNavOnMobile`）と、Build の `StaticFrame.TopNav` が同じ構造で作る。1181px 以上は横に並べて「もっと見る」、768〜1180px は「メニュー」1 つ、768px 未満は kit のハンバーガーの中に縦に並べる（CSS の幅で出し分け。開閉は `details`＋`wwwroot/js/nav-menu.js`）。「いまのページ」は `aria-current="page"`。項目を足したら `NavigationTests`・`StaticFrameTests` の対応も直す
 - 共通部品は `external/fara-blazor-component`（git submodule。タグ v1.0.1 に固定。直接は直さず、kit のリポジトリで直す。旧名 fara-site-kit からの移行は kit の docs/migration-v1.0.0.md）。`worker/index.js` は kit の共有 JS（報告・メンテナンス）を読む
 - 公開の設定は `wrangler.toml`（`name` はダッシュボードの Worker 名と一致させる。assets は `./dist`）と `.github/workflows/`（`build.yml`・`deploy-develop.yml`・`deploy.yml`。Pokémon と同じ形）。wrangler のバージョンは `4.149.0` で固定
 - メンテナンス表示は Worker の変数 `MAINTENANCE_MODE`（`true` / `notice` / `false`）と `MAINTENANCE_MESSAGE`。旧名 `MAINTENANCE` は読まない。本番の初回の公開は `MAINTENANCE_MODE:true` が付き、メンテナンス画面のまま公開される（README の「本番の公開とメンテナンス」）

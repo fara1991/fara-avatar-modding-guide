@@ -62,13 +62,13 @@
             .boot-indicator-spinner { animation: none; }
         }
     </style>
-    <!-- JavaScript が無い環境: 読み込み表示は出さない。スマホは、サイドバー(ハンバーガーで開く一時的なメニュー。JavaScript が無いと開けない)を、本文とフッターの後ろに並べて出す(ページの移動に使える) -->
+    <!-- JavaScript が無い環境: 読み込み表示は出さない。スマホは、縦のメニュー(ハンバーガーで開くメニュー。JavaScript が無いと開けない。.av-nav-noscript)を、本文とフッターの後ろに並べて出す(ページの移動に使える) -->
     <noscript><style>
         #boot-indicator { display: none; }
         @media (max-width: 767.98px) {
             .av-static { display: flex; flex-direction: column; }
             .av-static .mud-main-content { order: 1; }
-            .av-static .fbc-sidebar { order: 2; display: block !important; position: static !important; width: auto !important; height: auto !important; overflow: visible !important; }
+            .av-static .av-nav-noscript { order: 2; display: flex !important; flex-direction: column; gap: 0.25rem; padding: 0.75rem 1.5rem 1.5rem; }
         }
     </style></noscript>
     <!-- WASM-ONLY:END -->
@@ -126,6 +126,7 @@
     <script src="js/search-norm.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/page.js"></script>
+    <script src="js/nav-menu.js"></script>
     <script src="js/head-sync.js"></script>
     <script src="js/toc.js"></script>
     <script src="js/search-ui.js"></script>

@@ -87,31 +87,31 @@ public class NavigationTests
     }
 
     [Fact]
-    public void Every_sidebar_item_points_to_an_existing_page()
+    public void Every_header_link_points_to_an_existing_page()
     {
         var paths = PageCatalog.Build(TestData.Content, TestData.Settings).Select(p => p.Path).ToHashSet();
-        var groups = NavGroups.Build(TestData.Content);
-        var items = groups.SelectMany(g => g.Items).ToList();
-        Assert.True(items.Count >= 25);
-        foreach (var item in items) Assert.Contains("/" + item.Href.TrimStart('/'), paths);
-        Assert.Equal(items.Count, items.Select(i => i.Href).Distinct().Count());
+        var links = HeaderNav.Main.Concat(HeaderNav.More).ToList();
+        foreach (var link in links) Assert.Contains(link.Href, paths);
+        Assert.Equal(links.Count, links.Select(l => l.Href).Distinct().Count());
+        Assert.All(HeaderNav.More, l => Assert.False(string.IsNullOrEmpty(IconMap.Get(l.Icon))));
     }
 
     [Fact]
-    public void Sidebar_lists_every_section_with_its_categories_in_reading_order()
+    public void Pages_the_sidebar_used_to_list_are_still_reachable()
     {
-        var groups = NavGroups.Build(TestData.Content);
-        foreach (var section in TestData.Content.Sections.Where(s => TestData.Content.CategoriesIn(s.Id).Count > 0))
-        {
-            var group = groups.Single(g => g.Title == section.Title);
-            Assert.Equal(TestData.Content.CategoriesIn(section.Id).Select(c => "learn/" + c.Id), group.Items.Select(i => i.Href));
-            Assert.All(group.Items, i => Assert.False(string.IsNullOrEmpty(i.Icon)));   // アイコンが引ける
-            Assert.All(group.Items, i => Assert.NotEmpty(i.ProgressIds!));              // カテゴリの進捗(3/5)に使う記事の id
-        }
-        // データが読めなくても、固定の項目は出る
-        var fallback = NavGroups.Build(null);
-        Assert.Contains(fallback.SelectMany(g => g.Items), i => i.Href == "privacy");
-        Assert.DoesNotContain(fallback, g => g.Title == "Blender");
+        // 旧サイドバーの項目: カテゴリ別の一覧・リファレンス・練習・サポート
+        var reachable = HeaderNav.Main.Concat(HeaderNav.More).Select(l => l.Href).ToHashSet();
+        foreach (var path in new[] { "/learn", "/shortcuts", "/glossary", "/howto", "/addons", "/links", "/changelog", "/practice", "/practice/room", "/report", "/privacy" })
+            Assert.Contains(path, reachable);
+        // ヘッダーに無い /tips・/qa・/practice/unity は、「困ったとき」「練習」の先のページ本文のリンクから行ける
+        var bodies = new PageBodies(TestData.Content, TestData.Settings);
+        Assert.Contains("href=\"/tips\"", bodies.Howto());
+        Assert.Contains("href=\"/qa\"", bodies.Howto());
+        Assert.Contains("href=\"/practice/unity\"", bodies.Practice());
+        // カテゴリ別の記事一覧は、「記事をよむ」（記事一覧のページ）に全部ある
+        foreach (var section in TestData.Content.Sections)
+            foreach (var category in TestData.Content.CategoriesIn(section.Id))
+                Assert.Contains($"href=\"/learn/{category.Id}\"", bodies.LearnIndex());
     }
 
     [Fact]
@@ -128,33 +128,58 @@ public class NavigationTests
 }
 
 /// <summary>
-/// サイドバーの「いまのページ」の強調。kit の SiteNavMenu は、ホーム以外を前方一致にするので、/learn が記事のページでも強調され、カテゴリと 2 つ強調されてしまう。
-/// このサイトのサイドバー(AvNavMenu)は、SSR 版と同じに、ちょうど 1 つだけ強調する。
+/// 上のヘッダーの「いまのページ」の強調（aria-current="page"）。ちょうど 1 つだけ強調する
+/// （「もっと見る」の中のページは、中の項目だけが強調され、見出しに data-active が付く）。
 /// </summary>
-public class SidebarActiveTests : WebTestContext
+public class HeaderActiveTests : WebTestContext
 {
     private IReadOnlyList<string> ActiveLinks(string path)
     {
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost" + path);
-        var cut = Render<AvNavMenu>(p => p.Add(x => x.Groups, NavGroups.Build(TestData.Content)));
-        return cut.FindAll("a.mud-nav-link.active").Select(a => a.GetAttribute("href")!).ToList();
+        var cut = Render<AvTopNav>();
+        return cut.FindAll(".av-topnav-links > a[aria-current='page']").Select(a => a.GetAttribute("href")!).ToList();
     }
 
     [Theory]
-    [InlineData("/", "")]
-    [InlineData("/learn", "learn")]                                       // 目次だけ(カテゴリは強調しない)
-    [InlineData("/learn/basics", "learn/basics")]                         // カテゴリだけ(目次は強調しない)
-    [InlineData("/learn/basics/transform", "learn/basics")]               // 記事のページ: そのカテゴリだけ
-    [InlineData("/learn/basics/transform#x", "learn/basics")]
-    [InlineData("/tips", "tips")]
-    [InlineData("/tips?tag=Unity", "tips")]
-    [InlineData("/shortcuts", "shortcuts")]
-    [InlineData("/practice", "practice")]
-    [InlineData("/practice/unity", "practice/unity")]                     // 「操作の練習」は強調しない
-    [InlineData("/practice/room", "practice/room")]
-    [InlineData("/privacy", "privacy")]
-    public void Exactly_one_item_is_active(string path, string expectedHref)
+    [InlineData("/", "/")]
+    [InlineData("/learn", "/learn")]
+    [InlineData("/learn/basics", "/learn")]
+    [InlineData("/learn/basics/transform", "/learn")]
+    [InlineData("/learn/basics/transform#x", "/learn")]
+    [InlineData("/learn/getting-started", "/learn/getting-started")]               // 「はじめかた」だけ（「記事をよむ」は強調しない）
+    [InlineData("/learn/getting-started/install", "/learn/getting-started")]
+    [InlineData("/howto", "/howto")]
+    [InlineData("/tips", "/howto")]                                                // 「困ったとき」は /howto・/tips・/qa
+    [InlineData("/tips?tag=Unity", "/howto")]
+    [InlineData("/qa", "/howto")]
+    [InlineData("/practice", "/practice")]
+    [InlineData("/practice/unity", "/practice")]
+    [InlineData("/practice/room", "/practice/room")]                               // 「練習」は強調しない
+    [InlineData("/glossary", "/glossary")]
+    public void Exactly_one_main_link_is_active(string path, string expectedHref)
     {
         Assert.Equal([expectedHref], ActiveLinks(path));
+    }
+
+    [Theory]
+    [InlineData("/shortcuts")]
+    [InlineData("/addons")]
+    [InlineData("/links")]
+    [InlineData("/changelog")]
+    [InlineData("/report")]
+    [InlineData("/privacy")]
+    public void A_page_under_more_marks_the_more_button_and_its_own_item(string path)
+    {
+        Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost" + path);
+        var cut = Render<AvTopNav>();
+        Assert.Empty(cut.FindAll(".av-topnav-links > a[aria-current='page']"));
+        Assert.Equal("true", cut.Find("details.av-more").GetAttribute("data-active"));
+        Assert.Equal([path], cut.FindAll("details.av-more a[aria-current='page']").Select(a => a.GetAttribute("href")!).ToList());
+    }
+
+    [Fact]
+    public void Search_page_highlights_nothing()
+    {
+        Assert.Empty(ActiveLinks("/search"));
     }
 }

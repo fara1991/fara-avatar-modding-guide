@@ -22,8 +22,8 @@ public class MobileCssTests
     public void Drawer_links_and_header_buttons_are_at_least_44px_tall_on_phones()
     {
         var phone = MobileBlocks("767.98px");
-        Assert.Matches(@"\.mud-drawer \.mud-nav-link,[^{]*\.fbc-menu-toggle,[^{]*\.fbc-search-toggle,[^{]*\.btn\s*\{\s*min-height:\s*44px;", phone);
-        Assert.Matches(@"\.av-drawer-theme \.mud-button-root,", phone);
+        Assert.Matches(@"\.av-drawer-theme \.mud-button-root,[^{]*\.fbc-menu-toggle,[^{]*\.fbc-search-toggle,[^{]*\.btn\s*\{\s*min-height:\s*44px;", phone);
+        Assert.Matches(@"\.fbc-topnav-drawer \.av-pop-link,[^{]*\{[^}]*min-height:\s*44px;", AppCss);   // ハンバーガーの中のリンク
         Assert.Matches(@"\.fbc-menu-toggle,\s*\.fbc-search-toggle\s*\{\s*min-width:\s*44px;", phone);
     }
 

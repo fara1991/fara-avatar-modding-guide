@@ -5,13 +5,16 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-@* 共通のレイアウト(fara-blazor-component の SiteLayout): MudBlazor の土台(テーマ・ポップアップ・ダイアログ・通知)・ヘッダー・サイドバー(PC は Mini、スマホは一時的なメニュー)・本文・フッター・お知らせの帯。
-   ここでは、サイトの中身だけを渡す。
-   - ヘッダー(PC): 検索欄(AvSearchBox)と、ライト／ダークのスイッチ。
-   - ヘッダー(スマホ): 検索ボタン(下に開く検索欄は SearchSheet)。ライト／ダークのボタンは、メニューの下にある。
-   - サイドバー(AvNavMenu): 区切りごとのカテゴリ・リファレンス・練習・サポート。サイドバーの開閉・スマホの判定・検索欄の開閉は SiteLayout が持つ。
+@* 共通のレイアウト(fara-blazor-component の SiteLayout): MudBlazor の土台(テーマ・ポップアップ・ダイアログ・通知)・ヘッダー・本文・フッター・お知らせの帯。
+   サイドバーは無い(ShowDrawer=false)。上のヘッダーに各リンク(AvNavMenu をやめて AvTopNav。TopNav スロット)を並べ、スマホ(768px 未満)は CollapseTopNavOnMobile でハンバーガーのメニューに畳む。
+   - ヘッダー(PC): 名前・各リンク(AvTopNav)・検索欄(AvSearchBox)・ライト／ダークのスイッチ。768〜1180px は、各リンクを「メニュー」1 つにまとめる(CSS)。
+   - ヘッダー(スマホ): 名前・検索ボタン(下に開く検索欄は SearchSheet)・ハンバーガー。メニューの中に、各リンクとライト／ダークのボタン。
+   - 開閉・スマホの判定・検索欄の開閉は SiteLayout が持つ。
    - スマホは、ページ全体(window)がスクロールする(MobilePageScroll。静的 HTML のページと同じ。起動の前後で、スクロールの仕方が変わらない) *@
-<SiteLayout Body="@Body" Maintenance="Maintenance" MobilePageScroll="true" CustomTheme="Theme">
+<SiteLayout Body="@Body" Maintenance="Maintenance" MobilePageScroll="true" CustomTheme="Theme" ShowDrawer="false" CollapseTopNavOnMobile="true">
+    <TopNav>
+        <AvTopNav />
+    </TopNav>
     <SearchBox>
         <AvSearchBox />
     </SearchBox>
@@ -22,19 +25,10 @@
     <HeaderEnd>
         <ThemeSwitch Class="av-header-switch" />
     </HeaderEnd>
-    <DrawerContent Context="closeOnNavigate">
-        <AvNavMenu Groups="Groups" />
-        @* ライト／ダークの切り替え(スマホ。PC はヘッダーのスイッチ。.av-drawer-theme は app.css が PC では隠す) *@
-        <div class="av-drawer-theme">
-            <ThemeSwitch AsButton="true" />
-        </div>
-    </DrawerContent>
 </SiteLayout>
 
 @code {
     private static readonly MudBlazor.MudTheme Theme = AvatarTheme.Create();
-
-    private IReadOnlyList<AvNavGroup> Groups => NavGroups.Build(Store.Content);
 
     private IDisposable? registration;
     private string lastPath = "";

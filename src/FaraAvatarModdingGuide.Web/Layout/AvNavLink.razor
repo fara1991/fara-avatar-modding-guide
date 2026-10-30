@@ -1,0 +1,17 @@
+@* 上のヘッダーの 1 つのリンク。「いまのページ」なら aria-current="page" を付ける（強調の見た目は CSS が aria-current から作る）。静的 HTML（Build の StaticFrame.NavLink）と同じ構造。
+   Pop は、「もっと見る」・「メニュー」・縦のメニューの中の項目（アイコン付き。Icon があるものだけ） *@
+<a class="@ClassName" href="@Link.Href" aria-current="@(Active ? "page" : null)">@if (Pop && Link.Icon is not null) {<AvIcon Name="@Link.Icon" />}@Link.Label</a>
+
+@code {
+    [Parameter, EditorRequired] public required HeaderLink Link { get; set; }
+
+    /// <summary>見ているページのパス（null は、どれも強調しない）。</summary>
+    [Parameter] public string? Path { get; set; }
+
+    /// <summary>ポップアップ・縦のメニューの中の項目か。</summary>
+    [Parameter] public bool Pop { get; set; }
+
+    private bool Active => HeaderNav.IsActive(Link, Path);
+
+    private string ClassName => Pop ? "av-pop-link" : "fbc-topnav-link av-nav-link";
+}

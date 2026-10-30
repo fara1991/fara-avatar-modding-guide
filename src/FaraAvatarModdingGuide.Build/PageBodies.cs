@@ -69,7 +69,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line("</section>");
 
         sb.Line("<section class=\"mb-4\">");
-        sb.Line("<h2 class=\"h3 mb-3\">更新履歴</h2>");
+        sb.Line("<h2 class=\"h3 mb-3\">更新のお知らせ</h2>");
         sb.Line("<ul class=\"changelog-recent list-unstyled mb-2\">");
         foreach (var e in c.Changelog.Take(RecentChangelogCount))
         {
@@ -90,10 +90,10 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         ("/howto", "HelpOutline", "あの操作、何て名前？", "「頂点をくっつけたい」から、操作の名前・メニュー・キーを引けます。"),
         ("/tips", "Lightbulb", "困ったときのコツ（TIPS）", "Unity でピンクになる、服がついてこないなど、よくあるつまずきと直し方。"),
         ("/qa", "Chat", "よくある質問（改変 Q&A）", "非対応衣装・ウェイト・首すげ替え・色変えなど、改変の相談でよく出た質問と手順。"),
-        ("/glossary", "Article", "用語集", "Blender・Unity・VRChat の言葉を、英語 UI の表記と一緒に。"),
+        ("/glossary", "Article", "言葉の意味（用語集）", "Blender・Unity・VRChat の言葉を、英語 UI の表記と一緒に。"),
         ("/shortcuts", "Keyboard", "ショートカットキー", "キーから機能を逆引きできます。"),
         ("/addons", "Extension", "アドオン", "作業を楽にするアドオンの紹介。"),
-        ("/links", "Link", "リンク集", "Unity のツール、参考になる記事、話題になった BOOTH のアバター・衣装。"),
+        ("/links", "Link", "リンク", "Unity のツール、参考になる記事、話題になった BOOTH のアバター・衣装。"),
         ("/practice", "SportsEsports", "操作の練習", "ブラウザ上で、Blender と同じキー操作を試せます。"),
     ];
 
@@ -301,7 +301,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Addons()
     {
         var sb = new StringBuilder();
-        sb.Append(Heading("おすすめアドオン", "Blender の機能を拡張する便利なアドオンを紹介します。Unity のツールや参考になる記事は <a href=\"/links\">リンク集</a> へ。"));
+        sb.Append(Heading("便利なアドオン", "Blender の機能を拡張する便利なアドオンを紹介します。Unity のツールや参考になる記事は <a href=\"/links\">リンク集</a> へ。"));
         sb.Line("<div class=\"row g-4\">");
         foreach (var a in c.Addons)
         {
@@ -355,7 +355,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Links()
     {
         var sb = new StringBuilder();
-        sb.Append(Heading("リンク集", "アバター改変の相談で紹介されたツール・資料・商品のリンクです。Blender のアドオンは <a href=\"/addons\">アドオン</a> のページにまとめています。"));
+        sb.Append(Heading("リンク", "アバター改変の相談で紹介されたツール・資料・商品のリンクです。Blender のアドオンは <a href=\"/addons\">アドオン</a> のページにまとめています。"));
         sb.Line("<p class=\"small text-body-secondary\">外部のサイトです。配布・販売の状況や対応バージョンは変わることがあるので、使う前・買う前にリンク先で確かめてください。<span class=\"badge bg-warning text-dark\">古い情報</span> は、今は別の方法が主流になっている・販売や更新が終わっている可能性があるものです。</p>");
         sb.Line("<nav class=\"links-toc mb-4\" aria-label=\"区切り\">");
         foreach (var cat in c.LinkCategories)
@@ -389,7 +389,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Changelog()
     {
         var sb = new StringBuilder();
-        sb.Append(Heading("更新履歴", "記事の追加・見た目や機能の変更の記録です（新しい順）。"));
+        sb.Append(Heading("更新のお知らせ", "記事の追加・見た目や機能の変更の記録です（新しい順）。"));
         foreach (var e in c.Changelog)
         {
             sb.Line("<section class=\"changelog-entry mb-4\">");
@@ -411,7 +411,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Glossary()
     {
         var sb = new StringBuilder();
-        sb.Append(Heading("用語集", "Blender・Unity・VRChat でよく出てくる言葉を、画面での英語の表記と一緒にまとめました（読みの順）。やりたいことから操作の名前を探すなら <a href=\"/howto\">何て名前？</a>、つまずいたときは <a href=\"/tips\">TIPS</a> や <a href=\"/qa\">改変 Q&amp;A</a> へ。"));
+        sb.Append(Heading("言葉の意味（用語集）", "Blender・Unity・VRChat でよく出てくる言葉を、画面での英語の表記と一緒にまとめました（読みの順）。やりたいことから操作の名前を探すなら <a href=\"/howto\">何て名前？</a>、つまずいたときは <a href=\"/tips\">困ったときのコツ（TIPS）</a> や <a href=\"/qa\">よくある質問（改変 Q&amp;A）</a> へ。"));
         sb.Append(Fragments.TipsFilter(Fragments.TipTags(c.Glossary.Select(g => g.Tags)), c.Glossary.Any(g => g.Source == "discord"), c.Glossary.Count, "用語・読み・英語名で絞り込む（例: ウェイト、merge）"));
         sb.Line("<div class=\"row g-3\">");
         foreach (var g in c.Glossary)
@@ -440,7 +440,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Howto()
     {
         var sb = new StringBuilder();
-        sb.Append(Heading("あの操作、何て名前？", "やりたいことから、操作の名前・メニューの場所（日本語 / 英語 UI）・キーを引けます。名前がわかれば、Blender では <kbd>F3</kbd>（メニュー検索）にそのまま入力して実行できます。"));
+        sb.Append(Heading("あの操作、何て名前？", "やりたいことから、操作の名前・メニューの場所（日本語 / 英語 UI）・キーを引けます。名前がわかれば、Blender では <kbd>F3</kbd>（メニュー検索）にそのまま入力して実行できます。 つまずいたときは <a href=\"/tips\">困ったときのコツ（TIPS）</a>、手順や「どうすれば？」は <a href=\"/qa\">よくある質問（改変 Q&amp;A）</a> へ。"));
         sb.Append(Fragments.TipsFilter(Fragments.TipTags(c.Howtos.Select(h => h.Tags)), c.Howtos.Any(h => h.Source == "discord"), c.Howtos.Count, "やりたいことで絞り込む（例: くっつけ、穴、揺らす）"));
         sb.Line("<div class=\"row g-3\">");
         foreach (var h in c.Howtos)
@@ -477,7 +477,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Tips()
     {
         var sb = new StringBuilder();
-        sb.Append(Heading("困ったときのコツ（TIPS）", "アバターづくりでよくあるつまずきを、症状・原因・直し方でまとめました。言葉の意味は <a href=\"/glossary\">用語集</a>、操作の名前は <a href=\"/howto\">何て名前？</a>、手順や「どうすれば？」は <a href=\"/qa\">改変 Q&amp;A</a> へ。"));
+        sb.Append(Heading("困ったときのコツ（TIPS）", "アバターづくりでよくあるつまずきを、症状・原因・直し方でまとめました。言葉の意味は <a href=\"/glossary\">用語集</a>、操作の名前は <a href=\"/howto\">何て名前？</a>、手順や「どうすれば？」は <a href=\"/qa\">よくある質問（改変 Q&amp;A）</a> へ。"));
         sb.Append(Fragments.TipsFilter(Fragments.TipTags(c.Tips.Select(t => t.Tags)), c.Tips.Any(t => t.Source == "discord"), c.Tips.Count, "症状で絞り込む（例: ピンク、黒い、ボーン）"));
         sb.Line("<div class=\"row g-3\">");
         foreach (var t in c.Tips)
@@ -512,7 +512,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Qa()
     {
         var sb = new StringBuilder();
-        sb.Append(Heading("よくある質問（改変 Q&A）", "アバター改変の相談でよく出た質問と、その答え・手順をまとめました。各項目の「詳しく」を開くと手順や補足が見られます。言葉の意味は <a href=\"/glossary\">用語集</a>、症状から探すなら <a href=\"/tips\">TIPS</a> へ。"));
+        sb.Append(Heading("よくある質問（改変 Q&A）", "アバター改変の相談でよく出た質問と、その答え・手順をまとめました。各項目の「詳しく」を開くと手順や補足が見られます。言葉の意味は <a href=\"/glossary\">用語集</a>、症状から探すなら <a href=\"/tips\">困ったときのコツ（TIPS）</a> へ。"));
         sb.Line("<p class=\"small text-body-secondary\">「当時」と書いてあるところは、古いバージョンの Blender・Unity・VRChat SDK での手順です。今の手順と一緒に載せています。</p>");
         sb.Append(Fragments.TipsFilter(Fragments.TipTags(c.Qas.Select(q => q.Tags)), c.Qas.Any(q => q.Source == "discord"), c.Qas.Count, "質問で絞り込む（例: 首、ウェイト、VRM）"));
         sb.Line("<div class=\"row g-3\">");
@@ -607,7 +607,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     private const string PracticeBody = """
         <div class="practice-pc-only">
         <p class="lead">ブラウザ上の 3D ビューで、Blender と同じキー操作を試せます。下のお題を順にこなしてください。<kbd>Tab</kbd> で編集モードにも入れます。</p>
-        <p class="text-body-secondary small">各記事の「やってみよう」では、同じビューで 1 キーずつ案内付きで操作できます（<a href="/learn/basics/transform">移動・回転・スケール</a> など）。ここは案内なしで自由に試す場所です。何人かで同じビューを操作したいときは <a href="/practice/room">みんなで練習</a> へ。</p>
+        <p class="text-body-secondary small">各記事の「やってみよう」では、同じビューで 1 キーずつ案内付きで操作できます（<a href="/learn/basics/transform">移動・回転・スケール</a> など）。ここは案内なしで自由に試す場所です。何人かで同じビューを操作したいときは <a href="/practice/room">みんなで練習</a> へ。Unity の画面（Modular Avatar で衣装を着せる流れ）の練習は <a href="/practice/unity">Unity の練習</a> へ。</p>
         </div>
 
         <div id="practice" class="row g-4 practice-pc-only">

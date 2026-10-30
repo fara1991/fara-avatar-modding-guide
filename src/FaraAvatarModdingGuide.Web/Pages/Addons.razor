@@ -2,10 +2,10 @@
 @inject ContentStore Store
 @inject SiteSettings Settings
 
-<PageTitle>@PageTitles.Compose("アドオン", Settings.Title)</PageTitle>
+<PageTitle>@PageTitles.Compose("便利なアドオン", Settings.Title)</PageTitle>
 
 @* 静的 HTML（Build の PageBodies.Addons）と同じ構造・class *@
-<h1>おすすめアドオン</h1>
+<h1>便利なアドオン</h1>
 <p class="lead">Blender の機能を拡張する便利なアドオンを紹介します。Unity のツールや参考になる記事は <a href="/links">リンク集</a> へ。</p>
 
 @if (Store.Content is not { } content)

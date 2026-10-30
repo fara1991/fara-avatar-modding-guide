@@ -107,7 +107,7 @@ function realIndex() {
 const top = (q, n = 10) => Array.from(S.search(realIndex(), q).slice(0, n), (h) => h.entry);
 
 test("実際の索引: yougo は用語集、moderingu はモデリングが 1 位", () => {
-  assert.equal(top("yougo")[0].title, "用語集");
+  assert.equal(top("yougo")[0].title, "言葉の意味（用語集）");
   assert.equal(top("moderingu")[0].title, "モデリング");
 });
 
