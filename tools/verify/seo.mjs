@@ -196,22 +196,22 @@ if (!NO_BROWSER) {
     if (p.problems.length) fail(`起動後 ${path}: コンソール ${p.problems.join(" | ")}`);
     await p.context().close();
   }
-  // アプリ内の移動: 記事 A → サイドバーの別カテゴリ → 記事
+  // アプリ内の移動: 記事 A → 上のヘッダーの別のページ
   const p = await newPage(b, { width: 1280, height: 800 });
   await p.goto(NEW + "/learn/basics/transform", { waitUntil: "load" });
   await p.waitForSelector(".mud-layout", { timeout: 60000 });
   const before = await snapshot(p);
-  await p.locator('a.mud-nav-link[href="learn/modeling"]').click();
-  await p.waitForURL("**/learn/modeling");
+  await p.locator('.av-topnav-links a[href="/howto"]').click();
+  await p.waitForURL("**/howto");
   await p.waitForTimeout(400);
   const after = await snapshot(p);
-  dup(after, "アプリ内の移動のあと /learn/modeling");
-  const wantTitle = (await (await get("/learn/modeling")).text()).match(/<title>(.*?)<\/title>/)[1].replace(/&amp;/g, "&");
+  dup(after, "アプリ内の移動のあと /howto");
+  const wantTitle = (await (await get("/howto")).text()).match(/<title>(.*?)<\/title>/)[1].replace(/&amp;/g, "&");
   console.log(`  移動前 title: ${before.titleText}`);
   console.log(`  移動後 title: ${after.titleText}`);
   if (after.titleText !== wantTitle) fail(`移動のあとの document.title が違う: ${after.titleText}(期待 ${wantTitle})`); else ok("移動のあとの document.title は新しいページのもの");
-  const staleCanonical = after.canonical[0] !== `${ORIGIN_EXPECT}/learn/modeling`;
-  const staleDescription = after.description[0] !== (await (await get("/learn/modeling")).text()).match(/<meta name="description" content="([^"]*)"/)[1].replace(/&amp;/g, "&");
+  const staleCanonical = after.canonical[0] !== `${ORIGIN_EXPECT}/howto`;
+  const staleDescription = after.description[0] !== (await (await get("/howto")).text()).match(/<meta name="description" content="([^"]*)"/)[1].replace(/&amp;/g, "&");
   console.log(`  移動のあとの canonical: ${after.canonical[0]}${staleCanonical ? "(古い値のまま)" : ""}`);
   console.log(`  移動のあとの og:type: ${after.ogType[0]}`);
   if (staleCanonical) fail("アプリ内の移動のあと、canonical が新しいページのものに替わっていない");
@@ -223,13 +223,13 @@ if (!NO_BROWSER) {
   await q.waitForSelector(".fbc-not-found", { timeout: 60000 });
   const from404 = await snapshot(q);
   if (from404.canonical.length !== 0) fail("404 の head に canonical がある(あってはいけない)");
-  await q.locator('a.mud-nav-link[href="learn/modeling"]').click();
-  await q.waitForURL("**/learn/modeling");
+  await q.locator('.av-topnav-links a[href="/howto"]').click();
+  await q.waitForURL("**/howto");
   await q.waitForTimeout(500);
   const to = await snapshot(q);
-  dup(to, "404 から移ったあと /learn/modeling");
+  dup(to, "404 から移ったあと /howto");
   // canonical の出どころは、canonical が無いので、開いているホスト(location.origin)。本番・確認用の公開先では canonical の出どころと同じ
-  if (to.canonical[0] !== `${NEW}/learn/modeling`) fail(`404 から移ったあとの canonical=${to.canonical[0]}`);
+  if (to.canonical[0] !== `${NEW}/howto`) fail(`404 から移ったあとの canonical=${to.canonical[0]}`);
   if (to.robots.length !== 0) fail("404 から移ったあと、noindex の meta が残っている");
   ok(`404 から移ったあと: canonical・description・OGP が 1 つずつ(${to.ogType[0]})・noindex なし`);
   await q.context().close();
