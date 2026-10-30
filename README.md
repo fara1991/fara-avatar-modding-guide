@@ -194,7 +194,7 @@ fara-avatar-modding-guide/
 
 旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へ 301 で転送されます（`_redirects`）。静的 HTML は 76 本、存在しないパスは `404.html`（404 のステータス）です。
 
-各記事の「このページを完了にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `avatar-modding-guide.progress` に保存。移行前と同じキー）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
+各記事の「このページを『読んだ』にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `avatar-modding-guide.progress` に保存。移行前と同じキー）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
 
 ## みんなで練習（共同練習の部屋）
 
