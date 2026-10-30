@@ -1,0 +1,70 @@
+@implements IDisposable
+@inject NavigationManager Nav
+@inject ContentStore Store
+@* 上のヘッダーの各リンク（kit の SiteLayout の TopNav スロットに入れる）。項目は Shared の HeaderNav（静的 HTML の StaticFrame と同じ元）。
+   「いまのページ」には aria-current="page" を自動で付ける（画面を移るたびに付け直す。知らない URL＝404 の表示では、どれにも付けない）。
+   幅ごとに、同じ項目を 3 通りに見せる（CSS の @media。隠れている方は display:none で、読み上げ・Tab から外れる）:
+   - 1280px 以上: 横に並べる + 「もっと見る」（details。Esc・外側のクリックで閉じるのは js/nav-menu.js）
+   - 768〜1279px: 「メニュー」1 つ（details）に全部入れる（リンクが窮屈にならないように）
+   - 768px 未満: kit の SiteLayout（CollapseTopNavOnMobile）が、ハンバーガーで開くメニューの中に出す。縦に全部 + ライト／ダークのボタン *@
+<nav class="av-topnav" aria-label="メインメニュー">
+    <div class="av-topnav-links">
+        @foreach (var link in HeaderNav.Main)
+        {
+            <AvNavLink Link="link" Path="@Path" />
+        }
+        <details class="av-more" data-active="@(MoreActive ? "true" : null)">
+            <summary class="fbc-topnav-link av-more-summary">もっと見る<AvIcon Name="ExpandMore" /></summary>
+            <div class="av-pop">
+                @foreach (var link in HeaderNav.More)
+                {
+                    <AvNavLink Link="link" Path="@Path" Pop="true" />
+                }
+            </div>
+        </details>
+    </div>
+    <details class="av-menu">
+        <summary class="fbc-topnav-link av-menu-summary"><AvIcon Name="Menu" />メニュー</summary>
+        <div class="av-pop">
+            @Flat
+        </div>
+    </details>
+    <div class="av-nav-flat">
+        @Flat
+        <div class="av-drawer-theme">
+            <ThemeSwitch AsButton="true" />
+        </div>
+    </div>
+</nav>
+
+@code {
+    private RenderFragment Flat => @<text>
+        @foreach (var link in HeaderNav.Main)
+        {
+            <AvNavLink Link="link" Path="@Path" Pop="true" />
+        }
+        <div class="av-nav-label">そのほか</div>
+        @foreach (var link in HeaderNav.More)
+        {
+            <AvNavLink Link="link" Path="@Path" Pop="true" />
+        }
+    </text>;
+
+    /// <summary>見ているページのパス。知らない URL（404 の表示）では null（どれも「いまのページ」にしない）。</summary>
+    private string? Path
+    {
+        get
+        {
+            var path = new Uri(Nav.Uri).AbsolutePath;
+            return PageRoutes.IsWasmPage(path, Store.Content) ? path : null;
+        }
+    }
+
+    private bool MoreActive => HeaderNav.IsMoreActive(Path);
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

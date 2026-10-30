@@ -23,7 +23,7 @@ const ok = (c, m) => { if (!c) { fails++; console.log("FAIL", m); } else console
   const p = await newPage(b);
   await p.goto(B + "/learn/basics/no-such-article"); await p.waitForSelector(".mud-layout"); await p.waitForTimeout(500);
   ok(/見つかりません/.test(await p.locator(".fbc-content").innerText()), "unknown article: not found view");
-  ok((await p.locator("a.mud-nav-link.active").count()) === 0, "unknown article: no active sidebar item");
+  ok((await p.locator("a[aria-current=page]").count()) === 0, "unknown article: no active header item");
   await p.context().close();
 }
 { // #id: 見えている項目では絞り込みを外さない

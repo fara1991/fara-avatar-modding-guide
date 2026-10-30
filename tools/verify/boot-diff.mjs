@@ -6,7 +6,7 @@
 //   ・本文(見出し・最初の段落・パンくず)の位置の差(getBoundingClientRect。起動の前後。CLS の API は、前後で「同じ要素」でないと数えない = Blazor は #app の中身を置き換えるので、
 //     数値が 0 でも位置は動いている。そのため位置を直接測る)
 //   ・起動の瞬間の本文の動き: 毎フレーム見出しの位置を記録し、静的 → 起動後に切り替わる 1 フレームでの移動(px)を出す(Web フォントの読み込みによる再配置は、起動と関係ないので数えない)
-//   ・サイドバーの「いまのページ」の強調の計算済みスタイル(color・background-color)が、静的と起動後で同じ(PC。スマホはサイドバーが閉じていて、静的は出さない)
+//   ・上のヘッダーの「いまのページ」の強調の計算済みスタイル(color・background-color)が、静的と起動後で同じ(PC。スマホはサイドバーが閉じていて、静的は出さない)
 //   ・CLS(layout-shift の合計。参考)と、読み込み表示が本文を覆う最大の割合(画面に対する %。右下の小さな表示なので 2% 以下であること)
 // 環境変数: SIDEBAR_HIDDEN=1 で、PC のサイドバーを隠した設定で測る。HIDE_OVERLAY=1 で、前の画面から起動中のオーバーレイを隠す(オーバーレイを除いた「枠のそろい」だけを測る)。
 //   MAX_RATIO(既定 0.5 = %)・MAX_SHIFT(既定 1 = px)を超えたら、終了コード 1。
@@ -18,6 +18,7 @@ import pixelmatch from "pixelmatch";
 const NEW = (process.env.NEW || "http://127.0.0.1:8787").replace(/\/$/, "");
 const HIDE_OVERLAY = process.env.HIDE_OVERLAY !== "0";   // 既定: 前の画面から、右下の「読み込み中…」を隠す(固定位置の表示で、本文の位置には関係しない。覆っていないことは別に確かめる)
 const SIDEBAR_HIDDEN = process.env.SIDEBAR_HIDDEN === "1";   // PC のサイドバーを隠す設定(細い列)で測る
+// 注: サイドバーは廃止済み（上のヘッダーに変更）。SIDEBAR_HIDDEN の種は、効果が無いが残してある
 const SEED = SIDEBAR_HIDDEN ? { "avatar-modding-guide.sidebar-hidden": "1" } : {};
 const MAX_RATIO = Number(process.env.MAX_RATIO ?? 0.5);
 const MAX_SHIFT = Number(process.env.MAX_SHIFT ?? 1);
@@ -75,7 +76,7 @@ const settle = async (p) => {
 const rects = (p) => p.evaluate(() => {
   const r = (el) => { if (!el) return null; const b = el.getBoundingClientRect(); return { x: Math.round(b.x * 10) / 10, y: Math.round(b.y * 10) / 10, w: Math.round(b.width * 10) / 10 }; };
   const main = document.querySelector("#fbc-main") || document.querySelector("main");
-  const active = document.querySelector(".fbc-sidebar .mud-nav-link.active");
+  const active = document.querySelector(".av-topnav-links > a[aria-current=page]");
   const acs = active && getComputedStyle(active);
   return {
     // サイドバーの「いまのページ」の強調(計算済みの色・背景)。静的と起動後で同じであること(位置・ピクセル差の閾値では見つからない小さな領域)

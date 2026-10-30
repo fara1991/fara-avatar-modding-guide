@@ -16,6 +16,7 @@ const WEB_JS_MODULES = [
 const WEB_JS_SCRIPTS = [
   `${WEB_JS}/bgscene.js`,
   `${WEB_JS}/head-sync.js`,
+  `${WEB_JS}/nav-menu.js`,
   `${WEB_JS}/notice.js`,
   `${WEB_JS}/page.js`,
   `${WEB_JS}/search-norm.js`,

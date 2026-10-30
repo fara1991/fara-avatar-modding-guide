@@ -160,27 +160,7 @@ html[data-bs-theme] body {
     background: transparent;
 }
 
-/* kit の部品の、固定の色（サイドバー・メンテナンス画面・主ボタン）。kit の CSS の後に読むので、同じ詳細度で上書きできる */
-.fbc-sidebar.mud-drawer {
-    background-color: #08181e;
-    border-right-color: rgba(130, 215, 230, 0.14);
-}
-
-.fbc-sidebar .mud-nav-link {
-    color: #e3f0f2;
-}
-
-.fbc-sidebar .mud-nav-link.active .mud-icon-root,
-.fbc-sidebar .mud-nav-link.active .mud-nav-link-icon {
-    color: #c6f3f9 !important;
-}
-
-/* サイドバーはどちらのテーマでも濃い地。いまのページの文字は、明るい水色（MudBlazor の主色はライトでは地と近いため）。
-   詳細度は MudBlazor の (0,5,0) より高くする */
-.fbc-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) {
-    color: #b4f0f7;
-}
-
+/* kit の部品の、固定の色（メンテナンス画面・主ボタン）。kit の CSS の後に読むので、同じ詳細度で上書きできる */
 .fbc-maintenance h1 {
     color: #7fd8e6;
 }
@@ -817,14 +797,8 @@ h1:focus {
 }
 
 /* Bootstrap の reboot（a の下線）が、サイドバーとヘッダーのリンクにも効くので、消す（SSR 版のサイドバーは下線なし） */
-.fbc-sidebar a,
 .fbc-header a {
     text-decoration: none;
-}
-
-/* サイドバーの見出し（Blender / Unity / VRChat）は、SSR 版と同じく大文字で出す */
-.fbc-sidebar .fbc-nav-section {
-    text-transform: uppercase;
 }
 
 /* 見出しへのリンク（#id）で飛んだとき、上に少し余白を残す。本文の領域（.fbc-content）がスクロールする */
@@ -832,7 +806,6 @@ h1:focus {
 .av-static {
     scroll-padding-top: 1rem;
 }
-
 
 /* アイコン（Material の SVG）。Bootstrap Icons の .bi と同じ大きさ・位置（文字の高さ・文字の色） */
 .av-icon {
@@ -852,12 +825,6 @@ h1:focus {
 :root body :focus-visible {
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
-}
-
-/* サイドバー・ヘッダーは常に濃い紫なので、ライトテーマでも白い枠 */
-:root body .fbc-sidebar :focus-visible {
-    outline-color: #fff;
-    outline-offset: -2px;
 }
 
 /* 地の色。SSR 版と同じグラデーション（ダーク） */
@@ -960,28 +927,8 @@ h1:focus {
     display: none;
 }
 
-@media (min-width: 768px) {
-    /* PC: 左のサイドバーの分だけ、本文を右に寄せる(隠している設定のときは、細い列の分) */
-    .av-static .mud-main-content {
-        margin-left: var(--mud-drawer-width-left);
-    }
-
-    html.fbc-sidebar-hidden .av-static .mud-main-content {
-        margin-left: var(--mud-drawer-width-mini-left);
-    }
-
-    html.fbc-sidebar-hidden .av-static .fbc-sidebar {
-        width: var(--mud-drawer-width-mini-left) !important;
-    }
-
-    html.fbc-sidebar-hidden .av-static .fbc-nav-section {
-        opacity: 0;
-    }
-}
-
 @media (max-width: 767.98px) {
-    /* スマホ: サイドバーは出さず(起動の後も、閉じた一時的なメニュー)、ヘッダーは検索ボタン、ページ全体がスクロールし、フッターは貼り付けない */
-    .av-static .fbc-sidebar,
+    /* スマホ: ヘッダーの各リンクは出さず(起動の後は、ハンバーガーの中)、ヘッダーは検索ボタン、ページ全体がスクロールし、フッターは貼り付けない */
     .av-static .av-pc {
         display: none;
     }
@@ -1151,16 +1098,6 @@ h1:focus {
     color: #86efac;
 }
 
-.fbc-sidebar .category-progress {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
-}
-
-.fbc-sidebar .category-progress.is-complete {
-    background: rgba(74, 222, 128, 0.3);
-    color: #dcfce7;
-}
-
 .btn-progress {
     --bs-btn-color: var(--bs-body-color);
     --bs-btn-border-color: var(--border-strong);
@@ -1214,18 +1151,6 @@ h1:focus {
 [data-bs-theme="light"] .category-progress.is-complete {
     background: rgba(22, 163, 74, 0.15);
     color: #15803d;
-}
-
-[data-bs-theme="light"] .fbc-sidebar .category-progress {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
-}
-
-/* サイドバーの項目の右端に置く「3/5」 */
-.fbc-sidebar .mud-nav-link-text {
-    display: flex;
-    align-items: center;
-    flex: 1 1 auto;
 }
 
 /* ---------- 検索(ヘッダーの検索欄・検索ページ) ---------- */
@@ -1470,7 +1395,6 @@ h1:focus {
 /* スマートフォン: 指で押す操作は 44px 以上（ドロワーのリンク・ヘッダーのメニューと検索のボタン・本文のボタン）。
    PC はマウスなので、ここでは変えない */
 @media (max-width: 767.98px) {
-    .mud-drawer .mud-nav-link,
     .av-drawer-theme .mud-button-root,
     .fbc-menu-toggle,
     .fbc-search-toggle,
@@ -1511,7 +1435,7 @@ h1:focus {
     }
 }
 
-@media (min-width: 768px) and (max-width: 1199.98px) {
+@media (min-width: 768px) and (max-width: 1439.98px) {
     .av-search-hint {
         display: none;
     }
@@ -1562,17 +1486,6 @@ h1:focus {
     .room-card {
         transition: none;
     }
-}
-
-/* 静的 HTML のサイドバーの「いまのページ」の強調(詳細度は MudBlazor の .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) = 0,5,0 より高くする。負けると、色の変数が無い起動前は灰色・背景透明になる)。起動の後は MudBlazor が色の変数(--mud-palette-*)から決める色を、同じ値で直接書く(ダーク／ライト) */
-.av-static .fbc-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
-    color: #b4f0f7;
-    background-color: rgba(173, 173, 177, 0.06);
-}
-
-[data-bs-theme="light"] .av-static .fbc-sidebar .mud-navmenu.mud-navmenu-default .mud-nav-link.active {
-    color: #b4f0f7;
-    background-color: rgba(0, 0, 0, 0.06);
 }
 
 /* ---------- 操作しやすさ（スマートフォン幅で 44px 以上・文字 12px 以上）----------
@@ -2105,4 +2018,193 @@ label,
         background: var(--surface);
         border-bottom: 1px solid var(--border-strong);
     }
+}
+
+/* ---------- 上のヘッダーのリンク（サイドバーは無い。Web の AvTopNav と、Build の StaticFrame.TopNav が同じ構造）---------- */
+/* kit の .fbc-topnav-bar は横スクロールのために overflow-x: auto。「もっと見る」のポップアップを切らないよう、見えるままにする */
+.fbc-header .fbc-topnav-bar {
+    flex: 0 0 auto;
+    overflow: visible;
+}
+
+.av-topnav {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.av-topnav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+/* ヘッダー（高さ 56px）の中で、押せる範囲を 44px にする（リンク・「もっと見る」・「メニュー」） */
+.fbc-header .fbc-topnav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+/* 開閉の見出し（details の summary）。標準の三角は消す。リンクと同じ見た目 */
+.av-more,
+.av-menu {
+    position: relative;
+}
+
+.av-more > summary,
+.av-menu > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+}
+
+.av-more > summary::-webkit-details-marker,
+.av-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.av-more > summary .av-icon,
+.av-menu > summary .av-icon {
+    width: 1.15em;
+    height: 1.15em;
+    vertical-align: middle;
+}
+
+.av-more[open] > summary .av-icon {
+    transform: rotate(180deg);
+}
+
+/* いまのページ（aria-current）・開いているメニュー・「もっと見る」の中がいまのページのとき */
+.fbc-header .fbc-topnav-link:hover,
+.fbc-header .fbc-topnav-link[aria-current="page"],
+.av-more[open] > summary,
+.av-menu[open] > summary,
+.av-more[data-active] > summary {
+    background: rgba(45, 212, 191, 0.18);
+    color: #fff;
+}
+
+.fbc-header .fbc-topnav-link[aria-current="page"],
+.av-more[data-active] > summary {
+    box-shadow: inset 0 -2px 0 #5eead4;
+}
+
+.fbc-header summary:focus-visible,
+.fbc-header .fbc-topnav-link:focus-visible,
+.av-pop :focus-visible,
+.fbc-topnav-drawer :focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+}
+
+/* ポップアップ（どちらのテーマでも濃い地）と縦のメニューの項目 */
+.av-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 15rem;
+    padding: 0.4rem;
+    background: #08181e;
+    border: 1px solid rgba(130, 215, 230, 0.22);
+    border-radius: 10px;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+}
+
+.av-menu > .av-pop {
+    left: 0;
+}
+
+.av-pop-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    padding: 0.55rem 0.75rem;
+    border-radius: 6px;
+    color: #e3f0f2;
+    font-size: 0.92rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.av-pop-link .av-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    color: #9db8bf;
+}
+
+.av-pop-link:hover {
+    background: rgba(45, 212, 191, 0.14);
+    color: #fff;
+}
+
+.av-pop-link[aria-current="page"] {
+    background: rgba(45, 212, 191, 0.2);
+    color: #b4f0f7;
+    font-weight: 700;
+}
+
+.av-nav-label {
+    padding: 0.6rem 0.75rem 0.2rem;
+    color: #9db8bf;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+/* 幅ごとの見せ方: 横に並べる（1280px 以上。それより狭いと検索欄が縮んで案内文が切れる）／「メニュー」1 つ（768〜1279px）／ハンバーガーの中の縦（768px 未満。kit が TopNav をドロワーに入れる） */
+.av-menu,
+.av-nav-flat {
+    display: none;
+}
+
+@media (min-width: 768px) and (max-width: 1279.98px) {
+    .av-topnav-links {
+        display: none;
+    }
+
+    .av-menu {
+        display: block;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .av-topnav-links {
+        display: none;
+    }
+
+    .av-static .fbc-header .av-topnav {
+        display: none;
+    }
+}
+
+.fbc-topnav-drawer .av-nav-flat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    width: 100%;
+}
+
+.fbc-topnav-drawer .av-pop-link,
+.av-nav-noscript .av-pop-link {
+    min-height: 44px;
+    color: var(--fbc-sidebar-text);
+}
+
+.fbc-topnav-drawer .av-pop-link[aria-current="page"],
+.av-nav-noscript .av-pop-link[aria-current="page"] {
+    color: #b4f0f7;
+}
+
+/* JavaScript が無いスマホの縦のメニュー（通常は出さない。index.html の noscript の CSS が出す） */
+.av-static .av-nav-noscript {
+    display: none;
 }

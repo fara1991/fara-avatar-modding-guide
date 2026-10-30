@@ -52,7 +52,7 @@
 </section>
 
 <section class="mb-4">
-    <h2 class="h3 mb-3">更新履歴</h2>
+    <h2 class="h3 mb-3">更新のお知らせ</h2>
     <ul class="changelog-recent list-unstyled mb-2">
         @foreach (var e in Store.Content?.Changelog.Take(RecentCount) ?? Enumerable.Empty<ChangelogDto>())
         {
@@ -72,10 +72,10 @@
         ("/howto", "HelpOutline", "あの操作、何て名前？", "「頂点をくっつけたい」から、操作の名前・メニュー・キーを引けます。"),
         ("/tips", "Lightbulb", "困ったときのコツ（TIPS）", "Unity でピンクになる、服がついてこないなど、よくあるつまずきと直し方。"),
         ("/qa", "Chat", "よくある質問（改変 Q&A）", "非対応衣装・ウェイト・首すげ替え・色変えなど、改変の相談でよく出た質問と手順。"),
-        ("/glossary", "Article", "用語集", "Blender・Unity・VRChat の言葉を、英語 UI の表記と一緒に。"),
+        ("/glossary", "Article", "言葉の意味（用語集）", "Blender・Unity・VRChat の言葉を、英語 UI の表記と一緒に。"),
         ("/shortcuts", "Keyboard", "ショートカットキー", "キーから機能を逆引きできます。"),
         ("/addons", "Extension", "アドオン", "作業を楽にするアドオンの紹介。"),
-        ("/links", "Link", "リンク集", "Unity のツール、参考になる記事、話題になった BOOTH のアバター・衣装。"),
+        ("/links", "Link", "リンク", "Unity のツール、参考になる記事、話題になった BOOTH のアバター・衣装。"),
         ("/practice", "SportsEsports", "操作の練習", "ブラウザ上で、Blender と同じキー操作を試せます。"),
     ];
 }
