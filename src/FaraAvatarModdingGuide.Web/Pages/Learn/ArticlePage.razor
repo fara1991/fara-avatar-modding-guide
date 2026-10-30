@@ -16,10 +16,15 @@
 else
 {
     var done = Progress.IsDone(article.Id);
+    var siblings = content.ArticlesOf(category.Id);
+    var position = siblings.ToList().FindIndex(a => a.Id == article.Id) + 1;
     <PageTitle>@PageTitles.Compose(article.Title, Settings.Title)</PageTitle>
+    @* 記事のページ（B 案）: 中央に 1 本の本文（読みやすい幅）+ 右に「このページの内容」。末尾に「同じテーマの記事」、前の記事・次の記事。全体を .article-page で中央に寄せる *@
+    <div class="article-page">
     <Breadcrumb Items="@Crumbs(content)" />
 
     <header class="article-header mb-4" data-progress-page="@article.Id">
+        <a class="article-cat" href="/learn/@category.Id"><span class="home-tile"><AvIcon Name="@category.Icon" /></span>@category.Title · @position/@siblings.Count 本目</a>
         <h1>@article.Title</h1>
         <div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary small">
             <DoneBadge Done="@done" />
@@ -58,8 +63,8 @@ else
         </details>
     }
 
-    <div class="row g-4">
-        <div class="@(HasAside ? "col-lg-9" : "col-12")">
+    <div class="@("article-cols" + (HasAside ? " has-aside" : ""))">
+        <div class="article-main">
             <div class="article-body">
                 @((MarkupString)article.Html)
             </div>
@@ -67,7 +72,7 @@ else
 
         @if (HasAside)
         {
-            <aside class="col-lg-3" aria-label="この記事の補足">
+            <aside class="article-side" aria-label="この記事の補足">
                 <div class="article-aside">
                     @if (headings.Count > 0)
                     {
@@ -113,6 +118,17 @@ else
         <span class="small text-body-secondary">『読んだ』の印は、このブラウザにだけ残ります。</span>
     </div>
 
+    <section class="article-related" aria-labelledby="article-related-title">
+        <h2 class="article-related-title" id="article-related-title">同じテーマの記事</h2>
+        <p class="article-related-desc">@category.Title の @siblings.Count 記事</p>
+        <ol class="article-related-list">
+            @foreach (var (sibling, index) in siblings.Select((s, i) => (s, i)))
+            {
+                <li data-article="@sibling.Id" class="@DoneClass(sibling.Id)"><a href="@sibling.Url" aria-current="@(sibling.Id == article.Id ? "page" : null)"><span class="article-related-no">@(index + 1)</span><span class="article-related-name">@sibling.Title</span><DoneMark /></a></li>
+            }
+        </ol>
+    </section>
+
     <nav class="article-nav d-flex justify-content-between gap-3 mt-4 pt-4 border-top" aria-label="前後の記事">
         @if (prev is not null)
         {
@@ -127,6 +143,7 @@ else
             <a href="@next.Url" class="btn btn-primary text-end"><small class="d-block">次の記事 →</small>@next.Title</a>
         }
     </nav>
+    </div>
 }
 
 @code {

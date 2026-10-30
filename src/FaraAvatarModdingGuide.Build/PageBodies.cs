@@ -191,9 +191,13 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         if (c.SectionOf(category) is { } section) crumbs.Add(($"/learn#section-{section.Id}", section.Title));
         crumbs.Add(($"/learn/{category.Id}", category.Title));
         crumbs.Add((null, article.Title));
+        var siblings = c.ArticlesOf(category.Id);
+        var position = siblings.ToList().FindIndex(a => a.Id == article.Id) + 1;
+        sb.Line("<div class=\"article-page\">");
         sb.Append(Fragments.Breadcrumb(crumbs));
 
         sb.Line($"<header class=\"article-header mb-4\" data-progress-page=\"{E(article.Id)}\">");
+        sb.Line($"<a class=\"article-cat\" href=\"/learn/{E(category.Id)}\"><span class=\"home-tile\">{Icon(category.Icon)}</span>{E(category.Title)} · {position}/{siblings.Count} 本目</a>");
         sb.Line($"<h1>{E(article.Title)}</h1>");
         sb.Line("<div class=\"d-flex flex-wrap align-items-center gap-2 text-body-secondary small\">");
         sb.Line(Fragments.DoneBadge());
@@ -218,15 +222,15 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         }
 
         var hasAside = headings.Count > 0 || article.Shortcuts.Count > 0;
-        sb.Line("<div class=\"row g-4\">");
-        sb.Line($"<div class=\"{(hasAside ? "col-lg-9" : "col-12")}\">");
+        sb.Line($"<div class=\"article-cols{(hasAside ? " has-aside" : "")}\">");
+        sb.Line("<div class=\"article-main\">");
         sb.Line("<div class=\"article-body\">");
         sb.Line(article.Html.TrimEnd('\n'));
         sb.Line("</div>");
         sb.Line("</div>");
         if (hasAside)
         {
-            sb.Line("<aside class=\"col-lg-3\" aria-label=\"この記事の補足\">");
+            sb.Line("<aside class=\"article-side\" aria-label=\"この記事の補足\">");
             sb.Line("<div class=\"article-aside\">");
             if (headings.Count > 0)
             {
@@ -262,11 +266,25 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line("<span class=\"small text-body-secondary\">『読んだ』の印は、このブラウザにだけ残ります。</span>");
         sb.Line("</div>");
 
+        sb.Line("<section class=\"article-related\" aria-labelledby=\"article-related-title\">");
+        sb.Line("<h2 class=\"article-related-title\" id=\"article-related-title\">同じテーマの記事</h2>");
+        sb.Line($"<p class=\"article-related-desc\">{E(category.Title)} の {siblings.Count} 記事</p>");
+        sb.Line("<ol class=\"article-related-list\">");
+        for (var i = 0; i < siblings.Count; i++)
+        {
+            var sibling = siblings[i];
+            var current = sibling.Id == article.Id ? " aria-current=\"page\"" : "";
+            sb.Line($"<li data-article=\"{E(sibling.Id)}\"><a href=\"{E(sibling.Url)}\"{current}><span class=\"article-related-no\">{i + 1}</span><span class=\"article-related-name\">{E(sibling.Title)}</span>{Fragments.DoneMark()}</a></li>");
+        }
+        sb.Line("</ol>");
+        sb.Line("</section>");
+
         var (prev, next) = c.Neighbors(article);
         sb.Line("<nav class=\"article-nav d-flex justify-content-between gap-3 mt-4 pt-4 border-top\" aria-label=\"前後の記事\">");
         sb.Line(prev is null ? "<span></span>" : $"<a href=\"{E(prev.Url)}\" class=\"btn btn-outline-secondary text-start\"><small class=\"d-block text-body-secondary\">← 前の記事</small>{E(prev.Title)}</a>");
         if (next is not null) sb.Line($"<a href=\"{E(next.Url)}\" class=\"btn btn-primary text-end\"><small class=\"d-block\">次の記事 →</small>{E(next.Title)}</a>");
         sb.Line("</nav>");
+        sb.Line("</div>");
         return sb.ToString();
     }
 
