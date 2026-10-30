@@ -1,81 +1,79 @@
 @page "/"
 @inject ContentStore Store
 @inject SiteSettings Settings
+@inject NavigationManager Nav
 
 <PageTitle>@PageTitles.Compose("ホーム", Settings.Title)</PageTitle>
 
-@* サイト名と説明（ポケモン・Bot のサイトと同じ作り。箱で囲まず、グラデーションの文字）。静的 HTML（Build の PageBodies.Home）と同じ構造・class *@
+@* 静的 HTML（Build の PageBodies.Home）と同じ構造・class。上に、さがす欄とボタン、分野（区切り）ごとのテーマのカード、下に 4 つのリンク。
+   カードの「読んだ 4/5」・バー・状態は、「読んだ記事」の仕組み（ProgressStore）から（HomeCategoryCard。静的 HTML のあいだは 0 件） *@
 <div class="home-header">
     <h1 class="home-title">@Settings.Title</h1>
-    <p class="home-lead mb-3">
-        アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。<br />
-        初めての方は、下の記事一覧を上から順に読んでください。
-    </p>
-    <p class="small text-body-secondary mb-3">
-        対象バージョン: Blender @Settings.BlenderVersion / Unity @Settings.UnityVersion（VRChat SDK3）
-        @if (!string.IsNullOrEmpty(Settings.RepositoryUrl))
-        {
-            <span> · </span><a href="@Settings.RepositoryUrl" target="_blank" rel="noopener">GitHub で修正を提案する</a>
-        }
-    </p>
-    <a href="/learn" class="btn btn-primary btn-lg"><AvIcon Name="MenuBook" /> はじめから読む</a>
-</div>
-
-<section class="mb-5">
-    <h2 class="h3 mb-3">記事一覧</h2>
+    <p class="home-lead">@HomeCards.Lead</p>
     @if (Store.Content is { } content)
     {
-        <ProgressSummary HideWhenEmpty="true" />
-        <Roadmap Content="content" />
-    }
-    else
-    {
-        <p class="text-body-secondary" role="status">記事一覧を読み込めませんでした。ページを再読み込みしてください。</p>
-    }
-</section>
-
-<section class="mb-5">
-    <h2 class="h3 mb-3">困ったときに引く</h2>
-    <div class="row g-4">
-        @foreach (var (href, icon, title, text) in Cards)
-        {
-            <div class="col-md-4">
-                <a href="@href" class="card h-100 text-decoration-none article-card">
-                    <div class="card-body">
-                        <h3 class="h5 card-title"><AvIcon Name="@icon" Class="me-2" />@title</h3>
-                        <p class="card-text text-body-secondary">@text</p>
-                    </div>
-                </a>
+        var first = content.Categories.FirstOrDefault(c => content.ArticlesOf(c.Id).Count > 0);
+        <div class="home-go">
+            @if (first is not null)
+            {
+                <a class="btn btn-primary btn-lg home-go-main" href="/learn/@first.Id"><AvIcon Name="MenuBook" /><span>おすすめの順に読む<small>まずは「@first.Title」の @content.ArticlesOf(first.Id).Count 記事</small></span></a>
+            }
+            <a class="btn btn-outline-primary btn-lg" href="/howto"><AvIcon Name="HelpOutline" /> やりたいことから探す</a>
+        </div>
+        <div class="home-tools">
+            <form class="home-search" action="/search" method="get" role="search" @onsubmit="Submit" @onsubmit:preventDefault="true">
+                <AvIcon Name="Search" />
+                <input name="q" type="search" class="home-search-input" placeholder="@HomeCards.SearchPlaceholder" autocomplete="off" aria-label="知りたいことをさがす" value="@input" @oninput="@(e => input = e.Value?.ToString() ?? "")" />
+                <button type="submit" class="btn btn-primary">さがす</button>
+            </form>
+            <div class="home-chips" role="group" aria-label="分野へジャンプ">
+                @foreach (var section in content.Sections.Where(s => content.CategoriesIn(s.Id).Any(c => content.ArticlesOf(c.Id).Count > 0)))
+                {
+                    <a href="#section-@section.Id"><AvIcon Name="@section.Icon" />@section.Title<b>@content.CategoriesIn(section.Id).Sum(c => content.ArticlesOf(c.Id).Count)</b></a>
+                }
             </div>
-        }
-    </div>
-</section>
+        </div>
+        <p class="home-stat">
+            <span>使っているバージョン: Blender @Settings.BlenderVersion / Unity @Settings.UnityVersion（VRChat SDK3）</span>
+            <HomeReadStat />
+            @if (!string.IsNullOrEmpty(Settings.RepositoryUrl))
+            {
+                <a href="@Settings.RepositoryUrl" target="_blank" rel="noopener">GitHub で修正を提案する</a>
+            }
+        </p>
+    }
+</div>
 
-<section class="mb-4">
-    <h2 class="h3 mb-3">更新のお知らせ</h2>
-    <ul class="changelog-recent list-unstyled mb-2">
-        @foreach (var e in Store.Content?.Changelog.Take(RecentCount) ?? Enumerable.Empty<ChangelogDto>())
+@if (Store.Content is { } c)
+{
+    @foreach (var section in c.Sections.Where(s => c.CategoriesIn(s.Id).Any(x => c.ArticlesOf(x.Id).Count > 0)))
+    {
+        <section class="home-group" id="section-@section.Id" aria-labelledby="section-title-@section.Id">
+            <h2 class="home-group-title" id="section-title-@section.Id"><AvIcon Name="@section.Icon" /> @section.Title<small>@HomeCards.SectionMeta(c, section.Id)</small></h2>
+            <p class="home-group-desc">@section.Description</p>
+            <div class="home-grid">
+                @foreach (var category in c.CategoriesIn(section.Id).Where(x => c.ArticlesOf(x.Id).Count > 0))
+                {
+                    <HomeCategoryCard Category="category" Articles="c.ArticlesOf(category.Id)" />
+                }
+            </div>
+        </section>
+    }
+
+    <nav class="home-links" aria-label="困ったときに見るページ">
+        @foreach (var (href, icon, title) in HomeCards.Links)
         {
-            <li><span class="changelog-date">@e.Date[5..].Replace('-', '/')</span> @e.Title</li>
+            <a href="@href"><AvIcon Name="@icon" />@title</a>
         }
-    </ul>
-    <a href="/changelog" class="btn btn-sm btn-outline-primary">すべて見る</a>
-</section>
+    </nav>
+}
+else
+{
+    <p class="text-body-secondary" role="status">記事一覧を読み込めませんでした。ページを再読み込みしてください。</p>
+}
 
 @code {
-    /// <summary>ホームに出す更新履歴の件数（細かい内容は /changelog）。Build の PageBodies.RecentChangelogCount と同じ。</summary>
-    internal const int RecentCount = 3;
+    private string input = "";
 
-    /// <summary>「困ったときに引く」（Build の PageBodies.HomeCards と同じ文言。同じことを Web.Tests が確かめる）。</summary>
-    internal static readonly (string Href, string Icon, string Title, string Text)[] Cards =
-    [
-        ("/howto", "HelpOutline", "あの操作、何て名前？", "「頂点をくっつけたい」から、操作の名前・メニュー・キーを引けます。"),
-        ("/tips", "Lightbulb", "困ったときのコツ（TIPS）", "Unity でピンクになる、服がついてこないなど、よくあるつまずきと直し方。"),
-        ("/qa", "Chat", "よくある質問（改変 Q&A）", "非対応衣装・ウェイト・首すげ替え・色変えなど、改変の相談でよく出た質問と手順。"),
-        ("/glossary", "Article", "言葉の意味（用語集）", "Blender・Unity・VRChat の言葉を、英語 UI の表記と一緒に。"),
-        ("/shortcuts", "Keyboard", "ショートカットキー", "キーから機能を逆引きできます。"),
-        ("/addons", "Extension", "アドオン", "作業を楽にするアドオンの紹介。"),
-        ("/links", "Link", "リンク", "Unity のツール、参考になる記事、話題になった BOOTH のアバター・衣装。"),
-        ("/practice", "SportsEsports", "操作の練習", "ブラウザ上で、Blender と同じキー操作を試せます。"),
-    ];
+    private void Submit() => Nav.NavigateTo("/search?q=" + Uri.EscapeDataString(input.Trim()));
 }

@@ -2201,3 +2201,348 @@ label,
 .av-static .av-nav-noscript {
     display: none;
 }
+
+/* ---------- ホーム（B 案: 分野別のカード）。Web の Home.razor / HomeCategoryCard.razor と、Build の PageBodies.Home が同じ構造 ---------- */
+.home-go {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 1.25rem 0 0;
+}
+
+.home-go-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: left;
+}
+
+.home-go-main small {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 400;
+}
+
+.home-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    margin: 1.25rem 0 0.5rem;
+}
+
+/* さがす欄（大きめ）。入力欄そのものではなく、枠（form）にフォーカスの輪郭を出す */
+.home-search {
+    display: flex;
+    flex: 1 1 320px;
+    align-items: center;
+    gap: 0.6rem;
+    max-width: 560px;
+    min-height: 52px;
+    padding: 0 0.5rem 0 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface);
+}
+
+.home-search:focus-within {
+    border-color: var(--accent);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+.home-search > .av-icon {
+    width: 1.25em;
+    height: 1.25em;
+    color: var(--bs-secondary-color);
+}
+
+.home-search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 48px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 1rem;   /* 16px 未満だと、iOS は入力のとき拡大する */
+}
+
+.home-search-input:focus,
+.home-search-input:focus-visible {
+    outline: none;
+}
+
+.home-search-input::placeholder {
+    color: var(--bs-secondary-color);
+    opacity: 1;
+}
+
+/* 分野へジャンプ（タップは 44px 以上） */
+.home-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.home-chips a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--bs-body-color);
+    font-size: 0.92rem;
+    text-decoration: none;
+}
+
+.home-chips a:hover {
+    border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.14);
+}
+
+.home-chips b {
+    color: var(--accent-soft);
+}
+
+.home-stat {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin: 0.75rem 0 0;
+    color: var(--bs-secondary-color);
+    font-size: 0.9rem;
+}
+
+.home-read[hidden] {
+    display: none;
+}
+
+.home-group {
+    margin: 2.4rem 0 0;
+    scroll-margin-top: 5rem;
+}
+
+.home-group-title {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 0;
+    font-size: 1.35rem;
+}
+
+.home-group-title > .av-icon {
+    align-self: center;
+}
+
+.home-group-title small {
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.home-group-desc {
+    margin: 0.25rem 0 1rem;
+    color: var(--bs-secondary-color);
+}
+
+.home-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.home-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px 18px 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--bs-body-color);
+    text-decoration: none;
+    transition: border-color 0.15s, background-color 0.15s, transform 0.15s;
+}
+
+.home-card:hover {
+    border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.1);
+    transform: translateY(-2px);
+}
+
+.home-card.is-done {
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+.home-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.home-tile {
+    display: grid;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.28), rgba(96, 165, 250, 0.2));
+    color: var(--accent-soft);
+}
+
+.home-tile .av-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.home-card-title {
+    margin: 0;
+    font-size: 1.08rem;
+    line-height: 1.4;
+}
+
+.home-card-meta {
+    display: block;
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+}
+
+.home-card-desc {
+    flex: 1 1 auto;
+    color: var(--bs-secondary-color);
+    font-size: 0.9rem;
+    line-height: 1.65;
+}
+
+.home-card-pg {
+    display: grid;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.home-card-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+/* 状態（全部読んだ／読んでいる途中／これから）。色に加えて、文字とアイコンの有無でも区別する */
+.home-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.home-badge.is-go {
+    border-color: var(--accent);
+    color: var(--accent-soft);
+}
+
+.home-badge.is-done {
+    border-color: transparent;
+    background: rgba(74, 222, 128, 0.16);
+    color: #86efac;
+}
+
+[data-bs-theme="light"] .home-badge.is-done {
+    background: rgba(22, 163, 74, 0.14);
+    color: #166534;
+}
+
+.home-bar {
+    display: block;
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(var(--accent-rgb), 0.22);
+}
+
+.home-bar > i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--grad);
+}
+
+/* 下の 4 つのリンク */
+.home-links {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 2.6rem 0 1rem;
+}
+
+.home-links a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 56px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--bs-body-color);
+    text-decoration: none;
+}
+
+.home-links a:hover {
+    border-color: var(--accent);
+}
+
+.home-links .av-icon {
+    color: var(--accent-soft);
+}
+
+@media (max-width: 1100px) {
+    .home-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .home-links {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .home-grid,
+    .home-links {
+        grid-template-columns: 1fr;
+    }
+
+    .home-search {
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-card {
+        transition: none;
+    }
+
+    .home-card:hover {
+        transform: none;
+    }
+}
+
+/* スマホ: 「GitHub で修正を提案する」の押せる範囲を 44px 以上にする */
+@media (max-width: 767.98px) {
+    .home-stat a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}

@@ -38,64 +38,57 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Home()
     {
         var sb = new StringBuilder();
+        var sections = c.Sections.Where(s => c.CategoriesIn(s.Id).Any(x => c.ArticlesOf(x.Id).Count > 0)).ToList();
         sb.Line("<div class=\"home-header\">");
         sb.Line($"<h1 class=\"home-title\">{E(s.Title)}</h1>");
-        sb.Line("<p class=\"home-lead mb-3\">");
-        sb.Line("アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。<br />");
-        sb.Line("初めての方は、下の記事一覧を上から順に読んでください。");
+        sb.Line($"<p class=\"home-lead\">{E(HomeCards.Lead)}</p>");
+        var first = c.Categories.FirstOrDefault(x => c.ArticlesOf(x.Id).Count > 0);
+        sb.Line("<div class=\"home-go\">");
+        if (first is not null)
+            sb.Line($"<a class=\"btn btn-primary btn-lg home-go-main\" href=\"/learn/{E(first.Id)}\">{Icon("MenuBook")}<span>おすすめの順に読む<small>まずは「{E(first.Title)}」の {c.ArticlesOf(first.Id).Count} 記事</small></span></a>");
+        sb.Line($"<a class=\"btn btn-outline-primary btn-lg\" href=\"/howto\">{Icon("HelpOutline")} やりたいことから探す</a>");
+        sb.Line("</div>");
+        sb.Line("<div class=\"home-tools\">");
+        sb.Line($"<form class=\"home-search\" action=\"/search\" method=\"get\" role=\"search\">{Icon("Search")}<input name=\"q\" type=\"search\" class=\"home-search-input\" placeholder=\"{E(HomeCards.SearchPlaceholder)}\" autocomplete=\"off\" aria-label=\"知りたいことをさがす\" /><button type=\"submit\" class=\"btn btn-primary\">さがす</button></form>");
+        sb.Append("<div class=\"home-chips\" role=\"group\" aria-label=\"分野へジャンプ\">");
+        foreach (var section in sections)
+            sb.Append($"<a href=\"#section-{E(section.Id)}\">{Icon(section.Icon)}{E(section.Title)}<b>{c.CategoriesIn(section.Id).Sum(x => c.ArticlesOf(x.Id).Count)}</b></a>");
+        sb.Line("</div>");
+        sb.Line("</div>");
+        sb.Append($"<p class=\"home-stat\"><span>使っているバージョン: Blender {E(s.BlenderVersion)} / Unity {E(s.UnityVersion)}（VRChat SDK3）</span>");
+        sb.Append($"<span class=\"home-read\" hidden>{E(HomeCards.ReadStat(0, c.Articles.Count))}</span>");
+        if (!string.IsNullOrEmpty(s.RepositoryUrl)) sb.Append($"<a href=\"{E(s.RepositoryUrl)}\" target=\"_blank\" rel=\"noopener\">GitHub で修正を提案する</a>");
         sb.Line("</p>");
-        sb.Append($"<p class=\"small text-body-secondary mb-3\">対象バージョン: Blender {E(s.BlenderVersion)} / Unity {E(s.UnityVersion)}（VRChat SDK3）");
-        if (!string.IsNullOrEmpty(s.RepositoryUrl)) sb.Append($"<span> · </span><a href=\"{E(s.RepositoryUrl)}\" target=\"_blank\" rel=\"noopener\">GitHub で修正を提案する</a>");
-        sb.Line("</p>");
-        sb.Line($"<a href=\"/learn\" class=\"btn btn-primary btn-lg\">{Icon("MenuBook")} はじめから読む</a>");
         sb.Line("</div>");
 
-        sb.Line("<section class=\"mb-5\">");
-        sb.Line("<h2 class=\"h3 mb-3\">記事一覧</h2>");
-        sb.Append(Fragments.ProgressSummary(c.Articles, hideWhenEmpty: true, showReset: false, showNote: false));
-        sb.Append(Roadmap());
-        sb.Line("</section>");
-
-        sb.Line("<section class=\"mb-5\">");
-        sb.Line("<h2 class=\"h3 mb-3\">困ったときに引く</h2>");
-        sb.Line("<div class=\"row g-4\">");
-        foreach (var (href, icon, title, text) in HomeCards)
+        foreach (var section in sections)
         {
-            sb.Line("<div class=\"col-md-4\">");
-            sb.Line($"<a href=\"{href}\" class=\"card h-100 text-decoration-none article-card\"><div class=\"card-body\"><h3 class=\"h5 card-title\">{Icon(icon, "me-2")}{E(title)}</h3><p class=\"card-text text-body-secondary\">{E(text)}</p></div></a>");
+            sb.Line($"<section class=\"home-group\" id=\"section-{E(section.Id)}\" aria-labelledby=\"section-title-{E(section.Id)}\">");
+            sb.Line($"<h2 class=\"home-group-title\" id=\"section-title-{E(section.Id)}\">{Icon(section.Icon)} {E(section.Title)}<small>{E(HomeCards.SectionMeta(c, section.Id))}</small></h2>");
+            sb.Line($"<p class=\"home-group-desc\">{E(section.Description)}</p>");
+            sb.Line("<div class=\"home-grid\">");
+            foreach (var category in c.CategoriesIn(section.Id).Where(x => c.ArticlesOf(x.Id).Count > 0)) sb.Append(HomeCard(category));
             sb.Line("</div>");
+            sb.Line("</section>");
         }
-        sb.Line("</div>");
-        sb.Line("</section>");
 
-        sb.Line("<section class=\"mb-4\">");
-        sb.Line("<h2 class=\"h3 mb-3\">更新のお知らせ</h2>");
-        sb.Line("<ul class=\"changelog-recent list-unstyled mb-2\">");
-        foreach (var e in c.Changelog.Take(RecentChangelogCount))
-        {
-            sb.Line($"<li><span class=\"changelog-date\">{E(e.Date[5..].Replace('-', '/'))}</span> {E(e.Title)}</li>");
-        }
-        sb.Line("</ul>");
-        sb.Line("<a href=\"/changelog\" class=\"btn btn-sm btn-outline-primary\">すべて見る</a>");
-        sb.Line("</section>");
+        sb.Append("<nav class=\"home-links\" aria-label=\"困ったときに見るページ\">");
+        foreach (var (href, icon, title) in HomeCards.Links) sb.Append($"<a href=\"{E(href)}\">{Icon(icon)}{E(title)}</a>");
+        sb.Line("</nav>");
         return sb.ToString();
     }
 
-    /// <summary>ホームに出す更新履歴の件数（細かい内容は /changelog）。</summary>
-    public const int RecentChangelogCount = 3;
-
-    /// <summary>ホームの「困ったときに引く」（SSR 版 Home.razor と同じ文言）。Icon は Material のメンバー名。</summary>
-    public static readonly IReadOnlyList<(string Href, string Icon, string Title, string Text)> HomeCards =
-    [
-        ("/howto", "HelpOutline", "あの操作、何て名前？", "「頂点をくっつけたい」から、操作の名前・メニュー・キーを引けます。"),
-        ("/tips", "Lightbulb", "困ったときのコツ（TIPS）", "Unity でピンクになる、服がついてこないなど、よくあるつまずきと直し方。"),
-        ("/qa", "Chat", "よくある質問（改変 Q&A）", "非対応衣装・ウェイト・首すげ替え・色変えなど、改変の相談でよく出た質問と手順。"),
-        ("/glossary", "Article", "言葉の意味（用語集）", "Blender・Unity・VRChat の言葉を、英語 UI の表記と一緒に。"),
-        ("/shortcuts", "Keyboard", "ショートカットキー", "キーから機能を逆引きできます。"),
-        ("/addons", "Extension", "アドオン", "作業を楽にするアドオンの紹介。"),
-        ("/links", "Link", "リンク", "Unity のツール、参考になる記事、話題になった BOOTH のアバター・衣装。"),
-        ("/practice", "SportsEsports", "操作の練習", "ブラウザ上で、Blender と同じキー操作を試せます。"),
-    ];
+    /// <summary>ホームの分野別カード（Web の HomeCategoryCard.razor と同じ構造）。静的 HTML では、読んだ記事は 0 件の状態（起動したら、記録を反映する）。</summary>
+    private string HomeCard(CategoryDto category)
+    {
+        var articles = c.ArticlesOf(category.Id);
+        var state = HomeCards.State(0, articles.Count);
+        return $"<a class=\"home-card is-{state}\" href=\"/learn/{E(category.Id)}\"><span class=\"home-card-top\"><span class=\"home-tile\">{Icon(category.Icon)}</span>"
+            + $"<span class=\"home-card-name\"><h3 class=\"home-card-title\">{E(category.Title)}</h3><span class=\"home-card-meta\">{E(HomeCards.Meta(articles))}</span></span></span>"
+            + $"<span class=\"home-card-desc\">{E(category.Description)}</span>"
+            + $"<span class=\"home-card-pg\"><span class=\"home-card-row\"><span class=\"home-card-count\">読んだ 0/{articles.Count}</span><span class=\"home-badge is-{state}\">{HomeCards.StateLabel(state)}</span></span>"
+            + $"<span class=\"home-bar\" role=\"progressbar\" aria-label=\"{E(category.Title)} の読み進み\" aria-valuemin=\"0\" aria-valuemax=\"{articles.Count}\" aria-valuenow=\"0\"><i style=\"width: 0%\"></i></span></span></a>\n";
+    }
 
     /// <summary>目次（Roadmap.razor）。区切りごとに、カテゴリを読む順に並べる。</summary>
     public string Roadmap()
