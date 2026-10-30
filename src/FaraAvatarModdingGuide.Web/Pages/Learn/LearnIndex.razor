@@ -2,15 +2,15 @@
 @inject ContentStore Store
 @inject SiteSettings Settings
 
-<PageTitle>@PageTitles.Compose("目次", Settings.Title)</PageTitle>
+<PageTitle>@PageTitles.Compose("記事一覧", Settings.Title)</PageTitle>
 
 @* 静的 HTML（Build の PageBodies.LearnIndex）と同じ構造・class *@
-<h1>目次</h1>
+<h1>記事一覧</h1>
 <p class="lead">Blender・Unity・VRChat の区切りごとに、上から順に読むと一通り追えます。最後の「通しで作る」では、衣装づくりを最初から最後まで行います。</p>
 
 @if (Store.Content is not { } content)
 {
-    <p class="text-body-secondary" role="status">目次を読み込めませんでした。ページを再読み込みしてください。</p>
+    <p class="text-body-secondary" role="status">記事一覧を読み込めませんでした。ページを再読み込みしてください。</p>
 }
 else
 {

@@ -8,12 +8,12 @@
    探す処理は Search/SearchEngine(searchcore.js の移植)。日本語入力の変換中の Enter は、js/search-ui.js が止める(ここには届かない) *@
 <div class="@("av-search" + (Sheet ? " av-search-sheet" : ""))" role="search" @onfocusout="Close" @onfocusin="OnFocusIn" @onkeydown="OnKeyDown" @onkeydown:stopPropagation="true">
     <svg class="av-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-    <input id="@InputId" type="search" class="av-search-input" placeholder="検索（例: 押し出し、Ctrl+R、ウェイト）" autocomplete="off" spellcheck="false"
-           aria-label="サイト内を検索" role="combobox" aria-expanded="@(open ? "true" : "false")" aria-controls="@ListId" aria-autocomplete="list"
+    <input id="@InputId" type="search" class="av-search-input" placeholder="知りたいことを入力（例: ウェイト、ループカット）" autocomplete="off" spellcheck="false"
+           aria-label="サイト内をさがす" role="combobox" aria-expanded="@(open ? "true" : "false")" aria-controls="@ListId" aria-autocomplete="list"
            aria-activedescendant="@ActiveId" value="@query" @oninput="OnInput" />
     @if (Sheet)
     {
-        <button type="button" class="av-search-close" aria-label="検索を閉じる" title="検索を閉じる" @onclick="Done">
+        <button type="button" class="av-search-close" aria-label="さがすのを閉じる" title="さがすのを閉じる" @onclick="Done">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
     }
@@ -23,10 +23,10 @@
     }
     @if (open)
     {
-        <div id="@ListId" tabindex="-1" class="av-search-list" role="listbox" aria-label="検索の候補">
+        <div id="@ListId" tabindex="-1" class="av-search-list" role="listbox" aria-label="さがした結果">
             @if (hits.Count == 0)
             {
-                <div class="av-search-empty" role="status">@(loading ? "探しています…" : failed ? "検索の索引を読み込めませんでした" : $"「{query.Trim()}」に一致するものはありません")</div>
+                <div class="av-search-empty" role="status">@(loading ? "探しています…" : failed ? "さがすための索引を読み込めませんでした" : $"「{query.Trim()}」に一致するものはありません")</div>
             }
             @for (var i = 0; i < Math.Min(hits.Count, Max); i++)
             {
@@ -49,7 +49,7 @@
                     </span>
                 </a>
             }
-            <a class="av-search-all" tabindex="-1" href="@AllHref" @onclick="@(e => Go(e, AllHref))" @onclick:preventDefault="true">@(hits.Count > Max ? $"すべての結果（{hits.Count} 件）を見る" : "検索ページで見る") <span aria-hidden="true">→</span></a>
+            <a class="av-search-all" tabindex="-1" href="@AllHref" @onclick="@(e => Go(e, AllHref))" @onclick:preventDefault="true">@(hits.Count > Max ? $"すべての結果（{hits.Count} 件）を見る" : "さがすページで見る") <span aria-hidden="true">→</span></a>
         </div>
     }
 </div>

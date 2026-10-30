@@ -72,7 +72,7 @@ export function finishTutorial(name) {
   if (page && all && window.faraProgress) {
     const was = window.faraProgress.isDone(page);
     window.faraProgress.set(page, true);
-    return was ? "このページは完了済みです。" : "このページを「完了」にしました。";
+    return was ? "このページは「読んだ」にしてあります。" : "このページを「読んだ」にしました。";
   }
   return all ? "" : "このページには、ほかにもチュートリアルがあります。";
 }

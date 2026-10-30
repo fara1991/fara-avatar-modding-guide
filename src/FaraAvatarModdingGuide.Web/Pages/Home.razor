@@ -9,7 +9,7 @@
     <h1 class="home-title">@Settings.Title</h1>
     <p class="home-lead mb-3">
         アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。<br />
-        初めての方は下の目次を上から順に読んでください。
+        初めての方は、下の記事一覧を上から順に読んでください。
     </p>
     <p class="small text-body-secondary mb-3">
         対象バージョン: Blender @Settings.BlenderVersion / Unity @Settings.UnityVersion（VRChat SDK3）
@@ -22,7 +22,7 @@
 </div>
 
 <section class="mb-5">
-    <h2 class="h3 mb-3">目次</h2>
+    <h2 class="h3 mb-3">記事一覧</h2>
     @if (Store.Content is { } content)
     {
         <ProgressSummary HideWhenEmpty="true" />
@@ -30,7 +30,7 @@
     }
     else
     {
-        <p class="text-body-secondary" role="status">目次を読み込めませんでした。ページを再読み込みしてください。</p>
+        <p class="text-body-secondary" role="status">記事一覧を読み込めませんでした。ページを再読み込みしてください。</p>
     }
 </section>
 
@@ -70,10 +70,10 @@
     internal static readonly (string Href, string Icon, string Title, string Text)[] Cards =
     [
         ("/howto", "HelpOutline", "あの操作、何て名前？", "「頂点をくっつけたい」から、操作の名前・メニュー・キーを引けます。"),
-        ("/tips", "Lightbulb", "TIPS", "Unity でピンクになる、服がついてこないなど、よくあるつまずきと直し方。"),
-        ("/qa", "Chat", "改変 Q&A", "非対応衣装・ウェイト・首すげ替え・色変えなど、改変の相談でよく出た質問と手順。"),
+        ("/tips", "Lightbulb", "困ったときのコツ（TIPS）", "Unity でピンクになる、服がついてこないなど、よくあるつまずきと直し方。"),
+        ("/qa", "Chat", "よくある質問（改変 Q&A）", "非対応衣装・ウェイト・首すげ替え・色変えなど、改変の相談でよく出た質問と手順。"),
         ("/glossary", "Article", "用語集", "Blender・Unity・VRChat の言葉を、英語 UI の表記と一緒に。"),
-        ("/shortcuts", "Keyboard", "ショートカット一覧", "キーから機能を逆引きできます。"),
+        ("/shortcuts", "Keyboard", "ショートカットキー", "キーから機能を逆引きできます。"),
         ("/addons", "Extension", "アドオン", "作業を楽にするアドオンの紹介。"),
         ("/links", "Link", "リンク集", "Unity のツール、参考になる記事、話題になった BOOTH のアバター・衣装。"),
         ("/practice", "SportsEsports", "操作の練習", "ブラウザ上で、Blender と同じキー操作を試せます。"),

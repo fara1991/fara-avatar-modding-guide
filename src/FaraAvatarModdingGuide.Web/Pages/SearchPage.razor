@@ -3,27 +3,27 @@
 @inject NavigationManager Nav
 @inject SiteSettings Settings
 
-<PageTitle>@PageTitles.Compose("検索", Settings.Title)</PageTitle>
+<PageTitle>@PageTitles.Compose("さがす", Settings.Title)</PageTitle>
 
 @* 静的 HTML(Build の PageBodies.Search)と同じ構造・class。検索語は URL の ?q=。探す処理と強調は Search/SearchEngine(searchcore.js の移植) *@
-<h1>検索</h1>
-<p class="lead">記事・用語集・「何て名前？」・TIPS・改変 Q&amp;A・ショートカット・アドオン・リンク集をまとめて検索します。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上の検索欄に移動できます。</p>
+<h1>さがす</h1>
+<p class="lead">記事・用語集・「何て名前？」・TIPS・改変 Q&amp;A・ショートカット・アドオン・リンク集をまとめてさがします。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上のさがす欄に移動できます。</p>
 
 <form action="/search" method="get" class="mb-4" role="search" @onsubmit="Submit" @onsubmit:preventDefault="true">
     <div class="input-group input-group-lg">
         <input name="q" type="search" class="form-control" placeholder="例: 押し出し、Ctrl+R、ウェイト" autocomplete="off" @ref="inputRef" value="@input" @oninput="@(e => input = e.Value?.ToString() ?? "")" />
-        <button type="submit" class="btn btn-primary"><AvIcon Name="Search" /> 検索</button>
+        <button type="submit" class="btn btn-primary"><AvIcon Name="Search" /> さがす</button>
     </div>
 </form>
 
 <div aria-live="polite">
     @if (query.Length == 0)
     {
-        <p class="text-body-secondary">キーワードを入力してください。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上の検索欄に移動できます。</p>
+        <p class="text-body-secondary">キーワードを入力してください。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上のさがす欄に移動できます。</p>
     }
     else if (failed)
     {
-        <p class="text-danger">検索インデックスを読み込めませんでした。</p>
+        <p class="text-danger">さがすための索引を読み込めませんでした。</p>
     }
     else if (!ready)
     {

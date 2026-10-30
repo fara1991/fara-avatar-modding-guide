@@ -42,7 +42,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line($"<h1 class=\"home-title\">{E(s.Title)}</h1>");
         sb.Line("<p class=\"home-lead mb-3\">");
         sb.Line("アバター改変のための Blender・Unity・VRChat の操作ガイドです。Blender でのモデリングから Unity での衣装・マテリアルの設定、VRChat へのアップロードまでをまとめています。<br />");
-        sb.Line("初めての方は下の目次を上から順に読んでください。");
+        sb.Line("初めての方は、下の記事一覧を上から順に読んでください。");
         sb.Line("</p>");
         sb.Append($"<p class=\"small text-body-secondary mb-3\">対象バージョン: Blender {E(s.BlenderVersion)} / Unity {E(s.UnityVersion)}（VRChat SDK3）");
         if (!string.IsNullOrEmpty(s.RepositoryUrl)) sb.Append($"<span> · </span><a href=\"{E(s.RepositoryUrl)}\" target=\"_blank\" rel=\"noopener\">GitHub で修正を提案する</a>");
@@ -51,7 +51,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line("</div>");
 
         sb.Line("<section class=\"mb-5\">");
-        sb.Line("<h2 class=\"h3 mb-3\">目次</h2>");
+        sb.Line("<h2 class=\"h3 mb-3\">記事一覧</h2>");
         sb.Append(Fragments.ProgressSummary(c.Articles, hideWhenEmpty: true, showReset: false, showNote: false));
         sb.Append(Roadmap());
         sb.Line("</section>");
@@ -88,10 +88,10 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public static readonly IReadOnlyList<(string Href, string Icon, string Title, string Text)> HomeCards =
     [
         ("/howto", "HelpOutline", "あの操作、何て名前？", "「頂点をくっつけたい」から、操作の名前・メニュー・キーを引けます。"),
-        ("/tips", "Lightbulb", "TIPS", "Unity でピンクになる、服がついてこないなど、よくあるつまずきと直し方。"),
-        ("/qa", "Chat", "改変 Q&A", "非対応衣装・ウェイト・首すげ替え・色変えなど、改変の相談でよく出た質問と手順。"),
+        ("/tips", "Lightbulb", "困ったときのコツ（TIPS）", "Unity でピンクになる、服がついてこないなど、よくあるつまずきと直し方。"),
+        ("/qa", "Chat", "よくある質問（改変 Q&A）", "非対応衣装・ウェイト・首すげ替え・色変えなど、改変の相談でよく出た質問と手順。"),
         ("/glossary", "Article", "用語集", "Blender・Unity・VRChat の言葉を、英語 UI の表記と一緒に。"),
-        ("/shortcuts", "Keyboard", "ショートカット一覧", "キーから機能を逆引きできます。"),
+        ("/shortcuts", "Keyboard", "ショートカットキー", "キーから機能を逆引きできます。"),
         ("/addons", "Extension", "アドオン", "作業を楽にするアドオンの紹介。"),
         ("/links", "Link", "リンク集", "Unity のツール、参考になる記事、話題になった BOOTH のアバター・衣装。"),
         ("/practice", "SportsEsports", "操作の練習", "ブラウザ上で、Blender と同じキー操作を試せます。"),
@@ -144,7 +144,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     }
 
     public string LearnIndex() =>
-        Heading("目次", "Blender・Unity・VRChat の区切りごとに、上から順に読むと一通り追えます。最後の「通しで作る」では、衣装づくりを最初から最後まで行います。")
+        Heading("記事一覧", "Blender・Unity・VRChat の区切りごとに、上から順に読むと一通り追えます。最後の「通しで作る」では、衣装づくりを最初から最後まで行います。")
         + Fragments.ProgressSummary(c.Articles, hideWhenEmpty: false, showReset: true, showNote: true) + Roadmap();
 
     // ------------------------------------------------------------ カテゴリ・記事
@@ -152,7 +152,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Category(CategoryDto category)
     {
         var sb = new StringBuilder();
-        var crumbs = new List<(string?, string)> { ("/learn", "目次") };
+        var crumbs = new List<(string?, string)> { ("/learn", "記事一覧") };
         if (c.SectionOf(category) is { } section) crumbs.Add(($"/learn#section-{section.Id}", section.Title));
         crumbs.Add((null, category.Title));
         sb.Append(Fragments.Breadcrumb(crumbs));
@@ -161,7 +161,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line($"<p class=\"lead\">{E(category.Description)}</p>");
         if (articles.Count == 0)
         {
-            sb.Line("<div class=\"alert alert-secondary\">このカテゴリの記事は準備中です。</div>");
+            sb.Line("<div class=\"alert alert-secondary\">このテーマの記事は準備中です。</div>");
         }
         else
         {
@@ -190,7 +190,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         var category = c.Categories.FirstOrDefault(x => x.Id == article.Category)
             ?? throw new InvalidOperationException($"記事 {article.Title} のカテゴリ {article.Category} が sections・categories にありません");
         var sb = new StringBuilder();
-        var crumbs = new List<(string?, string)> { ("/learn", "目次") };
+        var crumbs = new List<(string?, string)> { ("/learn", "記事一覧") };
         if (c.SectionOf(category) is { } section) crumbs.Add(($"/learn#section-{section.Id}", section.Title));
         crumbs.Add(($"/learn/{category.Id}", category.Title));
         crumbs.Add((null, article.Title));
@@ -213,7 +213,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         if (headings.Count > 0)
         {
             sb.Line("<details class=\"article-toc-mobile d-lg-none mb-4\">");
-            sb.Line($"<summary>この記事の目次（{headings.Count}）</summary>");
+            sb.Line($"<summary>このページの内容（{headings.Count}）</summary>");
             sb.Line("<ol class=\"toc-list\">");
             foreach (var (id, text) in headings) sb.Line($"<li><a href=\"{E(article.Url)}#{E(id)}\">{E(text)}</a></li>");
             sb.Line("</ol>");
@@ -234,7 +234,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
             if (headings.Count > 0)
             {
                 sb.Line("<nav class=\"article-toc d-none d-lg-block\" aria-labelledby=\"article-toc-title\">");
-                sb.Line("<div class=\"article-toc-title\" id=\"article-toc-title\">この記事の目次</div>");
+                sb.Line("<div class=\"article-toc-title\" id=\"article-toc-title\">このページの内容</div>");
                 sb.Line("<ol class=\"toc-list\">");
                 foreach (var (id, text) in headings) sb.Line($"<li><a href=\"{E(article.Url)}#{E(id)}\">{E(text)}</a></li>");
                 sb.Line("</ol>");
@@ -261,14 +261,14 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         sb.Line("</div>");
 
         sb.Line("<div class=\"article-complete d-flex flex-wrap align-items-center gap-3 mt-5\">");
-        sb.Line($"<button type=\"button\" class=\"btn btn-progress\" aria-pressed=\"false\">{Icon("RadioButtonUnchecked")} このページを完了にする</button>");
-        sb.Line("<span class=\"small text-body-secondary\">完了の記録はこのブラウザにだけ保存されます。</span>");
+        sb.Line($"<button type=\"button\" class=\"btn btn-progress\" aria-pressed=\"false\">{Icon("RadioButtonUnchecked")} このページを「読んだ」にする</button>");
+        sb.Line("<span class=\"small text-body-secondary\">『読んだ』の印は、このブラウザにだけ残ります。</span>");
         sb.Line("</div>");
 
         var (prev, next) = c.Neighbors(article);
         sb.Line("<nav class=\"article-nav d-flex justify-content-between gap-3 mt-4 pt-4 border-top\" aria-label=\"前後の記事\">");
-        sb.Line(prev is null ? "<span></span>" : $"<a href=\"{E(prev.Url)}\" class=\"btn btn-outline-secondary text-start\"><small class=\"d-block text-body-secondary\">← 前へ</small>{E(prev.Title)}</a>");
-        if (next is not null) sb.Line($"<a href=\"{E(next.Url)}\" class=\"btn btn-primary text-end\"><small class=\"d-block\">次へ →</small>{E(next.Title)}</a>");
+        sb.Line(prev is null ? "<span></span>" : $"<a href=\"{E(prev.Url)}\" class=\"btn btn-outline-secondary text-start\"><small class=\"d-block text-body-secondary\">← 前の記事</small>{E(prev.Title)}</a>");
+        if (next is not null) sb.Line($"<a href=\"{E(next.Url)}\" class=\"btn btn-primary text-end\"><small class=\"d-block\">次の記事 →</small>{E(next.Title)}</a>");
         sb.Line("</nav>");
         return sb.ToString();
     }
@@ -279,14 +279,14 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     {
         var categories = c.ShortcutCategories();
         var sb = new StringBuilder();
-        sb.Append(Heading("ショートカット一覧", "Blender でよく使うキーボードショートカットを機能別に整理しました。"));
+        sb.Append(Heading("ショートカットキー", "Blender でよく使うキーボードショートカットを機能別に整理しました。"));
         sb.Line("<div id=\"shortcut-filters\" class=\"mb-3 d-flex flex-wrap gap-2\">");
         sb.Line("<a href=\"/shortcuts\" class=\"btn btn-sm btn-primary\" data-category=\"\">すべて</a>");
         foreach (var cat in categories) sb.Line($"<a href=\"/shortcuts?category={Uri.EscapeDataString(cat)}\" class=\"btn btn-sm btn-outline-primary\" data-category=\"{E(cat)}\">{E(cat)}</a>");
         sb.Line("</div>");
         sb.Line("<div class=\"table-responsive\">");
         sb.Line("<table class=\"table table-striped table-hover align-middle\">");
-        sb.Line("<thead class=\"table-dark\"><tr><th>ショートカット</th><th>機能</th><th>カテゴリ</th><th>説明</th></tr></thead>");
+        sb.Line("<thead class=\"table-dark\"><tr><th>ショートカット</th><th>機能</th><th>テーマ</th><th>説明</th></tr></thead>");
         sb.Line("<tbody id=\"shortcut-rows\">");
         foreach (var x in c.Shortcuts)
         {
@@ -477,7 +477,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Tips()
     {
         var sb = new StringBuilder();
-        sb.Append(Heading("TIPS", "アバターづくりでよくあるつまずきを、症状・原因・直し方でまとめました。言葉の意味は <a href=\"/glossary\">用語集</a>、操作の名前は <a href=\"/howto\">何て名前？</a>、手順や「どうすれば？」は <a href=\"/qa\">改変 Q&amp;A</a> へ。"));
+        sb.Append(Heading("困ったときのコツ（TIPS）", "アバターづくりでよくあるつまずきを、症状・原因・直し方でまとめました。言葉の意味は <a href=\"/glossary\">用語集</a>、操作の名前は <a href=\"/howto\">何て名前？</a>、手順や「どうすれば？」は <a href=\"/qa\">改変 Q&amp;A</a> へ。"));
         sb.Append(Fragments.TipsFilter(Fragments.TipTags(c.Tips.Select(t => t.Tags)), c.Tips.Any(t => t.Source == "discord"), c.Tips.Count, "症状で絞り込む（例: ピンク、黒い、ボーン）"));
         sb.Line("<div class=\"row g-3\">");
         foreach (var t in c.Tips)
@@ -512,7 +512,7 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
     public string Qa()
     {
         var sb = new StringBuilder();
-        sb.Append(Heading("改変 Q&A", "アバター改変の相談でよく出た質問と、その答え・手順をまとめました。各項目の「詳しく」を開くと手順や補足が見られます。言葉の意味は <a href=\"/glossary\">用語集</a>、症状から探すなら <a href=\"/tips\">TIPS</a> へ。"));
+        sb.Append(Heading("よくある質問（改変 Q&A）", "アバター改変の相談でよく出た質問と、その答え・手順をまとめました。各項目の「詳しく」を開くと手順や補足が見られます。言葉の意味は <a href=\"/glossary\">用語集</a>、症状から探すなら <a href=\"/tips\">TIPS</a> へ。"));
         sb.Line("<p class=\"small text-body-secondary\">「当時」と書いてあるところは、古いバージョンの Blender・Unity・VRChat SDK での手順です。今の手順と一緒に載せています。</p>");
         sb.Append(Fragments.TipsFilter(Fragments.TipTags(c.Qas.Select(q => q.Tags)), c.Qas.Any(q => q.Source == "discord"), c.Qas.Count, "質問で絞り込む（例: 首、ウェイト、VRM）"));
         sb.Line("<div class=\"row g-3\">");
@@ -792,9 +792,9 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         """;
 
     public string Search() =>
-        Heading("検索", "記事・用語集・「何て名前？」・TIPS・改変 Q&amp;A・ショートカット・アドオン・リンク集をまとめて検索します。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上の検索欄に移動できます。")
-        + $"<form action=\"/search\" method=\"get\" class=\"mb-4\" role=\"search\">\n<div class=\"input-group input-group-lg\">\n<input name=\"q\" type=\"search\" class=\"form-control\" placeholder=\"例: 押し出し、Ctrl+R、ウェイト\" autocomplete=\"off\" />\n<button type=\"submit\" class=\"btn btn-primary\">{Icon("Search")} 検索</button>\n</div>\n</form>\n"
-        + "<div aria-live=\"polite\">\n<p class=\"text-body-secondary\">キーワードを入力してください。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上の検索欄に移動できます。</p>\n<noscript><p class=\"text-danger\">検索には JavaScript が必要です。</p></noscript>\n</div>\n";
+        Heading("さがす", "記事・用語集・「何て名前？」・TIPS・改変 Q&amp;A・ショートカット・アドオン・リンク集をまとめてさがします。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上のさがす欄に移動できます。")
+        + $"<form action=\"/search\" method=\"get\" class=\"mb-4\" role=\"search\">\n<div class=\"input-group input-group-lg\">\n<input name=\"q\" type=\"search\" class=\"form-control\" placeholder=\"例: 押し出し、Ctrl+R、ウェイト\" autocomplete=\"off\" />\n<button type=\"submit\" class=\"btn btn-primary\">{Icon("Search")} さがす</button>\n</div>\n</form>\n"
+        + "<div aria-live=\"polite\">\n<p class=\"text-body-secondary\">キーワードを入力してください。どのページでも <kbd>Ctrl</kbd>+<kbd>K</kbd> か <kbd>/</kbd> で上のさがす欄に移動できます。</p>\n<noscript><p class=\"text-danger\">検索には JavaScript が必要です。</p></noscript>\n</div>\n";
 
     public string Report() =>
         "<div class=\"fbc-page-column\">\n" +

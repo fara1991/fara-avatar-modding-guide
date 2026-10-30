@@ -50,7 +50,7 @@ internal static class StaticFrame
         // 検索欄(PC)。Web の AvSearchBox と同じ構造
         sb.Line("<div class=\"av-search av-pc\" role=\"search\" aria-hidden=\"true\">");
         sb.Line("<svg class=\"av-search-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"11\" cy=\"11\" r=\"7\"></circle><path d=\"M20 20l-3.5-3.5\"></path></svg>");
-        sb.Line("<input type=\"search\" class=\"av-search-input\" placeholder=\"検索（例: 押し出し、Ctrl+R、ウェイト）\" autocomplete=\"off\" spellcheck=\"false\" tabindex=\"-1\" readonly=\"readonly\" aria-hidden=\"true\">");
+        sb.Line("<input type=\"search\" class=\"av-search-input\" placeholder=\"知りたいことを入力（例: ウェイト、ループカット）\" autocomplete=\"off\" spellcheck=\"false\" tabindex=\"-1\" readonly=\"readonly\" aria-hidden=\"true\">");
         sb.Line("<span class=\"av-search-hint\" aria-hidden=\"true\"><kbd>Ctrl</kbd><kbd>K</kbd></span>");
         sb.Line("</div>");
         // ライト／ダークのスイッチ(PC)。MudSwitch の見た目を、色の変数(--mud-palette-*。起動前は無い)に頼らず CSS(.av-sw)で描く。ダーク／ライトは html の data-bs-theme で切り替える
