@@ -66,6 +66,13 @@ public class StaticFrameTests : WebTestContext
     }
 
     [Fact]
+    public void Home_header_does_not_rely_on_margin_collapsing_between_static_and_booted_layouts()
+    {
+        // 静的 HTML の本文は display: block（隣り合う余白が重なる）、起動後は flex の縦並び（足し算）。ホームの見出し部の下の余白に頼ると、起動の前後で位置が 32px ずれる
+        Assert.Matches(@"\.home-header \{\s*margin-bottom: 0;\s*\}", AppCss);
+    }
+
+    [Fact]
     public void Footer_social_icons_and_colors_equal_the_kit()
     {
         var razor = File.ReadAllText(Path.Combine(TestData.Root, "external", "fara-blazor-component", "src", "FaraBlazorComponent.Razor", "Components", "SocialIcon.razor"));

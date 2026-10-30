@@ -2210,6 +2210,12 @@ label,
 }
 
 /* ---------- ホーム（B 案: 分野別のカード）。Web の Home.razor / HomeCategoryCard.razor と、Build の PageBodies.Home が同じ構造 ---------- */
+/* 下の余白は、最初の分野（.home-group）の上の余白だけで取る。静的 HTML（本文は display: block で、隣り合う余白が重なって大きい方だけになる）と、
+   起動後（本文は flex の縦並びで、余白が重ならず足し算になる）で、位置がずれないように、重なりに頼らない */
+.home-header {
+    margin-bottom: 0;
+}
+
 .home-go {
     display: flex;
     flex-wrap: wrap;
@@ -2506,6 +2512,19 @@ label,
     text-decoration: none;
 }
 
+.home-link-text {
+    min-width: 0;
+}
+
+.home-link-text small {
+    display: block;
+    overflow: hidden;
+    color: var(--bs-secondary-color);
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .home-links a:hover {
     border-color: var(--accent);
 }
@@ -2527,7 +2546,7 @@ label,
 @media (max-width: 640px) {
     .home-grid,
     .home-links {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .home-search {
