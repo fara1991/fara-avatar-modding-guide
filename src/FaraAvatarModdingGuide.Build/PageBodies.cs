@@ -73,7 +73,11 @@ internal sealed class PageBodies(SiteContent c, SiteSettings s)
         }
 
         sb.Append("<nav class=\"home-links\" aria-label=\"困ったときに見るページ\">");
-        foreach (var (href, icon, title) in HomeCards.Links) sb.Append($"<a href=\"{E(href)}\">{Icon(icon)}{E(title)}</a>");
+        foreach (var (href, icon, title) in HomeCards.Links)
+        {
+            var latest = href == "/changelog" && c.Changelog.Count > 0 ? $"<small>最新: {E(c.Changelog[0].Date[5..].Replace('-', '/'))} {E(c.Changelog[0].Title)}</small>" : "";
+            sb.Append($"<a href=\"{E(href)}\">{Icon(icon)}<span class=\"home-link-text\">{E(title)}{latest}</span></a>");
+        }
         sb.Line("</nav>");
         return sb.ToString();
     }

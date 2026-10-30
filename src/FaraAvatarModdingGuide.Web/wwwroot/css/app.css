@@ -1435,7 +1435,7 @@ h1:focus {
     }
 }
 
-@media (min-width: 768px) and (max-width: 1199.98px) {
+@media (min-width: 768px) and (max-width: 1439.98px) {
     .av-search-hint {
         display: none;
     }
@@ -2039,6 +2039,13 @@ label,
     gap: 0.15rem;
 }
 
+/* ヘッダー（高さ 56px）の中で、押せる範囲を 44px にする（リンク・「もっと見る」・「メニュー」） */
+.fbc-header .fbc-topnav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
 /* 開閉の見出し（details の summary）。標準の三角は消す。リンクと同じ見た目 */
 .av-more,
 .av-menu {
@@ -2112,14 +2119,14 @@ label,
 }
 
 .av-menu > .av-pop {
-    left: auto;
-    right: 0;
+    left: 0;
 }
 
 .av-pop-link {
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    min-height: 44px;
     padding: 0.55rem 0.75rem;
     border-radius: 6px;
     color: #e3f0f2;
@@ -2153,13 +2160,13 @@ label,
     letter-spacing: 0.05em;
 }
 
-/* 幅ごとの見せ方: 横に並べる（1181px 以上）／「メニュー」1 つ（768〜1180px）／ハンバーガーの中の縦（768px 未満。kit が TopNav をドロワーに入れる） */
+/* 幅ごとの見せ方: 横に並べる（1280px 以上。それより狭いと検索欄が縮んで案内文が切れる）／「メニュー」1 つ（768〜1279px）／ハンバーガーの中の縦（768px 未満。kit が TopNav をドロワーに入れる） */
 .av-menu,
 .av-nav-flat {
     display: none;
 }
 
-@media (min-width: 768px) and (max-width: 1180.98px) {
+@media (min-width: 768px) and (max-width: 1279.98px) {
     .av-topnav-links {
         display: none;
     }
@@ -2203,6 +2210,12 @@ label,
 }
 
 /* ---------- ホーム（B 案: 分野別のカード）。Web の Home.razor / HomeCategoryCard.razor と、Build の PageBodies.Home が同じ構造 ---------- */
+/* 下の余白は、最初の分野（.home-group）の上の余白だけで取る。静的 HTML（本文は display: block で、隣り合う余白が重なって大きい方だけになる）と、
+   起動後（本文は flex の縦並びで、余白が重ならず足し算になる）で、位置がずれないように、重なりに頼らない */
+.home-header {
+    margin-bottom: 0;
+}
+
 .home-go {
     display: flex;
     flex-wrap: wrap;
@@ -2499,6 +2512,19 @@ label,
     text-decoration: none;
 }
 
+.home-link-text {
+    min-width: 0;
+}
+
+.home-link-text small {
+    display: block;
+    overflow: hidden;
+    color: var(--bs-secondary-color);
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .home-links a:hover {
     border-color: var(--accent);
 }
@@ -2520,7 +2546,7 @@ label,
 @media (max-width: 640px) {
     .home-grid,
     .home-links {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .home-search {

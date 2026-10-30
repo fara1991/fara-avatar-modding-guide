@@ -7,7 +7,7 @@
 
 @* 共通のレイアウト(fara-blazor-component の SiteLayout): MudBlazor の土台(テーマ・ポップアップ・ダイアログ・通知)・ヘッダー・本文・フッター・お知らせの帯。
    サイドバーは無い(ShowDrawer=false)。上のヘッダーに各リンク(AvNavMenu をやめて AvTopNav。TopNav スロット)を並べ、スマホ(768px 未満)は CollapseTopNavOnMobile でハンバーガーのメニューに畳む。
-   - ヘッダー(PC): 名前・各リンク(AvTopNav)・検索欄(AvSearchBox)・ライト／ダークのスイッチ。768〜1180px は、各リンクを「メニュー」1 つにまとめる(CSS)。
+   - ヘッダー(PC): 名前・各リンク(AvTopNav)・検索欄(AvSearchBox)・ライト／ダークのスイッチ。768〜1279px は、各リンクを「メニュー」1 つにまとめる(CSS)。
    - ヘッダー(スマホ): 名前・検索ボタン(下に開く検索欄は SearchSheet)・ハンバーガー。メニューの中に、各リンクとライト／ダークのボタン。
    - 開閉・スマホの判定・検索欄の開閉は SiteLayout が持つ。
    - スマホは、ページ全体(window)がスクロールする(MobilePageScroll。静的 HTML のページと同じ。起動の前後で、スクロールの仕方が変わらない) *@

@@ -63,7 +63,7 @@
     <nav class="home-links" aria-label="困ったときに見るページ">
         @foreach (var (href, icon, title) in HomeCards.Links)
         {
-            <a href="@href"><AvIcon Name="@icon" />@title</a>
+            <a href="@href"><AvIcon Name="@icon" /><span class="home-link-text">@title@if (href == "/changelog" && c.Changelog.Count > 0) {<small>最新: @c.Changelog[0].Date[5..].Replace('-', '/') @c.Changelog[0].Title</small>}</span></a>
         }
     </nav>
 }

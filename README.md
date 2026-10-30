@@ -152,7 +152,7 @@ fara-avatar-modding-guide/
 │   │   └── wwwroot/          # index.html（Build のテンプレート）・css・js（入口・画像で見るの JavaScript）
 │   ├── FaraAvatarModdingGuide.Build/    # 公開物の生成: 本文入りの静的 HTML・data/*.json・robots・sitemap・_headers（kit の Node ツールも使う）
 │   ├── FaraAvatarModdingGuide.Content/  # Content/ を読む（Markdown → HTML）。Build が使う
-│   ├── FaraAvatarModdingGuide.Shared/   # Build と Web が共有する型・サイドバーの項目
+│   ├── FaraAvatarModdingGuide.Shared/   # Build と Web が共有する型・上のヘッダーの項目（HeaderNav）
 │   └── FaraAvatarModdingGuide.Practice/ # 練習の 3D の純粋なロジック（G/R/S・お題の判定・視点・レイ判定・編集モード・共有ルームの規則。Phase 3b。練習・記事内チュートリアル・共有ルームから呼ぶ。docs/phase3b-design.md）
 ├── wwwroot/images/           # 画像（記事内チュートリアルの手順画像。S7 以降は作り直せない。作り方は docs/phase3b-design.md の §17.7）。Build が公開物にコピーする
 ├── tests/
@@ -194,7 +194,7 @@ fara-avatar-modding-guide/
 
 旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へ 301 で転送されます（`_redirects`）。静的 HTML は 76 本、存在しないパスは `404.html`（404 のステータス）です。
 
-各記事の「このページを完了にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `avatar-modding-guide.progress` に保存。移行前と同じキー）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
+各記事の「このページを『読んだ』にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `avatar-modding-guide.progress` に保存。移行前と同じキー）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
 
 ## みんなで練習（共同練習の部屋）
 
