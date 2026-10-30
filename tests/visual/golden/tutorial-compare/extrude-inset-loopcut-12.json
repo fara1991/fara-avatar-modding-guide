@@ -1,0 +1,25 @@
+{
+ "count": "13 / 18",
+ "bubble": "13\nEnter で確定してください（左クリックでも確定できます）。",
+ "keys": "Enter",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "押し出し 法線: -0.500 m",
+ "numeric": "入力: -0.5",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "66.6667%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

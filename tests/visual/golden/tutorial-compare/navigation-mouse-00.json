@@ -1,0 +1,23 @@
+{
+ "count": "1 / 4",
+ "bubble": "1\nビューポートの上で ホイールボタン（中ボタン）を押したまま ドラッグして、視点をぐるっと回してください。",
+ "keys": "ホイールボタンでドラッグ（または Alt+左ドラッグ）",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "案内にしたがって操作してください",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": false,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": false,
+ "toolsOn": [],
+ "progress": "0%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

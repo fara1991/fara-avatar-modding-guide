@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
+    <PackageReference Include="bunit" Version="2.12.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FaraAvatarModdingGuide.Web\FaraAvatarModdingGuide.Web.csproj" />
+    <!-- 静的 HTML（Build）と WebAssembly（Web）の突き合わせ -->
+    <ProjectReference Include="..\..\src\FaraAvatarModdingGuide.Build\FaraAvatarModdingGuide.Build.csproj" />
+  </ItemGroup>
+
+</Project>

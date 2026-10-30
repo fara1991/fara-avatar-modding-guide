@@ -1,0 +1,829 @@
+# 用語集。/glossary に読みの順で表示され、サイト内検索の対象になる。
+#
+#   id:          URL のアンカー（/glossary#id）。英小文字・数字・ハイフン
+#   term:        用語（日本語 UI の表記があればそれ）
+#   reading:     読み（ひらがな。並び順に使う）
+#   en:          英語 UI での表記
+#   description: 説明（Markdown。1〜3 文）
+#   tags:        Blender / Unity / VRChat / Modular Avatar / モデリング / ウェイト / マテリアル / UV / リギング / 書き出し など
+#   shortcuts:   関連するキー（Content/shortcuts.yml の key と同じ表記ならリンクになる）
+#   articles:    関連する記事（"カテゴリ/スラッグ"）
+#   related:     関連する用語の id
+#   source:      manual（既定）/ discord（Discord の会話から起こした項目）
+#
+# 対象: Blender 4.5 / Unity 2022.3 + VRChat SDK3（Avatars）+ Modular Avatar
+
+# ---------------------------------------------------------------- Blender: 基本
+- id: object-mode
+  term: オブジェクトモード
+  reading: おぶじぇくともーど
+  en: Object Mode
+  description: オブジェクトを丸ごと選んで、移動・回転・スケール・追加・削除をするモード。メッシュの中身（頂点・辺・面）はいじれない。
+  tags: [Blender]
+  shortcuts: [Tab]
+  articles: [basics/select, basics/transform]
+  related: [edit-mode]
+
+- id: edit-mode
+  term: 編集モード
+  reading: へんしゅうもーど
+  en: Edit Mode
+  description: メッシュの頂点・辺・面を直接動かして形を作るモード。<kbd>Tab</kbd> でオブジェクトモードと切り替える。
+  tags: [Blender, モデリング]
+  shortcuts: [Tab, "1", "2", "3"]
+  articles: [modeling/edit-mode]
+  related: [object-mode, vertex, edge, face]
+
+- id: pose-mode
+  term: ポーズモード
+  reading: ぽーずもーど
+  en: Pose Mode
+  description: アーマチュアのボーンを動かしてポーズを付けるモード。ここでの変形はボーンの形そのもの（編集モード）とは別に保存される。
+  tags: [Blender, リギング]
+  shortcuts: [Ctrl+Tab]
+  articles: [rigging/armature]
+  related: [armature, bone]
+
+- id: weight-paint-mode
+  term: ウェイトペイント
+  reading: うぇいとぺいんと
+  en: Weight Paint
+  description: メッシュの上を筆で塗って、各頂点がボーンにどれだけ引っ張られるか（ウェイト）を決めるモード。赤が 1、青が 0。
+  tags: [Blender, ウェイト]
+  shortcuts: [Ctrl+クリック]
+  articles: [rigging/weight-paint]
+  related: [weight, vertex-group]
+
+- id: vertex
+  term: 頂点
+  reading: ちょうてん
+  en: Vertex
+  description: メッシュを作る点。辺と面は頂点どうしをつないでできている。<kbd>1</kbd> で頂点選択モード。
+  tags: [Blender, モデリング]
+  shortcuts: ["1"]
+  articles: [modeling/edit-mode]
+  related: [edge, face]
+
+- id: edge
+  term: 辺
+  reading: へん
+  en: Edge
+  description: 2 つの頂点を結ぶ線。<kbd>2</kbd> で辺選択モード。辺ループ（<kbd>Alt</kbd>+クリック）でひと続きの辺をまとめて選べる。
+  tags: [Blender, モデリング]
+  shortcuts: ["2", Alt+クリック]
+  articles: [modeling/edit-mode]
+  related: [vertex, face, edge-loop]
+
+- id: face
+  term: 面
+  reading: めん
+  en: Face
+  description: 3 つ以上の頂点で囲まれた面（ポリゴン）。<kbd>3</kbd> で面選択モード。四角形でそろえるのが基本。
+  tags: [Blender, モデリング]
+  shortcuts: ["3"]
+  articles: [modeling/edit-mode, modeling/topology]
+  related: [ngon, normal]
+
+- id: edge-loop
+  term: 辺ループ
+  reading: へんるーぷ
+  en: Edge Loop
+  description: 四角形の面をまたいで一周つながった辺の列。<kbd>Alt</kbd>+クリックで選び、<kbd>Ctrl</kbd>+<kbd>R</kbd>（ループカット）で増やす。
+  tags: [Blender, モデリング]
+  shortcuts: [Alt+クリック, Ctrl+R]
+  articles: [modeling/edit-mode, modeling/extrude-inset-loopcut]
+  related: [loop-cut]
+
+- id: ngon
+  term: N ゴン
+  reading: えぬごん
+  en: N-gon
+  description: 頂点が 5 つ以上ある面。ループカットが通らず、曲げたときに崩れやすいので、最終的には四角形か三角形に分ける。
+  tags: [Blender, モデリング]
+  articles: [modeling/topology]
+  related: [face, topology]
+
+- id: normal
+  term: 法線
+  reading: ほうせん
+  en: Normal
+  description: 面の表側の向き。裏返った面は黒く見えたり、Unity で透明になったりする。<kbd>Shift</kbd>+<kbd>N</kbd> で外側にそろえる。
+  tags: [Blender, モデリング, Unity]
+  shortcuts: [Shift+N]
+  articles: [modeling/mirror-smooth, modeling/topology]
+  related: [face]
+
+- id: topology
+  term: トポロジー
+  reading: とぽろじー
+  en: Topology
+  description: 頂点・辺・面のつながり方。関節をまたぐループの本数や、四角形でそろっているかが、曲げたときの見た目に直接出る。
+  tags: [Blender, モデリング]
+  articles: [modeling/topology]
+  related: [ngon, edge-loop]
+
+- id: origin
+  term: 原点
+  reading: げんてん
+  en: Origin
+  description: オブジェクトの位置・回転・スケールの基準になる点（オレンジの小さな点）。メッシュの中心とは限らない。
+  tags: [Blender]
+  articles: [basics/origin-pivot-snap]
+  related: [cursor-3d, pivot-point, apply-transform]
+
+- id: cursor-3d
+  term: 3D カーソル
+  reading: すりーでぃーかーそる
+  en: 3D Cursor
+  description: 赤白の輪。新しいオブジェクトはここに追加され、回転や原点の基準にもできる。<kbd>Shift</kbd>+<kbd>S</kbd> で動かす。
+  tags: [Blender]
+  shortcuts: [Shift+S]
+  articles: [basics/origin-pivot-snap]
+  related: [origin, pivot-point]
+
+- id: pivot-point
+  term: ピボットポイント
+  reading: ぴぼっとぽいんと
+  en: Pivot Point
+  description: 回転・スケールの中心をどこにするかの設定（中点、各原点、3D カーソル、アクティブ要素など）。ヘッダーで切り替える。
+  tags: [Blender]
+  articles: [basics/origin-pivot-snap]
+  related: [origin, cursor-3d]
+
+- id: snap
+  term: スナップ
+  reading: すなっぷ
+  en: Snap
+  description: 動かしたものを頂点・辺・面・グリッドなどにぴったり吸い付ける機能。操作中に <kbd>Ctrl</kbd> を押すと一時的に有効になる。
+  tags: [Blender]
+  articles: [basics/origin-pivot-snap, basics/transform]
+
+- id: apply-transform
+  term: トランスフォームの適用
+  reading: とらんすふぉーむのてきよう
+  en: Apply Transform
+  description: 今の位置・回転・スケールをメッシュに焼き込み、値を 0 / 0° / 1 に戻す操作（<kbd>Ctrl</kbd>+<kbd>A</kbd>）。書き出し前やモディファイアーの前に行う。
+  tags: [Blender, 書き出し]
+  shortcuts: [Ctrl+A]
+  articles: [basics/transform, avatar-clothing/export-fbx]
+  related: [origin]
+
+- id: outliner
+  term: アウトライナー
+  reading: あうとらいなー
+  en: Outliner
+  description: 画面右上の、シーンの中身を一覧にしたパネル。目のアイコンで表示・非表示、ドラッグで親子付けやコレクションの移動ができる。
+  tags: [Blender]
+  articles: [basics/outliner]
+  related: [collection, parent]
+
+- id: collection
+  term: コレクション
+  reading: これくしょん
+  en: Collection
+  description: オブジェクトをまとめるフォルダのようなもの。体・服・ボーンを分けておくと、表示の切り替えや書き出しが楽になる。<kbd>M</kbd> で移動。
+  tags: [Blender]
+  shortcuts: [M]
+  articles: [basics/outliner]
+  related: [outliner]
+
+- id: parent
+  term: 親子関係（ペアレント）
+  reading: おやこかんけい
+  en: Parent
+  description: 親を動かすと子も一緒に動く関係。<kbd>Ctrl</kbd>+<kbd>P</kbd> で設定、<kbd>Alt</kbd>+<kbd>P</kbd> で解除。メッシュをアーマチュアの子にすると、ボーンで変形できる。
+  tags: [Blender, リギング]
+  shortcuts: [Ctrl+P, Alt+P]
+  articles: [rigging/parent-weights]
+  related: [armature]
+
+# ---------------------------------------------------------------- Blender: モデリングの操作
+- id: extrude
+  term: 押し出し
+  reading: おしだし
+  en: Extrude
+  description: 選んだ面（辺・頂点）を引き出して、側面に新しい面を作る（<kbd>E</kbd>）。押したあとキャンセルしても複製は残るので注意。
+  tags: [Blender, モデリング]
+  shortcuts: [E]
+  articles: [modeling/extrude-inset-loopcut]
+  related: [inset, merge]
+
+- id: inset
+  term: 面を差し込む
+  reading: めんをさしこむ
+  en: Inset Faces
+  description: 面の内側にひと回り小さい面を作る（<kbd>I</kbd>）。窓や縁取りの出発点。
+  tags: [Blender, モデリング]
+  shortcuts: [I]
+  articles: [modeling/extrude-inset-loopcut]
+  related: [extrude]
+
+- id: loop-cut
+  term: ループカット
+  reading: るーぷかっと
+  en: Loop Cut
+  description: 一周する辺ループを追加する（<kbd>Ctrl</kbd>+<kbd>R</kbd>）。ホイールで本数、位置調整で右クリックすると真ん中に入る。
+  tags: [Blender, モデリング]
+  shortcuts: [Ctrl+R]
+  articles: [modeling/extrude-inset-loopcut]
+  related: [edge-loop]
+
+- id: bevel
+  term: ベベル
+  reading: べべる
+  en: Bevel
+  description: 辺の角を面取りする（<kbd>Ctrl</kbd>+<kbd>B</kbd>）。ホイールで分割数を増やすと丸くなる。
+  tags: [Blender, モデリング]
+  shortcuts: [Ctrl+B]
+  articles: [modeling/bevel-knife-merge]
+
+- id: knife
+  term: ナイフ
+  reading: ないふ
+  en: Knife
+  description: メッシュの上をなぞって切る（<kbd>K</kbd>）。三角形や N ゴンができやすいので、ループカットで済むならそちらを使う。
+  tags: [Blender, モデリング]
+  shortcuts: [K]
+  articles: [modeling/bevel-knife-merge]
+  related: [loop-cut]
+
+- id: merge
+  term: マージ
+  reading: まーじ
+  en: Merge
+  description: 選んだ頂点を 1 つにまとめる（編集モードで <kbd>M</kbd>）。「距離で」は重なった頂点の掃除に使う。オブジェクトどうしをまとめるのは **統合**（<kbd>Ctrl</kbd>+<kbd>J</kbd>）。
+  tags: [Blender, モデリング]
+  shortcuts: [M]
+  articles: [modeling/bevel-knife-merge, modeling/topology]
+  related: [join, duplicate-vertices]
+
+- id: join
+  term: 統合
+  reading: とうごう
+  en: Join
+  description: 選んだ複数のメッシュオブジェクトを、アクティブなオブジェクトに 1 つにまとめる（オブジェクトモードで <kbd>Ctrl</kbd>+<kbd>J</kbd>）。頂点はくっつかない。
+  tags: [Blender]
+  shortcuts: [Ctrl+J]
+  articles: [basics/select, modeling/bevel-knife-merge]
+  related: [merge, separate]
+
+- id: separate
+  term: 分離
+  reading: ぶんり
+  en: Separate
+  description: 編集モードで選んだ部分を別のオブジェクトに分ける（<kbd>P</kbd>）。「パーツごと」で、つながっていない部分ごとに分けられる。
+  tags: [Blender, モデリング]
+  shortcuts: [P]
+  articles: [modeling/bevel-knife-merge]
+  related: [join]
+
+- id: dissolve
+  term: 溶解
+  reading: ようかい
+  en: Dissolve
+  description: 頂点・辺・面を、穴を開けずに消す（<kbd>X</kbd> > 辺を溶解 など）。両側の面が 1 つにつながる。
+  tags: [Blender, モデリング]
+  shortcuts: [X]
+  articles: [modeling/bevel-knife-merge, modeling/topology]
+
+- id: duplicate-vertices
+  term: 重複頂点
+  reading: ちょうふくちょうてん
+  en: Duplicate Vertices
+  description: 同じ位置に重なった頂点。見た目ではわからないが、スムーズシェードで筋が出たり自動ウェイトが失敗したりする。<kbd>M</kbd> > 距離で まとめて消す。
+  tags: [Blender, モデリング]
+  shortcuts: [M]
+  articles: [modeling/topology]
+  related: [merge]
+
+- id: shade-smooth
+  term: スムーズシェード
+  reading: すむーずしぇーど
+  en: Shade Smooth
+  description: 面の境目をぼかして、なめらかに見せる（頂点は増えない）。角を残したいところがあれば「自動スムーズシェード」（Shade Auto Smooth）を使う。
+  tags: [Blender, モデリング]
+  articles: [modeling/mirror-smooth]
+
+# ---------------------------------------------------------------- Blender: モディファイアー
+- id: modifier
+  term: モディファイアー
+  reading: もでぃふぁいあー
+  en: Modifier
+  description: 元のメッシュを壊さずに、ミラー・厚み付け・なめらかにするなどの効果を重ねる仕組み。上から順に効く。「適用」で形が確定する。
+  tags: [Blender, モデリング]
+  articles: [basics/modifiers]
+  related: [mirror-modifier, subdivision-surface, solidify]
+
+- id: mirror-modifier
+  term: ミラー
+  reading: みらー
+  en: Mirror
+  description: メッシュを原点を通る面で反転してコピーするモディファイアー。半分だけ作れば左右対称になる。中央の頂点はクリッピングとマージで固定する。
+  tags: [Blender, モデリング]
+  articles: [modeling/mirror-smooth, basics/modifiers]
+  related: [modifier]
+
+- id: subdivision-surface
+  term: サブディビジョンサーフェス
+  reading: さぶでぃびじょんさーふぇす
+  en: Subdivision Surface
+  description: 面を細かく分けて、丸くなめらかにするモディファイアー。レベル 1 で面が 4 倍になるので、アバターでは使いどころを絞る。
+  tags: [Blender, モデリング]
+  articles: [modeling/mirror-smooth]
+  related: [modifier]
+
+- id: solidify
+  term: ソリッド化
+  reading: そりっどか
+  en: Solidify
+  description: 板状のメッシュに厚みを付けるモディファイアー。服の生地の厚みに使う。厚みの向きは法線で決まる。
+  tags: [Blender, モデリング]
+  articles: [basics/modifiers, avatar-clothing/base-shape]
+  related: [normal, modifier]
+
+- id: shrinkwrap
+  term: シュリンクラップ
+  reading: しゅりんくらっぷ
+  en: Shrinkwrap
+  description: メッシュを別のオブジェクト（体など）の表面に吸い付けるモディファイアー。服を体に沿わせるときに使う。
+  tags: [Blender, モデリング]
+  articles: [basics/modifiers, avatar-clothing/base-shape]
+  related: [modifier]
+
+- id: data-transfer
+  term: データ転送
+  reading: でーたてんそう
+  en: Data Transfer
+  description: 別のメッシュから、頂点グループ（ウェイト）や法線などを近い頂点にコピーするモディファイアー。体のウェイトを服に移すときに使う。
+  tags: [Blender, ウェイト]
+  articles: [avatar-clothing/weight-transfer]
+  related: [vertex-group, weight]
+
+# ---------------------------------------------------------------- Blender: リギング
+- id: armature
+  term: アーマチュア
+  reading: あーまちゅあ
+  en: Armature
+  description: ボーンの集まり（骨格）。メッシュをアーマチュアに親子付けし、ウェイトを付けると、ボーンを動かしたときにメッシュが変形する。
+  tags: [Blender, リギング]
+  articles: [rigging/armature]
+  related: [bone, parent, weight]
+
+- id: bone
+  term: ボーン
+  reading: ぼーん
+  en: Bone
+  description: アーマチュアの中の 1 本の骨。名前で頂点グループと対応する。VRChat 向けでは、アバターの決まった名前（Hips、Spine など）に合わせる。
+  tags: [Blender, リギング, Unity]
+  articles: [rigging/armature]
+  related: [armature, vertex-group]
+
+- id: weight
+  term: ウェイト
+  reading: うぇいと
+  en: Weight
+  description: 頂点がそれぞれのボーンにどれだけ引っ張られるかの値（0〜1）。頂点ごとの合計は 1 にそろえる（正規化）。
+  tags: [Blender, ウェイト]
+  articles: [rigging/parent-weights, rigging/weight-paint]
+  related: [vertex-group, weight-paint-mode, data-transfer]
+  keywords: [正規化]
+  body: |-
+    **ウェイト（頂点グループ）とは**
+
+    ウェイトは「どの頂点がどのボーンにどれだけ追従するか」を 0〜1 で表したものです。Blender ではボーン名と同じ名前の頂点グループとして保存され、Armature モディファイアーがそれを使ってメッシュを変形します。
+
+    - 頂点グループ名とボーン名が一致していることで、メッシュとボーンが対応します。名前が違うと追従しません。
+    - 1 つの頂点に複数のボーンのウェイトが乗る場合、合計が 1 になるよう正規化されているのが基本です。
+    - ウェイトペイントモードでは、青（0）〜赤（1）の色で表示されます。
+    - 衣装を別のアバターに合わせるときは、素体からのウェイト転送と手塗りの調整を組み合わせます（[ウェイト転送](/howto#copy-weights)）。
+    - 非対応衣装の着せ替えで最も時間がかかるのがウェイト調整です。
+  source: discord
+
+- id: vertex-group
+  term: 頂点グループ
+  reading: ちょうてんぐるーぷ
+  en: Vertex Group
+  description: 頂点に名前とウェイトを付けたまとまり。ボーンと同じ名前の頂点グループが、そのボーンのウェイトになる。プロパティの「データ」タブにある。
+  tags: [Blender, ウェイト]
+  articles: [rigging/parent-weights, rigging/weight-paint]
+  related: [weight, bone]
+
+- id: automatic-weights
+  term: 自動のウェイトで
+  reading: じどうのうぇいとで
+  en: With Automatic Weights
+  description: 親子付け（<kbd>Ctrl</kbd>+<kbd>P</kbd>）のときに、ボーンからの距離でウェイトを自動で付ける方法。重複頂点やスケールのずれがあると失敗しやすい。
+  tags: [Blender, ウェイト, リギング]
+  shortcuts: [Ctrl+P]
+  articles: [rigging/parent-weights]
+  related: [weight, duplicate-vertices]
+
+- id: shape-key
+  term: シェイプキー
+  reading: しぇいぷきー
+  en: Shape Key
+  description: メッシュの形の差分を保存して、0〜1 で混ぜる仕組み。表情や体形の変化に使う。Unity ではブレンドシェイプと呼ばれる。
+  tags: [Blender, リギング, Unity]
+  articles: [rigging/shape-keys]
+  related: [blendshape-sync]
+  keywords: [Basis]
+  body: |-
+    **シェイプキーの基本**
+
+    - シェイプキーは Basis（基準の形）との差分で形を保存する
+    - 値は 0〜1 で、範囲の最小・最大を変えると 1 を超える変形もできる
+    - 編集モードでの変更は、アクティブなシェイプキーに入る
+    - 左右に分ける、ミラー、シェイプに反映（Propagate to Shapes）などの操作がある
+    - 関連: [Basis を編集したら戻る](/qa#shapekey-edit-basis)、[シェイプキーの転送](/qa#shapekey-transfer)
+  source: discord
+
+# ---------------------------------------------------------------- Blender: マテリアル・UV・書き出し
+- id: material
+  term: マテリアル
+  reading: まてりある
+  en: Material
+  description: 色・質感・テクスチャの設定。Blender のマテリアルの見た目はそのまま Unity には持っていけないので、Unity 側でシェーダー（lilToon など）を設定し直す。
+  tags: [Blender, Unity, マテリアル]
+  articles: [materials/material-basics, materials/for-unity]
+  related: [shader, principled-bsdf, texture]
+
+- id: principled-bsdf
+  term: プリンシプル BSDF
+  reading: ぷりんしぷるびーえすでぃーえふ
+  en: Principled BSDF
+  description: Blender の標準のマテリアル（シェーダーノード）。ベースカラー・メタリック・粗さなどを 1 つのノードで設定する。
+  tags: [Blender, マテリアル]
+  articles: [materials/material-basics]
+  related: [material]
+
+- id: texture
+  term: テクスチャ
+  reading: てくすちゃ
+  en: Texture
+  description: 面に貼る画像。どこに貼るかは UV で決まる。Unity では画像ごとに最大サイズや圧縮を設定できる。
+  tags: [Blender, Unity, マテリアル, UV]
+  articles: [materials/image-texture]
+  related: [uv, material]
+
+- id: uv
+  term: UV
+  reading: ゆーぶい
+  en: UV
+  description: 3D の面を平面の画像に対応させる座標。展開図のようなもので、テクスチャの貼り方を決める。
+  tags: [Blender, UV]
+  shortcuts: [U]
+  articles: [materials/uv-unwrap]
+  related: [uv-unwrap, seam, texture]
+
+- id: uv-unwrap
+  term: UV 展開
+  reading: ゆーぶいてんかい
+  en: Unwrap
+  description: メッシュを切り開いて平面に広げ、UV を作ること（<kbd>U</kbd> > 展開）。切れ目はシームで決める。
+  tags: [Blender, UV]
+  shortcuts: [U]
+  articles: [materials/uv-unwrap, avatar-clothing/uv-texture]
+  related: [uv, seam]
+
+- id: seam
+  term: シーム
+  reading: しーむ
+  en: Seam
+  description: UV 展開のときの切れ目にする辺（<kbd>Ctrl</kbd>+<kbd>E</kbd> > シームをマーク）。目立たない場所に入れる。
+  tags: [Blender, UV]
+  shortcuts: [Ctrl+E]
+  articles: [materials/uv-unwrap]
+  related: [uv-unwrap]
+
+- id: fbx
+  term: FBX
+  reading: えふびーえっくす
+  en: FBX
+  description: メッシュ・アーマチュア・ウェイト・シェイプキーをまとめて Unity に渡すファイル形式。Blender の「ファイル > エクスポート > FBX」で書き出す。
+  tags: [Blender, Unity, 書き出し]
+  articles: [avatar-clothing/export-fbx]
+  related: [apply-transform]
+
+# ---------------------------------------------------------------- Unity
+- id: hierarchy
+  term: Hierarchy（ヒエラルキー）
+  reading: ひえらるきー
+  en: Hierarchy
+  description: シーンにある GameObject を親子の木で表示するウィンドウ。衣装をアバターの中にドラッグして入れるのもここ。
+  tags: [Unity]
+  articles: [avatar-clothing/unity-setup]
+  related: [gameobject, inspector]
+
+- id: inspector
+  term: Inspector（インスペクター）
+  reading: いんすぺくたー
+  en: Inspector
+  description: 選んだ GameObject のコンポーネント（Transform、レンダラー、各種スクリプト）を表示・編集するウィンドウ。Add Component でコンポーネントを足す。
+  tags: [Unity]
+  articles: [avatar-clothing/unity-setup]
+  related: [component, hierarchy]
+
+- id: project-window
+  term: Project ウィンドウ
+  reading: ぷろじぇくとういんどう
+  en: Project
+  description: プロジェクトのファイル（FBX、マテリアル、テクスチャ、Prefab など）の一覧。ここから Hierarchy や Scene にドラッグして使う。
+  tags: [Unity]
+  related: [prefab]
+
+- id: scene-view
+  term: Scene ビュー
+  reading: しーんびゅー
+  en: Scene
+  description: シーンを編集するための 3D ビュー。<kbd>Alt</kbd>+左ドラッグで回転、ホイールボタンで平行移動、選んで <kbd>F</kbd> で注目。
+  tags: [Unity]
+  related: [hierarchy]
+
+- id: gameobject
+  term: GameObject
+  reading: げーむおぶじぇくと
+  en: GameObject
+  description: Unity のシーンに置く「もの」の単位。それ自体は入れ物で、Transform などのコンポーネントで機能が決まる。Inspector 左上のチェックで有効 / 無効を切り替える。
+  tags: [Unity]
+  related: [component, hierarchy]
+
+- id: component
+  term: コンポーネント
+  reading: こんぽーねんと
+  en: Component
+  description: GameObject に付ける機能の部品（Transform、Skinned Mesh Renderer、VRC Avatar Descriptor、MA Merge Armature など）。
+  tags: [Unity]
+  related: [gameobject, inspector]
+
+- id: prefab
+  term: Prefab（プレハブ）
+  reading: ぷれはぶ
+  en: Prefab
+  description: GameObject の組み合わせを保存した部品。アバターや衣装は Prefab で配られることが多い。シーンに置いたものを変えても、元の Prefab は変わらない（Overrides で反映できる）。
+  tags: [Unity]
+  related: [gameobject]
+
+- id: skinned-mesh-renderer
+  term: Skinned Mesh Renderer
+  reading: すきんどめっしゅれんだらー
+  en: Skinned Mesh Renderer
+  description: ボーンで変形するメッシュを表示するコンポーネント。マテリアルのスロットやブレンドシェイプ（シェイプキー）の値はここにある。
+  tags: [Unity, マテリアル]
+  related: [material, shape-key]
+
+- id: shader
+  term: シェーダー
+  reading: しぇーだー
+  en: Shader
+  description: マテリアルの見え方を計算するプログラム。VRChat のアバターではトゥーン系の lilToon などがよく使われる。シェーダーが見つからないとマテリアルがピンクになる。
+  tags: [Unity, マテリアル]
+  related: [liltoon, material]
+
+- id: liltoon
+  term: lilToon
+  reading: りるとぅーん
+  en: lilToon
+  description: VRChat のアバターでよく使われるトゥーンシェーダー。アバターや衣装が対応していることが多い。VCC / ALCOM のパッケージなどで追加する。
+  tags: [Unity, マテリアル, VRChat]
+  articles: [materials/for-unity]
+  related: [shader]
+
+- id: humanoid
+  term: Humanoid
+  reading: ひゅーまのいど
+  en: Humanoid
+  description: FBX の Rig 設定（Animation Type）の 1 つ。ボーンを人型として対応付ける。アバター本体は Humanoid、衣装は Generic のままで Modular Avatar に統合するのが一般的。
+  tags: [Unity]
+  articles: [avatar-clothing/unity-setup]
+  related: [fbx]
+  body: |-
+    **Humanoid（ヒューマノイド）リグとは**
+
+    Unity の人型アバター用の共通ボーン定義です。Hips、Spine、Chest、Neck、Head、手足などの決まったボーンをモデルのボーンに割り当てることで、VRChat のトラッキングやアニメーションが動きます。
+
+    - FBX の `Rig` タブで Animation Type を `Humanoid` にし、`Configure` で割り当てを確認します。
+    - Humanoid に割り当てられたボーンは消してはいけません。髪・スカート・補助ボーンなど Humanoid 外のボーンは整理できます。
+    - Humanoid ボーンの角度はトラッキングやアニメーションで上書きされるため、ボーンを曲げて形を作っても VRChat では戻されます（足の形などはシェイプキーで作る理由）。
+    - 衣装を入れ子で着せる場合は、衣装の Humanoid 相当のボーンを同じ意味の素体ボーンの子にします。
+  source: discord
+
+- id: unitypackage
+  term: unitypackage
+  reading: ゆにてぃぱっけーじ
+  en: Unity Package
+  description: Unity のアセットをまとめた配布ファイル（.unitypackage）。Project ウィンドウにドラッグするか、Assets > Import Package で取り込む。
+  tags: [Unity]
+  related: [project-window]
+
+- id: vcc
+  term: VCC（VRChat Creator Companion）
+  reading: ぶいしーしー
+  en: VRChat Creator Companion
+  description: VRChat 用の Unity プロジェクトを作り、SDK や Modular Avatar などのパッケージを管理する公式のツール。ALCOM は同じことができる非公式のツール。
+  tags: [Unity, VRChat]
+  articles: [avatar-clothing/unity-setup, vrchat/vcc-project]
+  related: [vrchat-sdk]
+
+# ---------------------------------------------------------------- VRChat
+- id: vrchat-sdk
+  term: VRChat SDK（Avatars）
+  reading: ぶいあーるちゃっとえすでぃーけー
+  en: VRChat SDK3 - Avatars
+  description: アバターを VRChat にアップロードするための Unity 用パッケージ。メニューの VRChat SDK > Show Control Panel から Builder を開く。
+  tags: [VRChat, Unity]
+  articles: [avatar-clothing/unity-setup]
+  related: [avatar-descriptor, vcc]
+
+- id: avatar-descriptor
+  term: VRC Avatar Descriptor
+  reading: ぶいあーるしーあばたーでぃすくりぷたー
+  en: VRC Avatar Descriptor
+  description: アバターのルートに付けるコンポーネント。視点の位置（View Position）、口パク、まばたき、Expressions の設定などをまとめて持つ。これが無いとアップロードできない。
+  tags: [VRChat, Unity]
+  related: [view-position, expressions]
+
+- id: view-position
+  term: View Position
+  reading: びゅーぽじしょん
+  en: View Position
+  description: VRChat での目の位置。Avatar Descriptor にあり、Scene ビューの灰色の球で表示される。ずれていると視点が高すぎたり低すぎたりする。
+  tags: [VRChat, Unity]
+  related: [avatar-descriptor]
+
+- id: expressions
+  term: Expressions（メニューとパラメーター）
+  reading: えくすぷれっしょんず
+  en: Expressions Menu / Parameters
+  description: VRChat の中で開くメニュー（Expression Menu）と、その状態を保存する値（Expression Parameters）。衣装の切り替えなどのギミックに使う。Modular Avatar ならメニューを自動で組み込める。
+  tags: [VRChat, Modular Avatar]
+  related: [avatar-descriptor, modular-avatar]
+
+- id: physbone
+  term: PhysBone
+  reading: ふぃずぼーん
+  en: VRC Phys Bone
+  description: 髪・スカート・しっぽなどを揺らすコンポーネント。揺らしたいボーンの根元に付け、Pull・Spring などで揺れ方を調整する。
+  tags: [VRChat, Unity]
+  related: [bone]
+
+- id: performance-rank
+  term: パフォーマンスランク
+  reading: ぱふぉーまんすらんく
+  en: Performance Rank
+  description: アバターの重さの目安（Excellent / Good / Medium / Poor / Very Poor）。ポリゴン数、マテリアル数、ボーン数、PhysBone の数などで決まり、SDK の Builder で確認できる。
+  tags: [VRChat]
+  articles: [modeling/topology]
+  related: [physbone]
+
+- id: blueprint-id
+  term: Blueprint ID
+  reading: ぶるーぷりんとあいでぃー
+  en: Blueprint ID
+  description: アップロードしたアバターの ID。アバターの Pipeline Manager に保存され、同じ ID でアップロードすると上書きになる。別のアバターとして出したいときは Detach する。
+  tags: [VRChat]
+  related: [vrchat-sdk]
+
+- id: build-and-test
+  term: Build & Test
+  reading: びるどあんどてすと
+  en: Build & Test
+  description: アバターを公開せずに、自分の PC の VRChat だけで試す機能（SDK の Builder）。試したあとで Build & Publish（アップロード）する。
+  tags: [VRChat]
+  related: [vrchat-sdk]
+
+# ---------------------------------------------------------------- Modular Avatar
+- id: modular-avatar
+  term: Modular Avatar
+  reading: もじゅらーあばたー
+  en: Modular Avatar
+  description: 衣装やギミックを、アバターに「入れるだけ」で組み込めるようにする Unity のツール。アップロード時（ビルド時）に、ボーンの統合やメニューの追加を自動で行う。
+  tags: [Modular Avatar, Unity, VRChat]
+  articles: [avatar-clothing/unity-setup]
+  related: [setup-outfit, merge-armature, ndmf]
+
+- id: setup-outfit
+  term: Setup Outfit
+  reading: せっとあっぷあうとふぃっと
+  en: Modular Avatar > Setup Outfit
+  description: 衣装をアバターの中に入れたあと、衣装を右クリック > Modular Avatar > Setup Outfit で行う操作。衣装のアーマチュアに MA Merge Armature、衣装のルートに MA Outfit Root と MA Mesh Settings などが自動で付く。
+  tags: [Modular Avatar, Unity]
+  articles: [avatar-clothing/unity-setup]
+  related: [merge-armature, modular-avatar]
+
+- id: merge-armature
+  term: MA Merge Armature
+  reading: えむえーまーじあーまちゅあ
+  en: MA Merge Armature
+  description: 衣装のボーンを、名前でアバターのボーンに統合するコンポーネント。衣装のボーン名がアバターと違うと統合されない（プレフィックス・サフィックスで調整できる）。
+  tags: [Modular Avatar, Unity, リギング]
+  articles: [avatar-clothing/unity-setup]
+  related: [setup-outfit, bone]
+
+- id: blendshape-sync
+  term: MA Blendshape Sync
+  reading: えむえーぶれんどしぇいぷしんく
+  en: MA Blendshape Sync
+  description: アバター本体のブレンドシェイプ（シェイプキー）の値を、衣装の同じ名前のブレンドシェイプに合わせるコンポーネント。胸の大きさなどの体形の変更に服を追従させる。
+  tags: [Modular Avatar, Unity]
+  articles: [avatar-clothing/unity-setup, rigging/shape-keys]
+  related: [shape-key]
+
+- id: bone-proxy
+  term: MA Bone Proxy
+  reading: えむえーぼーんぷろきし
+  en: MA Bone Proxy
+  description: アクセサリーなどを、アバターの特定のボーン（頭・手など）の子にするコンポーネント。Prefab のまま入れても正しい位置に付く。
+  tags: [Modular Avatar, Unity]
+  related: [modular-avatar]
+
+- id: ndmf
+  term: NDMF
+  reading: えぬでぃーえむえふ
+  en: Non-Destructive Modular Framework
+  description: Modular Avatar などの「アップロード時に自動で処理する」ツールが共通で使う仕組み。元のシーンを壊さずに、ビルドの途中で変換する。
+  tags: [Modular Avatar, Unity]
+  related: [modular-avatar]
+
+- id: avatar-optimizer
+  term: Avatar Optimizer（AAO）
+  reading: あばたーおぷてぃまいざー
+  en: Avatar Optimizer
+  description: アップロード時に、使われていないものの削除やメッシュの結合などを自動で行い、アバターを軽くするツール。アバターのルートに AAO Trace And Optimize を付けるだけで使える。NDMF で動くので、元のデータは変わらない。
+  tags: [Unity, VRChat]
+  articles: [vrchat/optimization]
+  related: [ndmf, performance-rank]
+
+- id: contact
+  term: Contact（コンタクト）
+  reading: こんたくと
+  en: VRC Contact Sender / Receiver
+  description: アバターのどこかが触れたことを検知して、パラメーターの値に変える VRChat のコンポーネント。触れる側が Sender、触れられる側が Receiver。頭をなでられたら表情を変える、などのギミックに使う。
+  tags: [VRChat, Unity]
+  articles: [vrchat-features/physbone-contact]
+  related: [physbone, expressions]
+
+# ---------------------------------------------------------------- Discord の改変相談から
+
+- id: leaf-bone
+  term: リーフボーン（_end）
+  reading: りーふぼーん
+  en: Leaf Bone
+  description: ボーン末端の「〜_end」は、Unity にボーンの長さ（向き）を伝えるための点。ウェイトは乗っていないことが多く、揺らさないなら削除しても見た目は変わらないが、揺れものの動き方には影響する。
+  body: |-
+    - Blender のボーンには長さ（Head と Tail）がありますが、Unity のボーンは「点」です。末端に `〜_end` の点を置くことで、その手前のボーンが次の点への方向を持てます。
+    - **揺れもの（PhysBone）との関係**
+      - 子のない単一ボーンに PhysBone を付けても、向きが決まらないので揺れません。
+      - リーフボーンがあると、その手前のボーンも揺れるようになります。
+      - リーフボーンがない場合は PhysBone の `Endpoint Position` で末端の点を仮想的に追加できます。
+    - 削除する場合は、ウェイトが乗っていないか（頂点グループに含まれていないか）を確認してからにします。
+  tags: [Blender, Unity, リギング, PhysBone]
+  articles: [avatar-clothing/export-fbx]
+  related: [bone, physbone]
+  keywords: [Endpoint Position]
+  source: discord
+
+- id: write-defaults
+  term: Write Defaults（WD）
+  reading: らいとでふぉると
+  en: Write Defaults
+  description: Animator のステートごとの設定で、アニメーションで指定していないプロパティを既定値に書き戻すかどうかを決める。同じアバター内で ON と OFF が混在すると、表情やトグルが思った通りに動かない原因になる。
+  body: |-
+    - アニメーションの不具合で詰まったら、まず Write Defaults の混在を疑います。
+    - アバター本体の FX コントローラーの設定に合わせて、追加するギミックの WD もそろえます。
+    - Modular Avatar の Merge Animator には、アバターの WD 設定に合わせる設定（「アバターの Write Defaults 設定に合わせる」）があります。
+    - VRChat の公式の Animator は WD を Off で作っていて、公式はアバター全体で On / Off をそろえることをすすめています。Motion が空（None）のステートは On のように振る舞います。
+    - MMD ワールドの表情自動変化のように、WD ON を前提にした仕組みもあります。
+    - WD の混在を検出して警告してくれるツールもあります（当時はカメラギミックの導入ツールがチェッカー代わりに使われていました）。
+  tags: [Unity, VRChat, Modular Avatar, アニメーション]
+  articles: [vrchat-features/fx-basics]
+  related: [modular-avatar]
+  keywords: [Merge Animator]
+  source: discord
+
+- id: mmd-world
+  term: MMD ワールド
+  reading: えむえむでぃーわーるど
+  description: MMD ワールドは、ダンス用のアニメーションコントローラーをアバターに割り当て、Body メッシュの MMD 準拠のシェイプキーを直接動かしている。MMD 準拠のシェイプキー名があり、Write Defaults が ON のアバターで動作する。
+  body: |-
+    - ワールド側がアバターに専用のアニメーションコントローラーを割り当てます（ダンスモーションと一緒に表情のアニメーションが入っています）。
+    - 動く条件の目安: `Body` メッシュに MMD 準拠の名前のシェイプキー（あ・い・う・まばたき など）がある、Write Defaults の設定がワールドの想定に合っている。
+    - MMD のモーション・データの利用規約は配布元ごとに異なります。
+  tags: [VRChat, 表情, リギング]
+  related: [shape-key, write-defaults]
+  keywords: [MMD]
+  source: discord
+
+- id: compatible-outfit
+  term: 対応衣装 / 非対応衣装
+  reading: たいおういしょう
+  description: 対応衣装は特定のアバター向けにボーン構造・体形を合わせて作られた衣装で、Unity（Modular Avatar など）だけで着せられる。非対応衣装を着せるには、多くの場合 Blender で体形・ボーン・ウェイトを合わせる必要がある。
+  body: |-
+    - **対応衣装**: 商品ページに「○○対応」と書かれたもの。Modular Avatar の Setup Outfit などで着せるのが基本です。複数アバター対応の衣装は、どのアバター用のデータを使うか（フォルダ・Prefab）を確認します。
+    - **非対応衣装**: 体形・姿勢・ボーン構造が違うため、Blender での調整（位置・大きさ・関節位置合わせ、ウェイト転送、貫通対策）が必要なことが多いです。ボディラインの出ない服なら Unity での位置・サイズ調整だけで済む場合もあります。
+    - 体形や姿勢が独特なアバターは、非対応衣装の着せ替えがほぼ Blender 前提になります。
+    - Blender での着せ替えに慣れるには、専用服 → 似たスタイルの服 → 好きな服、の順に挑戦すると挫折しにくいです。単純な構造の服から始めるのがおすすめです。
+    - 改変・他アバターへの流用が規約上許可されているかを必ず確認します（[規約の確認](/tips#check-license-terms)）。
+  tags: [Blender, Unity, Modular Avatar, 衣装]
+  articles: [unity/modular-avatar-outfit, avatar-clothing/weight-transfer]
+  related: [setup-outfit, modular-avatar]
+  source: discord

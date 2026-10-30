@@ -1,0 +1,124 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject MaintenanceInfo Maintenance
+@inject ContentStore Store
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+@* 共通のレイアウト(fara-blazor-component の SiteLayout): MudBlazor の土台(テーマ・ポップアップ・ダイアログ・通知)・ヘッダー・本文・フッター・お知らせの帯。
+   サイドバーは無い(ShowDrawer=false)。上のヘッダーに各リンク(AvNavMenu をやめて AvTopNav。TopNav スロット)を並べ、スマホ(768px 未満)は CollapseTopNavOnMobile でハンバーガーのメニューに畳む。
+   - ヘッダー(PC): 名前・各リンク(AvTopNav)・検索欄(AvSearchBox)・ライト／ダークのスイッチ。768〜1279px は、各リンクを「メニュー」1 つにまとめる(CSS)。
+   - ヘッダー(スマホ): 名前・検索ボタン(下に開く検索欄は SearchSheet)・ハンバーガー。メニューの中に、各リンクとライト／ダークのボタン。
+   - 開閉・スマホの判定・検索欄の開閉は SiteLayout が持つ。
+   - スマホは、ページ全体(window)がスクロールする(MobilePageScroll。静的 HTML のページと同じ。起動の前後で、スクロールの仕方が変わらない) *@
+<SiteLayout Body="@Body" Maintenance="Maintenance" MobilePageScroll="true" CustomTheme="Theme" ShowDrawer="false" CollapseTopNavOnMobile="true">
+    <TopNav>
+        <AvTopNav />
+    </TopNav>
+    <SearchBox>
+        <AvSearchBox />
+    </SearchBox>
+    <SearchSheet Context="closeSearch">
+        @* スマホの検索欄(PC の検索欄と同じ部品)。× ・結果を開いたとき・Esc で、SiteLayout が閉じる *@
+        <AvSearchBox Sheet="true" OnDone="closeSearch" />
+    </SearchSheet>
+    <HeaderEnd>
+        <ThemeSwitch Class="av-header-switch" />
+    </HeaderEnd>
+</SiteLayout>
+
+@code {
+    private static readonly MudBlazor.MudTheme Theme = AvatarTheme.Create();
+
+    private IDisposable? registration;
+    private string lastPath = "";
+
+    /// <summary>
+    /// 最初の描画のあと。直接 #見出し 付きの URL で開いたとき: 静的 HTML のあいだにブラウザが動かしたスクロールは、WebAssembly が画面を描き直すと失われるので、描いたあとにもう一度、その見出しへ動かす。
+    /// そうでないときは、起動の前の静的な本文で利用者が動かしたスクロールを、起動の後に引き継ぐ(本文を見えたまま残すので、読んでいる途中で起動しても、位置が飛ばない)。
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            if (new Uri(Nav.Uri).Fragment.Length > 1) await JS.InvokeVoidAsync("avatarPage.scrollToHash");
+            else await JS.InvokeVoidAsync("avatarPage.restoreBootScroll");   // 起動の前の静的な本文で動かしたスクロールを引き継ぐ
+        }
+        catch (JSException)
+        {
+            // スクロールを動かせなかっただけ（回線が切れた・ページを離れた場合は JSDisconnectedException。どちらも表示には影響しない）
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        registration = Nav.RegisterLocationChangingHandler(OnLocationChanging);
+        lastPath = PathOf(Nav.Uri);
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    /// <summary>
+    /// Router に載っていないページ(フェーズ 3 で練習の 3 ページも載ったので、今は知らない URL だけ)への移動は、Blazor の移動ではなく、ブラウザの通常の移動(location.assign)にする
+    /// (Blazor に任せると、NotFound の表示になる)。知らない URL は、読み直して 404.html(HTTP 404)を出す。
+    /// NavigateTo(forceLoad) はこの処理をもう一度通って呼び合うので使わない。フラグも持たない(読み込みを止めたあとも、次の移動が正しく動くように)。
+    /// </summary>
+    private async ValueTask OnLocationChanging(LocationChangingContext context)
+    {
+        if (!PageRoutes.ShouldReload(context.TargetLocation, Nav.BaseUri, Store.Content)) return;
+        try
+        {
+            // ブラウザが移動を受け付けたときだけ、Blazor の移動を止める。受け付けられなければ（JS が失敗した）、Blazor の移動に任せる
+            await JS.InvokeVoidAsync("location.assign", context.TargetLocation);
+            context.PreventNavigation();
+        }
+        catch (JSException)
+        {
+            // 通常の移動に任せる（NotFound の表示になるが、画面は壊れない）
+        }
+    }
+
+    /// <summary>
+    /// イベントの口(戻り値を持てないので async void)。本体は <see cref="ApplyLocationAsync"/>。ここで例外を外へ出さず、ログに残す。
+    /// </summary>
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        try
+        {
+            await ApplyLocationAsync(e.Location);
+        }
+        catch (JSException)
+        {
+            // スクロールを動かせなくても、表示は変わっている（JSDisconnectedException は回線切断。想定内）
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            Console.Error.WriteLine($"[avatar] 移動のあとの処理に失敗しました: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 別のページへ移ったら、本文のスクロールを一番上に戻す(# の見出しへの移動のときは、その見出しへ)。
+    /// PC は本文の領域(.fbc-content)が自分でスクロールするので、Blazor の既定(window を戻す)では戻らない。
+    /// 同じページの中の移動(絞り込みの ?tag=・?category=)では動かさない。
+    /// </summary>
+    private async Task ApplyLocationAsync(string location)
+    {
+        var path = PathOf(location);
+        var samePage = path == lastPath;
+        lastPath = path;
+        // 見出し付きの URL へ移動したときは、その見出しへ(Blazor は、本文の領域 .fbc-content の中の見出しへは動かさない)。そうでなければ、別のページへ移ったときだけ、一番上へ
+        if (new Uri(location).Fragment.Length > 1) await JS.InvokeVoidAsync("avatarPage.scrollToHash");
+        else if (!samePage) await JS.InvokeVoidAsync("avatarPage.resetScroll");
+        // head の description・canonical・OGP・robots を、移った先のページに合わせる(題名は PageTitle が替える)。別のページへ移ったときだけ
+        if (!samePage) await JS.InvokeVoidAsync("avatarHead.sync", path.Length == 0 ? "/" : path);
+    }
+
+    private static string PathOf(string uri) => new Uri(uri).AbsolutePath.TrimEnd('/');
+
+    public void Dispose()
+    {
+        registration?.Dispose();
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+}

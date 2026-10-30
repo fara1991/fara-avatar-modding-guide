@@ -1,0 +1,25 @@
+{
+ "count": "11 / 13",
+ "bubble": "11\nE で回転ツールにしてください（輪をドラッグで回転）。",
+ "keys": "E",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "76.9231%",
+ "ueStatus": "Body を表示（Frame Selected）",
+ "ueInfo": "Avatar · Move Tool",
+ "ueLabel": null,
+ "ueTools": [
+  "move"
+ ]
+}

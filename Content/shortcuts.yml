@@ -1,0 +1,91 @@
+# ショートカットの一次データ。記事側は frontmatter の shortcuts: [key, ...] でここの key を参照する。
+# key の表記: 修飾キーは Ctrl / Shift / Alt、テンキーは "Numpad 1" のように書く。
+# Blender 4.5 の標準キーマップ（左クリック選択）が前提。
+
+# 一般
+- { key: Ctrl+N,        function: 新規ファイル,             category: 一般,       description: 新しい Blender ファイルを作成 }
+- { key: Ctrl+O,        function: 開く,                     category: 一般,       description: ファイルを開く }
+- { key: Ctrl+S,        function: 保存,                     category: 一般,       description: 現在のファイルを保存 }
+- { key: Ctrl+Shift+S,  function: 名前を付けて保存,         category: 一般,       description: 別名で保存（バージョン違いを残すときにも） }
+- { key: Ctrl+Z,        function: 元に戻す,                 category: 一般,       description: 直前の操作を取り消し }
+- { key: Ctrl+Shift+Z,  function: やり直し,                 category: 一般,       description: 取り消した操作をやり直し }
+- { key: F3,            function: メニュー検索,             category: 一般,       description: 機能名を入力して実行。メニューの場所を覚えていなくても使える }
+- { key: F2,            function: 名前を変更,               category: 一般,       description: アクティブなオブジェクトやボーンの名前を変更 }
+- { key: F9,            function: 最後の操作を調整,         category: 一般,       description: 直前の操作のパネル（画面左下と同じ内容）を開き直す }
+- { key: Shift+R,       function: 最後の操作を繰り返し,     category: 一般,       description: 直前の操作をもう一度実行 }
+- { key: Ctrl+Space,    function: エリアの最大化,           category: 一般,       description: マウス下のエリアを画面いっぱいに表示（もう一度で戻る） }
+- { key: Ctrl+Tab,      function: モード切り替えパイ,       category: 一般,       description: オブジェクト / 編集 / スカルプト / ウェイトペイントなどを切り替え }
+- { key: Ctrl+Alt+Q,    function: 四分割表示,               category: 一般,       description: 上・前・右・ユーザー視点の 4 画面を切り替え }
+
+# 選択
+- { key: A,             function: 全選択,                   category: 選択,       description: すべてのオブジェクト（編集モードでは全要素）を選択 }
+- { key: Alt+A,         function: 選択解除,                 category: 選択,       description: すべての選択を解除 }
+- { key: Ctrl+I,        function: 選択反転,                 category: 選択,       description: 選択状態を反転 }
+- { key: B,             function: ボックス選択,             category: 選択,       description: ドラッグした矩形の範囲を選択 }
+- { key: C,             function: サークル選択,             category: 選択,       description: 円形のブラシでなぞって選択（ホイールで半径を変更） }
+- { key: L,             function: リンク選択,               category: 選択,       description: 編集モードでマウス下のつながったメッシュをまとめて選択 }
+- { key: Ctrl+L,        function: リンク選択（選択から）,   category: 選択,       description: 選択中の要素につながったメッシュをすべて選択 }
+- { key: Alt+クリック,  function: ループ選択,               category: 選択,       description: 辺ループ / 面ループを一周選択 }
+- { key: Ctrl+Numpad +, function: 選択を拡大,               category: 選択,       description: 選択範囲を隣の要素まで広げる }
+- { key: Ctrl+Numpad -, function: 選択を縮小,               category: 選択,       description: 選択範囲を内側に縮める }
+
+# 視点
+- { key: Numpad 1,      function: 前からの視点,             category: 視点,       description: 正面（-Y 方向）から見る。Ctrl を足すと後ろから }
+- { key: Ctrl+Numpad 1, function: 後ろからの視点,           category: 視点,       description: 背面（+Y 方向）から見る }
+- { key: Numpad 3,      function: 右からの視点,             category: 視点,       description: 右（+X 方向）から見る。Ctrl を足すと左から }
+- { key: Numpad 7,      function: 上からの視点,             category: 視点,       description: 上（+Z 方向）から見る。Ctrl を足すと下から }
+- { key: Numpad 5,      function: 透視 / 平行投影の切り替え, category: 視点,      description: 遠近感のある透視投影と、正確な寸法が見える平行投影を切り替え }
+- { key: Numpad 0,      function: カメラ視点,               category: 視点,       description: レンダリング用カメラから見る }
+- { key: Numpad .,      function: 選択を表示,               category: 視点,       description: 選択したものが画面の中心に収まるように視点を移動 }
+- { key: Home,          function: 全体を表示,               category: 視点,       description: すべてのオブジェクトが見えるように視点を移動 }
+- { key: Shift+MMB,     function: 視点の平行移動,           category: 視点,       description: Shift を押しながらホイールボタンをドラッグ }
+- { key: Ctrl+MMB,      function: ズーム,                   category: 視点,       description: Ctrl を押しながらホイールボタンをドラッグ（ホイール回転でも可） }
+- { key: Alt+Z,         function: 透過表示,                 category: 視点,       description: メッシュを透かして裏側の頂点も選択できるようにする }
+- { key: Z,             function: シェーディングパイ,       category: 視点,       description: ワイヤーフレーム / ソリッド / マテリアルプレビュー / レンダーを切り替え }
+- { key: N,             function: サイドバー,               category: 視点,       description: 3D ビューポート右側のパネル（位置・回転・スケールなど）を開閉 }
+- { key: T,             function: ツールバー,               category: 視点,       description: 3D ビューポート左側のツール一覧を開閉 }
+
+# 編集（オブジェクトモード）
+- { key: G,             function: 移動,                     category: 編集,       description: 選択したものを移動。続けて X / Y / Z で軸を固定 }
+- { key: R,             function: 回転,                     category: 編集,       description: 選択したものを回転。R をもう一度押すとトラックボール回転 }
+- { key: S,             function: スケール,                 category: 編集,       description: 選択したものを拡大縮小 }
+- { key: X,             function: 削除,                     category: 編集,       description: 選択したものを削除（編集モードでは削除 / 溶解のメニュー） }
+- { key: Shift+D,       function: 複製,                     category: 編集,       description: 複製して移動モードに入る（Esc でその場に置く） }
+- { key: Alt+D,         function: リンク複製,               category: 編集,       description: メッシュデータを共有した複製を作る（片方を編集すると両方変わる） }
+- { key: Shift+A,       function: 追加,                     category: 編集,       description: メッシュ・アーマチュア・ライトなどを追加 }
+- { key: Ctrl+A,        function: 適用,                     category: 編集,       description: 位置 / 回転 / スケールをメッシュに焼き込む（書き出し前に必須） }
+- { key: Ctrl+P,        function: 親を設定,                 category: 編集,       description: 選択したオブジェクトをアクティブオブジェクトの子にする }
+- { key: Alt+P,         function: 親子関係を解除,           category: 編集,       description: 親子関係をクリア（トランスフォームを維持する選択肢あり） }
+- { key: Ctrl+J,        function: 統合,                     category: 編集,       description: 選択した複数のメッシュを 1 つのオブジェクトにまとめる }
+- { key: H,             function: 隠す,                     category: 編集,       description: 選択したものを非表示 }
+- { key: Alt+H,         function: 隠したものを表示,         category: 編集,       description: 非表示にしたものをすべて表示 }
+- { key: Shift+H,       function: 選択以外を隠す,           category: 編集,       description: 選択したもの以外を非表示 }
+- { key: M,             function: コレクションへ移動,       category: 編集,       description: 選択したオブジェクトを別のコレクションへ移動（編集モードではマージ） }
+- { key: Shift+S,       function: スナップパイ,             category: 編集,       description: 3D カーソルと選択物をお互いの位置に移動 }
+- { key: O,             function: プロポーショナル編集,     category: 編集,       description: 周囲の頂点も一緒になだらかに動かす（ホイールで範囲を変更） }
+- { key: Tab,           function: 編集モード切り替え,       category: 編集,       description: オブジェクトモードと編集モードを切り替え }
+
+# モデリング（編集モード）
+- { key: "1",           function: 頂点選択モード,           category: モデリング, description: 頂点を選択する }
+- { key: "2",           function: 辺選択モード,             category: モデリング, description: 辺を選択する }
+- { key: "3",           function: 面選択モード,             category: モデリング, description: 面を選択する }
+- { key: E,             function: 押し出し,                 category: モデリング, description: 選択した頂点 / 辺 / 面を押し出して新しい形を作る }
+- { key: I,             function: 面を差し込む,             category: モデリング, description: 面の内側にひと回り小さい面を作る（I を 2 回で個別に） }
+- { key: Ctrl+R,        function: ループカット,             category: モデリング, description: メッシュを一周する辺を追加（ホイールで本数を変更） }
+- { key: Ctrl+B,        function: ベベル,                   category: モデリング, description: 辺を面取りして角を丸める（ホイールで分割数を変更） }
+- { key: K,             function: ナイフ,                   category: モデリング, description: メッシュをなぞって切断。Enter で確定 }
+- { key: F,             function: 面を作成,                 category: モデリング, description: 選択した頂点 / 辺から面（または辺）を張る }
+- { key: Ctrl+E,        function: 辺メニュー,               category: モデリング, description: シームをマーク、辺の細分化などの辺に関する操作 }
+- { key: Ctrl+F,        function: 面メニュー,               category: モデリング, description: 面の三角化、グリッドフィルなどの面に関する操作 }
+- { key: Ctrl+V,        function: 頂点メニュー,             category: モデリング, description: 頂点のスムーズ、頂点グループへの割り当てなどの操作 }
+- { key: Alt+M,         function: 分割,                     category: モデリング, description: 選択した部分を切り離して別のメッシュ要素にする（くっついたまま） }
+- { key: P,             function: 分離,                     category: モデリング, description: 選択した部分を別オブジェクトに分離 }
+- { key: Alt+S,         function: 収縮/膨張,               category: モデリング, description: 面の向きに沿って均等に太らせる / 細らせる（服を体から浮かせるときに） }
+- { key: Shift+N,       function: 面の向きを外側に揃える,   category: モデリング, description: 面の表裏をそろえる。裏返った面が黒く見えるときに }
+- { key: U,             function: UV マッピングメニュー,    category: UV,         description: 展開、スマート UV 投影などの UV 展開の方法を選ぶ }
+
+# ペイント・リギング
+- { key: Alt+R,         function: 回転をクリア,             category: リギング,   description: ポーズモードでボーンの回転を元に戻す（Alt+G で位置、Alt+S でスケール） }
+- { key: F (ペイント),  function: ブラシのサイズ,           category: ペイント,   description: ウェイトペイントなどのペイント系モードで、ブラシの半径をドラッグで変更 }
+- { key: Shift+F (ペイント), function: ブラシの強さ,        category: ペイント,   description: ペイント系モードでブラシの強さをドラッグで変更 }
+- { key: Ctrl+クリック,  function: ボーンを選択（ウェイトペイント）, category: ペイント, description: アーマチュア → メッシュの順に選んでウェイトペイントに入ると、ボーンの Ctrl+クリックで頂点グループを切り替えられる }

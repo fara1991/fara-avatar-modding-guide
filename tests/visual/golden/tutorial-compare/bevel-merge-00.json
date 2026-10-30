@@ -1,0 +1,23 @@
+{
+ "count": "1 / 23",
+ "bubble": "1\n立方体をクリックして選択してください。",
+ "keys": "左クリック",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "案内にしたがって操作してください",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": false,
+ "marker": "クリック",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": false,
+ "toolsOn": [],
+ "progress": "0%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

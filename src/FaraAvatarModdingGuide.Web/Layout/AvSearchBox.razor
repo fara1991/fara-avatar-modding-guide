@@ -1,0 +1,173 @@
+@inject SearchService Search
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+@* サイト内の検索欄(すべてのページ)。入力するとすぐに、一致した場所の種類・小見出し・前後の文章を、強調つきで出す。
+   ↑↓ で選んで Enter、Esc で閉じる。Enter だけなら検索ページ(/search?q=)へ。Ctrl+K(Mac は ⌘K)か「/」で欄に移る(js/search-ui.js)。
+   PC はヘッダーに置く。スマホは Sheet(ヘッダーの検索ボタンで、下に開く欄。× で閉じる・結果を開いたら閉じる・Esc で閉じる)。欄の枠(#fbc-search-sheet)の出し入れは、kit の SiteLayout(SearchSheet)が行う。
+   探す処理は Search/SearchEngine(searchcore.js の移植)。日本語入力の変換中の Enter は、js/search-ui.js が止める(ここには届かない) *@
+<div class="@("av-search" + (Sheet ? " av-search-sheet" : ""))" role="search" @onfocusout="Close" @onfocusin="OnFocusIn" @onkeydown="OnKeyDown" @onkeydown:stopPropagation="true">
+    <svg class="av-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+    <input id="@InputId" type="search" class="av-search-input" placeholder="知りたいことを入力（例: ウェイト、ループカット）" autocomplete="off" spellcheck="false"
+           aria-label="サイト内をさがす" role="combobox" aria-expanded="@(open ? "true" : "false")" aria-controls="@ListId" aria-autocomplete="list"
+           aria-activedescendant="@ActiveId" value="@query" @oninput="OnInput" />
+    @if (Sheet)
+    {
+        <button type="button" class="av-search-close" aria-label="さがすのを閉じる" title="さがすのを閉じる" @onclick="Done">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+    }
+    else
+    {
+        <span class="av-search-hint" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+    }
+    @if (open)
+    {
+        <div id="@ListId" tabindex="-1" class="av-search-list" role="listbox" aria-label="さがした結果">
+            @if (hits.Count == 0)
+            {
+                <div class="av-search-empty" role="status">@(loading ? "探しています…" : failed ? "さがすための索引を読み込めませんでした" : $"「{query.Trim()}」に一致するものはありません")</div>
+            }
+            @for (var i = 0; i < Math.Min(hits.Count, Max); i++)
+            {
+                var hit = hits[i];
+                var entry = hit.Entry;
+                var (label, css) = SearchTypes.Of(entry.Type);
+                var index = i;
+                <a class="@("av-search-item" + (i == active ? " is-active" : ""))" role="option" tabindex="-1" id="@OptionId(i)" href="@entry.Url" aria-selected="@(i == active ? "true" : "false")"
+                   @onclick="@(e => Go(e, entry.Url))" @onclick:preventDefault="true">
+                    <span class="@("badge " + css)">@label</span>
+                    <span class="av-search-body">
+                        <span class="av-search-line">
+                            <span class="av-search-title">@SearchTypes.Marked(engine!.Highlight(entry.Title, query))</span>
+                            @if (!string.IsNullOrEmpty(entry.Subtitle))
+                            {
+                                <span class="av-search-sub">@SearchTypes.Marked(engine!.Highlight(entry.Subtitle, query))</span>
+                            }
+                        </span>
+                        <span class="av-search-snippet">@SearchTypes.Marked(engine!.Highlight(engine.Snippet(entry.Text, query, 100), query))</span>
+                    </span>
+                </a>
+            }
+            <a class="av-search-all" tabindex="-1" href="@AllHref" @onclick="@(e => Go(e, AllHref))" @onclick:preventDefault="true">@(hits.Count > Max ? $"すべての結果（{hits.Count} 件）を見る" : "さがすページで見る") <span aria-hidden="true">→</span></a>
+        </div>
+    }
+</div>
+
+@code {
+    private const int Max = 8;
+
+    /// <summary>スマホの検索欄(ヘッダーの下に開く)かどうか。PC の検索欄(ヘッダーの中)とは、見た目と閉じ方が違う。</summary>
+    [Parameter] public bool Sheet { get; set; }
+
+    /// <summary>スマホの検索欄を閉じるときに呼ぶ(× ・Esc・結果を開いたとき)。SiteLayout が閉じる。</summary>
+    [Parameter] public EventCallback OnDone { get; set; }
+
+    private string query = "";
+    private IReadOnlyList<SearchHit> hits = [];
+    private SearchEngine? engine;
+    private bool open;
+    private bool loading;
+    private bool failed;
+    /// <summary>選んでいる結果(-1 は、どれも選んでいない)。</summary>
+    private int active = -1;
+    private int generation;
+
+    private string InputId => Sheet ? "av-search-input-sheet" : "av-search-input";
+    private string ListId => Sheet ? "av-search-list-sheet" : "av-search-list";
+    private string OptionId(int i) => $"{ListId}-{i}";
+    private string? ActiveId => open && active >= 0 ? OptionId(active) : null;
+    private string AllHref => "/search?q=" + Uri.EscapeDataString(query.Trim());
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        query = e.Value?.ToString() ?? "";
+        await RunAsync();
+    }
+
+    private async Task RunAsync()
+    {
+        var mine = ++generation;
+        if (query.Trim().Length == 0) { Close(); return; }
+        open = true;
+        failed = false;
+        if (engine is null)
+        {
+            loading = true;
+            hits = [];
+            engine = await Search.GetAsync();
+            if (mine != generation) return;   // 古い入力の結果
+            loading = false;
+            if (engine is null) { failed = true; return; }
+        }
+        hits = engine.Search(query);
+        active = -1;
+    }
+
+    // フォーカスが欄から外れたら閉じる(結果の <a> は Tab の対象にしない・クリックではフォーカスを外さない(js/search-ui.js)ので、結果を操作している間は欄にある)。
+    // 戻ってきたとき、探した結果があれば、また開く
+    private void OnFocusIn()
+    {
+        // 索引を先に読んでおく(最初の入力を待たせない)
+        if (engine is null) _ = PreloadAsync();
+        if (!open && query.Trim().Length > 0 && hits.Count > 0) open = true;
+    }
+
+    private async Task PreloadAsync()
+    {
+        engine = await Search.GetAsync();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "ArrowDown" when hits.Count > 0:
+                if (!open) { open = true; break; }
+                active = active + 1 >= Math.Min(hits.Count, Max) ? -1 : active + 1;
+                break;
+            case "ArrowUp" when open && hits.Count > 0:
+                active = active - 1 < -1 ? Math.Min(hits.Count, Max) - 1 : active - 1;
+                break;
+            case "Enter" when query.Trim().Length > 0:
+                if (open && active >= 0 && active < hits.Count) Go(null, hits[active].Entry.Url);
+                else if (!loading) Go(null, AllHref);   // 選んでいなければ検索ページ(SSR 版のフォームの送信と同じ)
+                break;
+            case "Escape" when Sheet && !open:
+                await Done();
+                break;
+            case "Escape":
+                if (open) Close(); else await JS.InvokeVoidAsync("document.activeElement.blur");
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 結果を開く。Ctrl・⌘・Shift を押したクリックは、新しいタブで開く。
+    /// 静的 HTML のままのページへの移動は、MainLayout が再読み込みに切り替える。
+    /// </summary>
+    private void Go(MouseEventArgs? e, string url)
+    {
+        Close();
+        if (Sheet) _ = Done();
+        if (e is { CtrlKey: true } or { MetaKey: true } or { ShiftKey: true })
+        {
+            _ = JS.InvokeVoidAsync("open", url, "_blank", "noopener");
+            return;
+        }
+        Nav.NavigateTo(url);
+    }
+
+    private void Close()
+    {
+        open = false;
+        active = -1;
+    }
+
+    /// <summary>スマホの欄を閉じる(SiteLayout に知らせる)。PC の欄では、何もしない。</summary>
+    private Task Done()
+    {
+        Close();
+        return Sheet ? OnDone.InvokeAsync() : Task.CompletedTask;
+    }
+}

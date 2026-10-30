@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- SEO-HEAD:START -->
+    <title>Avatar Modding Guide</title>
+    <!-- SEO-HEAD:END -->
+    <!-- OGP 画像の大きさと説明。画像（og:image）そのものは SEO-HEAD の中に、Build が全ページに入れる(SiteBuilder の OgImageFile)。kit は width・height・alt を出さないので、全ページ共通の値をここに置く。
+         og:image の「後ろ」に並ぶ位置にする(SNS のクローラーは、直前の og:image に紐づけて読む)。画像を差し替えたら、SiteBuilder の OgImageVersion（?v=）と、ここの大きさ・説明を合わせる -->
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="紫色の方眼の床の上に、ワイヤーフレームの立体(立方体・円錐・球・トーラスなど)が浮かぶ絵" />
+    <base href="/" />
+    <!-- ファビコン。/favicon.ico は、ブラウザーがページの指定とは別に決まって取りに行く(無いと、存在しないパスなので 404 ページになる)。4 サイト共通の名前で、版は ?v=N で管理する(同じ名前のまま画像を直したら N を上げる)。SVG は対応するブラウザーで ico より優先して使われ、
+         apple-touch-icon は iOS のホーム画面用(不透明な背景つき)。ヘッダーのロゴとは別物(ロゴは画像を使わない) -->
+    <link rel="icon" href="/favicon.ico?v=2" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+    <!--
+        この index.html は、dotnet publish の出力としてテンプレートになる。Build（src/FaraAvatarModdingGuide.Build）が、
+        SEO-HEAD / SEO-BODY の区切りの間に、ページごとの head と本文を差し込んで、ページごとの HTML を書き出す。
+        WASM-ONLY の区切りで囲んだ部分（読み込み表示・Blazor のスクリプトなど）は、WebAssembly を使うページだけに残し、それ以外のページ（記事など）からは外す。
+        STATIC-ONLY の区切りで囲んだ部分は、その逆（WebAssembly を使わないページだけに残す）。
+        CSP（_headers）でインラインの script は止まるので、script は外部ファイルだけにする。
+    -->
+    <!-- WASM-ONLY:START -->
+    <!-- 起動までの読み込み表示。静的な本文は、起動の前から見えたまま残す(本文を覆わない)。画面の右下に小さく「読み込み中…」だけを出す(操作は止めない:
+         pointer-events: none。45 秒たっても描かれないときだけ、案内と「再読み込み」のリンクに変わり、リンクだけ押せる)。
+         静的な本文の枠は、起動の後の画面と同じ構造・同じ位置(Build の StaticFrame)。起動すると、Blazor が #app の中身を置き換えて、boot-indicator.js(kit)がこの表示を外す。
+         最初に当てる(CSS の読み込み前にも色が合うように、インラインで書く)。60 秒の保険は、JS の RELEASE_MS と同じ秒数 -->
+    <style>
+        html, body { background: #f1f8f9; }
+        html[data-bs-theme="dark"], html[data-bs-theme="dark"] body { background: #071318; }
+        #boot-indicator {
+            position: fixed; right: 1rem; bottom: 3.4rem; z-index: 2147483000;
+            display: flex; align-items: center; gap: 0.6rem;
+            box-sizing: border-box; max-width: calc(100vw - 2rem); padding: 0.45rem 0.95rem;
+            border: 1px solid rgba(200, 170, 255, 0.3); border-radius: 999px;
+            background: rgba(8, 24, 30, 0.92); color: #e8f4f6;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+            font-family: "Zen Kaku Gothic New", "Yu Gothic", system-ui, sans-serif;
+            pointer-events: none;
+            animation: boot-indicator-release 0s linear 60s forwards;
+        }
+        @keyframes boot-indicator-release { to { visibility: hidden; } }
+        .boot-indicator-spinner {
+            flex: none; width: 1rem; height: 1rem; box-sizing: border-box;
+            border: 0.17rem solid #3cc6d6; border-right-color: transparent; border-radius: 50%;
+            animation: boot-indicator-spin 0.75s linear infinite;
+        }
+        .boot-indicator-label { font-size: 0.8rem; font-weight: 700; line-height: 1.5; }
+        .boot-indicator-label:empty::before { content: "読み込み中…"; }
+        .boot-indicator-label a { color: #c6f3f9; font-weight: 700; text-decoration: underline; pointer-events: auto; }
+        #boot-indicator[data-state="slow"] { pointer-events: auto; }
+        #boot-indicator[data-state="slow"] .boot-indicator-spinner { animation: none; }
+        @keyframes boot-indicator-spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .boot-indicator-spinner { animation: none; }
+        }
+    </style>
+    <!-- JavaScript が無い環境: 読み込み表示は出さない。スマホは、縦のメニュー(ハンバーガーで開くメニュー。JavaScript が無いと開けない。.av-nav-noscript)を、本文とフッターの後ろに並べて出す(ページの移動に使える) -->
+    <noscript><style>
+        #boot-indicator { display: none; }
+        @media (max-width: 767.98px) {
+            .av-static { display: flex; flex-direction: column; }
+            .av-static .mud-main-content { order: 1; }
+            .av-static .av-nav-noscript { order: 2; display: flex !important; flex-direction: column; gap: 0.25rem; padding: 0.75rem 1.5rem 1.5rem; }
+        }
+    </style></noscript>
+    <!-- WASM-ONLY:END -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- display=block: フォントが届くまで文字を出さない。swap だと、フォールバックの字で描いてから Zen Kaku に差し替わり、折り返しが変わって本文が動く。記事ページ（learn/basics/transform.html）の CLS は、1024 で 0.23 → 0.10（各 3 回の平均・Playwright）。768 と 390 は差が小さい。0 にするには optional が要るが、初回の訪問で Zen Kaku が出なくなるので採用していない -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=block" rel="stylesheet" />
+    <!-- WASM-ONLY:START -->
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <!-- WASM-ONLY:END -->
+    <!-- Bootstrap 5.3.3 から、このサイトで使っているクラスだけを取り出したもの（CDN の Bootstrap・Bootstrap Icons はやめた） -->
+    <link href="css/base.css" rel="stylesheet" />
+    <!-- 共通部品（fara-blazor-component）の CSS。サイトの app.css より前に読む（同じ強さの規則は app.css が勝つ） -->
+    <link href="_content/FaraBlazorComponent.Razor/css/fara-blazor-component.css" rel="stylesheet" />
+    <!-- 練習・記事内チュートリアルの見た目(SSR 版の site.css から移した)と、練習の JavaScript が出すアイコン(Bootstrap Icons のうち使うものだけを CSS にした) -->
+    <link href="css/bi-icons.css" rel="stylesheet" />
+    <link href="css/practice.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <!-- 描画の前に、保存されたテーマ（ライト／ダーク）と PC のサイドバーを隠す設定を html に反映する（kit の theme-init.js）。
+         data-storage-key・data-sidebar-key は、SiteOptions（Services/SiteInfo.cs の StorageKey・SidebarKey）と同じ値にする（違うと、起動の後にコンソールに警告が出る）。
+         storage-migrate.js は、SSR 版が保存していた形（文字列の light / dark）を、kit が読む形（JSON）に直す。theme-init.js より前に読む -->
+    <script src="js/storage-migrate.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/theme-init.js" data-storage-key="avatar-modding-guide.theme" data-sidebar-key="avatar-modding-guide.sidebar-hidden"></script>
+    <!-- 保存されたテーマが無い・読めないときの既定を、SSR 版と同じダークにする（theme-init.js は light にするので、直後に直す） -->
+    <script src="js/theme-default.js"></script>
+    <!-- STATIC-ONLY の区切りで囲んだ部分は、WebAssembly を使わないページ（記事など）だけに残す。「更新予定」の帯は、WebAssembly のページでは kit の MaintenanceBanner が出し、
+         静的 HTML のページでは、この notice.js が Worker の /api/maintenance を読んで出す -->
+    <!-- 背景の飾り(床の方眼と回る針金のアバター。2D の canvas)。全ページで 1 度だけ動く。ページを移っても、本文だけが替わるので、そのまま残る(多重に作らない) -->
+    <script src="js/bgscene.js" defer></script>
+    <!-- STATIC-ONLY:START -->
+    <script src="js/notice.js" defer></script>
+    <!-- STATIC-ONLY:END -->
+</head>
+<body>
+    <!-- WASM-ONLY:START -->
+    <!-- 起動までの読み込み表示（右下の小さな表示）。#app の外に置く（Blazor が #app の中身を置き換えても残るので、boot-indicator.js（kit）が起動後に外す）。
+         静的な本文は、起動の前から見えたまま残す（検索エンジン・JavaScript が無い環境のため）。文言は CSS（:empty::before）で出す -->
+    <div id="boot-indicator" class="boot-indicator">
+        <div class="boot-indicator-spinner" aria-hidden="true"></div>
+        <span class="boot-indicator-label" role="status" aria-live="polite" aria-label="読み込み中"></span>
+    </div>
+    <!-- WASM-ONLY:END -->
+    <div id="app">
+        <!-- SEO-BODY:START -->
+        <!-- SEO-BODY:END -->
+    </div>
+
+    <!-- WASM-ONLY:START -->
+    <div id="blazor-error-ui">
+        エラーが発生しました。ページを再読み込みしてください。
+        <a href="" class="reload">再読み込み</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="js/startup.js"></script>
+    <script src="js/search-norm.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/page.js"></script>
+    <script src="js/nav-menu.js"></script>
+    <script src="js/head-sync.js"></script>
+    <script src="js/toc.js"></script>
+    <script src="js/search-ui.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/boot-indicator.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/fara-blazor-component.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/scroll-progress.js"></script>
+    <script src="_content/FaraBlazorComponent.Razor/js/report.js"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <!-- WASM-ONLY:END -->
+</body>
+</html>

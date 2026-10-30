@@ -1,0 +1,2760 @@
+/* このサイト（Avatar Modding Guide）の見た目。SSR 版の wwwroot/css/site.css から、共通部品（fara-blazor-component のレイアウト・フッター・404・お知らせ）と
+   MudBlazor が受け持つ部分（サイドバー・ヘッダー・検索欄・スイッチ・スクロール線）を除いて移したもの。練習・チュートリアル・進捗・検索の CSS は、
+   それぞれのフェーズ（2〜3）で WebAssembly 側に移すときに足す。
+   Bootstrap のクラスは base.css（Bootstrap 5.3.3 から使うクラスだけを取り出したもの）。色は :root の変数（--bs-*・--violet など）で決める。 */
+
+/* ============================================================
+   テーマ（このサイトの色と角丸）。色を変えるときは、このブロックだけを見る。
+   落ち着いたティール〜シアン寄りの、涼しい色味（学習ガイドなので目に優しく、主張は強くしない）。
+   kit（fara-blazor-component）の --fbc-* と Bootstrap の --bs-* は、ここで上書きする（kit は変えない）。
+   MudBlazor の色は Services/AvatarTheme.cs（MainLayout が CustomTheme で渡す）。ここと同じ値にそろえる。
+   旧来の名前（--violet・--violet-deep・--lavender・--pink・--indigo・--cyan）は、次の新しい名前の別名（practice.css などが使う）。
+   ============================================================ */
+
+/* ---- ダーク（既定）。:root[data-bs-theme="dark"] は、kit の同じセレクター（--fbc-muted など）に勝つため ---- */
+:root,
+[data-bs-theme="dark"],
+:root[data-bs-theme="dark"] {
+    /* アクセント */
+    --accent: #2bb8c9;            /* 主なアクセント（アイコン・枠・強調。文字の上に白は乗せない） */
+    --accent-deep: #0e7490;       /* 主ボタンの地（白い文字が乗る。コントラスト 5.4） */
+    --accent-soft: #7fd8e6;       /* リンク・h3・淡いアクセントの文字（地 #071318 の上で 11.5） */
+    --accent-alt: #5aa9e6;        /* グラデーションの終わり・バッジ（青寄り） */
+    --accent-code: #8fe3cf;       /* インラインコード（ミント） */
+    --accent-hover: #a5f3fc;      /* リンクのホバー */
+    --accent-rgb: 43, 184, 201;   /* 半透明の面・影（rgba(var(--accent-rgb), 0.14)） */
+    --accent-deep-rgb: 14, 116, 144;
+    --tip: #6aa8f7;               /* ヒントの囲み（青）。注意の囲みは琥珀のまま */
+    --tip-rgb: 106, 168, 247;
+    --grad: linear-gradient(120deg, #2dd4bf 0%, #22d3ee 50%, #60a5fa 100%);
+    --accent-badge-grad: linear-gradient(135deg, #0e7490, #2563eb);   /* 白い文字が乗るバッジ・手順の丸（コントラスト 5 以上） */
+
+    /* 面・線 */
+    --surface: rgba(10, 44, 54, 0.55);
+    --border: rgba(130, 215, 230, 0.15);
+    --border-strong: rgba(130, 215, 230, 0.32);
+    --kbd-bg: #0f2630;
+    --focus-ring: #9ae6f0;
+
+    /* 旧来の名前（別名） */
+    --violet: var(--accent);
+    --violet-deep: var(--accent-deep);
+    --lavender: var(--accent-soft);
+    --pink: var(--accent-code);
+    --indigo: var(--accent-alt);
+    --cyan: var(--tip);
+
+    /* Bootstrap */
+    --bs-body-bg: #071318;
+    --bs-body-bg-rgb: 7, 19, 24;
+    --bs-body-color: #e8f4f6;
+    --bs-body-color-rgb: 232, 244, 246;
+    --bs-emphasis-color: #ffffff;
+    --bs-emphasis-color-rgb: 255, 255, 255;
+    --bs-secondary-color: #9db8bf;
+    --bs-secondary-color-rgb: 157, 184, 191;
+    --bs-secondary-bg: #0f2a33;
+    --bs-tertiary-color: #6f8c94;
+    --bs-tertiary-bg: #0b1f26;
+    --bs-heading-color: #e8f4f6;
+    --bs-border-color: var(--border);
+    --bs-border-color-translucent: var(--border);
+    --bs-border-radius: 0.5rem;
+    --bs-primary: var(--accent);
+    --bs-primary-rgb: 43, 184, 201;
+    --bs-primary-text-emphasis: var(--accent-soft);
+    --bs-primary-bg-subtle: #0f3440;
+    --bs-primary-border-subtle: #1d6b7c;
+    --bs-link-color: var(--accent-soft);
+    --bs-link-color-rgb: 127, 216, 230;
+    --bs-link-hover-color: var(--accent-hover);
+    --bs-link-hover-color-rgb: 165, 243, 252;
+    --bs-code-color: var(--accent-code);
+    --bs-font-sans-serif: "Zen Kaku Gothic New", "Outfit", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
+
+    /* kit（--fbc-*） */
+    --fbc-header-bg: linear-gradient(90deg, #071a21 0%, #0d2f3a 100%);
+    --fbc-header-accent: linear-gradient(90deg, #2dd4bf 0%, #22d3ee 100%);
+    --fbc-header-track: rgba(45, 212, 191, 0.22);
+    --fbc-sidebar-bg: linear-gradient(180deg, rgba(7, 22, 28, 0.92) 0%, rgba(11, 38, 48, 0.92) 60%, rgba(15, 50, 62, 0.92) 100%);
+    --fbc-sidebar-text: #d4e4e8;
+    --fbc-body-bg: #071318;
+    --fbc-border: rgba(130, 215, 230, 0.16);
+    --fbc-muted: #9db8bf;
+    --fbc-field-bg: rgba(10, 36, 44, 0.7);
+    --fbc-brand: #2bb8c9;
+    --fbc-grad: var(--grad);
+    --fbc-focus: #a5f3fc;
+    --fbc-maintenance-bg: #071318;
+    --fbc-maintenance-text: #e8f4f6;
+    --fbc-maintenance-muted: #9db8bf;
+}
+
+/* ---- ライト ---- */
+[data-bs-theme="light"],
+:root[data-bs-theme="light"] {
+    --accent: #0e7490;
+    --accent-deep: #0e7490;
+    --accent-soft: #0b6a82;       /* リンク・h3（地 #f1f8f9 の上で 5.8） */
+    --accent-alt: #2563eb;
+    --accent-code: #0f766e;
+    --accent-hover: #0891b2;
+    --accent-rgb: 14, 116, 144;
+    --accent-deep-rgb: 14, 116, 144;
+    --tip: #2563eb;
+    --tip-rgb: 37, 99, 235;
+    --grad: linear-gradient(120deg, #0d9488 0%, #0e7490 50%, #2563eb 100%);
+
+    --surface: #ffffff;
+    --border: #cfe4e8;
+    --border-strong: #9fcdd6;
+    --kbd-bg: #ffffff;
+    --focus-ring: #0b5568;
+
+    --bs-body-bg: #f1f8f9;
+    --bs-body-bg-rgb: 241, 248, 249;
+    --bs-body-color: #10262d;
+    --bs-body-color-rgb: 16, 38, 45;
+    --bs-emphasis-color: #000000;
+    --bs-emphasis-color-rgb: 0, 0, 0;
+    --bs-secondary-color: #476670;
+    --bs-secondary-color-rgb: 71, 102, 112;
+    --bs-secondary-bg: #e3f0f2;
+    --bs-tertiary-color: #6f8d96;
+    --bs-tertiary-bg: #ebf4f6;
+    --bs-heading-color: #10262d;
+    --bs-primary: #0e7490;
+    --bs-primary-rgb: 14, 116, 144;
+    --bs-primary-text-emphasis: #0b5568;
+    --bs-primary-bg-subtle: #dff3f6;
+    --bs-primary-border-subtle: #9fd3dd;
+    --bs-link-color: #0b6a82;
+    --bs-link-color-rgb: 11, 106, 130;
+    --bs-link-hover-color: #0891b2;
+    --bs-link-hover-color-rgb: 8, 145, 178;
+    --bs-code-color: #0f766e;
+
+    --fbc-body-bg: #f1f8f9;
+    --fbc-border: #cfe4e8;
+    --fbc-muted: #476670;
+    --fbc-field-bg: rgba(255, 255, 255, 0.7);
+    --fbc-brand: #0e7490;
+    --fbc-maintenance-bg: #071318;
+}
+
+/* 地の色。html に塗る（body に塗ると、body の背景が、z-index: -1 の canvas（#site-scene）を覆ってしまう）。
+   index.html の起動中の表示（インラインの style）も html と body に同じ色を塗るので、同じ強さで、あとから読む app.css が勝つようにしてある */
+/* 単色の background-color を、グラデーションとは別に必ず持たせる。iOS（WebKit）は background-attachment: fixed を無視し、ゴム伸び（端を引っ張って出る領域）には
+   グラデーションが塗られず黒になるため、その領域はこの単色（グラデーションの端の色）で塗られる。color-scheme は、その領域・スクロールバー・入力部品の配色をテーマに合わせる */
+html,
+html[data-bs-theme="dark"] {
+    background: linear-gradient(180deg, #061116 0%, #0a1f27 100%);
+    background-color: #061116;
+    background-attachment: fixed;
+    color-scheme: dark;
+}
+
+html[data-bs-theme="light"] {
+    background: #f1f8f9;
+    background-color: #f1f8f9;
+    background-attachment: fixed;
+    color-scheme: light;
+}
+
+html body,
+html[data-bs-theme] body {
+    background: transparent;
+}
+
+/* kit の部品の、固定の色（メンテナンス画面・主ボタン）。kit の CSS の後に読むので、同じ詳細度で上書きできる */
+.fbc-maintenance h1 {
+    color: #7fd8e6;
+}
+
+.fbc-btn-primary.mud-button-root {
+    background: linear-gradient(135deg, #0e7490, #0b6a82);
+    box-shadow: 0 10px 30px -8px rgba(14, 116, 144, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.fbc-skip-link {
+    color: #10262d;
+}
+
+/* 見た目（このサイトの性格。レイアウトは変えない）: 角丸を少し大きく、h2 の左に細いアクセントの線 */
+.article-body h2 {
+    padding-left: 0.7rem;
+    border-left: 4px solid var(--accent);
+    border-radius: 2px;
+}
+
+.article-body .tip,
+.article-body .warning {
+    border-radius: 8px;
+}
+
+.card,
+.article-card {
+    border-radius: 0.6rem;
+}
+
+[data-bs-theme="light"] .btn-outline-primary {
+    --bs-btn-color: var(--accent-soft);
+}
+
+[data-bs-theme="light"] kbd {
+    background-color: var(--kbd-bg);
+    border-color: var(--border-strong);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="light"] .article-body .tip {
+    background: rgba(var(--tip-rgb), 0.1);
+    border-color: var(--tip);
+}
+
+[data-bs-theme="light"] .article-body .warning {
+    background: rgba(251, 191, 36, 0.18);
+    border-color: #d97706;
+}
+
+[data-bs-theme="light"] .article-keys .card-header {
+    background: var(--bs-primary-bg-subtle);
+}
+
+[data-bs-theme="light"] .card {
+    box-shadow: 0 2px 10px rgba(10, 70, 90, 0.08);
+}
+
+/* ---------- ロードマップ ---------- */
+.roadmap-section + .roadmap-section {
+    margin-top: 1.5rem;
+}
+
+.roadmap-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 1.35rem;
+}
+
+.roadmap-section-desc {
+    margin-bottom: 1rem;
+}
+
+.roadmap {
+    position: relative;
+    padding-left: 0;
+}
+
+.roadmap-step {
+    display: flex;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    position: relative;
+}
+
+.roadmap-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    top: 2.25rem;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-strong);
+}
+
+.roadmap-marker {
+    flex: 0 0 2rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--accent-badge-grad);
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.roadmap-body {
+    flex: 1;
+}
+
+.roadmap-articles {
+    padding-left: 1.25rem;
+    margin-bottom: 0;
+}
+
+.roadmap-articles li {
+    margin-bottom: 0.25rem;
+}
+
+/* ---------- 用語集・何て名前？・TIPS ---------- */
+.tip-card {
+    scroll-margin-top: 5rem;
+}
+
+.tip-card:target {
+    border-color: var(--violet);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.45);
+}
+
+.tip-anchor {
+    color: inherit;
+    text-decoration: none;
+}
+
+.tip-anchor:hover {
+    text-decoration: underline;
+}
+
+.tip-en {
+    padding: 0 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    color: var(--bs-secondary-color);
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.8rem;
+}
+
+.tip-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.tip-tag {
+    padding: 0 7px;
+    border-radius: 999px;
+    background: rgba(var(--accent-rgb), 0.14);
+    color: var(--bs-secondary-color);
+    font-size: 0.72rem;
+}
+
+.tip-source-discord {
+    background: rgba(88, 101, 242, 0.25);
+    color: var(--bs-body-color);
+}
+
+.tip-refs {
+    display: grid;
+    gap: 0.2rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+}
+
+.tip-refs-label {
+    display: inline-block;
+    min-width: 2.6rem;
+    margin-right: 0.3rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.75rem;
+}
+
+.howto-answer {
+    font-size: 1.05rem;
+}
+
+.howto-menu,
+.tip-detail {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.15rem 0.75rem;
+}
+
+.howto-menu dt,
+.tip-detail dt {
+    color: var(--bs-secondary-color);
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding-top: 0.1rem;
+}
+
+.howto-menu dd,
+.tip-detail dd {
+    margin: 0;
+}
+
+.tip-detail dd ul {
+    margin-bottom: 0;
+    padding-left: 1.1rem;
+}
+
+/* 「詳しく」（Markdown の本文） */
+.tip-body > summary {
+    color: var(--violet);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.tip-body-content {
+    margin-top: 0.4rem;
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+.tip-body-content > :last-child {
+    margin-bottom: 0;
+}
+
+.tip-body-content ul,
+.tip-body-content ol {
+    padding-left: 1.2rem;
+}
+
+.tip-body-content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    border-collapse: collapse;
+}
+
+.tip-body-content th,
+.tip-body-content td {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--border);
+    vertical-align: top;
+}
+
+.tip-keywords {
+    color: var(--bs-secondary-color);
+}
+
+/* ---------- リンク集 ---------- */
+.links-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.links-section,
+.link-item {
+    scroll-margin-top: 5rem;
+}
+
+.link-item {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.link-item:target {
+    border-radius: 6px;
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.45);
+}
+
+.link-name {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* ---------- カード ---------- */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.article-card {
+    color: inherit;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.article-card:hover {
+    border-color: var(--violet);
+}
+
+/* ---------- 記事本文（Markdown から生成） ---------- */
+.article-body {
+    max-width: 48rem;
+    line-height: 1.8;
+}
+
+.article-body h2 {
+    font-size: 1.4rem;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.article-body h3 {
+    font-size: 1.15rem;
+    margin-top: 1.5rem;
+}
+
+.article-body ol > li,
+.article-body ul > li {
+    margin-bottom: 0.4rem;
+}
+
+.article-body img,
+.article-body video {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    display: block;
+    margin: 1rem 0;
+}
+
+/* 画像の直後の斜体1行をキャプションとして扱う: ![alt](images/x.png) の次の行に *説明* */
+.article-body p > img + em,
+.article-body p > em:only-child {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--bs-secondary-color);
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+.article-body .steps-with-images > li {
+    margin-bottom: 1.25rem;
+}
+
+/* ::: tip / ::: warning カスタムコンテナ */
+.article-body .tip,
+.article-body .warning {
+    padding: 0.75rem 1rem;
+    border-left: 4px solid;
+    border-radius: 4px;
+    margin: 1.25rem 0;
+}
+
+.article-body .tip {
+    border-color: var(--tip);
+    background: rgba(var(--tip-rgb), 0.1);
+}
+
+.article-body .warning {
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.1);
+}
+
+.article-body .tip::before,
+.article-body .warning::before {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.article-body .tip::before {
+    content: "💡 ヒント";
+}
+
+.article-body .warning::before {
+    content: "⚠️ 注意";
+}
+
+.article-body .tip > :last-child,
+.article-body .warning > :last-child {
+    margin-bottom: 0;
+}
+
+.article-keys .card-header {
+    font-weight: 600;
+    background: rgba(var(--accent-rgb), 0.12);
+}
+
+.article-nav .btn {
+    max-width: 48%;
+}
+
+/* ---------- テーブル・キー表示 ---------- */
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+kbd {
+    background-color: var(--kbd-bg);
+    border: 1px solid var(--border-strong);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    color: #f3edff;
+    font-size: 0.875em;
+    font-weight: 600;
+    padding: 2px 6px;
+    white-space: nowrap;
+}
+
+/* 記事の表のセルの余白。文字が隣の列とくっつかないように空ける。keep-all で「キー」「表記」などの語を字の途中で折らない（見出しの th は、360px・390px でも keep-all のまま） */
+.article-body th,
+.article-body td {
+    padding: 10px 12px;
+    word-break: keep-all;
+}
+
+/* 本文のセル（td）だけ、語が列に入らないときに字の途中で折る。keep-all のままだと日本語の表が列より広くなり、右端が切れるため */
+.article-body td {
+    overflow-wrap: anywhere;
+}
+
+/* スマートフォン（480px 未満）: 記事の表は列を狭くしすぎない。表が画面より広いときだけ、表の中で横に送れる（tip の表と同じ形）。
+   表は折り返しで画面幅に収まる（計測済み）。収まらない表だけ、この箱の中で横に送れる */
+@media (max-width: 479.98px) {
+    .article-body table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        font-size: 0.9rem;
+    }
+
+    .article-body th,
+    .article-body td {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}
+
+/* 記事のコードブロックは、画面より長い行を箱の中で横に送る（箱から出すとページ全体が横に動く） */
+.article-body pre {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* ---------- 記事内の目次・キー一覧（右の列） ---------- */
+.article-aside {
+    position: sticky;
+    top: 0.5rem;
+    max-height: calc(100dvh - 9.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* 低い画面では目次とキー一覧が縮み、それぞれの中でスクロールする（どちらも見えたままにする） */
+.article-toc,
+.article-aside .article-keys {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.article-toc {
+    min-height: 8rem;
+}
+
+.article-aside .article-keys {
+    min-height: 9rem;
+}
+
+.article-toc-title {
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--bs-secondary-color);
+}
+
+.toc-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.toc-list a {
+    display: block;
+    padding: 0.2rem 0.5rem;
+    border-left: 2px solid var(--border);
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+.toc-list a:hover {
+    color: var(--bs-body-color);
+    border-left-color: var(--violet);
+}
+
+.toc-list a.is-current {
+    border-left-color: var(--violet);
+    background: rgba(var(--accent-rgb), 0.14);
+    color: var(--bs-emphasis-color);
+    font-weight: 700;
+}
+
+[data-bs-theme="light"] .toc-list a.is-current {
+    border-left-color: var(--accent-deep);
+    background: var(--bs-primary-bg-subtle);
+}
+
+.article-aside .article-keys .list-group-item {
+    padding: 0.35rem 0.75rem;
+}
+
+/* スマートフォン: 記事タイトルの下に畳んで置く */
+.article-toc-mobile {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.article-toc-mobile summary {
+    padding: 0.6rem 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.article-toc-mobile .toc-list {
+    padding: 0 0.9rem 0.75rem;
+}
+
+/* 閉じた目次の中の項目は見えないので、レイアウトにも残さない（計測と、支援技術の一覧から外す） */
+.article-toc-mobile:not([open]) .toc-list {
+    display: none;
+}
+
+.article-toc-mobile .toc-list a {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 991.98px) {
+    .article-aside {
+        position: static;
+        max-height: none;
+    }
+
+    .article-toc,
+    .article-aside .article-keys {
+        overflow: visible;
+    }
+}
+
+/* ---------- ホームのサイト名（ポケモン・Bot のサイトと同じ: 箱で囲まず、グラデーションの文字） ----------
+   ダーク: 淡いラベンダーのグラデーション（3 サイト共通）／ライト: バイオレット */
+.home-header {
+    margin: 0.5rem 0 2rem;
+}
+
+.home-title {
+    margin: 0 0 0.5rem;
+    font-family: "Outfit", var(--bs-font-sans-serif);
+    font-weight: 600;
+    font-size: clamp(2rem, 4.2vw, 3.4rem);
+    line-height: 1.1;
+    background: linear-gradient(135deg, #c6f3f9 0%, #7fd8e6 45%, #4fb8cf 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+[data-bs-theme="light"] .home-title {
+    background: linear-gradient(120deg, #0e7490 0%, #0b5568 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.home-lead {
+    max-width: 44em;
+    font-size: 1.05rem;
+}
+
+/* 更新履歴（ホームは新しい数件の見出しだけ、/changelog は細かい内容まで） */
+.changelog-date { font-size: 0.78rem; color: var(--bs-secondary-color); font-variant-numeric: tabular-nums; margin-right: 0.35rem; }
+.changelog-entry .changelog-date { display: block; margin: 0 0 0.15rem; }
+.changelog-recent li { padding: 0.15rem 0; }
+.changelog-entry { padding-bottom: 0.75rem; border-bottom: 1px solid var(--bs-border-color); }
+.changelog-entry li { margin-bottom: 0.25rem; }
+
+.report-done[hidden], .report-form[hidden] { display: none; }
+.report-done { max-width: 42rem; margin-top: 20px; }
+
+/* ---------- 移行（WebAssembly + MudBlazor）で足した部分 ---------- */
+
+/* 見出し・ボタン・バッジの色と字体（SSR 版の site.css から） */
+h1, h2, h3, .navbar-brand {
+    font-family: "Outfit", "Zen Kaku Gothic New", system-ui, sans-serif;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--violet-deep);
+    --bs-btn-border-color: var(--violet-deep);
+    --bs-btn-hover-bg: var(--violet);
+    --bs-btn-hover-border-color: var(--violet);
+    --bs-btn-active-bg: #0b5568;
+    --bs-btn-active-border-color: #0b5568;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--lavender);
+    --bs-btn-border-color: var(--violet);
+    --bs-btn-hover-bg: var(--violet-deep);
+    --bs-btn-hover-border-color: var(--violet-deep);
+    --bs-btn-active-bg: var(--violet-deep);
+    --bs-btn-active-border-color: var(--violet-deep);
+}
+
+.badge.bg-primary {
+    background: var(--accent-badge-grad) !important;
+}
+
+h1:focus {
+    outline: none;
+}
+
+/* Bootstrap の reboot（a の下線）が、サイドバーとヘッダーのリンクにも効くので、消す（SSR 版のサイドバーは下線なし） */
+.fbc-header a {
+    text-decoration: none;
+}
+
+/* 見出しへのリンク（#id）で飛んだとき、上に少し余白を残す。本文の領域（.fbc-content）がスクロールする */
+.fbc-content,
+.av-static {
+    scroll-padding-top: 1rem;
+}
+
+/* アイコン（Material の SVG）。Bootstrap Icons の .bi と同じ大きさ・位置（文字の高さ・文字の色） */
+.av-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    fill: currentColor;
+    flex: none;
+}
+
+.howto-answer .av-icon {
+    color: var(--violet);
+}
+
+/* キーボードのフォーカス（背景に合わせて見える 2px の枠） */
+:root body :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+/* 地の色。SSR 版と同じグラデーション（ダーク） */
+/* 背景の飾り（床の方眼と回る針金のアバター）。js/bgscene.js が、body の先頭に canvas を 1 つだけ置いて描く（見た目だけ。操作には関わらない） */
+#site-scene {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* 本文の後ろに、半透明の地の色を敷く。図形と方眼は、本文の後ろでも見えるように、地は 0.4 にとどめる（0.8 だと図形がほとんど見えない）。
+   文字の色と地のコントラストは、最も濃い図形の上でも WCAG AA（4.5 以上）を超える（ライト 11 前後・ダーク 9 前後の見積もり） */
+.fbc-content {
+    background: rgb(6 18 24 / 0.4);
+}
+
+[data-bs-theme="light"] .fbc-content {
+    background: rgb(241 248 249 / 0.4);
+}
+
+/* サイトの本文の幅と余白。SSR 版の .content（px-4 = 1.5rem）に合わせる */
+.fbc-content {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+.fbc-header .av-header-switch {
+    margin-left: 0.75rem;
+}
+
+/* ライト／ダークのボタン（サイドバーの下。スマホだけ。PC はヘッダーのスイッチ） */
+.av-drawer-theme {
+    padding: 0.75rem 1rem 1rem;
+}
+
+@media (min-width: 768px) {
+    .av-drawer-theme {
+        display: none;
+    }
+}
+
+/* ---------- 静的 HTML(Build が書く。WebAssembly が起動するまでの表示。起動すると SiteLayout に置き換わる)---------- */
+/* 起動の後の画面(ヘッダー + 左のサイドバー + 本文 + フッター)と同じ DOM 構造・同じ class で書いてある(Build の StaticFrame)ので、本文が起動の前後で動かない。
+   MudBlazor の CSS の変数(--mud-*)は、起動の後に MudThemeProvider が入れるものなので、起動の前は無い。ここで同じ値を持つ(値は kit の SiteTheme と同じ。Web.Tests が確かめる)。 */
+.av-static {
+    --mud-appbar-height: 56px;
+    --mud-drawer-width-left: 230px;
+    --mud-drawer-width-mini-left: 56px;
+    --mud-zindex-drawer: 1100;
+    --mud-zindex-appbar: 1300;
+    --mud-elevation-0: none;
+    --mud-default-borderradius: 8px;
+    --mud-typography-default-family: 'Zen Kaku Gothic New', system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic UI', Meiryo, sans-serif;
+    --mud-typography-default-size: .875rem;
+    --mud-typography-default-weight: 400;
+    --mud-typography-default-lineheight: 1.43;
+    --mud-typography-default-letterspacing: normal;
+    --mud-typography-default-text-transform: none;
+    --mud-typography-body2-family: 'Zen Kaku Gothic New', system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic UI', Meiryo, sans-serif;
+    --mud-typography-body2-size: .875rem;
+    --mud-typography-body2-weight: 400;
+    --mud-typography-body2-lineheight: 1.43;
+    --mud-typography-body2-letterspacing: .01071em;
+    --mud-typography-body2-text-transform: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* ページ全体(window)がスクロールする。起動の後の PC は本文の領域(.fbc-content)の中がスクロールするが、起動の前は、
+   スクロールを window にしておく(静的な本文は inert で、本文の領域の中のスクロールがホイールで操作できない。ヘッダー・サイドバー・フッターは固定のまま、一番上では起動の後と同じ位置になる) */
+.av-static .mud-main-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.av-static .mud-main-content > main {
+    flex: 1 0 auto;
+    min-width: 0;
+}
+
+.av-static .fbc-content {
+    display: block;
+    overflow: visible;
+    padding-bottom: 1rem;
+}
+
+/* フッターは、PC は画面の下に貼り付ける(起動の後と同じ位置)。スマホは、起動の後も本文の最後に出る */
+.av-static .fbc-footer {
+    margin-top: auto;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: var(--fbc-body-bg);
+}
+
+.av-static .av-sp {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    /* スマホ: ヘッダーの各リンクは出さず(起動の後は、ハンバーガーの中)、ヘッダーは検索ボタン、ページ全体がスクロールし、フッターは貼り付けない */
+    .av-static .av-pc {
+        display: none;
+    }
+
+    .av-static .av-sp {
+        display: flex;
+    }
+
+    .av-static .fbc-content {
+        padding-bottom: 0;
+    }
+
+    .av-static .fbc-footer {
+        position: static;
+    }
+}
+
+/* 幅 360〜379px のフッター。kit の既定（項目の間が 0.9rem、左右の余白 1rem）だと、「Avatar Modding Guide」と「プライバシーポリシー」と SNS 4 つで、
+   1 段目に「名前・問い合わせ・プライバシーポリシー」が入らず、SNS が 3 段目に落ちる（高さ 127px。390px 以上は 2 段の 83px）。
+   項目の間と左右の余白だけを詰める。文字の大きさ（12.48px）と、タップの判定（44px・段の間 22px）は kit のまま */
+@media (max-width: 379.98px) {
+    .fbc-footer {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .fbc-footer-line {
+        column-gap: 0.5rem;
+    }
+
+    /* © の作者名（44px の判定の箱）の右に、SNS の判定の箱が重ならないよう、間を 20px にする（段が同じ行に並ぶため） */
+    .fbc-footer-socials {
+        margin-left: 1.25rem;
+    }
+}
+
+/* ライト／ダークのスイッチ(MudSwitch の見た目。PC のヘッダー)。起動の前は MudBlazor の色の変数が無いので、色はここで決める(起動の後の見た目と同じ値) */
+.av-sw {
+    position: relative;
+    flex: none;
+    width: 58px;
+    height: 38px;
+    margin-left: 0.75rem;
+}
+
+.av-sw-track {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 34px;
+    height: 14px;
+    border-radius: 7px;
+    background: #2bb8c9;
+    opacity: 0.5;
+}
+
+.av-sw-thumb {
+    position: absolute;
+    left: 29px;
+    top: 9px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2bb8c9;
+    box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+}
+
+.av-sw-thumb svg {
+    width: 20px;
+    height: 20px;
+    padding: 2px;
+    box-sizing: border-box;
+    fill: currentColor;
+}
+
+.av-sw-moon {
+    color: #fff;
+}
+
+.av-sw-sun {
+    display: none;
+    color: #ffa800;
+}
+
+[data-bs-theme="light"] .av-sw-track {
+    background: #000;
+    opacity: 0.48;
+}
+
+[data-bs-theme="light"] .av-sw-thumb {
+    left: 9px;
+    background: #fafafa;
+}
+
+[data-bs-theme="light"] .av-sw-moon {
+    display: none;
+}
+
+[data-bs-theme="light"] .av-sw-sun {
+    display: block;
+}
+
+/* ---------- 完了の記録(ProgressStore。SSR 版の site.css から) ---------- */
+.done-mark {
+    display: none;
+}
+
+.is-done .done-mark,
+.done-mark.is-done {
+    display: inline-flex;
+}
+
+.badge-done {
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1px 8px;
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    border-radius: 999px;
+    background: rgba(74, 222, 128, 0.12);
+    color: #86efac;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.article-card.is-done {
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+.roadmap-articles li.is-done .done-mark {
+    display: inline;
+    margin-left: 0.3rem;
+    color: #4ade80;
+}
+
+.roadmap-articles li.is-done > a {
+    color: var(--bs-secondary-color);
+}
+
+.category-progress {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(var(--accent-rgb), 0.18);
+    color: var(--bs-body-color);
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+
+/* hidden 属性の display は、上の display: inline-block に負けるので、はっきり隠す */
+.category-progress[hidden],
+.progress-summary[hidden] {
+    display: none;
+}
+
+.category-progress.is-complete {
+    background: rgba(74, 222, 128, 0.22);
+    color: #86efac;
+}
+
+.btn-progress {
+    --bs-btn-color: var(--bs-body-color);
+    --bs-btn-border-color: var(--border-strong);
+    --bs-btn-hover-color: var(--bs-body-color);
+    --bs-btn-hover-bg: rgba(74, 222, 128, 0.12);
+    --bs-btn-hover-border-color: #4ade80;
+    --bs-btn-active-bg: rgba(74, 222, 128, 0.2);
+    --bs-btn-active-border-color: #4ade80;
+}
+
+.btn-progress.is-done {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #16a34a;
+    --bs-btn-border-color: #16a34a;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #15803d;
+    --bs-btn-hover-border-color: #15803d;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #166534;
+}
+
+.progress-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+}
+
+.progress-track span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+    transition: width 0.3s ease-out;
+}
+
+[data-bs-theme="light"] .badge-done {
+    border-color: rgba(22, 163, 74, 0.4);
+    background: rgba(22, 163, 74, 0.1);
+    color: #15803d;
+}
+
+[data-bs-theme="light"] .roadmap-articles li.is-done .done-mark {
+    color: #16a34a;
+}
+
+[data-bs-theme="light"] .category-progress {
+    background: var(--bs-primary-bg-subtle);
+}
+
+[data-bs-theme="light"] .category-progress.is-complete {
+    background: rgba(22, 163, 74, 0.15);
+    color: #15803d;
+}
+
+/* ---------- 検索(ヘッダーの検索欄・検索ページ) ---------- */
+.av-search {
+    position: relative;
+}
+
+.av-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    margin-top: -9px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: #a9c4cb;
+    pointer-events: none;
+}
+
+.av-search-input {
+    width: 100%;
+    height: 40px;
+    padding: 0 76px 0 38px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font: inherit;
+    font-size: 0.95rem;
+}
+
+.av-search-input::placeholder {
+    color: #a9c4cb;
+}
+
+.av-search-input:focus {
+    outline: none;
+    border-color: #b4f0f7;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.av-search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.av-search-hint {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 4px;
+    pointer-events: none;
+}
+
+.av-search:focus-within .av-search-hint {
+    opacity: 0;
+}
+
+.av-search-hint kbd {
+    padding: 1px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    background: transparent;
+    color: #d8c7f5;
+    font: inherit;
+    font-size: 0.75rem;
+}
+
+.av-search-list {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    min-width: min(560px, 90vw);
+    z-index: 1060;
+    max-height: min(72vh, 600px);
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+[data-bs-theme="light"] .av-search-list {
+    box-shadow: 0 12px 40px rgba(10, 70, 90, 0.18);
+}
+
+.av-search-item,
+.av-search-all {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.av-search-item {
+    align-items: flex-start;
+}
+
+.av-search-item:hover,
+.av-search-item.is-active {
+    background: rgba(var(--accent-rgb), 0.18);
+    color: inherit;
+}
+
+.av-search-item .badge {
+    flex: 0 0 auto;
+    min-width: 4.8rem;
+}
+
+.av-search-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.av-search-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.av-search-title {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.av-search-sub {
+    margin-left: auto;
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.av-search-snippet {
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.av-search-all {
+    justify-content: flex-end;
+    margin-top: 0.2rem;
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 6px 6px;
+    color: var(--bs-link-color);
+    font-size: 0.85rem;
+}
+
+.av-search-empty {
+    padding: 0.6rem;
+    color: var(--bs-secondary-color);
+}
+
+.av-search-list mark {
+    padding: 0;
+    background: rgba(240, 171, 252, 0.3);
+    color: inherit;
+}
+
+/* スマホの検索欄(ヘッダーの検索ボタンで、ヘッダーの下に開く。欄の枠 #fbc-search-sheet は kit の SiteLayout が出し入れする)。中の検索部品は、枠に position: static で入れ、
+   結果の一覧・× の位置の基準を、枠にする */
+.fbc-search-sheet .av-search-sheet {
+    position: static;
+}
+
+.av-search-close {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-top: -22px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #d8c7f5;
+    cursor: pointer;
+}
+
+.av-search-close svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.av-search-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 767.98px) {
+    html.fbc-search-open .fbc-search-sheet {
+        padding: 8px 56px 8px 12px;
+        background: linear-gradient(90deg, #140a26 0%, #241243 100%);
+        border-bottom: 1px solid rgba(130, 215, 230, 0.14);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .av-search-sheet .av-search-input {
+        height: 44px;
+        padding: 0 12px 0 38px;
+        font-size: 1rem;   /* 16px 未満だと、iOS は入力のとき拡大する */
+    }
+
+    .av-search-sheet .av-search-list {
+        left: 12px;
+        right: 12px;
+        min-width: 0;
+        max-height: calc(100vh - 9.5rem);
+    }
+
+    /* ページ全体(window)がスクロールするので、見出しへのジャンプは、固定のヘッダーの下に止める */
+    html {
+        scroll-padding-top: 4.25rem;
+    }
+}
+
+/* スマートフォン: 指で押す操作は 44px 以上（ドロワーのリンク・ヘッダーのメニューと検索のボタン・本文のボタン）。
+   PC はマウスなので、ここでは変えない */
+@media (max-width: 767.98px) {
+    .av-drawer-theme .mud-button-root,
+    .fbc-menu-toggle,
+    .fbc-search-toggle,
+    .btn {
+        min-height: 44px;
+    }
+
+    .fbc-menu-toggle,
+    .fbc-search-toggle {
+        min-width: 44px;
+    }
+}
+
+/* 768〜1024（タブレット）: ヘッダーのメニューボタン（40px）の押せる範囲を 44px にする。見た目と配置は変えず、透明な領域を外に 2px ずつ足す（::after）。
+   サイト名との間は 12px あるので重ならない。ドロワーのリンクは、広げると 1 件ずつ並びが動く（隙間なしに 40px で並んでいる）ので、ここでは変えない */
+@media (min-width: 768px) and (max-width: 1024px) {
+    /* ボタンは overflow: hidden（MudBlazor）なので、外の領域を通すために clip にして、外へ 2px だけ許す */
+    .fbc-header .fbc-menu-toggle {
+        position: relative;
+        overflow: hidden;
+        overflow: clip;
+        overflow-clip-margin: 2px;
+    }
+
+    .fbc-header .fbc-menu-toggle::after {
+        content: "";
+        position: absolute;
+        inset: -3px;
+    }
+}
+
+@media (min-width: 768px) {
+    .fbc-header .av-search {
+        flex: 1 1 220px;
+        min-width: 140px;
+        max-width: 40rem;
+        margin-left: auto;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1439.98px) {
+    .av-search-hint {
+        display: none;
+    }
+}
+
+.search-result {
+    display: block;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.search-result:hover {
+    background: rgba(var(--accent-rgb), 0.08);
+    border-color: var(--border-strong);
+}
+
+.search-result-title {
+    font-weight: 600;
+}
+
+.search-result-snippet {
+    font-size: 0.875rem;
+    color: var(--bs-secondary-color);
+    margin-top: 0.25rem;
+}
+
+.search-result mark {
+    padding: 0 0.1em;
+    background: rgba(240, 171, 252, 0.3);
+    color: inherit;
+}
+
+[data-bs-theme="light"] .search-result mark {
+    background: rgba(240, 171, 252, 0.5);
+}
+
+/* 動きを減らす設定 */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .article-card,
+    .room-card {
+        transition: none;
+    }
+}
+
+/* ---------- 操作しやすさ（スマートフォン幅で 44px 以上・文字 12px 以上）----------
+   見た目はほぼ変えず、押せる範囲だけを広げる。目次の行は高さだけ 44px にする。 */
+.article-header .badge {
+    font-size: 0.75rem;
+}
+
+@media (max-width: 767.98px) {
+    /* 行の中の項目（記事名・完了の印・難易度のバッジ）は、行の高さに伸ばさず、中央にそろえる */
+    .roadmap-articles li {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .roadmap-articles li > .badge {
+        flex: 0 0 auto;
+    }
+
+    .roadmap-articles li > a {
+        display: flex;
+        align-items: center;
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 44px;
+    }
+
+    .roadmap-articles li > .done-mark {
+        align-self: center;
+    }
+
+    .roadmap-body h4 > a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .article-toc-mobile summary {
+        min-height: 44px;
+    }
+
+    .article-toc-mobile .toc-list a {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .article-aside .article-keys .list-group-item > a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        min-width: 44px;
+        justify-content: center;
+    }
+}
+
+/* 問い合わせの送信ボタン（kit の ReportFormView の MudButton）。押せる範囲の中心の上下 21.5px が、ボタンの中に入るように高さを 48px にする */
+.fbc-report-submit {
+    min-height: 48px;
+}
+
+/* スマホ幅: パンくずの項目を、押せる高さ（44px）にする（文字は左から、行の中央に置く） */
+@media (max-width: 599.98px) {
+    /* 項目の箱の高さを、中の項目（44px）に合わせる。低い箱だと、項目が隣の項目に重なって、押せる範囲の中心が隣に当たる */
+    .breadcrumb-item {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .breadcrumb-item > a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+
+/* みんなで練習のロビー・部屋の鍵の入力: 押せる範囲（タップ）を 44px 以上にする（layout-check の tap-target） */
+.room-lobby-field {
+    min-height: 44px;
+}
+
+/* みんなで練習の一覧（練習の部屋のカード）。幅に応じて 1〜3 列（auto-fill）。カードの高さは列ごとにそろえ、入るボタンは下に置く */
+.room-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+    gap: 1rem;
+    max-width: 52rem;   /* 広い画面では 3 列まで（768 は、ドロワーが出た本文の幅で 2 列になる） */
+}
+
+.room-empty {
+    grid-column: 1 / -1;
+    padding: 0.9rem 1rem;
+    border: 1px dashed var(--border-strong);
+    border-radius: 8px;
+}
+
+.room-card {
+    transition: border-color 0.15s ease-in-out;
+}
+
+.room-card:hover,
+.room-card:focus-within {
+    border-color: var(--violet);
+}
+
+.room-card-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.room-card-lock-icon {
+    display: inline-flex;
+    flex: none;
+    color: var(--bs-primary-text-emphasis);
+}
+
+.room-card-lock-icon .av-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.room-card-meta {
+    color: var(--bs-secondary-color);
+}
+
+.room-card-count {
+    color: var(--bs-body-color);
+    font-weight: 600;
+}
+
+.room-card-count .av-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.2rem;
+    vertical-align: -0.15rem;
+}
+
+.room-card-full {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.1rem 0.6rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+    font-weight: 600;
+}
+
+.room-card-join {
+    margin-top: auto;
+}
+
+/* 作成者のパスワード（伏せ字・表示）。40 字の ● も、狭い幅（360px）で折り返して、横に広がらないようにする。タップ領域は 44px 以上 */
+.room-pass-group {
+    flex-wrap: wrap;
+}
+
+/* 欄は 1 行を全部使う（ボタンは次の行に並ぶ）。折り返しは文字の途中でもよい */
+.room-pass-group > .room-pass-value {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    font-family: var(--bs-font-monospace);
+}
+
+.room-pass-group > .room-pass-value.is-masked {
+    letter-spacing: 0.1em;
+    color: var(--bs-secondary-color);
+}
+
+.room-pass-group > .room-pass-btn {
+    flex: 1 1 0;
+    min-width: 44px;
+    min-height: 44px;
+    align-self: flex-start;
+}
+
+/* ---------- プライバシーポリシー ----------
+   長文を読みやすくする。行が長くなりすぎないよう PC でも 56rem までにし（kit の --wide は 72rem）、見出しの階層・下線・余白、リストと段落の間隔、リンクの見分けを整える。
+   静的 HTML（Build の PageBodies.Privacy）と Blazor（Pages/Privacy.razor）は同じ DOM なので、この CSS で同じ見た目になる */
+.privacy-page {
+    max-width: 56rem;
+    margin-left: 0;
+    line-height: 1.85;
+}
+
+.privacy-page .lead {
+    margin-bottom: 0.4rem;
+    font-size: 1.05rem;
+}
+
+.privacy-page .privacy-dates {
+    margin-bottom: 1.5rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.9rem;
+}
+
+.privacy-page p,
+.privacy-page ul {
+    margin-bottom: 0.9rem;
+}
+
+.privacy-page ul {
+    padding-left: 1.5rem;
+}
+
+.privacy-page li + li {
+    margin-top: 0.4rem;
+}
+
+.privacy-page h2 {
+    margin: 2.5rem 0 0.9rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border-strong);
+    font-size: 1.3rem;
+    line-height: 1.5;
+}
+
+.privacy-page section:first-of-type > h2 {
+    margin-top: 1.5rem;
+}
+
+.privacy-page h3 {
+    margin: 1.6rem 0 0.5rem;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: var(--lavender);
+}
+
+[data-bs-theme="light"] .privacy-page h3 {
+    color: var(--violet-deep);
+}
+
+/* 本文のリンクは、色と下線で見分ける */
+.privacy-page a {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+.privacy-page a:hover {
+    text-decoration-thickness: 2px;
+}
+
+/* 外部のサービスの表。広い画面は 4 列の表、狭い画面（768px 未満）は 1 行ずつのカードにして、横にスクロールさせない */
+.privacy-table-wrap {
+    margin: 0 0 1rem;
+}
+
+.privacy-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    line-height: 1.65;
+}
+
+.privacy-table th,
+.privacy-table td {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.privacy-table thead th {
+    background: var(--surface);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.privacy-table tbody th {
+    width: 22%;
+    font-weight: 700;
+}
+
+.privacy-table tbody tr:nth-child(even) {
+    background: rgba(var(--accent-rgb), 0.05);
+}
+
+@media (max-width: 767.98px) {
+    .privacy-table,
+    .privacy-table tbody,
+    .privacy-table tr,
+    .privacy-table th,
+    .privacy-table td {
+        display: block;
+    }
+
+    .privacy-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    .privacy-table tbody tr {
+        margin-bottom: 0.8rem;
+        border: 1px solid var(--border-strong);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .privacy-table th,
+    .privacy-table td {
+        padding: 0.4rem 0.8rem;
+        border: 0;
+    }
+
+    .privacy-table tbody th {
+        width: auto;
+        padding-top: 0.6rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .privacy-table td::before {
+        content: attr(data-label);
+        display: block;
+        color: var(--bs-secondary-color);
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+
+    .privacy-table td:last-child {
+        padding-bottom: 0.6rem;
+    }
+}
+
+/* ---------- 行頭禁則 ----------
+   kit は本文（.fbc-page-column の p・li・dd・td）にだけ line-break: strict を付ける。見出し・表の見出し・図の説明・引用・ボタン・検索の候補などでも、
+   句読点・閉じ括弧が行頭に来ないよう、line-break は継承するので body から付ける（auto-phrase は語の途中で切らないための併用。対応しないブラウザでは通常の折り返し） */
+body {
+    line-break: strict;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+th,
+figcaption,
+blockquote,
+summary,
+label,
+.btn {
+    word-break: normal;
+    word-break: auto-phrase;
+    overflow-wrap: break-word;
+}
+
+/* ---------- 記事の読みやすさ（ページ内レイアウトの見直し） ---------- */
+
+/* 目次のリンクで飛んだとき、見出しが固定のヘッダーの下に隠れない */
+.article-body h2,
+.article-body h3 {
+    scroll-margin-top: 5rem;
+}
+
+/* h3 は h2 と見分けやすいよう、色で区別する（下線は h2 だけ） */
+.article-body h3 {
+    color: var(--lavender);
+    margin-bottom: 0.5rem;
+}
+
+[data-bs-theme="light"] .article-body h3 {
+    color: var(--violet-deep);
+}
+
+/* 番号つきの手順（本文の直下の ol）。番号を丸いバッジにして、1 手順ずつの区切りを見やすくする。
+   番号は list-item カウンターなので、start 属性や入れ子の ol でも本来の番号になる */
+.article-body > ol {
+    list-style: none;
+    padding-left: 0;
+}
+
+.article-body > ol > li {
+    position: relative;
+    padding-left: 2.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.article-body > ol > li::before {
+    content: counter(list-item);
+    position: absolute;
+    left: 0;
+    top: 0.2em;
+    width: 1.7rem;
+    height: 1.7rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    background: rgba(var(--accent-rgb), 0.18);
+    color: var(--bs-emphasis-color);
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.6rem;
+    text-align: center;
+}
+
+[data-bs-theme="light"] .article-body > ol > li::before {
+    background: rgba(var(--accent-deep-rgb), 0.1);
+}
+
+/* 手順の中の入れ子の箇条書きと画像は、バッジの右（文字の左端）に揃える */
+.article-body > ol > li > ul,
+.article-body > ol > li > ol {
+    margin-top: 0.5rem;
+}
+
+/* 表の最初の列（項目名）が 1 文字ずつ折れないよう、最低限の幅を持たせる */
+.article-body td:first-child {
+    min-width: 7em;
+}
+
+/* 3 列以上の表は、狭い画面（1200px 未満。PC でも左のメニューと右の目次で本文が狭い）で、1 行ずつのカードにする。
+   見出しの文字は Build が td の data-label に付ける（読み上げ・検索の文字は変わらない）。最初の列がカードの見出し */
+@media (max-width: 1199.98px) {
+    .article-body table.table-cards,
+    .article-body table.table-cards tbody,
+    .article-body table.table-cards tr,
+    .article-body table.table-cards td {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .article-body table.table-cards {
+        overflow: visible;
+        font-size: inherit;
+    }
+
+    .article-body table.table-cards thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    .article-body table.table-cards tbody tr {
+        margin-bottom: 0.8rem;
+        border: 1px solid var(--border-strong);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .article-body table.table-cards td {
+        padding: 0.45rem 0.9rem;
+        border: 0;
+        word-break: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .article-body table.table-cards td:first-child {
+        min-width: 0;
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        font-weight: 700;
+    }
+
+    .article-body table.table-cards td::before {
+        content: attr(data-label);
+        display: block;
+        color: var(--bs-secondary-color);
+        font-size: 0.8rem;
+        font-weight: 400;
+        line-height: 1.5;
+    }
+
+    .article-body table.table-cards td:first-child::before {
+        display: none;
+    }
+
+    .article-body table.table-cards td:last-child {
+        padding-bottom: 0.7rem;
+    }
+}
+
+/* スマートフォン: 説明の一文を少し小さくして、1 行の文字数を増やす。入れ子でない箇条書きの字下げも詰める */
+@media (max-width: 575.98px) {
+    .article-header .lead {
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+
+    .article-body > ul,
+    .article-body ul ul {
+        padding-left: 1.25rem;
+    }
+}
+
+/* 表（2 列の表と、広い画面の表）: 行の区切り線と見出しの背景を付け、セルは上揃えにする。区切りが無いと、行の境目と複数行のセルの区別がつかない */
+.article-body table {
+    border-collapse: collapse;
+}
+
+.article-body table:not(.table-cards) th,
+.article-body table:not(.table-cards) td {
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+}
+
+.article-body table:not(.table-cards) thead th {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border-strong);
+}
+
+@media (min-width: 1200px) {
+    .article-body table.table-cards th,
+    .article-body table.table-cards td {
+        vertical-align: top;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .article-body table.table-cards thead th {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border-strong);
+    }
+}
+
+/* ---------- 上のヘッダーのリンク（サイドバーは無い。Web の AvTopNav と、Build の StaticFrame.TopNav が同じ構造）---------- */
+/* kit の .fbc-topnav-bar は横スクロールのために overflow-x: auto。「もっと見る」のポップアップを切らないよう、見えるままにする */
+.fbc-header .fbc-topnav-bar {
+    flex: 0 0 auto;
+    overflow: visible;
+}
+
+.av-topnav {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.av-topnav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+/* ヘッダー（高さ 56px）の中で、押せる範囲を 44px にする（リンク・「もっと見る」・「メニュー」） */
+.fbc-header .fbc-topnav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+/* 開閉の見出し（details の summary）。標準の三角は消す。リンクと同じ見た目 */
+.av-more,
+.av-menu {
+    position: relative;
+}
+
+.av-more > summary,
+.av-menu > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+}
+
+.av-more > summary::-webkit-details-marker,
+.av-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.av-more > summary .av-icon,
+.av-menu > summary .av-icon {
+    width: 1.15em;
+    height: 1.15em;
+    vertical-align: middle;
+}
+
+.av-more[open] > summary .av-icon {
+    transform: rotate(180deg);
+}
+
+/* いまのページ（aria-current）・開いているメニュー・「もっと見る」の中がいまのページのとき */
+.fbc-header .fbc-topnav-link:hover,
+.fbc-header .fbc-topnav-link[aria-current="page"],
+.av-more[open] > summary,
+.av-menu[open] > summary,
+.av-more[data-active] > summary {
+    background: rgba(45, 212, 191, 0.18);
+    color: #fff;
+}
+
+.fbc-header .fbc-topnav-link[aria-current="page"],
+.av-more[data-active] > summary {
+    box-shadow: inset 0 -2px 0 #5eead4;
+}
+
+.fbc-header summary:focus-visible,
+.fbc-header .fbc-topnav-link:focus-visible,
+.av-pop :focus-visible,
+.fbc-topnav-drawer :focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+}
+
+/* ポップアップ（どちらのテーマでも濃い地）と縦のメニューの項目 */
+.av-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 15rem;
+    padding: 0.4rem;
+    background: #08181e;
+    border: 1px solid rgba(130, 215, 230, 0.22);
+    border-radius: 10px;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+}
+
+.av-menu > .av-pop {
+    left: 0;
+}
+
+.av-pop-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    padding: 0.55rem 0.75rem;
+    border-radius: 6px;
+    color: #e3f0f2;
+    font-size: 0.92rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.av-pop-link .av-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    color: #9db8bf;
+}
+
+.av-pop-link:hover {
+    background: rgba(45, 212, 191, 0.14);
+    color: #fff;
+}
+
+.av-pop-link[aria-current="page"] {
+    background: rgba(45, 212, 191, 0.2);
+    color: #b4f0f7;
+    font-weight: 700;
+}
+
+.av-nav-label {
+    padding: 0.6rem 0.75rem 0.2rem;
+    color: #9db8bf;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+/* 幅ごとの見せ方: 横に並べる（1280px 以上。それより狭いと検索欄が縮んで案内文が切れる）／「メニュー」1 つ（768〜1279px）／ハンバーガーの中の縦（768px 未満。kit が TopNav をドロワーに入れる） */
+.av-menu,
+.av-nav-flat {
+    display: none;
+}
+
+@media (min-width: 768px) and (max-width: 1279.98px) {
+    .av-topnav-links {
+        display: none;
+    }
+
+    .av-menu {
+        display: block;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .av-topnav-links {
+        display: none;
+    }
+
+    .av-static .fbc-header .av-topnav {
+        display: none;
+    }
+}
+
+.fbc-topnav-drawer .av-nav-flat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    width: 100%;
+}
+
+.fbc-topnav-drawer .av-pop-link,
+.av-nav-noscript .av-pop-link {
+    min-height: 44px;
+    color: var(--fbc-sidebar-text);
+}
+
+.fbc-topnav-drawer .av-pop-link[aria-current="page"],
+.av-nav-noscript .av-pop-link[aria-current="page"] {
+    color: #b4f0f7;
+}
+
+/* JavaScript が無いスマホの縦のメニュー（通常は出さない。index.html の noscript の CSS が出す） */
+.av-static .av-nav-noscript {
+    display: none;
+}
+
+/* ---------- ホーム（B 案: 分野別のカード）。Web の Home.razor / HomeCategoryCard.razor と、Build の PageBodies.Home が同じ構造 ---------- */
+/* 下の余白は、最初の分野（.home-group）の上の余白だけで取る。静的 HTML（本文は display: block で、隣り合う余白が重なって大きい方だけになる）と、
+   起動後（本文は flex の縦並びで、余白が重ならず足し算になる）で、位置がずれないように、重なりに頼らない */
+.home-header {
+    margin-bottom: 0;
+}
+
+.home-go {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 1.25rem 0 0;
+}
+
+.home-go-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: left;
+}
+
+.home-go-main small {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 400;
+}
+
+.home-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    margin: 1.25rem 0 0.5rem;
+}
+
+/* さがす欄（大きめ）。入力欄そのものではなく、枠（form）にフォーカスの輪郭を出す */
+.home-search {
+    box-sizing: border-box;
+    display: flex;
+    flex: 1 1 320px;
+    min-width: 0;
+    max-width: 100%;
+    align-items: center;
+    gap: 0.6rem;
+    max-width: 560px;
+    min-height: 52px;
+    padding: 0 0.5rem 0 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface);
+}
+
+.home-search:focus-within {
+    border-color: var(--accent);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+.home-search > .av-icon {
+    width: 1.25em;
+    height: 1.25em;
+    color: var(--bs-secondary-color);
+}
+
+.home-search-input {
+    flex: 1 1 0;
+    width: 0;   /* 入力欄の固有の幅（size 属性・長い案内文）を持たせない。WebKit でも、残りの幅に縮む */
+    min-width: 0;
+    min-height: 48px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 1rem;   /* 16px 未満だと、iOS は入力のとき拡大する */
+}
+
+.home-search > .btn {
+    flex: none;
+}
+
+.home-search-input:focus,
+.home-search-input:focus-visible {
+    outline: none;
+}
+
+.home-search-input::placeholder {
+    color: var(--bs-secondary-color);
+    opacity: 1;
+}
+
+/* 分野へジャンプ（タップは 44px 以上） */
+.home-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.home-chips a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--bs-body-color);
+    font-size: 0.92rem;
+    text-decoration: none;
+}
+
+.home-chips a:hover {
+    border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.14);
+}
+
+.home-chips b {
+    color: var(--accent-soft);
+}
+
+.home-stat {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin: 0.75rem 0 0;
+    color: var(--bs-secondary-color);
+    font-size: 0.9rem;
+}
+
+.home-read[hidden] {
+    display: none;
+}
+
+.home-group {
+    margin: 2.4rem 0 0;
+    scroll-margin-top: 5rem;
+}
+
+.home-group-title {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 0;
+    font-size: 1.35rem;
+}
+
+.home-group-title > .av-icon {
+    align-self: center;
+}
+
+.home-group-title small {
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.home-group-desc {
+    margin: 0.25rem 0 1rem;
+    color: var(--bs-secondary-color);
+}
+
+.home-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.home-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px 18px 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--bs-body-color);
+    text-decoration: none;
+    transition: border-color 0.15s, background-color 0.15s, transform 0.15s;
+}
+
+.home-card:hover {
+    border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.1);
+    transform: translateY(-2px);
+}
+
+.home-card.is-done {
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+.home-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.home-tile {
+    display: grid;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.28), rgba(96, 165, 250, 0.2));
+    color: var(--accent-soft);
+}
+
+.home-tile .av-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.home-card-title {
+    margin: 0;
+    font-size: 1.08rem;
+    line-height: 1.4;
+}
+
+.home-card-meta {
+    display: block;
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+}
+
+.home-card-desc {
+    flex: 1 1 auto;
+    color: var(--bs-secondary-color);
+    font-size: 0.9rem;
+    line-height: 1.65;
+}
+
+.home-card-pg {
+    display: grid;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.home-card-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+/* 状態（全部読んだ／読んでいる途中／これから）。色に加えて、文字とアイコンの有無でも区別する */
+.home-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.home-badge.is-go {
+    border-color: var(--accent);
+    color: var(--accent-soft);
+}
+
+.home-badge.is-done {
+    border-color: transparent;
+    background: rgba(74, 222, 128, 0.16);
+    color: #86efac;
+}
+
+[data-bs-theme="light"] .home-badge.is-done {
+    background: rgba(22, 163, 74, 0.14);
+    color: #166534;
+}
+
+.home-bar {
+    display: block;
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(var(--accent-rgb), 0.22);
+}
+
+.home-bar > i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--grad);
+}
+
+/* 下の 4 つのリンク */
+.home-links {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 2.6rem 0 1rem;
+}
+
+.home-links a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 56px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--bs-body-color);
+    text-decoration: none;
+}
+
+.home-link-text {
+    min-width: 0;
+}
+
+.home-link-text small {
+    display: block;
+    overflow: hidden;
+    color: var(--bs-secondary-color);
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.home-links a:hover {
+    border-color: var(--accent);
+}
+
+.home-links .av-icon {
+    color: var(--accent-soft);
+}
+
+@media (max-width: 1100px) {
+    .home-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .home-links {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .home-grid,
+    .home-links {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .home-search {
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-card {
+        transition: none;
+    }
+
+    .home-card:hover {
+        transform: none;
+    }
+}
+
+/* スマホ: 「GitHub で修正を提案する」の押せる範囲を 44px 以上にする */
+@media (max-width: 767.98px) {
+    .home-stat a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}
+
+/* ---------- 記事のページ（B 案）: 中央に 1 本の本文（読みやすい幅）+ 右に「このページの内容」。末尾に「同じテーマの記事」 ---------- */
+/* width: 100% は、起動後の本文（flex の縦並び）で、auto の余白があると幅が内容に縮む（静的 HTML の block とずれる）のを防ぐ */
+.article-page {
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+}
+
+/* テーマ（カテゴリ）へのリンク。「実践：アバター用衣装の作成 · 6/6 本目」 */
+.article-cat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    margin-bottom: 0.6rem;
+    padding: 0 14px 0 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--bs-body-color);
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.article-cat:hover {
+    border-color: var(--accent);
+}
+
+.article-cat .home-tile {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.article-cat .home-tile .av-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.article-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+}
+
+.article-main {
+    min-width: 0;
+}
+
+@media (min-width: 992px) {
+    .article-cols.has-aside {
+        grid-template-columns: minmax(0, 48rem) 16rem;
+        column-gap: 3rem;
+    }
+}
+
+/* 同じテーマの記事（番号つき。いまの記事は強調、読んだ記事は番号を緑に） */
+.article-related {
+    margin: 3rem 0 0;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.article-related-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.article-related-desc {
+    margin: 0.2rem 0 1rem;
+    color: var(--bs-secondary-color);
+}
+
+.article-related-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.article-related-list a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--bs-body-color);
+    font-size: 0.92rem;
+    line-height: 1.45;
+    text-decoration: none;
+}
+
+.article-related-list a:hover {
+    border-color: var(--accent);
+}
+
+.article-related-list a[aria-current="page"] {
+    border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.18);
+    font-weight: 700;
+}
+
+.article-related-no {
+    display: grid;
+    flex: none;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 50%;
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.article-related-list a[aria-current="page"] .article-related-no {
+    border-color: transparent;
+    background: var(--accent-badge-grad);
+    color: #fff;
+}
+
+.article-related-list li.is-done .article-related-no {
+    border-color: transparent;
+    background: rgba(74, 222, 128, 0.16);
+    color: #86efac;
+}
+
+[data-bs-theme="light"] .article-related-list li.is-done .article-related-no {
+    background: rgba(22, 163, 74, 0.14);
+    color: #166534;
+}
+
+.article-related-name {
+    flex: 1 1 auto;
+}
+
+@media (max-width: 640px) {
+    .article-related-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* スマホ（ページ全体がスクロールする設定）: 短いページでもフッターを画面の下端に付ける。
+   kit の CSS は本文の直後にフッターを出すため、404 や練習のロビーなど短いページで、フッターの下に空白が出ていた。本文を縦の flex にして、余りを本文に回す */
+@media (max-width: 767.98px) {
+    .fbc-page.fbc-page-scroll .mud-main-content {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+    .fbc-page.fbc-page-scroll .mud-main-content > main {
+        flex: 1 0 auto;
+    }
+
+    .fbc-page.fbc-page-scroll .fbc-footer {
+        flex: none;
+    }
+}
+
+/* スマホの幅のフッター。リンクのタップ領域（44px の ::after）がフッターの下に 11px はみ出し、padding-bottom（8px）を超えた 3px が
+   文書のスクロール範囲に入っていた。はみ出す分（11px）を余白に取る。ホームバーのある端末では、その分も足す */
+@media (max-width: 599.98px) {
+    .fbc-footer {
+        padding-bottom: calc(11px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* ページの端のゴム伸び・「引っ張って更新」には、overscroll-behavior を指定しない。iOS の Chrome で、引っ張って更新が無効になるため。
+   ゴム伸びで見える領域は、html の単色の背景色でサイトの色にしている */

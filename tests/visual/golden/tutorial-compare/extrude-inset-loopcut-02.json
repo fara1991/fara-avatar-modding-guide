@@ -1,0 +1,27 @@
+{
+ "count": "3 / 18",
+ "bubble": "3\n3 を押して面選択モードにしてください（上の「面」ボタンでも切り替えられます）。",
+ "keys": "3",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "編集モード（頂点選択）。1 / 2 / 3 で頂点・辺・面",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [
+  "face"
+ ],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "vert"
+ ],
+ "progress": "11.1111%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

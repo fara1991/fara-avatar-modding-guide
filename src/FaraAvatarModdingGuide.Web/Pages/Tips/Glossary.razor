@@ -1,0 +1,44 @@
+@page "/glossary"
+@inherits FilterPage
+@inject SiteSettings Settings
+
+<PageTitle>@PageTitles.Compose("言葉の意味（用語集）", Settings.Title)</PageTitle>
+
+@* 静的 HTML（Build の PageBodies.Glossary）と同じ構造・class。絞り込みの動きは FilterPage *@
+<h1>言葉の意味（用語集）</h1>
+<p class="lead">Blender・Unity・VRChat でよく出てくる言葉を、画面での英語の表記と一緒にまとめました（読みの順）。やりたいことから操作の名前を探すなら <a href="/howto">何て名前？</a>、つまずいたときは <a href="/tips">困ったときのコツ（TIPS）</a> や <a href="/qa">よくある質問（改変 Q&amp;A）</a> へ。</p>
+
+@if (Store.Content is not { } content)
+{
+    <p class="text-body-secondary" role="status">用語集を読み込めませんでした。ページを再読み込みしてください。</p>
+}
+else
+{
+    var shown = content.Glossary.Count(g => IsShown(g.Id, g.Tags, g.Source));
+    <TipsFilter Tags="@SiteLookups.TipTags(content.Glossary.Select(g => g.Tags))" Placeholder="用語・読み・英語名で絞り込む（例: ウェイト、merge）"
+                HasDiscord="@content.Glossary.Any(g => g.Source == "discord")" Query="@Query" Tag="@Tag" CountText="@CountText(content.Glossary.Count, shown)"
+                OnQuery="@(q => SetQuery(q))" OnTag="@(t => SetTag(t))" />
+    <div class="row g-3">
+        @foreach (var g in content.Glossary)
+        {
+            <div class="col-md-6" data-tip-item hidden="@(!IsShown(g.Id, g.Tags, g.Source))">
+                <article class="tip-card card h-100" id="@g.Id" data-tags="@string.Join('|', g.Tags)" data-source="@g.Source">
+                    <div class="card-body">
+                        <header class="d-flex flex-wrap align-items-baseline gap-2 mb-1"><h2 class="h5 mb-0"><a href="/glossary#@g.Id" class="tip-anchor">@g.Term</a></h2><span class="small text-body-secondary">@g.Reading</span>@if (!string.IsNullOrEmpty(g.En)) {<span class="tip-en" title="英語 UI での表記">@g.En</span>}</header>
+                        <TipTags Tags="@g.Tags" Source="@g.Source" />
+                        <p class="mb-2">@((MarkupString)g.DescriptionHtml)</p>
+                        <TipBody Html="@g.BodyHtml" Open="@(OpenId == g.Id)" />
+                        <TipRefs Shortcuts="@g.Shortcuts" Articles="@g.Articles" Related="@g.Related" Keywords="@g.Keywords" />
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    protected override string Kind => "glossary";
+
+    protected override (IReadOnlyList<string> Tags, string Source)? Meta(string id) =>
+        Store.Content?.Glossary.Where(g => g.Id == id).Select(g => ((IReadOnlyList<string> Tags, string Source)?)(g.Tags, g.Source)).FirstOrDefault();
+}

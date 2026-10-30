@@ -1,0 +1,52 @@
+@inject ContentStore Store
+@* 用語集・何て名前？・TIPS・Q&A の各項目の「キー / 記事 / 関連 / 関連語」。静的 HTML（Build の Fragments.Refs）と同じ構造 *@
+@if (Shortcuts.Count > 0 || Articles.Count > 0 || Related.Count > 0 || Keywords.Count > 0)
+{
+    var content = Store.Content;
+    <div class="tip-refs">
+        @if (Shortcuts.Count > 0)
+        {
+            <div><span class="tip-refs-label">キー</span>@foreach (var key in Shortcuts)
+            {
+                var shortcut = content?.Shortcuts.FirstOrDefault(x => x.Key == key);
+                if (shortcut is null)
+                {
+                    <kbd>@key</kbd>
+                }
+                else
+                {
+                    <a href="/shortcuts?category=@SiteLookups.Q(shortcut.Category)" class="text-decoration-none" title="@shortcut.Function"><kbd>@key</kbd></a>
+                }
+            }</div>
+        }
+        @if (Articles.Count > 0)
+        {
+            var linked = Articles.Select(id => content?.Articles.FirstOrDefault(a => a.Id == id)).Where(a => a is not null).ToList();
+            <div><span class="tip-refs-label">記事</span>@for (var i = 0; i < linked.Count; i++)
+            {
+                if (i > 0) {<span class="text-body-secondary"> / </span>}
+                <a href="@linked[i]!.Url">@linked[i]!.Title</a>
+            }</div>
+        }
+        @if (Related.Count > 0)
+        {
+            var terms = Related.Select(id => content?.Glossary.FirstOrDefault(g => g.Id == id)).Where(g => g is not null).ToList();
+            <div><span class="tip-refs-label">関連</span>@for (var i = 0; i < terms.Count; i++)
+            {
+                if (i > 0) {<span class="text-body-secondary"> / </span>}
+                <a href="/glossary#@terms[i]!.Id">@terms[i]!.Term</a>
+            }</div>
+        }
+        @if (Keywords.Count > 0)
+        {
+            <div><span class="tip-refs-label">関連語</span><span class="tip-keywords">@string.Join(" / ", Keywords)</span></div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<string> Shortcuts { get; set; } = [];
+    [Parameter] public IReadOnlyList<string> Articles { get; set; } = [];
+    [Parameter] public IReadOnlyList<string> Related { get; set; } = [];
+    [Parameter] public IReadOnlyList<string> Keywords { get; set; } = [];
+}

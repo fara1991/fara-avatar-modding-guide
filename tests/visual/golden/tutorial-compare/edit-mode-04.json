@@ -1,0 +1,25 @@
+{
+ "count": "5 / 14",
+ "bubble": "5\n選んだループだけを大きくします。S を押してください。",
+ "keys": "S",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "ループを選択: 頂点 32 / 辺 32 / 面 0",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge"
+ ],
+ "progress": "28.5714%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

@@ -1,0 +1,79 @@
+@page "/"
+@inject ContentStore Store
+@inject SiteSettings Settings
+@inject NavigationManager Nav
+
+<PageTitle>@PageTitles.Compose("ホーム", Settings.Title)</PageTitle>
+
+@* 静的 HTML（Build の PageBodies.Home）と同じ構造・class。上に、さがす欄とボタン、分野（区切り）ごとのテーマのカード、下に 4 つのリンク。
+   カードの「読んだ 4/5」・バー・状態は、「読んだ記事」の仕組み（ProgressStore）から（HomeCategoryCard。静的 HTML のあいだは 0 件） *@
+<div class="home-header">
+    <h1 class="home-title">@Settings.Title</h1>
+    <p class="home-lead">@HomeCards.Lead</p>
+    @if (Store.Content is { } content)
+    {
+        var first = content.Categories.FirstOrDefault(c => content.ArticlesOf(c.Id).Count > 0);
+        <div class="home-go">
+            @if (first is not null)
+            {
+                <a class="btn btn-primary btn-lg home-go-main" href="/learn/@first.Id"><AvIcon Name="MenuBook" /><span>おすすめの順に読む<small>まずは「@first.Title」の @content.ArticlesOf(first.Id).Count 記事</small></span></a>
+            }
+            <a class="btn btn-outline-primary btn-lg" href="/howto"><AvIcon Name="HelpOutline" /> やりたいことから探す</a>
+        </div>
+        <div class="home-tools">
+            <form class="home-search" action="/search" method="get" role="search" @onsubmit="Submit" @onsubmit:preventDefault="true">
+                <AvIcon Name="Search" />
+                <input name="q" type="search" class="home-search-input" placeholder="@HomeCards.SearchPlaceholder" autocomplete="off" aria-label="知りたいことをさがす" value="@input" @oninput="@(e => input = e.Value?.ToString() ?? "")" />
+                <button type="submit" class="btn btn-primary">さがす</button>
+            </form>
+            <div class="home-chips" role="group" aria-label="分野へジャンプ">
+                @foreach (var section in content.Sections.Where(s => content.CategoriesIn(s.Id).Any(c => content.ArticlesOf(c.Id).Count > 0)))
+                {
+                    <a href="#section-@section.Id"><AvIcon Name="@section.Icon" />@section.Title<b>@content.CategoriesIn(section.Id).Sum(c => content.ArticlesOf(c.Id).Count)</b></a>
+                }
+            </div>
+        </div>
+        <p class="home-stat">
+            <span>使っているバージョン: Blender @Settings.BlenderVersion / Unity @Settings.UnityVersion（VRChat SDK3）</span>
+            <HomeReadStat />
+            @if (!string.IsNullOrEmpty(Settings.RepositoryUrl))
+            {
+                <a href="@Settings.RepositoryUrl" target="_blank" rel="noopener">GitHub で修正を提案する</a>
+            }
+        </p>
+    }
+</div>
+
+@if (Store.Content is { } c)
+{
+    @foreach (var section in c.Sections.Where(s => c.CategoriesIn(s.Id).Any(x => c.ArticlesOf(x.Id).Count > 0)))
+    {
+        <section class="home-group" id="section-@section.Id" aria-labelledby="section-title-@section.Id">
+            <h2 class="home-group-title" id="section-title-@section.Id"><AvIcon Name="@section.Icon" /> @section.Title<small>@HomeCards.SectionMeta(c, section.Id)</small></h2>
+            <p class="home-group-desc">@section.Description</p>
+            <div class="home-grid">
+                @foreach (var category in c.CategoriesIn(section.Id).Where(x => c.ArticlesOf(x.Id).Count > 0))
+                {
+                    <HomeCategoryCard Category="category" Articles="c.ArticlesOf(category.Id)" />
+                }
+            </div>
+        </section>
+    }
+
+    <nav class="home-links" aria-label="困ったときに見るページ">
+        @foreach (var (href, icon, title) in HomeCards.Links)
+        {
+            <a href="@href"><AvIcon Name="@icon" /><span class="home-link-text">@title@if (href == "/changelog" && c.Changelog.Count > 0) {<small>最新: @c.Changelog[0].Date[5..].Replace('-', '/') @c.Changelog[0].Title</small>}</span></a>
+        }
+    </nav>
+}
+else
+{
+    <p class="text-body-secondary" role="status">記事一覧を読み込めませんでした。ページを再読み込みしてください。</p>
+}
+
+@code {
+    private string input = "";
+
+    private void Submit() => Nav.NavigateTo("/search?q=" + Uri.EscapeDataString(input.Trim()));
+}

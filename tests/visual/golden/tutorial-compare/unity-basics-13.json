@@ -1,0 +1,25 @@
+{
+ "count": "完了",
+ "bubble": "「Unity の画面を動かしてみる」の手順はすべて終わりです。",
+ "keys": null,
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": "すべてできました\nこのページを「読んだ」にしました。\n もう一度\n 自由に試す",
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "100%",
+ "ueStatus": "Body を表示（Frame Selected）",
+ "ueInfo": "Avatar · Hand Tool",
+ "ueLabel": null,
+ "ueTools": [
+  "hand"
+ ]
+}

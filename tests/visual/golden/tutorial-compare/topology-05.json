@@ -1,0 +1,26 @@
+{
+ "count": "6 / 11",
+ "bubble": "6\n続けて位置を決めます。今回は 右クリック（または Esc）で、ちょうど真ん中に入れてください。",
+ "keys": "右クリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "辺をスライド: 0.000（右クリックで中央）",
+ "numeric": "",
+ "stats": "Cube\n頂点 4/12\n辺 4/20\n面 0/10\n三角形 20",
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "vert",
+  "stats"
+ ],
+ "progress": "45.4545%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

@@ -1,0 +1,26 @@
+{
+ "count": "12 / 14",
+ "bubble": "12\n何もないところから左ドラッグして、球の 上半分 を囲んでください（裏側の面も選ばれます）。",
+ "keys": "左ドラッグで囲む",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "透過表示: オン（裏側も選択できる）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face",
+  "xray"
+ ],
+ "progress": "78.5714%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

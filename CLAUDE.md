@@ -1,0 +1,50 @@
+# CLAUDE.md
+
+Avatar Modding Guide（https://avatar.fara-labs.com/）。.NET 10 / Blazor WebAssembly + MudBlazor の静的サイトを Cloudflare Workers（静的アセット + Durable Object）に公開する。詳細は README.md、移行の計画と記録は docs/wasm-migration-plan.md、切り替えと戻し方は docs/release-switch-and-rollback.md。
+
+## ブランチ運用（必ず守る）
+
+- 作業ブランチは `develop` から作成する（`master` から切らない）。作業ブランチの PR は `develop` 向けに作る
+- `master` へは `develop` からのみマージする。**master へのマージはユーザーが行う。Claude は develop → master の PR の作成までで、master にはマージしない。master 向けの PR は、頼まれたときだけ作る**
+- **本番（avatar.fara-labs.com）に届く経路は、master への push（と、master を選んだ手動実行）だけ。** develop への push は確認用（avatar-dev.fara-labs.com）に自動公開される。ほかのブランチ・PR は公開されない（ビルドとテストだけ）
+- 2026-10-23 に、別リポジトリで develop → master の PR を取り違えてマージし、本番がメンテナンス画面（503）で公開された事故があった。master 向け・本番向けの変更（`deploy.yml`・`deploy-develop.yml`・`wrangler.toml`・`worker/`・`.github/scripts/`）の PR 本文には、大きく警告を書く
+- 既存の `develop` → `master` の PR（#4）は古い題名のまま。統合のあとは WebAssembly 版への切り替えそのものになるので、そのままマージしない（docs/release-switch-and-rollback.md）
+- 履歴の書き換え（force push・rebase の push）はしない。コミットの末尾に `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`
+
+## 構成メモ
+
+- 記事・データは `Content/`（Markdown / YAML。書き方は Content/README.md）。サイト名・Blender バージョン・SNS は `appsettings.json` の `Site`（Build とテストが読む。ASP.NET の設定ではない）
+- `src/FaraAvatarModdingGuide.Web`: Blazor WebAssembly のアプリ。`wwwroot/js/` は、記事の「画像で見る」（tutorial.js・scenarios.js）・背景（bgscene.js）・入口（practice-entry.js・practice-cs.js・room-cs.js・gl.js など）だけ。three.js は使わない（S7 で消した）
+- `src/FaraAvatarModdingGuide.Practice`: 練習の 3D の純粋なロジック（Phase 3b。設計は docs/phase3b-design.md）。ビューポート・編集モード・お題・記事内チュートリアル・Unity 風の画面・共有ルームの規則（RoomSession）を持ち、Web（Practice・PracticeUnity・PracticeRoom・TutorialEmbed など）が参照する。`tests/FaraAvatarModdingGuide.Practice.Tests` は、three.js を外す前に凍結した基準（`tests/js/golden/*.json.gz`。作り方は docs/phase3b-design.md の §17）と比べる。基準の入力は `tests/js/practice-cases.json`・`practice-edit-cases.json`（生成スクリプトは S7 で消した）。
+- `src/FaraAvatarModdingGuide.Render`: 練習の 3D の描画の命令（Phase 3b S2。純粋）。`ViewportCore` の状態から、WebGL に渡す頂点バッファと描く順の一覧を作る（方眼・オブジェクト・輪郭・編集モードの点/線/面・軸線など）。`tests/FaraAvatarModdingGuide.Render.Tests` が、同じ操作列を本物の `viewport.js`（three.js）に通したシーンの中身（基準は tests/js/golden/render-*.json.gz。作り方は docs/phase3b-design.md の §17）と比べる。viewport.js の見た目に関わる所（色・輪郭・オーバーレイを作り直すタイミング）を直したら、このテストが差を教える。`src/FaraAvatarModdingGuide.RenderLab` は、それを動かす最小の画面と薄い WebGL 層（`wwwroot/js/gl.js`）。サイトには載せない（Web から参照しない）。確認は `tools/verify/gl-*.mjs`（tools/verify/README.md）。**S3 から、Web が Practice・Render を参照する**: `/practice?engine=cs` で C# 版（`Pages/Practice.razor` の HUD・お題は Razor、`Services/PracticeCs.cs` がエンジン、`wwwroot/js/gl.js` が WebGL 層）。`Practice`・`Render` は `BlazorWebAssemblyLazyLoad` で、`?engine=cs` のときだけ読む（通常のページの読み込みは増えない）。画面（Razor）は `Practice` の型を直接使わず、`Services/PracticeHud.cs` の型だけを読む（遅れて読むため）。`ENGINE=cs node tools/verify/practice.mjs` と `tools/verify/practice-compare.mjs` で Three.js 版と比べる（docs/phase3b-design.md の §13）。**S4 から、記事内チュートリアルも `?engine=cs` で C# 版**（Blender の 9 本。`Practice` の `TutorialScenarios`・`TutorialSession`、`Web/Components/TutorialEmbed.razor`・`Services/TutorialController.cs`。Unity の 2 本は S5 で C# に）。Three.js 版との画素・文字・DOM の差は 0 にしてある: `tools/verify/tutorial-compare.mjs`・`tutorial-dom.mjs`・`practice-details.mjs`・`practice-compare.mjs`（閾値は 0.001 % / 8。docs/phase3b-design.md の §14）。`scenarios.js`・`tutorial.js`・`viewport.js` の見た目に関わる所を直したら、`TutorialParityTests`・`RenderParityTests` と、これらの比較が差を教える **S6 から、共有ルーム（`/practice/room`）も `?engine=cs` で C# 版**（規則は `Practice` の `RoomSession`・通信の口は `wwwroot/js/room-cs.js`・画面は `Pages/PracticeRoom.razor`・3D は `Services/RoomCs.cs`。`worker/` は変えていない。docs/phase3b-design.md の §16）。`room.js`・`viewport.js` の部屋に関わる所を直したら、`tools/verify/room-compare.mjs` と `room-mixed.mjs` が差を教える。**S5 から、Unity 風の画面（`/practice/unity`）と記事内の Unity の 2 本（`unity-basics`・`ma-outfit`）も `?engine=cs` で C# 版**（`Practice` の `UnityEditorCore`・`UnityTutorialScenarios`、`Render` の `UnitySceneRenderer`、`Web` の `Components/UnityEditorView.razor`・`Services/UnityCsEngine.cs`・`UnityTutorialController.cs`、`wwwroot/js/unity-ui.js`）。`unity.js`・`unity-practice.js`・`scenarios.js` の見た目・手順に関わる所を直したら、`UnityParityTests`・`UnityTutorialParityTests` と、`tools/verify/unity-compare.mjs`・`tutorial-compare.mjs`・`tutorial-input-compare.mjs` が差を教える（docs/phase3b-design.md の §15）。**S7 から、`?engine=` の指定は無い（`?engine=js` も無視）。練習・記事内チュートリアル・Unity 風の画面・共有ルームは C# 版だけ**（three.js は無い。practice.js・unity.js・unity-practice.js・room.js・viewport.js・editmesh.js・lib/three・importmap を消した）。比較の基準は凍結してある（`tests/visual/golden`・`tests/js/golden`。作り方は docs/phase3b-design.md の §17）。`tools/verify` の比較は、基準（three.js の版）と C# 版を比べる形になった。`gl.js` はサイトに出す部分だけ（レンダーラボ専用の関数は `RenderLab/wwwroot/js/gl-lab.js`）
+- `src/FaraAvatarModdingGuide.Build`: 本文入りの静的 HTML・`data/*.json`・robots・sitemap・`_headers`・`_redirects` を、`dotnet publish` の出力に書き足す。本番用（`--env production`）と確認用（`--env develop`）で内容が違う（sitemap・noindex・canonical）
+- `src/FaraAvatarModdingGuide.Content`・`Shared`: 記事を読む部分（ビルド時のみ）と、Build と Web が共有する型
+- ルートの `wwwroot/` は `images/`（画像）と `og.png`（OGP。4 サイト共通の名前、URL は `/og.png?v=N`）だけ（Build がコピーする。画像は以前 tools/tutorial-images が書いた。S7 で消した。作り方は docs/phase3b-design.md の §17.7）
+- 上のヘッダー（サイドバーは無い。B 案）: 各リンクは Shared の `HeaderNav`（項目・強調の規則）から、Web の `Layout/AvTopNav.razor`（kit の `SiteLayout` の `ShowDrawer=false` + `TopNav` + `CollapseTopNavOnMobile`）と、Build の `StaticFrame.TopNav` が同じ構造で作る。1280px 以上は横に並べて「もっと見る」、768〜1279px は「メニュー」1 つ、768px 未満は kit のハンバーガーの中に縦に並べる（CSS の幅で出し分け。開閉は `details`＋`wwwroot/js/nav-menu.js`）。「いまのページ」は `aria-current="page"`。項目を足したら `NavigationTests`・`StaticFrameTests` の対応も直す
+- 共通部品は `external/fara-blazor-component`（git submodule。タグ v1.0.1 に固定。直接は直さず、kit のリポジトリで直す。旧名 fara-site-kit からの移行は kit の docs/migration-v1.0.0.md）。`worker/index.js` は kit の共有 JS（報告・メンテナンス）を読む
+- 公開の設定は `wrangler.toml`（`name` はダッシュボードの Worker 名と一致させる。assets は `./dist`）と `.github/workflows/`（`build.yml`・`deploy-develop.yml`・`deploy.yml`。Pokémon と同じ形）。wrangler のバージョンは `4.149.0` で固定
+- メンテナンス表示は Worker の変数 `MAINTENANCE_MODE`（`true` / `notice` / `false`）と `MAINTENANCE_MESSAGE`。旧名 `MAINTENANCE` は読まない。本番の初回の公開は `MAINTENANCE_MODE:true` が付き、メンテナンス画面のまま公開される（README の「本番の公開とメンテナンス」）
+- 検索の「正解」は `tests/js/fixtures/searchcore.reference.js`（旧 SSR 版の写しを固定したもの）。仕様を変えるとき以外は書き換えない
+- スクロール演出・テーマ・検索などの UI の実装は kit と MudBlazor。`app.css` は Web の `wwwroot/css/` にある（色は MudBlazor のテーマ変数）
+
+## 確認
+
+```bash
+dotnet test -c Release                     # Content.Tests・Build.Tests・Web.Tests（Node と submodule が要る）
+npm ci && npm run lint                     # ESLint（eslint.config.mjs）
+npm run layout-check                       # レイアウトの自動計測（先に publish と Build で site-production を作る。README の「静的解析（lint）とレイアウトの計測」）
+node --test external/fara-blazor-component/worker/*.test.mjs worker/index.test.mjs .github/scripts/*.test.mjs tests/js/*.test.mjs   # search.test.mjs は SEARCH_INDEX_FILE=dist/search-index.json が要る
+# ビルドと配信（README の「ビルドと確認」）: publish → Build → wrangler dev
+dotnet publish src/FaraAvatarModdingGuide.Web -c Release -o publish
+rm -rf dist && cp -r publish/wwwroot dist
+dotnet run --project src/FaraAvatarModdingGuide.Build -c Release -- --template publish/wwwroot/index.html --out dist --env develop
+npx wrangler@4.149.0 dev --env dev         # http://localhost:8787
+npx wrangler@4.149.0 deploy --dry-run --env production   # dist に --env production のビルドを置いて。公開はしない
+```
+
+- `tests/js/search.test.mjs` と `search-norm.mjs` は、Build の出力（`SEARCH_INDEX_FILE` / `data/search.json`）を読む
+- ブラウザでの確認（Playwright）は tools/verify/README.md。`playwright-core` は devDependency（1.64.1 に固定）で、`npm run layout-check`（レイアウトの自動計測）と tools/verify が使う。tools/verify の結果は作業用のフォルダに出す（リポジトリには入れない）
+- 静的解析: `npm run lint`（ESLint）と C# の重大度（`tools/lint/dotnet.site.editorconfig`）は、違反 0 件のルールだけ error（ラチェット）。除外は理由つきで書く（README の「静的解析（lint）とレイアウトの計測」）。新しい違反を入れたら、CI（`lint`・`layout-check` の job）が落ちる
+- three.js の版（JS 版の練習・共有ルーム）は S7 で消した。以前の JS 比較の代わり（C# の dotnet test・room-race・dom-diff など）の対応表は tools/verify/README.md の「JS 版が無くなって代わりに使うもの」。基準（`tests/visual/golden`・`tests/js/golden`）を作れるのは、three.js の版が残っている commit だけ（`GOLDEN_MODE=capture` は `assertCaptureTarget` が、配信に viewport.js と lib/three が無いと止める）
+- ローカルで `dotnet publish` の ILLink が断続的に落ちることがある。コードの問題ではないので、まず再実行する
+- 作業用のサーバー（wrangler dev など）は、終わったら自分の PID だけを止める（`pkill -f dotnet` や `taskkill /IM` のような広い停止はしない）

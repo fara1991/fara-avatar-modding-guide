@@ -1,0 +1,27 @@
+{
+ "count": "20 / 23",
+ "bubble": "20\n2 を押して辺選択モードにしてください（上の「辺」ボタンでも切り替えられます）。",
+ "keys": "2",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "面を削除",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [
+  "edge"
+ ],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "82.6087%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

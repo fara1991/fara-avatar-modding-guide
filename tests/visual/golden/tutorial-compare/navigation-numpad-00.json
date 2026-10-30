@@ -1,0 +1,23 @@
+{
+ "count": "1 / 7",
+ "bubble": "1\nNumpad 1 で正面（前）から見てください。左上の表示が「前・平行投影」に変わります。",
+ "keys": "Numpad 1",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "案内にしたがって操作してください",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": false,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": true,
+ "focused": false,
+ "toolsOn": [],
+ "progress": "0%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

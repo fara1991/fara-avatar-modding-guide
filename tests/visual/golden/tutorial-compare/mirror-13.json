@@ -1,0 +1,26 @@
+{
+ "count": "完了",
+ "bubble": "「半分を消してミラーで作る」の手順はすべて終わりです。",
+ "keys": null,
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "前・平行投影",
+ "status": "Cube にミラーを追加（X 方向）",
+ "numeric": "",
+ "stats": null,
+ "complete": "すべてできました\nこのページを「読んだ」にしました。\n もう一度\n 自由に試す",
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "xray",
+  "mirror"
+ ],
+ "progress": "100%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

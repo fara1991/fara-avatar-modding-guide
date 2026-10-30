@@ -1,0 +1,137 @@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+@* /practice・記事内チュートリアルの 3D の C# 版(?engine=cs)の HUD。viewport.js の HUD_HTML と同じ構造・クラス名(既存の CSS をそのまま使う)。
+   canvas は、中身が空の #<GlHostId> に gl.js が入れる(Blazor が描く HUD の兄弟に外から足さない)。状態は PracticeHud(単純な型)で受け取る(Practice の型は遅れて読むため、ここでは使わない)。 *@
+<div id="@GlHostId" class="practice-gl"></div>
+@if (Failed)
+{
+    <div class="practice-hud" style="top:50%">3D ビューを表示できません。WebGL が有効なブラウザで開いてください。</div>
+}
+@if (ShowHud)
+{
+<div class="practice-hud">
+    <div class="vp-mode">@Hud.ModeLabel</div>
+    <div class="@(Hud.ViewHighlight ? "vp-view is-highlight" : "vp-view")">@Hud.ViewLabel</div>
+    <div class="vp-stats" hidden="@Hud.StatsHidden">
+        @foreach (var line in Hud.StatsLines)
+        {
+            @line<br />
+        }
+    </div>
+</div>
+<div class="vp-tools" role="toolbar" aria-label="表示と選択モード">
+    <span class="vp-tools-edit" hidden="@Hud.ToolsEditHidden">
+        @foreach (var t in Hud.Tools.Where(t => t.Key is "vert" or "edge" or "face"))
+        {
+            <button type="button" data-tool="@t.Key" title="@ToolTitle(t.Key)" class="@ToolClass(t)" aria-pressed="@(t.On ? "true" : "false")" disabled="@t.Disabled" @onclick="() => OnTool.InvokeAsync(t.Key)">@ToolLabel(t.Key)</button>
+        }
+    </span>
+    @foreach (var t in Hud.Tools.Where(t => t.Key is "xray" or "stats" or "mirror"))
+    {
+        <button type="button" data-tool="@t.Key" title="@ToolTitle(t.Key)" class="@ToolClass(t)" aria-pressed="@(t.On ? "true" : "false")" disabled="@t.Disabled" @onclick="() => OnTool.InvokeAsync(t.Key)">@ToolLabel(t.Key)</button>
+    }
+</div>
+<div class="practice-npanel" hidden="@Hud.NPanelHidden">
+    <h6>アイテム</h6>
+    <div class="vp-npanel-name mb-1">@Hud.NPanelName</div>
+    @foreach (var (prop, label) in Groups)
+    {
+        <h6>@label</h6>
+        <div class="row-3">
+            @foreach (var r in Hud.NPanelRows.Where(r => r.Prop == prop))
+            {
+                <span>@r.Axis.ToUpperInvariant()</span>
+                <input type="number" step="@(prop == "rotation" ? "1" : "0.1")" data-prop="@r.Prop" data-axis="@r.Axis" value="@r.Value" disabled="@r.Disabled" @onchange="e => OnNPanel.InvokeAsync((r.Prop, r.Axis, e.Value?.ToString() ?? string.Empty))" />
+            }
+        </div>
+    }
+</div>
+<div class="vp-marker" hidden="@Hud.MarkerHidden" style="@MarkerStyle"><span class="vp-marker-label">@Hud.MarkerLabel</span></div>
+<div class="vp-remote"></div>
+<div class="practice-status">
+    <span class="vp-status">@Hud.Status</span>
+    <span class="vp-numeric">@Hud.Numeric</span>
+</div>
+@if (Hud.Menu is { } menu)
+{
+    <div class="practice-menu" style="@MenuStyle(menu)">
+        <div class="title">@menu.Title</div>
+        @for (var i = 0; i < menu.Items.Count; i++)
+        {
+            var index = i;
+            <button type="button" @onclick="() => OnMenu.InvokeAsync(index)">@menu.Items[i]</button>
+        }
+    </div>
+}
+@if (Hud.Box is { } box)
+{
+    <div class="practice-box" style="@BoxStyle(box)"></div>
+}
+}
+
+@code {
+    private static readonly (string Prop, string Label)[] Groups = [("position", "位置"), ("rotation", "回転（°）"), ("scale", "スケール")];
+
+    [Parameter, EditorRequired] public PracticeHud Hud { get; set; } = new();
+    [Parameter, EditorRequired] public string GlHostId { get; set; } = "practice-gl";
+    [Parameter] public bool Failed { get; set; }
+    /// <summary>HUD を出すか。出さないとき(ビューを始める前)は、canvas の置き場(中身が空の要素)だけを描く。置き場は、始める前後で同じ要素のまま残る(外から入れた canvas を消さないため)。</summary>
+    [Parameter] public bool ShowHud { get; set; } = true;
+    /// <summary>ビューポートの要素の id(メニューの位置を直すため)。</summary>
+    [Parameter] public string RootId { get; set; } = "";
+
+    private IJSObjectReference? module;
+    private string? placedMenuKey;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // メニューが開いたとき(別のメニュー・別の位置になったとき)だけ、実際の大きさで位置を直す
+        var key = Hud.Menu is { } m ? $"{m.Title}|{m.Items.Count}|{m.X}|{m.Y}" : null;
+        if (key is null) { placedMenuKey = null; return; }
+        if (key == placedMenuKey || string.IsNullOrEmpty(RootId)) return;
+        placedMenuKey = key;
+        try
+        {
+            module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/practice-cs.js");
+            await module.InvokeVoidAsync("positionMenu", RootId, Hud.Menu!.X, Hud.Menu.Y);
+        }
+        // メニューの位置を直せなくても、メニューは出ている（回線が切れた場合は JSDisconnectedException。想定内）
+        catch (JSDisconnectedException) { }
+        catch (JSException) { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (module is null) return;
+        // 回線が切れている（ページを離れた後）なら、解放は要らない
+        try { await module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+        catch (JSException) { }
+    }
+    [Parameter] public EventCallback<string> OnTool { get; set; }
+    [Parameter] public EventCallback<int> OnMenu { get; set; }
+    [Parameter] public EventCallback<(string Prop, string Axis, string Value)> OnNPanel { get; set; }
+
+    private static string ToolLabel(string key) => key switch { "vert" => "頂点", "edge" => "辺", "face" => "面", "xray" => "透過", "stats" => "統計", _ => "ミラー" };
+
+    private static string ToolTitle(string key) => key switch
+    {
+        "vert" => "頂点選択（1）", "edge" => "辺選択（2）", "face" => "面選択（3）", "xray" => "透過表示（Alt+Z）", "stats" => "オーバーレイ > 統計", _ => "ミラー モディファイアー（X 方向）",
+    };
+
+    private string? ToolClass(HudTool t) => (t.On, Hud.HighlightTool == t.Key) switch { (true, true) => "is-on is-highlight", (true, false) => "is-on", (false, true) => "is-highlight", _ => null };
+
+    /// <summary>JS の `${v}px` と同じ桁(往復できる最短)で書く。丸めると、マーカー・メニューの位置が 0.01px ずれて、枠の画素が変わる。</summary>
+    private static string Px(double v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture) + "px";
+
+    private string MarkerStyle => Hud.MarkerHidden ? "" : $"transform:translate({Px(Hud.MarkerX)}, {Px(Hud.MarkerY)})";
+
+    /// <summary>
+    /// メニューを開いたマウスの位置(ビューポート内のピクセル)。viewport.js の showMenu は、メニューの実際の大きさで、ビューからはみ出さない位置に直す
+    /// (左右は幅 + 4 px、上下は高さ + 30 px(下のステータスバーの分)を空ける)。大きさは描いたあとにしか測れないので、描いた直後に JavaScript(practice-cs.js の positionMenu)が直す。
+    /// 直すまでは見えないようにして、位置が飛ぶのを見せない。
+    /// </summary>
+    private static string MenuStyle(HudMenu m) => $"left:{Px(m.X)};top:{Px(m.Y)};visibility:hidden";
+
+    private static string BoxStyle(HudBox b) => $"left:{Px(b.X)};top:{Px(b.Y)};width:{Px(b.Width)};height:{Px(b.Height)}";
+}

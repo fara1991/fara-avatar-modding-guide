@@ -1,0 +1,23 @@
+{
+ "count": "12 / 14",
+ "bubble": "12\nShift+D で複製してください。複製したものがマウスについてきます。",
+ "keys": "Shift\n+\nD",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "削除",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "Cube",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "78.5714%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

@@ -1,0 +1,89 @@
+# 目次のカテゴリ。上から順に読む想定で並べる。
+# id はディレクトリ名 (Content/learn/<id>/) と URL (/learn/<id>) に使われる。
+# section は sections.yml の id（Blender / Unity / VRChat / 通しで作る）。目次はその区切りごとにまとまる。
+# nav_title は、サイドバーの文言（任意。サイドバーの幅で 1 行に収まる長さ。区切りの見出しの下に出るので、区切りと重なる語は省く）。無ければ title。
+
+- id: getting-started
+  section: blender
+  title: はじめに
+  reading: はじめに
+  en: Getting Started
+  description: Blender のインストール、画面の見方、視点の動かし方。
+  icon: bi-rocket-takeoff
+
+- id: basics
+  section: blender
+  title: 基本操作
+  reading: きほんそうさ
+  en: Basics
+  description: オブジェクトの選択・移動・回転・拡縮など、すべての作業の土台になる操作。
+  icon: bi-arrows-move
+
+- id: modeling
+  section: blender
+  title: モデリング
+  reading: もでりんぐ
+  en: Modeling
+  description: 編集モードで頂点・辺・面を操作して形を作る。
+  icon: bi-box
+
+- id: materials
+  section: blender
+  title: マテリアルとテクスチャ
+  reading: まてりあるとてくすちゃ
+  en: Materials and Textures
+  description: 色や質感を設定し、画像テクスチャを貼る。
+  icon: bi-palette
+
+- id: rigging
+  section: blender
+  title: リギング
+  reading: りぎんぐ
+  en: Rigging
+  description: ボーンを入れてキャラクターを動かせるようにする。
+  icon: bi-person-arms-up
+
+- id: unity
+  section: unity
+  title: Unity でアバターを整える
+  nav_title: アバターを整える
+  reading: ゆにてぃーであばたーをととのえる
+  en: Unity
+  description: Unity の画面の見方、Modular Avatar での衣装の着せ方、lilToon、アップロード前の確認。
+  icon: bi-grid-3x3-gap
+
+- id: vrchat
+  section: vrchat
+  title: VRChat にアップロードする
+  nav_title: アップロード
+  reading: ぶいあーるちゃっとにあっぷろーどする
+  en: VRChat Upload
+  description: VCC でのプロジェクト作成、アップロード、つまずいたときの対処、パフォーマンスランク、軽量化、Android（Quest）対応。
+  icon: bi-cloud-upload
+
+- id: vrchat-features
+  section: vrchat
+  title: メニュー・表情・揺れもの
+  nav_title: メニュー・表情・揺れ
+  reading: めにゅーひょうじょうゆれもの
+  en: Menu, Expressions, Physics
+  description: Expression メニューとパラメーター、表情と FX の基礎、PhysBone と Contact。
+  icon: bi-ui-radios-grid
+
+- id: modding
+  section: practice
+  title: 実践：アバター改変
+  nav_title: アバター改変
+  reading: じっせんあばたーかいへん
+  en: Avatar Modding
+  description: 買ったアバターの改変の進め方と、非対応衣装の着せ替え、首すげ替え、VRM への書き出し。
+  icon: bi-tools
+
+- id: avatar-clothing
+  section: practice
+  title: 実践：アバター用衣装の作成
+  nav_title: 衣装を作る
+  reading: じっせんあばたーよういしょうのさくせい
+  en: Clothing Creation
+  description: VRChat などで使うアバターの衣装を、インポートから Unity での設定まで通して作る。
+  icon: bi-person-standing-dress
