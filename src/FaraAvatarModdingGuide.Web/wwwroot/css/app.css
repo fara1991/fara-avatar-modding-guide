@@ -620,6 +620,11 @@ kbd {
     overflow-wrap: anywhere;
 }
 
+/* 段落・箇条書きの中に、スペースのない長い英字（ファイルのパスなど）があっても、幅に収まらないときだけ折り返す（折り返せないと、ページ全体が横に動く。360px で 591px まで広がっていた） */
+.article-body :is(p, li) {
+    overflow-wrap: break-word;
+}
+
 /* 記事のコードブロックは、画面より長い行を箱の中で横に送る（箱から出すとページ全体が横に動く） */
 .article-body pre {
     max-width: 100%;

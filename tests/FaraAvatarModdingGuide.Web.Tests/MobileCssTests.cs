@@ -36,6 +36,13 @@ public class MobileCssTests
     }
 
     [Fact]
+    public void Article_paragraphs_and_list_items_wrap_a_long_unbroken_word_so_the_page_does_not_widen()
+    {
+        // 箇条書きの 1 行に、スペースのない長いファイルのパスが入っていて、360px でページが 591px まで広がった
+        Assert.Matches(@"\.article-body :is\(p, li\)\s*\{\s*overflow-wrap:\s*break-word;\s*\}", AppCss);
+    }
+
+    [Fact]
     public void Linked_article_images_keep_their_caption_style_and_the_progress_button_is_44px()
     {
         // 画像を、元の大きさで開くリンクで包んでも、直後の斜体 1 行がキャプションの見た目になる

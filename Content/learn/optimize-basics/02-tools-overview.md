@@ -10,7 +10,7 @@ VRChat のアバターを軽くするツールは何種類もあり、ツール�
 
 略称は、MA（Modular Avatar）、TTT（TexTransTool）、MMS（Meshia Mesh Simplification）、AAO（Avatar Optimizer）です。lilAvatarUtils は、そのまま書きます。
 
-ツールを入れるときに出てくる VCC（VRChat Creator Companion）と ALCOM は、どちらもパッケージを管理するツールです。VPM（VRChat Package Manager。パッケージを配布・導入する仕組み）のパッケージの配布先を、この記事では「VPM リポジトリ」と書いています。ALCOM は、VRChat Package Manager のオープンソースの GUI クライアントです（[vrc-get/vrc-get](https://github.com/vrc-get/vrc-get) のリポジトリの説明）。VCC について詳しくは、[用語集: VCC](/glossary#vcc) を見てください。
+ツールを入れるときに出てくる VCC（VRChat Creator Companion）と ALCOM は、どちらもパッケージを管理するツールです。VPM（VRChat Package Manager。パッケージを配布・導入する仕組み）のパッケージの配布先を、この記事では「VPM リポジトリ」と書いています。ALCOM は、vrc-get（VRChat Package Manager のオープンソースのコマンドライン版）の GUI 版です（[vrc-get/vrc-get](https://github.com/vrc-get/vrc-get) の README の説明）。VCC について詳しくは、[用語集: VCC](/glossary#vcc) を見てください。
 
 表の項目名は、画面に表示される名前に合わせています。項目の上限の値は、[パフォーマンスランク（Performance Rank）](/learn/vrchat/performance-rank) にあります。PhysBone は、ボーンを物理やほかのプレイヤーの影響で動かす仕組みです（髪や服の揺れなどに使われます。[用語集: PhysBone](/glossary#physbone)）。コンストレイントは、ある物の位置・回転・スケールを、別の物に紐づける仕組みです（[Unity マニュアル: コンストレイント](https://docs.unity3d.com/ja/2022.3/Manual/Constraints.html)）。
 
@@ -32,11 +32,11 @@ Modular Avatar は、衣装などを本体に組み立てるためのツール�
   - VCC: 公式ページのリンクからリポジトリを追加し、manage project で「+」を押します。
   - テスト版は、公式が ALCOM から入れるよう案内しています。VCC では依存関係の解決にバグがあると書かれています。
 - **ライセンス**: MIT License（リポジトリの `COPYING.md`）。ただし `Editor/Images` の画像は MIT の対象外で、公式パッケージの一部としてのみ再配布できます。
-- **対応**: Unity 2022.3（1.18.7 の package.json の値）。changelog の 1.18.4（2026 年 8 月 29 日）に「Unity 6.1〜6.7 に対する実験的な対応」とあります。VRChat SDK の対応版は、未確認です。NDMF（ビルド時の処理を動かす仕組み）が必要です。
+- **対応**: Unity 2022.3（[VPM メタデータ](https://vpm.nadena.dev/vpm.json) の 1.18.7 の unity の値）。changelog の 1.18.4（2026 年 8 月 29 日）に「Unity 6.1〜6.7 に対する実験的な対応」とあります。VRChat SDK の対応版は、未確認です。NDMF（ビルド時の処理を動かす仕組み）が必要です。
 - **公式ページ**: https://modular-avatar.nadena.dev/ja （GitHub: https://github.com/bdunderscore/modular-avatar ）
 - **減らせる主な項目**: ボーン（Merge Armature）、アニメーター（Merge Animator）、三角ポリゴン（Mesh Cutter・Shape Changer。条件つき）
 - **注意**:
-  - Mesh Cutter は、メッシュの一部を頂点フィルターで指定して、削除または非表示にできるコンポーネントです（[changelog](https://modular-avatar.nadena.dev/ja/docs/changelog) の 1.14.0 で実装。[公式: Mesh Cutter](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/mesh-cutter)）。Mesh Cutter が常に有効なときは選んだポリゴンが削除され、時々無効（非アクティブ）になるときは非表示になります。どちらの場合も部位が見えなくなるので、見た目が変わります。
+  - Mesh Cutter は、メッシュの一部を頂点フィルターで指定して、削除または非表示にできるコンポーネントです（[changelog](https://modular-avatar.nadena.dev/ja/docs/changelog) の 1.14.0 で実装。[公式: Mesh Cutter](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/mesh-cutter)）。Mesh Cutter が常にアクティブ（有効）なときは選んだポリゴンが完全に削除され、時々非アクティブ（無効）になるときは非表示になります。どちらの場合も部位が見えなくなるので、見た目が変わります。
   - Merge Animator の「付属アニメーターを削除」をオンにすると、同じオブジェクトの Animator は削除されます（公式は「排除」と書いています）。
   - 同じレイヤー種別（FX など）に「既存アニメーターを置き換える」設定の Merge Animator が 2 つ以上あると、エラーになります。
   - Merge Motion（Blend Tree 版）は、時間で変わるアニメーションには向きません。
@@ -79,21 +79,21 @@ lilAvatarUtils は、アバターの改変を助けるツールです。公式�
 
 ## 4. Meshia Mesh Simplification（MMS）
 
-Meshia Mesh Simplification は、メッシュの三角ポリゴンの数を減らす（簡略化する）ツールです。パッケージのソースには、アバター向けの「Meshia Cascading Avatar Mesh Simplifier」があり、目標の三角ポリゴン数を、複数のメッシュに配分できます。公式ドキュメントの NDMF 統合の項は、「MeshiaMeshSimplifier」を案内しています。目標は、三角ポリゴンの数で指定します。ランク名のついたプリセットから選ぶこともできます（下の注を見てください）。
+Meshia Mesh Simplification は、メッシュの三角ポリゴンの数を減らす（簡略化する）ツールです。アバター向けの手順では「Meshia Cascading Avatar Mesh Simplifier」を使い、目標の三角ポリゴン数を複数のメッシュに配分できます。公式ドキュメントでは、まず「目標とするパフォーマンスランク」を選びます。NDMF 統合の項では「MeshiaMeshSimplifier」を使います。パッケージのソースでは、ランク名のついたプリセットから三角ポリゴン数を選ぶ形になっています（下の注を見てください）。
 
 - **確認した版**: 3.3.1（2026 年 11 月 4 日に公開。GitHub のリリース）。
 - **入れ方**: VCC に作者の VPM リポジトリ `https://ramtype0.github.io/VpmRepository/index.json` を追加し、Manage Project から Manage Packages を開いて Meshia Mesh Simplification を追加します。案内ページ（HTML）は https://ramtype0.github.io/VpmRepository/ です。VCC・ALCOM での実機確認は、まだしていません。ALCOM での入れ方は、未確認です。
 - **ライセンス**: MIT License（`Copyright (c) 2025 Ram.Type-0`）。
-- **対応**: Unity 2022.3（パッケージの package.json の値）。パッケージには `vrchatVersion: 2022.1.1` と書かれていますが、その意味は未確認です。
+- **対応**: Unity 2022.3（パッケージの情報）。VRChat 向けの版として 2022.1.1 と書かれていますが、その意味は未確認です。
 - **依存**:
-  - パッケージには、NDMF 向けの部分（`Ndmf` フォルダー）が含まれています（パッケージのソース）。NDMF が無いときの動作は、未確認です。
+  - パッケージには、NDMF 向けの部分が含まれています（パッケージのソース）。NDMF が無いときの動作は、未確認です。
   - VPM のメタデータ（package.json）では、anatawa12 さんが作ったローカライズ用パッケージ `com.anatawa12.custom-localization-for-editor-extension`（^1.2.1）に依存しています。これは AAO とは別のパッケージで、AAO の機能の説明には関係しません。
-  - ほかに必要なツールは、公式ドキュメントのインストール手順では未確認です。
-- **メニュー**: GameObject > Meshia Mesh Simplification > Meshia Cascading Avatar Mesh Simplifier です（パッケージのソースにある項目です。公式ドキュメントでは未確認です）。
+  - ほかに必要なツールは、公式のインストールの説明で案内されています。アバター改変で両方（MMS と Cascading）を使うときは [Modular Avatar](https://modular-avatar.nadena.dev/ja)、ワールド改変で MMS を使うときは NDMF です（[インストールの説明](https://github.com/RamType0/Meshia.MeshSimplification/blob/main/.docfx/docs/ja/vrchat/installation.md)）。
+- **メニュー**: GameObject > Meshia Mesh Simplification > Meshia Cascading Avatar Mesh Simplifier です（パッケージのソースの MenuItem で確認。公式ドキュメントは、アバターの直下にこの GameObject を作成する手順を案内しています）。
 - **公式ページ**: https://ramtype0.github.io/Meshia.MeshSimplification/ （README: https://github.com/RamType0/Meshia.MeshSimplification ）
 - **減らせる主な項目**: 三角ポリゴンの数（目標の数を指定）
 - **注意**:
-  - 目標（TargetTriangleCount）は三角ポリゴンの数で、既定値は 70,000 です（パッケージのソース）。
+  - 目標の三角ポリゴン数の既定値は 70,000 です（パッケージのソース）。
   - プリセットは、パッケージのソースに次の値で入っています（公式ドキュメントの本文ではありません）。
     - PC-Poor-Medium-Good: 70,000
     - PC-Excellent: 32,000
@@ -101,7 +101,7 @@ Meshia Mesh Simplification は、メッシュの三角ポリゴンの数を減�
     - Mobile-Medium: 15,000
     - Mobile-Good: 10,000
     - Mobile-Excellent: 7,500
-  - 軽量化後のメッシュに穴が目立つときは、Preserve Border Edges を有効にしてみてください。パッケージの設定の説明（ツールチップ）には、「軽量化後のメッシュに穴が目立つ場合、このオプションを有効にしてみてください」とあります（パッケージのローカライズ。公式ドキュメントの本文ではありません）。この設定は、他の面に接していない辺（穴や切れ目の縁など）を削除しないようにします。
+  - 軽量化後のメッシュに穴が目立つときは、「メッシュの端の辺を保持（Preserve Border Edges）」を有効にしてみてください。公式ドキュメントにも同趣旨の説明があります（「指先に穴が空いたりする場合、有効化してみてください」と書かれています。[Meshia Cascading Avatar Mesh Simplifier の使い方](https://github.com/RamType0/Meshia.MeshSimplification/blob/main/.docfx/docs/ja/vrchat/meshia-cascading-avatar-mesh-simplifier.md)）。ツールチップ（パッケージのソース）には、「軽量化後のメッシュに穴が目立つ場合、このオプションを有効にしてみてください」とあります。この設定は、他の面に接していない辺（穴や切れ目の縁など）を削除しないようにします。
   - 関連するリリースは、次のとおりです（GitHub のリリース）。3.1.0（2025 年 12 月 28 日）で、辺の保持をボーンごとに設定できるようになりました。3.2.0（2026 年 6 月 16 日）で、手のボーンを既定で保持するようになりました（英語のリリースノート: Preserve hand bones by default）。
   - 非破壊かどうかは、未確認です。作業の前にバックアップを取るのが安全です。
   - Avatar Optimizer との連携は、未確認です。
@@ -115,15 +115,17 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **確認した版**: 1.9.21（2026 年 10 月 30 日。公式の [changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/) の日付）。
 - **入れ方**: 公式は ALCOM から入れることを推奨しています。VCC では正しく動かないことがあるためです。ALCOM で VPM リポジトリ `https://vpm.anatawa12.com/vpm.json` を追加してから、`com.anatawa12.avatar-optimizer` を追加します。UnityPackage や vrc-get からの入れ方も書かれています。
 - **ライセンス**: MIT License。
-- **対応**: Unity 2022.3（VPM の情報）。VRChat SDK は、`com.vrchat.avatars` の 3.7.0 以上 3.11.0 未満と書かれています（VPM の情報）。NDMF が必要です。
+- **対応**: Unity 2022.3（VPM の情報）。VRChat SDK（Avatars）は、3.7.0 以上 3.11.0 未満と書かれています（VPM の情報）。NDMF が必要です。
 - **公式ページ**: https://vpm.anatawa12.com/avatar-optimizer/ja/ （GitHub: https://github.com/anatawa12/AvatarOptimizer ）
 - **減らせる主な項目**: テクスチャメモリー、三角ポリゴンの数（隠れた部分）、スキンドメッシュの数、マテリアルスロットの数、PHYSBONE のコンポーネント・トランスフォーム・コライダーの数、ボーンの数（自動と手動の両方で減らせます）
 - **注意**:
   - Trace And Optimize は、アバターのルートに付けます（[公式: 基本的な使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。
-  - Merge Skinned Mesh で統合すると、メッシュを個別にアニメーションでオン・オフできなくなります。マテリアルプロパティのアニメーションは、現時点では競合します（既知の不具合。詳しくは [Avatar Optimizer の記事](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」）。公式の備考にある「統合前のものがそのまま機能する」は、競合しない種類（マテリアルの差し替えなど）に限ります（[公式: Merge Skinned Mesh](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-skinned-mesh/)）。
-  - 公式の FAQ には、「Merge Skinned Mesh を使用すると、マテリアルプロパティに対するアニメーションが競合する」という項目があります。既知のバグだと書かれていて、issue は #340 です。競合するときは警告が表示されます。
-  - 同じ FAQ には、マテリアルスロットのアニメーションで、それぞれのマテリアルを別のものに置き換える場合は、Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにする、とあります。
-  - 公式の[基本的な使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)（tutorial/basic-usage の「UploadせずにPerformance Rankを見る方法」）では、VRChat SDK の Control Panel のパフォーマンスランクは、非破壊改変ツールを使うと、あてにならなくなると書かれています。Play モードに入ったときのランクは、anatawa12 さんの Gist Pack の Actual Performance Window で確認する方法が案内されています。
+  - Merge Skinned Mesh で統合すると、メッシュを個別にアニメーションでオン・オフできなくなります。マテリアルのアニメーションについて、公式の資料の書き方は次のように食い違っています。
+    - [公式: Merge Skinned Mesh](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-skinned-mesh/) の備考は、「マテリアルに関するアニメーションは統合前のものがそのまま機能します」と書いています。
+    - [公式 FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/) には、「マテリアルプロパティに対するアニメーションが競合する」という項目があります。「この問題は既知のバグであり、現時点では競合してしまう仕様です」と書かれていて、issue は [issue 340](https://github.com/anatawa12/AvatarOptimizer/issues/340) です。競合するときは警告が表示されます。詳しくは [Avatar Optimizer の記事](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」を見てください。
+    - 同じ FAQ の「マテリアルスロットに対するアニメーションが競合する」の項目には、アニメーションでそれぞれのマテリアルを別のものに置き換える場合は、Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにする、とあります。
+    - 公式の中で書き方が食い違う（備考は「そのまま機能する」、FAQ は競合する場合がある）ので、統合するときは実際に確かめてください。
+  - 公式の[基本的な使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)（tutorial/basic-usage の「UploadせずにPerformance Rankを見る方法」）では、VRChat SDK の Control Panel のパフォーマンスランクは、非破壊改変ツールを使うと、あてにならなくなると書かれています。Play モードに入ったときのランクは、anatawa12 さんの Gist Pack（Unity 用の補助ツールの集まり。複数の gist で構成され、その一つが Actual Performance Window）で確認する方法が案内されています。
   - 「使われていないObjectを自動的に削除する」は、アニメーションなどを走査して、使われていない GameObject・コンポーネント・テクスチャなどを自動で削除する機能です（[公式: Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。版によって削除の対象が増えています（下の表の注を見てください）。
 
 ## 項目 × ツールの早見表
@@ -137,15 +139,15 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **確認のみ**: 数や値を一覧で確認できると書かれています。減らす操作は、この記事では未確認です。
 - **× 減らせない**: 公式に明記されたものだけに使います。この表には該当がありません。
 - **？ 未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
-- **？ 公式に記載なし**: その項目について、そのツールの公式の資料（全ページと changelog）を検索して、本当に無いと確かめたものだけに使います。この表では、AAO の列だけが該当します。
+- **？ 公式に記載なし**: その項目について、そのツールの公式の資料（日本語版の公式ドキュメントの各ページと changelog）を検索して、本当に無いと確かめたものだけに使います。この表では、AAO の列だけが該当します。AAO の Trace And Optimize の説明（「使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します」）は種類を限らない一般的な記述なので、コンストレイントやライトなどは、件数を減らす機能としての個別の記載が無い、という意味です。
 
 ### メッシュ・テクスチャ・マテリアル
 
-表の「テクスチャメモリー」は、テクスチャが使うメモリーの推定値です（公式の統計表では、システム RAM と GPU のメモリーの両方を使うと説明。VRAM は GPU 側のメモリー）。
+表の「テクスチャメモリー」は、テクスチャが使うメモリーの推定値です（[公式の統計表（Avatar Performance Ranking Stats）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) では、システム RAM と GPU のメモリーの両方を使うと説明。VRAM は GPU 側のメモリー）。
 
 | 項目 | MA | TTT | lilAvatarUtils | MMS | AAO |
 |---|---|---|---|---|---|
-| テクスチャメモリー | ？ 未確認 | △ | △（条件つき） | ？ 未確認 | ○ |
+| テクスチャメモリー | ？ 未確認 | △ | △ | ？ 未確認 | ○ |
 | 三角ポリゴンの数 | △ | ？ 未確認 | 確認のみ | ○ | ○ |
 | 範囲（BOUNDS） | ？ 未確認 | ？ 未確認 | 確認のみ | ？ 未確認 | ？ 未確認 |
 | スキンドメッシュの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ○ |
@@ -162,7 +164,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 | PHYSBONE 衝突チェックの数 | ？ 未確認 | ？ 未確認 | 確認のみ | ？ 未確認 | ？ 未確認 |
 | コンタクトの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | △ |
 | コンストレイントの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
-| コンストレイントの深さ | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
+| コンストレイントの深さ | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | アニメーターの数 | △ | ？ 未確認 | ？ 未確認 | ？ 未確認 | △ |
 | ボーンの数 | △ | ？ 未確認 | ？ 未確認 | ？ 未確認 | ○ |
 
@@ -173,7 +175,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 | ライトの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | パーティクルシステムの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | 最大パーティクルの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
-| メッシュパーティクルの三角ポリゴン数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
+| メッシュパーティクルの三角ポリゴン数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | パーティクルトレイル | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | パーティクルの衝突 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | トレイルレンダラーの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
@@ -202,7 +204,8 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **PHYSBONE コライダーの数（MA）**: MA の [PhysBone Blocker](https://modular-avatar.nadena.dev/ja/docs/reference/physbone-blocker) は、子オブジェクトから、親オブジェクトをルートとする PhysBone の影響を防ぎます。[Global Collider](https://modular-avatar.nadena.dev/ja/docs/reference/global-collider) は、VRChat のグローバルコライダーの数に上限があるため、既存のグローバルコライダー（指や手など）を差し替える機能です。どちらも、コライダーの数を減らす機能としては、未確認です。
 - **コライダーの数（lilAvatarUtils）**: PBコライダーのタブで一覧を確認できるのは、PhysBone 用のコライダーです。通常の Collider を含むかは、未確認です。
 - **コンタクトの数（AAO）**: AAO の「使われていないObjectを自動的に削除する」（英語名は Remove Unused Objects）は、1.7.0（2024 年 4 月 30 日）から、Animator Controller で使われていないパラメーターを持つ PhysBone と Contact Receiver を削除するようになりました（公式の [changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。条件つきで、自動で行われます。
-- **コンストレイントの数**: MA の [Convert Constraints](https://modular-avatar.nadena.dev/ja/docs/reference/convert-constraints) は、あらかじめ変換するとパフォーマンスが大幅に向上すると、公式が書いています。公式は性能向上のみを書いており、件数への効果は未確認です。AAO の changelog には、1.6.12（2024 年 4 月 9 日）の Removed に「Activeness Optimization for Constraint component」（理由は「The constraint component is too complex to optimize correctly and reliably」。複雑すぎて、正しく確実に最適化できない）があります。そのため、AAO の列は「？ 公式に記載なし」のままにしています。
+- **コンストレイントの数**: MA の [Convert Constraints](https://modular-avatar.nadena.dev/ja/docs/reference/convert-constraints) は、あらかじめ変換するとパフォーマンスが大幅に向上すると、公式が書いています。公式は性能向上のみを書いており、件数への効果は未確認です。AAO の changelog には、1.6.12（2024 年 4 月 9 日）の Removed に「Activeness Optimization for Constraint component」（理由は「The constraint component is too complex to optimize correctly and reliably」。複雑すぎて、正しく確実に最適化できない）があります。1.7.12 の changelog には、「VRCConstraints with Target might be removed unexpectedly」（Target を持つ VRCConstraints が意図せず削除される）という修正の記録もあります。件数を減らす機能としての記載ではありません。そのため、AAO の列は「？ 公式に記載なし」としています。
+- **パーティクルシステムの数（AAO）**: AAO の changelog には、件数を減らす機能としての記載はありません。使われていない Particle System の扱いについては、削除まわりの修正の記録があります。1.6.0（2023 年 11 月 27 日）の「Remove Unused Object may break ParticleSystem」と、1.8.10（2025 年 5 月 4 日）の「Fixed Particle Systems are not correctly removed」です。
 - **アニメーターの数**: MA の Merge Animator は、「付属アニメーターを削除」をオンにしたときに減らせます。AAO の「使われていないObjectを自動的に削除する」は、1.6.0（2023 年 11 月 27 日）から、Animator Controller のない Animator を、意味のないものとして削除するようになりました（公式の changelog）。
 - **ボーンの数**: MA の Merge Armature は、名前が一致するボーンを統合先にまとめます。名前が合わないと、新しいボーンが増えます。AAO は、使われていないObjectを削除します。
 - **ライトの数（lilAvatarUtils）**: ライティングのタブは、見え方を確かめる機能です。ライトを減らす機能は、未確認です。

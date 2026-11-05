@@ -861,14 +861,14 @@
   url: https://ttt.rs64.net/
   category: unity-tool
   description: テクスチャのアトラス化や解像度の変更を、非破壊で行う
-  note: アバターのテクスチャメモリー（VRAM）を減らすときに使う。マテリアルスロットは、AtlasTexture の「マテリアル設定」を使うマテリアルに限り、結合で減らせる（詳しくは「軽量化に使う 5 つのツールと早見表」の注）。
+  note: 条件つきで、アバターのテクスチャメモリーを減らせる（アトラス化の出力をそのまま使うと、かえって増えることがある）。詳しくは「軽量化に使う 5 つのツールと早見表」。
   status: current
 
 - id: lilavatarutils
   name: lilAvatarUtils
   url: https://github.com/lilxyzw/lilAvatarUtils
   category: unity-tool
-  description: アバターが使っているテクスチャ・マテリアル・レンダラー・PhysBone などを一覧で調べ、テクスチャの解像度などを変える
+  description: アバターが使っているテクスチャ・マテリアル・レンダラー・PhysBone などを一覧で調べ、テクスチャのインポート設定の見直しを助ける
   note: 分析に便利。ツールタブの整理機能は、アセットを変更する操作なので、使う前にバックアップを取る。
   status: current
 
@@ -877,5 +877,5 @@
   url: https://github.com/RamType0/Meshia.MeshSimplification
   category: unity-tool
   description: メッシュの三角ポリゴン数を減らす（簡略化する）
-  note: 減らせるのは三角ポリゴンの数。NDMF を使うパッケージ（NDMF が無いときの動作は未確認）。
+  note: 減らせるのは三角ポリゴンの数。アバターで使うには Modular Avatar、ワールドで使うには NDMF が必要（公式のインストール手順）。
   status: current
