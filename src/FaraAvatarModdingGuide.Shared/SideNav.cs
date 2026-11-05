@@ -67,6 +67,13 @@ public static class SideNav
                     ProgressIds: content?.ArticlesOf(GettingStartedId).Select(a => a.Id).ToList()),
             ]),
             new("学ぶ", learn),
+        };
+
+        // 作業の手順書の区切り（アバター軽量化）は、「学ぶ」の次に「つくる」として出す
+        if (make.Count > 0) groups.Add(new SideGroup("つくる", make));
+
+        groups.AddRange(
+        [
             new("練習",
             [
                 new("操作の練習", "SportsEsports", "/practice", ["/practice"], Exact: true),
@@ -86,14 +93,7 @@ public static class SideNav
                 new("問い合わせ", "MailOutline", "/report", ["/report"]),
                 new("プライバシーポリシー", "PrivacyTip", "/privacy", ["/privacy"]),
             ]),
-        };
-
-        // 作業の手順書の区切り（アバター軽量化）は、「学ぶ」の次に「つくる」として出す
-        if (make.Count > 0)
-        {
-            var learnAt = groups.FindIndex(g => g.Title == "学ぶ");
-            groups.Insert(learnAt < 0 ? groups.Count : learnAt + 1, new SideGroup("つくる", make));
-        }
+        ]);
         return groups;
     }
 

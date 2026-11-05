@@ -7,7 +7,7 @@ namespace FaraAvatarModdingGuide.Build;
 public sealed record PagePlan(string Path, string Title, string Description, string Main, bool Wasm, bool NoIndex = false, string OgType = PageCatalog.OgWebsite);
 
 /// <summary>
-/// 公開する全ページの一覧（固定ページ 16 + カテゴリ 10 + 記事 50 = 76 本。計画書 1.1）。
+/// 公開する全ページの一覧（固定ページ 16 + カテゴリ + 記事。計画書 1.1 の移行時は 76 本）。
 /// Wasm が true のページだけ WebAssembly を読み込む（フェーズ 3 で、すべてのページになった: 記事・カテゴリ・目次・検索・一覧・ホーム・リンク集・練習の 3 ページなど）。
 /// Web プロジェクトの @page と、この一覧の Wasm が一致することを Web.Tests が確かめる。
 /// </summary>

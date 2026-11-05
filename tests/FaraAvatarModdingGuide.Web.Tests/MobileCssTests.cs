@@ -36,6 +36,17 @@ public class MobileCssTests
     }
 
     [Fact]
+    public void Linked_article_images_keep_their_caption_style_and_the_progress_button_is_44px()
+    {
+        // 画像を、元の大きさで開くリンクで包んでも、直後の斜体 1 行がキャプションの見た目になる
+        Assert.Matches(@"\.article-body p > a:has\(> img\) \+ em\s*,", AppCss);
+        // 「読んだ」にするボタンは、PC でも 44px
+        Assert.Matches(@"\.btn\.btn-progress\s*\{\s*min-height:\s*44px;\s*\}", AppCss);
+        // コードブロックは、折り返さず箱の中で横に送る（木構造の図の字下げが崩れないように。狭い幅でも pre-wrap にしない）
+        Assert.DoesNotMatch(@"\.article-body pre\s*\{[^}]*white-space:\s*pre-wrap", AppCss);
+    }
+
+    [Fact]
     public void Header_menu_toggle_is_44px_on_pc_too()
     {
         // サイドバーの開閉ボタンは、PC でもヘッダーの常設の操作（768〜1024px は別の規則で押せる範囲を広げている）
