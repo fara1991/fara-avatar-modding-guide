@@ -8,7 +8,7 @@
 
 ## 特徴
 
-- **目次**: Blender / Unity / VRChat / 通しで作る の区切りごとに、上から順に読める（区切りは `Content/learn/sections.yml`）
+- **目次**: Blender / Unity / VRChat / 通しで作る / アバター軽量化 の区切りごとに、上から順に読める（区切りは `Content/learn/sections.yml`）
 - **1記事 = 1 URL**: 記事ごとにブックマーク・共有・検索エンジンからの到達ができる
 - **ショートカット連携**: 各記事に「この記事で使うキー」を表示し、一覧ページで逆引きできる
 - **Markdown で執筆**: `Content/` 以下にファイルを置くだけで記事を追加できる（コードの変更不要）
@@ -140,7 +140,7 @@ npm run layout-check   # site-production を配って計測（設定は layout-c
 fara-avatar-modding-guide/
 ├── Content/                  # 記事・データ（Markdown / YAML）。書き方は Content/README.md 参照
 │   ├── learn/
-│   │   ├── sections.yml      # 目次の大きな区切り（Blender / Unity / VRChat / 通しで作る）
+│   │   ├── sections.yml      # 目次の大きな区切り（Blender / Unity / VRChat / 通しで作る / アバター軽量化）
 │   │   ├── categories.yml    # ロードマップの段階と並び順（section で区切りを指定）
 │   │   └── <category>/NN-slug.md
 │   ├── tips/                 # 用語集・何て名前？・TIPS・改変 Q&A
@@ -232,7 +232,7 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 3. 本文を Markdown で書く（`::: tip` / `::: warning` ブロック、操作のチュートリアルを埋め込む `::: practice <名前>` が使える）
 
 詳しくは [Content/README.md](Content/README.md) を参照してください。
-新しいカテゴリを追加するときは `Content/learn/categories.yml` に追記し（`section` で Blender / Unity / VRChat / 通しで作る のどこに入るかを指定）、同名のディレクトリを作ります。区切り自体は `Content/learn/sections.yml` です。
+新しいカテゴリを追加するときは `Content/learn/categories.yml` に追記し（`section` で Blender / Unity / VRChat / 通しで作る / アバター軽量化 のどこに入るかを指定）、同名のディレクトリを作ります。区切り自体は `Content/learn/sections.yml` です。
 
 ## デプロイ（Cloudflare）
 

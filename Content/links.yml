@@ -861,15 +861,15 @@
   url: https://ttt.rs64.net/
   category: unity-tool
   description: テクスチャのアトラス化や解像度の変更を、非破壊で行う
-  note: アバターのテクスチャメモリー（VRAM）を減らすときに使う。マテリアルスロットは減らさない。
+  note: アバターのテクスチャメモリー（VRAM）を減らすときに使う。マテリアルスロットを減らすかは、公式に記載なし。
   status: current
 
 - id: lilavatarutils
   name: lilAvatarUtils
   url: https://github.com/lilxyzw/lilAvatarUtils
   category: unity-tool
-  description: アバターが使っているテクスチャ・メッシュ・マテリアルなどを一覧で調べ、テクスチャの圧縮や未使用のものの削除を行う
-  note: 分析に便利。元のアセットを書き換えるかどうかは公式に明記がないため、バックアップを取ってから使う。
+  description: アバターが使っているテクスチャ・マテリアル・レンダラー・PhysBone などを一覧で調べ、テクスチャの解像度などを変える
+  note: 分析に便利。元のアセットを書き換えるかどうかは公式に記載なしのため、バックアップを取ってから使う。
   status: current
 
 - id: meshia-mesh-simplification
@@ -877,5 +877,5 @@
   url: https://github.com/RamType0/Meshia.MeshSimplification
   category: unity-tool
   description: メッシュの三角ポリゴン数を減らす（簡略化する）
-  note: 減らせるのは三角ポリゴンの数。アバターで使うには Modular Avatar が必要。
+  note: 減らせるのは三角ポリゴンの数。NDMF があると使える。ほかに必要なツールは未確認。
   status: current

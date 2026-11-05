@@ -21,6 +21,16 @@ public class ContentLoadTests
     private static ContentService Load() => new(ContentDir, NullLogger<ContentService>.Instance);
 
     [Fact]
+    public void The_original_ten_categories_and_fifty_articles_are_still_there()
+    {
+        // 計画書 1.1: 移行した 10 カテゴリ・50 記事（アバター軽量化の区切りを除く）が、消えていない
+        var content = Load();
+        var original = content.Categories.Where(c => c.Section != "optimize").ToList();
+        Assert.Equal(10, original.Count);
+        Assert.Equal(50, content.Articles.Count(a => original.Any(c => c.Id == a.Category)));
+    }
+
+    [Fact]
     public void All_articles_in_the_content_folder_are_loaded_with_their_urls()
     {
         var content = Load();
