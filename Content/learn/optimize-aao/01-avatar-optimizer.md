@@ -17,7 +17,7 @@ AAO の目的は、**アバターの見た目をほとんど変えずに、性�
 
 この記事では、次の言葉を使います。
 
-- **公式に記載なし**: 公式ドキュメント（日本語版の各ページと changelog）を検索して、書かれていないことを確かめた、という意味です。
+- **公式に記載なし**: 公式ドキュメント（日本語版の公式ドキュメントの各ページと changelog）を検索して、書かれていないことを確かめた、という意味です。
 - **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 
 「リファレンス本文」は各コンポーネントのページ、「changelog」は公式ドキュメント内の変更履歴を指します。
@@ -50,7 +50,7 @@ AAO の依存関係（VPM リポジトリのメタデータ。パッケージの
 
 ## 入れ方
 
-AAO は、VPM リポジトリ（パッケージの配布先）を使って公開されています。そのため、VPM に対応したツールなら、どれでも入れられます。
+AAO は、VPM リポジトリ（パッケージの配布先）を使って公開されています。公式は ALCOM での追加を推奨していて、VCC でも同じリンクから追加できると書いています。
 
 ### ALCOM で入れる（推奨）
 
@@ -70,7 +70,7 @@ cd /path/to/your-unity-project
 vrc-get install com.anatawa12.avatar-optimizer
 ```
 
-- **VPM CLI**（VPM / VCC のコマンドラインツール）: 次のコマンドで入れられます。
+- **VPM CLI**（VPM パッケージを管理するコマンドラインツール）: 次のコマンドで入れられます。
 
 ```
 vpm add repo https://vpm.anatawa12.com/vpm.json
@@ -97,7 +97,7 @@ AAO は、パフォーマンスランクの項目のうち、一部を減らせ�
 | 範囲（BOUNDS） | 未確認 | AAO Merge Skinned Mesh は範囲（BOUNDS）を設定しますが、減らす効果は未確認です |
 | PHYSBONE 衝突チェックの数 | 未確認 | Optimize PhysBone Settings はコライダーを統合しますが、衝突チェックの数への効果は未確認です |
 | コンタクトの数 | 自動（条件つき） | 自動: Remove unused Objects（Animator Controller で使われていないパラメーターを持つ Contact Receiver） |
-| そのほかの項目 | 公式に記載なし | 後述の「AAO の機能一覧に、公式に記載なしの項目」を見てください |
+| そのほかの項目（コンストレイント・ライト・パーティクル系・トレイルレンダラー・CLOTH・リジッドボディ・オーディオソース） | 公式に記載なし | 後述の「AAO の機能一覧に、公式に記載なしの項目」を見てください |
 
 ## Trace And Optimize でできること
 
@@ -300,8 +300,8 @@ AAO の処理は、VRChat SDK の Control Panel では確かめにくいもの�
 | 見た目や動きが変わった | Trace And Optimize で見た目や動きが変わった場合は、AAO の不具合の可能性があります。ただし、ほかの AAO コンポーネントのバグの挙動に頼っている場合は除きます。報告してください。報告先は、[GitHub Issues](https://github.com/anatawa12/AvatarOptimizer/issues) や NDMF の Discord などです。公式には、報告用の Bug Report Helper のページもあります。 |
 | メッシュが見えない | 公式 FAQ によると、多くの場合は、統合先のメッシュ（AAO Merge Skinned Mesh と一緒に付いている SkinnedMeshRenderer）の Root Bone を指定し忘れていることが原因です。AAO Merge Skinned Mesh は Root Bone を自動で設定しないため、手動で設定します。Modular Avatar を使っている場合は、アバターのルートに MA Mesh Settings を追加すると、アバター全体の Root Bone と範囲（BOUNDS）を設定できます。 |
 | 統合したメッシュの明るさが違う | 公式 FAQ によると、多くの場合は、統合先のメッシュの Anchor Override を指定し忘れていることが原因です。AAO Merge Skinned Mesh は Anchor Override を自動で設定しないため、手動で設定します。Modular Avatar を使っている場合は、アバターのルートに MA Mesh Settings を追加すると、アバター全体の Anchor Override を設定できます。 |
-| 統合後に、マテリアルプロパティのアニメーションが競合する | 既知の不具合で、現時点では競合します。解決を求める issue は、[#340](https://github.com/anatawa12/AvatarOptimizer/issues/340)（マテリアルのアニメーションパラメータの競合の解決。open）です。公式 FAQ では、マテリアルプロパティに対してアニメーションされるメッシュを統合するときは、競合しないよう注意するよう書かれています。競合するときは警告が表示されます。 |
-| 統合後に、マテリアルスロットのアニメーションが競合する | マテリアルを入れ替えるアニメーションがあるときは、AAO Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにします（公式 FAQ の方法）。 |
+| 統合後に、マテリアルプロパティのアニメーションが競合する | 既知の不具合で、現時点では競合します（公式の備考は「マテリアルに関するアニメーションは統合前のものがそのまま機能します」と書いていて、書き方が食い違います。詳しくは [軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。解決を求める issue は、[#340](https://github.com/anatawa12/AvatarOptimizer/issues/340)（マテリアルのアニメーションパラメータの競合の解決。open）です。公式 FAQ では、マテリアルプロパティに対してアニメーションされるメッシュを統合するときは、競合しないよう注意するよう書かれています。競合するときは警告が表示されます。 |
+| 統合後に、マテリアルスロットのアニメーションが競合する | マテリアルを別のものに置き換えるアニメーションがあるときは、AAO Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにします（公式 FAQ の方法）。 |
 | OSC（ゲームや外部ツールと値をやりとりする通信の仕組み）のギミックで、PhysBone や Contact Receiver が効かない | AAO の Trace And Optimize は、OSC で使われているかを判別できないため、使われていないように見えるものを削除することがあります。公式 FAQ では、Asset Description ファイルを作成し、Parameters Read By External Tools に設定する方法が書かれています。 |
 | VRChat SDK のハードリミットを超えて、アップロードできない | VRChat SDK 3.8.1 以降は、シーン上のアバターがハードリミット（アバターの上限値）を超えていても、ビルドとアップロードを開始できます。公式では、VRChat SDK を最新版に更新することが推奨されています。 |
 | Android（Quest）で、ビルド前のチェックがアップロードを止める | 基本的な使い方のページが Android（Quest）向けのアップロードの件を挙げ、回避策は FAQ の「ビルド前のハードリミットチェック」の項を見るよう案内しています（FAQ に Android の項目はありません）。この記事では手順を省きます。 |
@@ -324,11 +324,11 @@ AAO の処理は、VRChat SDK の Control Panel では確かめにくいもの�
 
 ### TexTransTool・MMS
 
-TexTransTool（TTT）について、changelog の 1.8.0 に「Improve RemoveMeshByMask compability with Tex Trans Tool」（RemoveMeshByMask と TTT の互換性の改善）があります。changelog の表記は「Tex Trans Tool」です（この記事の地の文では、TexTransTool（TTT）と書きます）。TTT との併用の注意は、公式の資料には書かれていません。MMS（Meshia Mesh Simplification。展開は、この記事の補足です）との併用についても、公式の資料には書かれていません。どちらも、日本語版の公式ドキュメントと changelog を検索して確認しました。併用するときは、それぞれの公式の情報を確かめてください。
+TexTransTool（TTT）について、AAO の changelog の 1.8.0 に「Improve RemoveMeshByMask compability with Tex Trans Tool」（RemoveMeshByMask と TTT の互換性の改善）があります。changelog の表記は「Tex Trans Tool」です（この記事の地の文では、TexTransTool（TTT）と書きます）。TTT との併用の注意は、公式の資料には書かれていません。MMS（Meshia Mesh Simplification。展開は、この記事の補足です）との併用についても、公式の資料には書かれていません。どちらも、日本語版の公式ドキュメントの各ページと changelog を検索して確認しました。併用するときは、それぞれの公式の情報を確かめてください。
 
 ## AAO の機能一覧に、公式に記載なしの項目
 
-次の項目は、日本語版の公式ドキュメントと changelog を検索して、AAO による効果の記載が無いことを確かめました（公式に記載なし）。効果が無いという意味ではありません。パフォーマンスランクの項目としては残ります。
+次の項目は、日本語版の公式ドキュメントの各ページと changelog を検索して、AAO による効果の記載が無いことを確かめました（公式に記載なし）。効果が無いという意味ではありません。パフォーマンスランクの項目としては残ります。
 
 - コンストレイントの数、コンストレイントの深さ
 - ライトの数

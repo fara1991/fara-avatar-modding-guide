@@ -861,7 +861,7 @@
   url: https://ttt.rs64.net/
   category: unity-tool
   description: テクスチャのアトラス化や解像度の変更を、非破壊で行う
-  note: 条件つきで、アバターのテクスチャメモリーを減らせる（アトラス化の出力をそのまま使うと、かえって増えることがある）。詳しくは「軽量化に使う 5 つのツールと早見表」。
+  note: 条件つきで、アバターのテクスチャメモリーとマテリアルスロットの数を減らせる（アトラス化の出力をそのまま使うと、テクスチャメモリーはかえって増えることがある）。詳しくは「軽量化に使う 5 つのツールと早見表」。
   status: current
 
 - id: lilavatarutils
@@ -877,5 +877,5 @@
   url: https://github.com/RamType0/Meshia.MeshSimplification
   category: unity-tool
   description: メッシュの三角ポリゴン数を減らす（簡略化する）
-  note: 減らせるのは三角ポリゴンの数。アバターで使うには Modular Avatar、ワールドで使うには NDMF が必要（公式のインストール手順）。
+  note: 減らせるのは三角ポリゴンの数。アバター改変で Meshia Cascading Avatar Mesh Simplifier も使うときは Modular Avatar、ワールド改変で使うときは NDMF が必要（公式のインストール手順）。
   status: current

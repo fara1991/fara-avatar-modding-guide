@@ -93,7 +93,7 @@ Meshia Mesh Simplification は、メッシュの三角ポリゴンの数を減�
 - **公式ページ**: https://ramtype0.github.io/Meshia.MeshSimplification/ （README: https://github.com/RamType0/Meshia.MeshSimplification ）
 - **減らせる主な項目**: 三角ポリゴンの数（目標の数を指定）
 - **注意**:
-  - 目標の三角ポリゴン数の既定値は 70,000 です（パッケージのソース）。
+  - Meshia Cascading Avatar Mesh Simplifier の目標の三角ポリゴン数の既定値は 70,000 です（パッケージのソース）。
   - プリセットは、パッケージのソースに次の値で入っています（公式ドキュメントの本文ではありません）。
     - PC-Poor-Medium-Good: 70,000
     - PC-Excellent: 32,000
