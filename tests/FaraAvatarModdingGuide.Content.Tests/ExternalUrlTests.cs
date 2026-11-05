@@ -81,6 +81,23 @@ public class ExternalUrlTests
     }
 
     [Fact]
+    public void Links_to_files_under_a_category_images_folder_point_to_existing_files()
+    {
+        // 画像を、元の大きさで開くリンクで包んだとき（[![alt](images/x.png)](/learn/<カテゴリ>/images/x.png)）の参照先
+        var found = 0;
+        foreach (var article in Load().Articles)
+        {
+            foreach (Match m in Regex.Matches(article.Html, @"<a\b[^>]*?\bhref=""/learn/([a-z0-9-]+)/images/([^""#?]+)"""))
+            {
+                found++;
+                var file = Path.Combine(Root, "Content", "learn", m.Groups[1].Value, "images", m.Groups[2].Value);
+                Assert.True(File.Exists(file), $"{article.Url}: {m.Groups[0].Value}");
+            }
+        }
+        Assert.True(found > 0, "画像へのリンクが 1 つも見つかりません（このテストが空振りしています）");
+    }
+
+    [Fact]
     public void Article_links_and_images_use_safe_schemes()
     {
         var checkedCount = 0;

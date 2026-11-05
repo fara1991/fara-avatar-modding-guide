@@ -8,7 +8,7 @@
 
 ## 特徴
 
-- **目次**: Blender / Unity / VRChat / 通しで作る の区切りごとに、上から順に読める（区切りは `Content/learn/sections.yml`）
+- **目次**: Blender / Unity / VRChat / 通しで作る / アバター軽量化 の区切りごとに、上から順に読める（区切りは `Content/learn/sections.yml`）
 - **1記事 = 1 URL**: 記事ごとにブックマーク・共有・検索エンジンからの到達ができる
 - **ショートカット連携**: 各記事に「この記事で使うキー」を表示し、一覧ページで逆引きできる
 - **Markdown で執筆**: `Content/` 以下にファイルを置くだけで記事を追加できる（コードの変更不要）
@@ -140,7 +140,7 @@ npm run layout-check   # site-production を配って計測（設定は layout-c
 fara-avatar-modding-guide/
 ├── Content/                  # 記事・データ（Markdown / YAML）。書き方は Content/README.md 参照
 │   ├── learn/
-│   │   ├── sections.yml      # 目次の大きな区切り（Blender / Unity / VRChat / 通しで作る）
+│   │   ├── sections.yml      # 目次の大きな区切り（Blender / Unity / VRChat / 通しで作る / アバター軽量化）
 │   │   ├── categories.yml    # ロードマップの段階と並び順（section で区切りを指定）
 │   │   └── <category>/NN-slug.md
 │   ├── tips/                 # 用語集・何て名前？・TIPS・改変 Q&A
@@ -192,7 +192,7 @@ fara-avatar-modding-guide/
 | `/addons` | おすすめアドオン |
 | `/changelog` `/search` `/report` `/privacy` | 更新履歴・検索・作者への報告（Turnstile 付き。送信元ごと・1 日 3 回まで）・プライバシーポリシー |
 
-旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へ 301 で転送されます（`_redirects`）。静的 HTML は 76 本、存在しないパスは `404.html`（404 のステータス）です。
+旧 URL（`/operations`, `/avatar-clothing`, `/plugins`）は新 URL へ 301 で転送されます（`_redirects`）。静的 HTML は全ページ分、存在しないパスは `404.html`（404 のステータス）です。
 
 各記事の「このページを『読んだ』にする」で、読み終えたページを記録できます（ログインなし。ブラウザの localStorage の `avatar-modding-guide.progress` に保存。移行前と同じキー）。目次・カテゴリ・サイドバー・ホームに完了の印と件数が出ます。
 
@@ -232,7 +232,7 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 3. 本文を Markdown で書く（`::: tip` / `::: warning` ブロック、操作のチュートリアルを埋め込む `::: practice <名前>` が使える）
 
 詳しくは [Content/README.md](Content/README.md) を参照してください。
-新しいカテゴリを追加するときは `Content/learn/categories.yml` に追記し（`section` で Blender / Unity / VRChat / 通しで作る のどこに入るかを指定）、同名のディレクトリを作ります。区切り自体は `Content/learn/sections.yml` です。
+新しいカテゴリを追加するときは `Content/learn/categories.yml` に追記し（`section` で Blender / Unity / VRChat / 通しで作る / アバター軽量化 のどこに入るかを指定）、同名のディレクトリを作ります。区切り自体は `Content/learn/sections.yml` です。
 
 ## デプロイ（Cloudflare）
 
@@ -276,7 +276,7 @@ Durable Object「Room」（SQLite 版。WebSocket Hibernation）
 
 ### 仕組み
 
-- `dotnet publish` が WebAssembly のアプリ一式（`_framework/`・`index.html`・css・js）を作り、Build が `Content/` の記事から本文入りの静的 HTML（76 本）・`404.html`・`data/*.json`・`search-index.json`・`robots.txt`・`sitemap.xml`（本番のみ）・`_headers`（CSP。確認用は `X-Robots-Tag: noindex`）・`_redirects`（旧 URL の 301）を書き足します。ルートの `wwwroot/images/` と `Content/learn/**/images/` もコピーされます。
+- `dotnet publish` が WebAssembly のアプリ一式（`_framework/`・`index.html`・css・js）を作り、Build が `Content/` の記事から本文入りの静的 HTML（全ページ分）・`404.html`・`data/*.json`・`search-index.json`・`robots.txt`・`sitemap.xml`（本番のみ）・`_headers`（CSP。確認用は `X-Robots-Tag: noindex`）・`_redirects`（旧 URL の 301）を書き足します。ルートの `wwwroot/images/` と `Content/learn/**/images/` もコピーされます。
 - 静的 HTML は読み込み前でも本文が読める（JavaScript が無くても読める）ようにしたもので、WebAssembly が起動すると同じ DOM・同じ class のまま引き継ぎます（起動の前後の差は 0px。`tools/verify/boot-diff.mjs`）。
 - すべてのリクエストが Worker を通るので（`run_worker_first = true`）、静的ファイルの配信も Workers のリクエスト数に数えられます（無料プランは 1 日 10 万リクエスト）。
 - 記事を追加したら、develop に push するだけで確認用に反映されます。

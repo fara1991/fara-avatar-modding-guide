@@ -507,6 +507,7 @@ html[data-bs-theme] body {
 
 /* 画像の直後の斜体1行をキャプションとして扱う: ![alt](images/x.png) の次の行に *説明* */
 .article-body p > img + em,
+.article-body p > a:has(> img) + em,
 .article-body p > em:only-child {
     display: block;
     font-size: 0.875rem;
@@ -614,10 +615,25 @@ kbd {
     }
 }
 
+/* 本文のリンクは、長い URL がそのまま文字として出ていても、幅に収まらないときだけ折り返す（折り返せないと、ページ全体が横に動く） */
+.article-body a:not(.btn) {
+    overflow-wrap: anywhere;
+}
+
+/* 段落・箇条書きの中に、スペースのない長い英字（ファイルのパスなど）があっても、幅に収まらないときだけ折り返す（折り返せないと、ページ全体が横に動く。360px で 591px まで広がっていた） */
+.article-body :is(p, li) {
+    overflow-wrap: break-word;
+}
+
 /* 記事のコードブロックは、画面より長い行を箱の中で横に送る（箱から出すとページ全体が横に動く） */
 .article-body pre {
     max-width: 100%;
     overflow-x: auto;
+}
+
+/* 「このページを読んだにする」ボタンは、押す主要な操作なので、押せる範囲を 44px にする（スマホは .btn の規則でも 44px。PC・タブレットでも 38px にならないよう、幅によらず効かせる） */
+.btn.btn-progress {
+    min-height: 44px;
 }
 
 /* ---------- 記事内の目次・キー一覧（右の列） ---------- */

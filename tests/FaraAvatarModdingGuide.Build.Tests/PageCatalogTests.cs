@@ -15,13 +15,13 @@ public class PageCatalogTests
     private static readonly IReadOnlyList<PagePlan> Pages = PageCatalog.Build(Site, Settings);
 
     [Fact]
-    public void There_are_76_pages_with_unique_kit_compatible_paths()
+    public void Pages_are_fixed_categories_and_articles_with_unique_kit_compatible_paths()
     {
-        Assert.Equal(76, Pages.Count);                                   // 固定 16 + カテゴリ 10 + 記事 50
+        Assert.Equal(16 + Site.Categories.Count + Site.Articles.Count, Pages.Count);   // 固定 16 + カテゴリ + 記事
         Assert.Equal(Pages.Count, Pages.Select(p => p.Path).Distinct().Count());
         Assert.All(Pages, p => Assert.Matches("^/(?:[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)*)?$", p.Path));   // kit の path の規則
-        Assert.Equal(50, Pages.Count(p => Regex.IsMatch(p.Path, "^/learn/[^/]+/[^/]+$")));
-        Assert.Equal(10, Pages.Count(p => Regex.IsMatch(p.Path, "^/learn/[^/]+$")));
+        Assert.Equal(Site.Articles.Count, Pages.Count(p => Regex.IsMatch(p.Path, "^/learn/[^/]+/[^/]+$")));
+        Assert.Equal(Site.Categories.Count, Pages.Count(p => Regex.IsMatch(p.Path, "^/learn/[^/]+$")));
     }
 
     [Fact]
@@ -62,9 +62,9 @@ public class PageCatalogTests
     }
 
     [Fact]
-    public void Only_the_fifty_articles_are_og_type_article()
+    public void Only_the_articles_are_og_type_article()
     {
-        Assert.Equal(50, Pages.Count(p => p.OgType == PageCatalog.OgArticle));
+        Assert.Equal(Site.Articles.Count, Pages.Count(p => p.OgType == PageCatalog.OgArticle));
         Assert.All(Pages, p => Assert.Equal(Regex.IsMatch(p.Path, "^/learn/[^/]+/[^/]+$") ? "article" : "website", p.OgType));
     }
 

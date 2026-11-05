@@ -3,7 +3,7 @@ title: アバターを軽くする（Avatar Optimizer）
 reading: あばたーをかるくするあばたーおぷてぃまいざー
 description: パフォーマンスランクとファイルサイズを改善する手順です。使わないものを外す、テクスチャを小さくする、PhysBone をまとめる、Avatar Optimizer（AAO）でアップロード時に自動で軽くする、軽い版を用意する。
 difficulty: 中級
-updated: 2026-10-11
+updated: 2026-11-06
 ---
 
 ## 進め方
@@ -51,6 +51,10 @@ PhysBone の項目の意味は [PhysBone と Contact](/learn/vrchat-features/phy
 ## 4. Avatar Optimizer（AAO）で自動で軽くする
 
 **Avatar Optimizer**（AAO）は、アップロードのとき（ビルドの途中）に、アバターを自動で軽くするツールです。元のシーンやデータは変わらないので、外せばいつでも元に戻ります。Modular Avatar と同じ NDMF という仕組みで動きます（[用語集: NDMF](/glossary#ndmf)）。
+
+::: tip
+AAO の入れ方（公式は ALCOM を推奨していて、VCC では正しく動かないことがあると書いています。この記事の「入れる」の手順は VCC の例です）、オプションごとの詳しい説明、うまくいかないときは、[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer) にまとめています。
+:::
 
 ### 入れる
 

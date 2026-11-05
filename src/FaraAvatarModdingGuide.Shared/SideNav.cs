@@ -21,11 +21,15 @@ public sealed record SideGroup(string? Title, IReadOnlyList<SideItem> Items);
 /// 静的 HTML（Build の StaticFrame）と WebAssembly の画面（Web の AvSideNav）が、この 1 か所から作る
 /// （2 か所に書くと、起動の前後で項目・強調が食い違う）。区切り（Blender・Unity・VRChat…）とカテゴリは content.json から作る。
 /// 記事のカテゴリは、「記事をよむ」ではなく、区切りごとの開閉の中に出す（「記事をよむ」は目次のページだけ強調）。
+/// 作業の手順書の区切り（MakeSectionIds。アバター軽量化）は、「学ぶ」ではなく、その次の「つくる」に出す。
 /// </summary>
 public static class SideNav
 {
     /// <summary>「はじめかた」のカテゴリ（Blender の区切りの先頭にあるが、サイドバーでは独立した項目にする）。</summary>
     public const string GettingStartedId = "getting-started";
+
+    /// <summary>「学ぶ」ではなく「つくる」に出す区切り（作業の手順書。アバター軽量化）。</summary>
+    public static readonly IReadOnlyList<string> MakeSectionIds = ["optimize"];
 
     public static IReadOnlyList<SideGroup> Build(SiteContent? content)
     {
@@ -33,6 +37,7 @@ public static class SideNav
         {
             new("記事をよむ", "MenuBook", "/learn", ["/learn"], Exact: true),
         };
+        var make = new List<SideItem>();
 
         if (content is not null)
         {
@@ -47,14 +52,14 @@ public static class SideNav
                         ProgressIds: content.ArticlesOf(c.Id).Select(a => a.Id).ToList()))
                     .ToList();
                 var ids = categories.SelectMany(c => content.ArticlesOf(c.Id)).Select(a => a.Id).ToList();
-                learn.Add(new SideItem(section.Title, section.Icon, ProgressIds: ids, Children: children));
+                (MakeSectionIds.Contains(section.Id) ? make : learn).Add(new SideItem(section.Title, section.Icon, ProgressIds: ids, Children: children));
             }
         }
 
         learn.Add(new("困ったとき", "HelpOutline", "/howto", ["/howto", "/tips", "/qa"]));
 
-        return
-        [
+        var groups = new List<SideGroup>
+        {
             new(null,
             [
                 new("ホーム", "Home", "/", ["/"], Exact: true),
@@ -62,6 +67,13 @@ public static class SideNav
                     ProgressIds: content?.ArticlesOf(GettingStartedId).Select(a => a.Id).ToList()),
             ]),
             new("学ぶ", learn),
+        };
+
+        // 作業の手順書の区切り（アバター軽量化）は、「学ぶ」の次に「つくる」として出す
+        if (make.Count > 0) groups.Add(new SideGroup("つくる", make));
+
+        groups.AddRange(
+        [
             new("練習",
             [
                 new("操作の練習", "SportsEsports", "/practice", ["/practice"], Exact: true),
@@ -81,7 +93,8 @@ public static class SideNav
                 new("問い合わせ", "MailOutline", "/report", ["/report"]),
                 new("プライバシーポリシー", "PrivacyTip", "/privacy", ["/privacy"]),
             ]),
-        ];
+        ]);
+        return groups;
     }
 
     /// <summary>

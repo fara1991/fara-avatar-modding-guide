@@ -34,14 +34,14 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
             expected.Add(path + ".html");
 
         foreach (var file in expected) Assert.True(File.Exists(Path.Combine(fx.Production, file)), file + " がありません");
-        // 静的 HTML は、固定ページ 16 + カテゴリ 10 + 記事 50 = 76 本と 404.html
-        Assert.Equal(77, Directory.EnumerateFiles(fx.Production, "*.html", SearchOption.AllDirectories).Count(f => !f.Contains(Path.DirectorySeparatorChar + "images" + Path.DirectorySeparatorChar)));
+        // 静的 HTML は、固定ページ 16 + カテゴリ + 記事 と 404.html
+        Assert.Equal(16 + content.Categories.Count + content.Articles.Count + 1, Directory.EnumerateFiles(fx.Production, "*.html", SearchOption.AllDirectories).Count(f => !f.Contains(Path.DirectorySeparatorChar + "images" + Path.DirectorySeparatorChar)));
     }
 
     [NodeFact]
     public void Only_wasm_pages_keep_the_loader_and_the_blazor_script()
     {
-        // フェーズ 3 で、練習の 3 ページも WebAssembly になった。今は、全 76 ページと 404.html が、読み込み表示と Blazor のスクリプトを持つ
+        // フェーズ 3 で、練習の 3 ページも WebAssembly になった。今は、全ページと 404.html が、読み込み表示と Blazor のスクリプトを持つ
         foreach (var path in PageCatalog.WasmPaths.Concat(new[] { "/learn/basics", "/learn/basics/select" }))
         {
             var html = Read(fx.Production, SiteBuilder.FileFor(path));
@@ -123,8 +123,8 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
     public void Data_files_are_valid_json_with_all_articles_and_a_normalised_search_index()
     {
         var content = JsonDocument.Parse(Read(fx.Production, "data/content.json")).RootElement;
-        Assert.Equal(50, content.GetProperty("articles").GetArrayLength());
-        Assert.Equal(10, content.GetProperty("categories").GetArrayLength());
+        Assert.Equal(fx.Content.Articles.Count, content.GetProperty("articles").GetArrayLength());
+        Assert.Equal(fx.Content.Categories.Count, content.GetProperty("categories").GetArrayLength());
         var first = content.GetProperty("articles")[0];
         Assert.StartsWith("/learn/", first.GetProperty("url").GetString());
         Assert.False(string.IsNullOrEmpty(first.GetProperty("html").GetString()));
@@ -157,7 +157,7 @@ public class SiteBuilderTests(BuildFixture fx) : IClassFixture<BuildFixture>
     public void Images_and_videos_are_copied_like_the_ssr_export()
     {
         var learnImages = Directory.EnumerateFiles(Path.Combine(Repo.Root, "Content", "learn"), "*", SearchOption.AllDirectories).Where(SiteBuilder.IsMedia).ToList();
-        Assert.Equal(51, learnImages.Count);                              // 計画書 1.1: 記事の画像は 51 枚
+        Assert.True(learnImages.Count >= 51);                             // 計画書 1.1: 移行した記事の画像 51 枚以上（記事を足すと増える）
         foreach (var image in learnImages)
         {
             var target = Path.Combine(fx.Production, "learn", Path.GetRelativePath(Path.Combine(Repo.Root, "Content", "learn"), image));

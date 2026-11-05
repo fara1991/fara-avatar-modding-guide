@@ -26,7 +26,7 @@ public sealed record BuildOptions(
 
 /// <summary>
 /// 公開用の静的ファイル一式を作る（計画書 3.3）。出力先は dotnet publish の wwwroot で、そこに書き足す（既存のファイルは消さない）。
-///   本文入りの静的 HTML（76 本）・404.html・robots.txt・sitemap.xml（本番）・_headers・_redirects … kit の build/build-pages.mjs が書く
+///   本文入りの静的 HTML（全ページ分）・404.html・robots.txt・sitemap.xml（本番）・_headers・_redirects … kit の build/build-pages.mjs が書く
 ///   data/content.json・data/search.json・data/site.json、search-index.json、画像・動画 … ここで書く
 /// </summary>
 public static class SiteBuilder

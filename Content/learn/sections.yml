@@ -20,3 +20,8 @@
   title: 通しで作る
   description: Blender → Unity → VRChat の流れを、アバター用の衣装づくりで通して行う。
   icon: bi-signpost-split
+
+- id: optimize
+  title: アバター軽量化
+  description: VRChat の「パフォーマンスの内訳」の見方、軽量化に使うツールの一覧、Avatar Optimizer の使い方を説明する。
+  icon: bi-tools

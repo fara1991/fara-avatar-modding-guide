@@ -855,3 +855,27 @@
   category: booth-outfit
   description: MatCap を多用しており、MToon（VRM）への変換が難しかった例
   source: discord
+
+- id: textranstool
+  name: TexTransTool (TTT)
+  url: https://ttt.rs64.net/
+  category: unity-tool
+  description: テクスチャのアトラス化や解像度の変更を、非破壊で行う
+  note: 条件つきで、アバターのテクスチャメモリーとマテリアルスロットの数を減らせる（アトラス化の出力をそのまま使うと、テクスチャメモリーはかえって増えることがある）。詳しくは「軽量化に使う 5 つのツールと早見表」。
+  status: current
+
+- id: lilavatarutils
+  name: lilAvatarUtils
+  url: https://github.com/lilxyzw/lilAvatarUtils
+  category: unity-tool
+  description: アバターが使っているテクスチャ・マテリアル・レンダラー・PhysBone などを一覧で調べ、テクスチャのインポート設定の見直しを助ける
+  note: 分析に便利。ツールタブの整理機能は、アセットを変更する操作なので、使う前にバックアップを取る。
+  status: current
+
+- id: meshia-mesh-simplification
+  name: Meshia Mesh Simplification (MMS)
+  url: https://github.com/RamType0/Meshia.MeshSimplification
+  category: unity-tool
+  description: メッシュの三角ポリゴン数を減らす（簡略化する）
+  note: 減らせるのは三角ポリゴンの数。アバター改変で Meshia Cascading Avatar Mesh Simplifier も使うときは Modular Avatar、ワールド改変で MMS を使うときは NDMF が必要（公式のインストール手順）。
+  status: current

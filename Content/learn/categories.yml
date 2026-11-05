@@ -87,3 +87,20 @@
   en: Clothing Creation
   description: VRChat などで使うアバターの衣装を、インポートから Unity での設定まで通して作る。
   icon: bi-person-standing-dress
+
+- id: optimize-basics
+  section: optimize
+  title: 軽量化の基本
+  reading: けいりょうかのきほん
+  en: Optimization Basics
+  description: パフォーマンスの内訳の画面の見方と、軽量化に使う 5 つのツール（Modular Avatar など）でできること。
+  icon: bi-search
+
+- id: optimize-aao
+  section: optimize
+  title: Avatar Optimizer の使い方
+  nav_title: Avatar Optimizer
+  reading: あばたーおぷてぃまいざーのつかいかた
+  en: Avatar Optimizer
+  description: Avatar Optimizer（AAO）でできること、入れ方、使い方、うまくいかないとき。
+  icon: bi-puzzle
