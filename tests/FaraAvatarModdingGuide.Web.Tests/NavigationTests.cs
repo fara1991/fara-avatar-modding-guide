@@ -37,7 +37,7 @@ public class NavigationTests
     public void Every_page_the_build_hands_to_wasm_is_a_web_route_and_every_other_is_not()
     {
         var pages = PageCatalog.Build(TestData.Content, TestData.Settings);
-        Assert.Equal(76, pages.Count);
+        Assert.Equal(16 + TestData.Content.Categories.Count + TestData.Content.Articles.Count, pages.Count);
         foreach (var page in pages)
         {
             Assert.Equal(page.Wasm, PageRoutes.IsWasmPage(page.Path, TestData.Content));                  // Web の判定 = Build の判定
@@ -45,7 +45,7 @@ public class NavigationTests
         }
         // フェーズ 3 で、練習の 3 ページも WebAssembly になった。静的 HTML のままのページは無い
         Assert.DoesNotContain(pages, p => !p.Wasm);
-        Assert.Equal(50, pages.Count(p => p.Path.Count(c => c == '/') == 3 && p.Wasm));                    // 記事 50 件
+        Assert.Equal(TestData.Content.Articles.Count, pages.Count(p => p.Path.Count(c => c == '/') == 3 && p.Wasm));   // 記事の数
     }
 
     [Theory]
@@ -113,6 +113,22 @@ public class NavigationTests
         // 記事のあるカテゴリは、区切りの開閉の中（はじめかたは独立した項目）に全部ある
         foreach (var category in TestData.Content.Categories.Where(c => TestData.Content.ArticlesOf(c.Id).Count > 0))
             Assert.Contains($"/learn/{category.Id}", reachable);
+    }
+
+    [Fact]
+    public void Make_sections_are_listed_in_their_own_group_after_learn_not_in_learn()
+    {
+        var groups = SideNav.Build(TestData.Content);
+        var titles = groups.Select(g => g.Title).ToList();
+        Assert.True(titles.IndexOf("学ぶ") < titles.IndexOf("つくる") && titles.IndexOf("つくる") < titles.IndexOf("練習"));
+        var make = groups.Single(g => g.Title == "つくる");
+        var learn = groups.Single(g => g.Title == "学ぶ");
+        foreach (var id in SideNav.MakeSectionIds)
+        {
+            var section = TestData.Content.Sections.Single(s => s.Id == id);
+            Assert.Contains(make.Items, i => i.IsFold && i.Label == section.Title);
+            Assert.DoesNotContain(learn.Items, i => i.Label == section.Title);
+        }
     }
 
     [Fact]

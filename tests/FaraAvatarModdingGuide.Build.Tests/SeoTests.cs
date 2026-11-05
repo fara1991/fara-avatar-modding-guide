@@ -5,7 +5,7 @@ using Xunit;
 namespace FaraAvatarModdingGuide.Build.Tests;
 
 /// <summary>
-/// SEO の最終形（計画書 5 の Phase 4・13）: sitemap.xml・robots.txt・全 76 ページの head（title・description・canonical・OGP・noindex）。
+/// SEO の最終形（計画書 5 の Phase 4・13）: sitemap.xml・robots.txt・全ページの head（title・description・canonical・OGP・noindex）。
 /// kit の build-pages.mjs を実際に通した出力（本番用・確認用・OGP 画像あり）を検査する。
 /// </summary>
 public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
@@ -13,8 +13,11 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
     private const string Origin = "https://avatar.fara-labs.com";
     private const string DevOrigin = "https://avatar-preview.fara-labs.com";
 
+    private static readonly FaraAvatarModdingGuide.Models.SiteContent Site =
+        SiteContentFactory.From(new FaraAvatarModdingGuide.Data.ContentService(Path.Combine(Repo.Root, "Content")));
+
     private static readonly IReadOnlyList<PagePlan> Pages = PageCatalog.Build(
-        SiteContentFactory.From(new FaraAvatarModdingGuide.Data.ContentService(Path.Combine(Repo.Root, "Content"))),
+        Site,
         SiteSettingsLoader.Load(Path.Combine(Repo.Root, "appsettings.json"), "avatar-dev.fara-labs.com"));
 
     private static string Read(string dir, string relative) => File.ReadAllText(Path.Combine(dir, relative.Replace('/', Path.DirectorySeparatorChar)));
@@ -33,11 +36,11 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
     private static readonly string[] OldUrls = ["/operations", "/avatar-clothing", "/plugins"];
 
     [NodeFact]
-    public void Sitemap_lists_exactly_the_74_indexable_pages_on_the_production_origin()
+    public void Sitemap_lists_exactly_the_indexable_pages_on_the_production_origin()
     {
         var locs = Regex.Matches(Read(fx.Production, "sitemap.xml"), "<loc>([^<]+)</loc>").Select(m => m.Groups[1].Value).ToList();
         var expected = Pages.Where(p => !p.NoIndex).Select(p => Origin + p.Path).Order().ToList();
-        Assert.Equal(74, expected.Count);                                // 固定 14（問い合わせ・検索を除く）+ カテゴリ 10 + 記事 50
+        Assert.Equal(14 + Site.Categories.Count + Site.Articles.Count, expected.Count);   // 固定 14（問い合わせ・検索を除く）+ カテゴリ + 記事
         Assert.Equal(expected, locs.Order().ToList());
         Assert.Equal(locs.Count, locs.Distinct().Count());
         Assert.All(locs, loc => Assert.DoesNotContain("?", loc));
@@ -45,7 +48,7 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
         foreach (var path in new[] { "/practice", "/practice/unity", "/practice/room", "/privacy", "/learn" }) Assert.Contains(Origin + path, locs);
         Assert.Contains(Origin + "/", locs);
         foreach (var path in new[] { "/report", "/search", "/404", "/404.html", "/search-index.json" }.Concat(OldUrls)) Assert.DoesNotContain(Origin + path, locs);
-        Assert.Equal(50, locs.Count(l => l.StartsWith(Origin + "/learn/", StringComparison.Ordinal) && l.Split('/').Length == 6));
+        Assert.Equal(Site.Articles.Count, locs.Count(l => l.StartsWith(Origin + "/learn/", StringComparison.Ordinal) && l.Split('/').Length == 6));
         Assert.EndsWith("\n", Read(fx.Production, "sitemap.xml"));
     }
 
@@ -77,7 +80,7 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
     [NodeFact]
     public void Every_page_has_one_title_description_and_canonical_and_complete_open_graph_with_one_image()
     {
-        Assert.Equal(76, Pages.Count);
+        Assert.Equal(16 + Site.Categories.Count + Site.Articles.Count, Pages.Count);
         foreach (var page in Pages)
         {
             var head = Head(fx.Production, page.Path);
@@ -103,16 +106,16 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
             Assert.DoesNotContain("hreflang", head);
             Assert.DoesNotContain("application/ld+json", head);
         }
-        Assert.Equal(50, Pages.Count(p => Head(fx.Production, p.Path).Contains("content=\"article\"", StringComparison.Ordinal)));
+        Assert.Equal(Site.Articles.Count, Pages.Count(p => Head(fx.Production, p.Path).Contains("content=\"article\"", StringComparison.Ordinal)));
     }
 
     [NodeFact]
     public void Titles_and_descriptions_are_unique_across_the_site_and_404_is_noindex()
     {
         var titles = Pages.Select(p => Meta(Head(fx.Production, p.Path), "<title>(.*?)</title>")).ToList();
-        Assert.Equal(76, titles.Distinct().Count());
+        Assert.Equal(Pages.Count, titles.Distinct().Count());
         var descriptions = Pages.Select(p => Meta(Head(fx.Production, p.Path), @"<meta name=""description"" content=""([^""]*)""")).ToList();
-        Assert.Equal(76, descriptions.Distinct().Count());
+        Assert.Equal(Pages.Count, descriptions.Distinct().Count());
         var notFound = Read(fx.Production, "404.html");
         Assert.Contains("<meta name=\"robots\" content=\"noindex\"", notFound);
         Assert.DoesNotContain("rel=\"canonical\"", notFound);
@@ -134,7 +137,7 @@ public class SeoTests(BuildFixture fx) : IClassFixture<BuildFixture>
     {
         // js/head-sync.js が、アプリ内の移動のあとに head を合わせる元の表。静的 HTML の head と同じ値でなければならない
         var map = System.Text.Json.JsonDocument.Parse(Read(fx.Production, "data/pages.json")).RootElement;
-        Assert.Equal(76, map.EnumerateObject().Count());
+        Assert.Equal(Pages.Count, map.EnumerateObject().Count());
         foreach (var page in Pages)
         {
             var entry = map.GetProperty(page.Path);

@@ -29,6 +29,13 @@ public class MobileCssTests
     }
 
     [Fact]
+    public void Article_links_wrap_so_a_long_url_does_not_widen_the_page()
+    {
+        // 本文のリンクに長い URL がそのまま文字として出ていても、ページ全体が横に動かない（360px で 455px まで広がった）
+        Assert.Matches(@"\.article-body a\s*\{\s*overflow-wrap:\s*anywhere;\s*\}", AppCss);
+    }
+
+    [Fact]
     public void Header_menu_toggle_is_44px_on_pc_too()
     {
         // サイドバーの開閉ボタンは、PC でもヘッダーの常設の操作（768〜1024px は別の規則で押せる範囲を広げている）

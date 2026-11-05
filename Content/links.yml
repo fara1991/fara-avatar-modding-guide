@@ -855,3 +855,27 @@
   category: booth-outfit
   description: MatCap を多用しており、MToon（VRM）への変換が難しかった例
   source: discord
+
+- id: textranstool
+  name: TexTransTool (TTT)
+  url: https://ttt.rs64.net/
+  category: unity-tool
+  description: テクスチャのアトラス化や解像度の変更を、非破壊で行う
+  note: アバターのテクスチャメモリー（VRAM）を減らすときに使う。マテリアルスロットは減らさない。
+  status: current
+
+- id: lilavatarutils
+  name: lilAvatarUtils
+  url: https://github.com/lilxyzw/lilAvatarUtils
+  category: unity-tool
+  description: アバターが使っているテクスチャ・メッシュ・マテリアルなどを一覧で調べ、テクスチャの圧縮や未使用のものの削除を行う
+  note: 分析に便利。元のアセットを書き換えるかどうかは公式に明記がないため、バックアップを取ってから使う。
+  status: current
+
+- id: meshia-mesh-simplification
+  name: Meshia Mesh Simplification (MMS)
+  url: https://github.com/RamType0/Meshia.MeshSimplification
+  category: unity-tool
+  description: メッシュの三角ポリゴン数を減らす（簡略化する）
+  note: 減らせるのは三角ポリゴンの数。アバターで使うには Modular Avatar が必要。
+  status: current

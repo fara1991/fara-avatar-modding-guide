@@ -123,9 +123,9 @@ public class PageDomParityTests : WebTestContext
     }
 
     [Fact]
-    public void All_fifty_articles_have_the_same_dom_as_the_static_pages()
+    public void All_articles_have_the_same_dom_as_the_static_pages()
     {
-        Assert.Equal(50, TestData.Content.Articles.Count);
+        Assert.True(TestData.Content.Articles.Count >= 50);   // 移行した記事 50 件以上（記事を足すと増える）
         foreach (var article in TestData.Content.Articles)
             AssertSame(article.Url, Page<ArticlePage>(article.Url, p => p.Add(x => x.CategoryId, article.Category).Add(x => x.Slug, article.Slug)));
     }

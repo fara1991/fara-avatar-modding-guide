@@ -25,9 +25,9 @@ public class ContentLoadTests
     {
         var content = Load();
         var files = Directory.EnumerateFiles(Path.Combine(ContentDir, "learn"), "*.md", SearchOption.AllDirectories).ToList();
-        Assert.Equal(50, files.Count);                      // 計画書 1.1: 記事は 50 件
+        Assert.True(files.Count >= 50);                     // 計画書 1.1: 移行した記事 50 件以上（記事を足すと増える）
         Assert.Equal(files.Count, content.Articles.Count);
-        Assert.Equal(10, content.Categories.Count);
+        Assert.True(content.Categories.Count >= 10);
         Assert.Equal(content.Articles.Count, content.Articles.Select(a => a.Url).Distinct().Count());
         Assert.All(content.Articles, a => Assert.Matches(@"^/learn/[a-z0-9-]+/[a-z0-9-]+$", a.Url));
         Assert.All(content.Articles, a => Assert.False(string.IsNullOrWhiteSpace(a.Html)));
