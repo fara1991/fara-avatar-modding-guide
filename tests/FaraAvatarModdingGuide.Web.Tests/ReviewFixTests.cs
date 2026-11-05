@@ -60,7 +60,7 @@ public class FilterFallbackTests : WebTestContext
     }
 }
 
-public class UnknownUrlHeaderTests : WebTestContext
+public class UnknownUrlSidebarTests : WebTestContext
 {
     [Theory]
     [InlineData("/learn/basics/no-such-article")]
@@ -68,9 +68,9 @@ public class UnknownUrlHeaderTests : WebTestContext
     public void Nothing_is_active_for_unknown_content_urls(string path)
     {
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost" + path);
-        var cut = Render<AvTopNav>();
+        var cut = Render<AvSideNav>();
         Assert.Empty(cut.FindAll("a[aria-current='page']"));
-        Assert.Empty(cut.FindAll("[data-active]"));
+        Assert.Empty(cut.FindAll("details[open]"));
     }
 }
 

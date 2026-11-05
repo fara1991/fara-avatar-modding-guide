@@ -878,7 +878,7 @@ h1:focus {
    MudBlazor の CSS の変数(--mud-*)は、起動の後に MudThemeProvider が入れるものなので、起動の前は無い。ここで同じ値を持つ(値は kit の SiteTheme と同じ。Web.Tests が確かめる)。 */
 .av-static {
     --mud-appbar-height: 56px;
-    --mud-drawer-width-left: 230px;
+    --mud-drawer-width-left: 264px;
     --mud-drawer-width-mini-left: 56px;
     --mud-zindex-drawer: 1100;
     --mud-zindex-appbar: 1300;
@@ -934,7 +934,7 @@ h1:focus {
 }
 
 @media (max-width: 767.98px) {
-    /* スマホ: ヘッダーの各リンクは出さず(起動の後は、ハンバーガーの中)、ヘッダーは検索ボタン、ページ全体がスクロールし、フッターは貼り付けない */
+    /* スマホ: ヘッダーは、ハンバーガー・名前・検索ボタン、ページ全体がスクロールし、フッターは貼り付けない */
     .av-static .av-pc {
         display: none;
     }
@@ -2021,193 +2021,184 @@ label,
     }
 }
 
-/* ---------- 上のヘッダーのリンク（サイドバーは無い。Web の AvTopNav と、Build の StaticFrame.TopNav が同じ構造）---------- */
-/* kit の .fbc-topnav-bar は横スクロールのために overflow-x: auto。「もっと見る」のポップアップを切らないよう、見えるままにする */
-.fbc-header .fbc-topnav-bar {
-    flex: 0 0 auto;
-    overflow: visible;
-}
-
-.av-topnav {
+/* ---------- 左のサイドバー（F 案）。Web の AvSideNav・SideLink と、Build の StaticFrame.Sidebar が同じ構造・同じ class。
+   背景と文字の色は kit の .fbc-sidebar（--fbc-sidebar-bg・--fbc-sidebar-text）。どちらのテーマでも濃い地 ---------- */
+.av-side {
     display: flex;
-    align-items: center;
-    min-width: 0;
-}
-
-.av-topnav-links {
-    display: flex;
-    align-items: center;
-    gap: 0.15rem;
-}
-
-/* ヘッダー（高さ 56px）の中で、押せる範囲を 44px にする（リンク・「もっと見る」・「メニュー」） */
-.fbc-header .fbc-topnav-link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-}
-
-/* 開閉の見出し（details の summary）。標準の三角は消す。リンクと同じ見た目 */
-.av-more,
-.av-menu {
-    position: relative;
-}
-
-.av-more > summary,
-.av-menu > summary {
-    display: inline-flex;
-    align-items: center;
+    flex-direction: column;
     gap: 0.25rem;
-    list-style: none;
-    cursor: pointer;
-    user-select: none;
+    padding: 0.5rem 0.5rem 1rem;
 }
 
-.av-more > summary::-webkit-details-marker,
-.av-menu > summary::-webkit-details-marker {
-    display: none;
-}
-
-.av-more > summary .av-icon,
-.av-menu > summary .av-icon {
-    width: 1.15em;
-    height: 1.15em;
-    vertical-align: middle;
-}
-
-.av-more[open] > summary .av-icon {
-    transform: rotate(180deg);
-}
-
-/* いまのページ（aria-current）・開いているメニュー・「もっと見る」の中がいまのページのとき */
-.fbc-header .fbc-topnav-link:hover,
-.fbc-header .fbc-topnav-link[aria-current="page"],
-.av-more[open] > summary,
-.av-menu[open] > summary,
-.av-more[data-active] > summary {
-    background: rgba(45, 212, 191, 0.18);
-    color: #fff;
-}
-
-.fbc-header .fbc-topnav-link[aria-current="page"],
-.av-more[data-active] > summary {
-    box-shadow: inset 0 -2px 0 #5eead4;
-}
-
-.fbc-header summary:focus-visible,
-.fbc-header .fbc-topnav-link:focus-visible,
-.av-pop :focus-visible,
-.fbc-topnav-drawer :focus-visible {
-    outline: 2px solid #fff;
-    outline-offset: -2px;
-}
-
-/* ポップアップ（どちらのテーマでも濃い地）と縦のメニューの項目 */
-.av-pop {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    z-index: 1500;
+.av-side-group {
     display: flex;
     flex-direction: column;
     gap: 0.1rem;
-    min-width: 15rem;
-    padding: 0.4rem;
-    background: #08181e;
-    border: 1px solid rgba(130, 215, 230, 0.22);
-    border-radius: 10px;
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
 }
 
-.av-menu > .av-pop {
-    left: 0;
-}
-
-.av-pop-link {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    min-height: 44px;
-    padding: 0.55rem 0.75rem;
-    border-radius: 6px;
-    color: #e3f0f2;
-    font-size: 0.92rem;
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.av-pop-link .av-icon {
-    width: 1.2rem;
-    height: 1.2rem;
-    color: #9db8bf;
-}
-
-.av-pop-link:hover {
-    background: rgba(45, 212, 191, 0.14);
-    color: #fff;
-}
-
-.av-pop-link[aria-current="page"] {
-    background: rgba(45, 212, 191, 0.2);
-    color: #b4f0f7;
-    font-weight: 700;
-}
-
-.av-nav-label {
-    padding: 0.6rem 0.75rem 0.2rem;
+/* 区切りの見出し（学ぶ・練習・参照・サポート） */
+.av-side-title {
+    padding: 0.85rem 0.75rem 0.25rem;
     color: #9db8bf;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.05em;
 }
 
-/* 幅ごとの見せ方: 横に並べる（1280px 以上。それより狭いと検索欄が縮んで案内文が切れる）／「メニュー」1 つ（768〜1279px）／ハンバーガーの中の縦（768px 未満。kit が TopNav をドロワーに入れる） */
-.av-menu,
-.av-nav-flat {
+/* 項目（リンクと、開閉の見出し）。押せる範囲は 44px */
+.av-side-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 44px;
+    padding: 0.4rem 0.75rem;
+    border-radius: 10px;
+    color: var(--fbc-sidebar-text);
+    font-size: 0.92rem;
+    text-decoration: none;
+}
+
+.av-side-link:hover {
+    background: rgba(45, 212, 191, 0.12);
+    color: #fff;
+}
+
+.av-side-link[aria-current="page"] {
+    background: rgba(45, 212, 191, 0.2);
+    color: #b4f0f7;
+    font-weight: 700;
+    box-shadow: inset 3px 0 0 #5eead4;
+}
+
+.av-side-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #9db8bf;
+}
+
+.av-side-link[aria-current="page"] .av-side-icon {
+    color: #b4f0f7;
+}
+
+.av-side-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* 読んだ記事の数（3/5）。右端に置く */
+.av-side-progress {
+    margin-left: auto;
+    flex: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.av-side-progress.is-complete {
+    background: rgba(74, 222, 128, 0.3);
+    color: #dcfce7;
+}
+
+/* 区切りの開閉（details）。標準の三角は消し、右の印を、開いたとき上向きにする */
+.av-side-summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+}
+
+.av-side-summary::-webkit-details-marker {
     display: none;
 }
 
-@media (min-width: 768px) and (max-width: 1279.98px) {
-    .av-topnav-links {
-        display: none;
+.av-side-chev {
+    flex: none;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: #9db8bf;
+}
+
+.av-side-fold[open] > .av-side-summary .av-side-chev {
+    transform: rotate(180deg);
+}
+
+/* 開閉の中（カテゴリ）。左に細い線を引いて、入れ子に見せる */
+.av-side-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin: 0.1rem 0 0.3rem 1.55rem;
+    padding-left: 0.4rem;
+    border-left: 1px solid rgba(130, 215, 230, 0.2);
+}
+
+.av-side-sublink {
+    min-height: 40px;
+    font-size: 0.88rem;
+    color: #bcd2d7;
+}
+
+/* キーボードのフォーカス。濃い地の上なので、白い枠 */
+.av-side :focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+}
+
+/* PC でサイドバーを細くしている間（Mini。マウスを乗せると広がる）は、アイコンだけにする。
+   起動の後は kit の MudDrawer の状態、起動の前（静的 HTML）は html.fbc-sidebar-hidden（kit が保存の値から先に付ける） */
+.fbc-sidebar.mud-drawer--closed:not(:hover) .av-side-label,
+.fbc-sidebar.mud-drawer-mini:not(.mud-drawer--open):not(:hover) .av-side-label,
+.fbc-sidebar.mud-drawer--closed:not(:hover) .av-side-progress,
+.fbc-sidebar.mud-drawer-mini:not(.mud-drawer--open):not(:hover) .av-side-progress,
+.fbc-sidebar.mud-drawer--closed:not(:hover) .av-side-chev,
+.fbc-sidebar.mud-drawer-mini:not(.mud-drawer--open):not(:hover) .av-side-chev,
+.fbc-sidebar.mud-drawer--closed:not(:hover) .av-side-title,
+.fbc-sidebar.mud-drawer-mini:not(.mud-drawer--open):not(:hover) .av-side-title,
+.fbc-sidebar.mud-drawer--closed:not(:hover) .av-side-sub,
+.fbc-sidebar.mud-drawer-mini:not(.mud-drawer--open):not(:hover) .av-side-sub,
+html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-label,
+html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-progress,
+html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-chev,
+html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-title,
+html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-sub {
+    display: none;
+}
+
+.fbc-sidebar.mud-drawer--closed:not(:hover) .av-side-link,
+.fbc-sidebar.mud-drawer-mini:not(.mud-drawer--open):not(:hover) .av-side-link,
+html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-link {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.fbc-sidebar.mud-drawer--closed:not(:hover) .av-side-group + .av-side-group,
+.fbc-sidebar.mud-drawer-mini:not(.mud-drawer--open):not(:hover) .av-side-group + .av-side-group,
+html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-group + .av-side-group {
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(130, 215, 230, 0.16);
+}
+
+/* 静的 HTML（起動の前）。PC は、左のサイドバーの分だけ本文を右に寄せる（隠している設定のときは、細い列の分）。
+   スマホは、サイドバーを出さない（起動の後も、閉じた一時的なメニュー）。JavaScript が無いスマホだけ、index.html の noscript が本文の後ろに出す */
+@media (min-width: 768px) {
+    .av-static .mud-main-content {
+        margin-left: var(--mud-drawer-width-left);
     }
 
-    .av-menu {
-        display: block;
+    html.fbc-sidebar-hidden .av-static .mud-main-content {
+        margin-left: var(--mud-drawer-width-mini-left);
+    }
+
+    html.fbc-sidebar-hidden .av-static .fbc-sidebar {
+        width: var(--mud-drawer-width-mini-left) !important;
     }
 }
 
 @media (max-width: 767.98px) {
-    .av-topnav-links {
+    .av-static .fbc-sidebar {
         display: none;
     }
-
-    .av-static .fbc-header .av-topnav {
-        display: none;
-    }
-}
-
-.fbc-topnav-drawer .av-nav-flat {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    width: 100%;
-}
-
-.fbc-topnav-drawer .av-pop-link,
-.av-nav-noscript .av-pop-link {
-    min-height: 44px;
-    color: var(--fbc-sidebar-text);
-}
-
-.fbc-topnav-drawer .av-pop-link[aria-current="page"],
-.av-nav-noscript .av-pop-link[aria-current="page"] {
-    color: #b4f0f7;
-}
-
-/* JavaScript が無いスマホの縦のメニュー（通常は出さない。index.html の noscript の CSS が出す） */
-.av-static .av-nav-noscript {
-    display: none;
 }
 
 /* ---------- ホーム（B 案: 分野別のカード）。Web の Home.razor / HomeCategoryCard.razor と、Build の PageBodies.Home が同じ構造 ---------- */

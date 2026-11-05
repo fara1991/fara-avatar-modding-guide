@@ -86,33 +86,35 @@ public class NavigationTests
         Assert.False(PageRoutes.ShouldReload("http://localhost/links", "http://localhost/", null));
     }
 
+    private static IEnumerable<SideItem> AllItems() =>
+        SideNav.Build(TestData.Content).SelectMany(g => g.Items).SelectMany(i => i.Children is null ? [i] : new[] { i }.Concat(i.Children));
+
     [Fact]
-    public void Every_header_link_points_to_an_existing_page()
+    public void Every_sidebar_link_points_to_an_existing_page()
     {
         var paths = PageCatalog.Build(TestData.Content, TestData.Settings).Select(p => p.Path).ToHashSet();
-        var links = HeaderNav.Main.Concat(HeaderNav.More).ToList();
-        foreach (var link in links) Assert.Contains(link.Href, paths);
+        var links = AllItems().Where(i => i.Href is not null).ToList();
+        foreach (var link in links) Assert.Contains(link.Href!, paths);
         Assert.Equal(links.Count, links.Select(l => l.Href).Distinct().Count());
-        Assert.All(HeaderNav.More, l => Assert.False(string.IsNullOrEmpty(IconMap.Get(l.Icon))));
+        Assert.All(AllItems(), i => Assert.False(string.IsNullOrEmpty(IconMap.Get(i.Icon)), i.Label));
+        Assert.All(AllItems().Where(i => i.IsFold), i => Assert.Null(i.Href));
     }
 
     [Fact]
-    public void Pages_the_sidebar_used_to_list_are_still_reachable()
+    public void Every_page_the_old_sidebar_and_header_listed_is_reachable_from_the_sidebar()
     {
-        // 旧サイドバーの項目: カテゴリ別の一覧・リファレンス・練習・サポート
-        var reachable = HeaderNav.Main.Concat(HeaderNav.More).Select(l => l.Href).ToHashSet();
-        foreach (var path in new[] { "/learn", "/shortcuts", "/glossary", "/howto", "/addons", "/links", "/changelog", "/practice", "/practice/room", "/report", "/privacy" })
+        var reachable = AllItems().Select(i => i.Href).ToHashSet();
+        foreach (var path in new[] { "/", "/learn", "/learn/getting-started", "/howto", "/practice", "/practice/unity", "/practice/room", "/glossary", "/shortcuts", "/addons", "/links", "/changelog", "/report", "/privacy" })
             Assert.Contains(path, reachable);
-        // ヘッダーに無い /tips・/qa・/practice/unity は、「困ったとき」「練習」の先のページ本文のリンクから行ける
+        // サイドバーに無い /tips・/qa は、「困ったとき」の先のページ本文のリンクから行ける
         var bodies = new PageBodies(TestData.Content, TestData.Settings);
         Assert.Contains("href=\"/tips\"", bodies.Howto());
         Assert.Contains("href=\"/qa\"", bodies.Howto());
-        Assert.Contains("href=\"/practice/unity\"", bodies.Practice());
-        // カテゴリ別の記事一覧は、「記事をよむ」（記事一覧のページ）に全部ある
-        foreach (var section in TestData.Content.Sections)
-            foreach (var category in TestData.Content.CategoriesIn(section.Id))
-                Assert.Contains($"href=\"/learn/{category.Id}\"", bodies.LearnIndex());
+        // 記事のあるカテゴリは、区切りの開閉の中（はじめかたは独立した項目）に全部ある
+        foreach (var category in TestData.Content.Categories.Where(c => TestData.Content.ArticlesOf(c.Id).Count > 0))
+            Assert.Contains($"/learn/{category.Id}", reachable);
     }
+
 
     [Fact]
     public void Icon_map_has_every_icon_the_build_can_emit()
@@ -128,53 +130,57 @@ public class NavigationTests
 }
 
 /// <summary>
-/// 上のヘッダーの「いまのページ」の強調（aria-current="page"）。ちょうど 1 つだけ強調する
-/// （「もっと見る」の中のページは、中の項目だけが強調され、見出しに data-active が付く）。
+/// サイドバーの「いまのページ」の強調（aria-current="page"）。ちょうど 1 つだけ強調する。
+/// いまのページが入っている区切り（開閉）は、開いた状態で出す。
 /// </summary>
-public class HeaderActiveTests : WebTestContext
+public class SideActiveTests : WebTestContext
 {
-    private IReadOnlyList<string> ActiveLinks(string path)
+    private IRenderedComponent<AvSideNav> RenderAt(string path)
     {
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost" + path);
-        var cut = Render<AvTopNav>();
-        return cut.FindAll(".av-topnav-links > a[aria-current='page']").Select(a => a.GetAttribute("href")!).ToList();
+        return Render<AvSideNav>();
     }
+
+    private IReadOnlyList<string> ActiveLinks(string path) =>
+        RenderAt(path).FindAll("a[aria-current='page']").Select(a => a.GetAttribute("href")!).ToList();
 
     [Theory]
     [InlineData("/", "/")]
-    [InlineData("/learn", "/learn")]
-    [InlineData("/learn/basics", "/learn")]
-    [InlineData("/learn/basics/transform", "/learn")]
-    [InlineData("/learn/basics/transform#x", "/learn")]
-    [InlineData("/learn/getting-started", "/learn/getting-started")]               // 「はじめかた」だけ（「記事をよむ」は強調しない）
+    [InlineData("/learn", "/learn")]                                               // 目次のページだけ（カテゴリは強調しない）
+    [InlineData("/learn/basics", "/learn/basics")]
+    [InlineData("/learn/basics/transform", "/learn/basics")]
+    [InlineData("/learn/basics/transform#x", "/learn/basics")]
+    [InlineData("/learn/unity", "/learn/unity")]
+    [InlineData("/learn/getting-started", "/learn/getting-started")]               // 「はじめかた」だけ
     [InlineData("/learn/getting-started/install", "/learn/getting-started")]
     [InlineData("/howto", "/howto")]
     [InlineData("/tips", "/howto")]                                                // 「困ったとき」は /howto・/tips・/qa
     [InlineData("/tips?tag=Unity", "/howto")]
     [InlineData("/qa", "/howto")]
     [InlineData("/practice", "/practice")]
-    [InlineData("/practice/unity", "/practice")]
-    [InlineData("/practice/room", "/practice/room")]                               // 「練習」は強調しない
+    [InlineData("/practice/unity", "/practice/unity")]                              // 「操作の練習」は強調しない
+    [InlineData("/practice/room", "/practice/room")]
     [InlineData("/glossary", "/glossary")]
-    public void Exactly_one_main_link_is_active(string path, string expectedHref)
+    [InlineData("/shortcuts", "/shortcuts")]
+    [InlineData("/addons", "/addons")]
+    [InlineData("/links", "/links")]
+    [InlineData("/changelog", "/changelog")]
+    [InlineData("/report", "/report")]
+    [InlineData("/privacy", "/privacy")]
+    public void Exactly_one_link_is_active(string path, string expectedHref)
     {
         Assert.Equal([expectedHref], ActiveLinks(path));
     }
 
-    [Theory]
-    [InlineData("/shortcuts")]
-    [InlineData("/addons")]
-    [InlineData("/links")]
-    [InlineData("/changelog")]
-    [InlineData("/report")]
-    [InlineData("/privacy")]
-    public void A_page_under_more_marks_the_more_button_and_its_own_item(string path)
+    [Fact]
+    public void Only_the_fold_with_the_current_page_is_open()
     {
-        Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost" + path);
-        var cut = Render<AvTopNav>();
-        Assert.Empty(cut.FindAll(".av-topnav-links > a[aria-current='page']"));
-        Assert.Equal("true", cut.Find("details.av-more").GetAttribute("data-active"));
-        Assert.Equal([path], cut.FindAll("details.av-more a[aria-current='page']").Select(a => a.GetAttribute("href")!).ToList());
+        var cut = RenderAt("/learn/basics/transform");
+        var open = cut.FindAll("details.av-side-fold[open]");
+        Assert.Single(open);
+        Assert.NotNull(open[0].QuerySelector("a[aria-current='page']"));
+        Assert.True(cut.FindAll("details.av-side-fold").Count > 1);
+        Assert.Empty(RenderAt("/").FindAll("details.av-side-fold[open]"));
     }
 
     [Fact]

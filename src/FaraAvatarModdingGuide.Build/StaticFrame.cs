@@ -4,10 +4,10 @@ using FaraAvatarModdingGuide.Models;
 namespace FaraAvatarModdingGuide.Build;
 
 /// <summary>
-/// 静的 HTML の枠(ヘッダー・フッター)。WebAssembly が起動したあとの画面(kit の SiteLayout + サイトの AvTopNav・AvSearchBox)と
+/// 静的 HTML の枠(ヘッダー・サイドバー・フッター)。WebAssembly が起動したあとの画面(kit の SiteLayout + サイトの AvTopNav・AvSearchBox)と
 /// 同じ DOM 構造・同じ class にして、起動の前後で本文が動かない・見た目が変わらないようにする(計画書 4.10)。
 /// 起動すると Blazor が #app の中身を置き換える(二重にはならない)。枠の中の操作(検索・テーマ。上のリンクと「もっと見る」・「メニュー」は、起動の前から使える)は、起動するまで効かない(装飾)。
-/// ヘッダーの項目は Shared の HeaderNav(Web の AvTopNav と同じ元)。MudBlazor の CSS の変数(--mud-*)は、起動前は無い(MudThemeProvider が起動後に入れる)ので、
+/// サイドバーの項目は Shared の SideNav(Web の AvSideNav と同じ元)。MudBlazor の CSS の変数(--mud-*)は、起動前は無い(MudThemeProvider が起動後に入れる)ので、
 /// app.css の .av-static が持つ(値は SiteTheme と同じ。Web.Tests が確かめる)。
 /// </summary>
 internal static class StaticFrame
@@ -38,17 +38,15 @@ internal static class StaticFrame
     private static string MudSvg(string materialName, string extraClasses = "") =>
         $"<svg class=\"{IconClasses}{extraClasses}\" focusable=\"false\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" role=\"img\">{SiteIcons.SvgMarkup(materialName)}</svg>";
 
-    /// <summary>ヘッダー(PC: 名前・各リンク・検索欄・ライト/ダークのスイッチ。スマホ: ハンバーガー・名前・検索ボタン)。PC とスマホの出し分けは CSS(.av-pc / .av-sp)。</summary>
-    public static string Header(SiteSettings settings, string? path)
+    /// <summary>ヘッダー(PC: ハンバーガー・名前・検索欄・ライト/ダークのスイッチ。スマホ: ハンバーガー・名前・検索ボタン)。PC とスマホの出し分けは CSS(.av-pc / .av-sp)。</summary>
+    public static string Header(SiteSettings settings)
     {
         var sb = new StringBuilder();
         sb.Line("<header class=\"mud-appbar mud-appbar-fixed-top mud-elevation-0 fbc-header\">");
         sb.Line("<div role=\"toolbar\" class=\"mud-toolbar mud-toolbar-appbar\">");
         sb.Line("<div class=\"fbc-scroll-progress\" aria-hidden=\"true\" style=\"--scroll-progress: 0.0000;\"></div>");
-        sb.Line($"<span class=\"mud-button-root mud-icon-button mud-inherit-text mud-ripple mud-ripple-icon fbc-menu-toggle av-sp\" aria-hidden=\"true\"><span class=\"mud-icon-button-label\">{MudSvg("Menu")}</span></span>");
+        sb.Line($"<span class=\"mud-button-root mud-icon-button mud-inherit-text mud-ripple mud-ripple-icon fbc-menu-toggle\" aria-hidden=\"true\"><span class=\"mud-icon-button-label\">{MudSvg("Menu")}</span></span>");
         sb.Line($"<a class=\"fbc-brand\" href=\"/\" title=\"ホームへ\">{E(settings.Title)}</a>");
-        // 各リンク(PC)。Web の AvTopNav と同じ構造。いまのページには aria-current を付ける
-        sb.Append(TopNav(path));
         // 検索欄(PC)。Web の AvSearchBox と同じ構造
         sb.Line("<div class=\"av-search av-pc\" role=\"search\" aria-hidden=\"true\">");
         sb.Line("<svg class=\"av-search-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"11\" cy=\"11\" r=\"7\"></circle><path d=\"M20 20l-3.5-3.5\"></path></svg>");
@@ -66,46 +64,63 @@ internal static class StaticFrame
         return sb.ToString();
     }
 
-    /// <summary>上のヘッダーの 1 つのリンク。Web の AvNavLink と同じ構造。pop は「もっと見る」・メニューの中の項目(アイコン付き)。</summary>
-    internal static string NavLink(HeaderLink link, string? path, bool pop)
+    /// <summary>サイドバーの 1 つのリンク。Web の SideLink.razor と同じ構造。sub は区切り(開閉)の中のカテゴリ。</summary>
+    internal static string SideLink(SideItem item, string? path, bool sub)
     {
-        var active = HeaderNav.IsActive(link, path) ? " aria-current=\"page\"" : "";
-        var icon = pop && link.Icon is not null ? SiteIcons.Svg(link.Icon) : "";
-        var cls = pop ? "av-pop-link" : "fbc-topnav-link av-nav-link";
-        return $"<a class=\"{cls}\" href=\"{E(link.Href)}\"{active}>{icon}{E(link.Label)}</a>";
+        var active = SideNav.IsActive(item, path) ? " aria-current=\"page\"" : "";
+        var cls = sub ? "av-side-link av-side-sublink" : "av-side-link";
+        return $"<a class=\"{cls}\" href=\"{E(item.Href)}\"{active} title=\"{E(item.Label)}\">{SiteIcons.Svg(item.Icon, "av-icon av-side-icon")}" +
+               $"<span class=\"av-side-label\">{E(item.Label)}</span>{Progress(item)}</a>";
     }
 
-    private static string Flat(string? path)
-    {
-        var sb = new StringBuilder();
-        foreach (var link in HeaderNav.Main) sb.Append(NavLink(link, path, true));
-        sb.Append("<div class=\"av-nav-label\">そのほか</div>");
-        foreach (var link in HeaderNav.More) sb.Append(NavLink(link, path, true));
-        return sb.ToString();
-    }
+    private static string Progress(SideItem item) =>
+        item.ProgressIds is { Count: > 0 } ? Fragments.CategoryProgress("av-side-progress") : "";
 
     /// <summary>
-    /// 上のヘッダーの各リンク(Web の AvTopNav と同じ構造・同じ class。項目・並び・強調は Shared の HeaderNav)。
-    /// 幅ごとの見せ方は CSS: 1280px 以上は横に並べて「もっと見る」、768〜1279px は「メニュー」1 つ。768px 未満の縦のメニュー(.av-nav-flat)は、
-    /// 起動の後はハンバーガーの中に出る。静的 HTML では出さず、JavaScript が無いスマホだけ、本文の後ろに出す(index.html の noscript)。path が null(404.html)は、どれも強調しない。
+    /// サイドバーの中身(Web の AvSideNav と同じ構造・同じ class。項目・並び・強調は Shared の SideNav)。いまのページが入っている区切りは open にする。
+    /// path が null のとき(404.html)は、どの項目も強調せず、どの区切りも開かない。
     /// </summary>
-    public static string TopNav(string? path)
+    public static string SideNavMarkup(SiteContent content, string? path)
     {
         var sb = new StringBuilder();
-        sb.Append("<nav class=\"av-topnav\" aria-label=\"メインメニュー\"><div class=\"av-topnav-links\">");
-        foreach (var link in HeaderNav.Main) sb.Append(NavLink(link, path, false));
-        var moreActive = HeaderNav.IsMoreActive(path) ? " data-active=\"true\"" : "";
-        sb.Append($"<details class=\"av-more\"{moreActive}><summary class=\"fbc-topnav-link av-more-summary\">もっと見る{SiteIcons.Svg("ExpandMore")}</summary><div class=\"av-pop\">");
-        foreach (var link in HeaderNav.More) sb.Append(NavLink(link, path, true));
-        sb.Append("</div></details></div>");
-        sb.Append($"<details class=\"av-menu\"><summary class=\"fbc-topnav-link av-menu-summary\">{SiteIcons.Svg("Menu")}メニュー</summary><div class=\"av-pop\">{Flat(path)}</div></details>");
+        sb.Append("<nav class=\"av-side\" aria-label=\"サイトメニュー\">");
+        foreach (var group in SideNav.Build(content))
+        {
+            sb.Append("<div class=\"av-side-group\">");
+            if (!string.IsNullOrEmpty(group.Title)) sb.Append($"<div class=\"av-side-title\">{E(group.Title)}</div>");
+            foreach (var item in group.Items)
+            {
+                if (!item.IsFold)
+                {
+                    sb.Append(SideLink(item, path, false));
+                    continue;
+                }
+                var open = SideNav.ContainsActive(item, path) ? " open" : "";
+                sb.Append($"<details class=\"av-side-fold\"{open}><summary class=\"av-side-link av-side-summary\">{SiteIcons.Svg(item.Icon, "av-icon av-side-icon")}" +
+                          $"<span class=\"av-side-label\">{E(item.Label)}</span>{Progress(item)}{SiteIcons.Svg("ExpandMore", "av-icon av-side-chev")}</summary><div class=\"av-side-sub\">");
+                foreach (var child in item.Children!) sb.Append(SideLink(child, path, true));
+                sb.Append("</div></details>");
+            }
+            sb.Append("</div>");
+        }
         sb.Append("</nav>");
         return sb.ToString();
     }
 
-    /// <summary>JavaScript が無いスマホ用の縦のメニュー(本文の後ろ。通常は出さない。index.html の noscript の CSS が出す)。</summary>
-    public static string NoScriptMenu(string? path) =>
-        $"<nav class=\"av-nav-flat av-nav-noscript\" aria-label=\"サイトメニュー\">{Flat(path)}</nav>\n";
+    /// <summary>
+    /// サイドバー(PC)。kit の SiteLayout の MudDrawer と同じ構造(起動の前後で本文の位置が動かない)。スマホでは出さない(CSS。起動の後も、閉じた一時的なメニュー)。
+    /// JavaScript が無いスマホだけ、本文とフッターの後ろに出す(index.html の noscript の CSS)。
+    /// </summary>
+    public static string Sidebar(SiteContent content, string? path)
+    {
+        var sb = new StringBuilder();
+        sb.Line("<aside id=\"fbc-sidebar\" class=\"mud-drawer mud-drawer-fixed mud-drawer-pos-left mud-drawer--open mud-drawer--initial mud-drawer-sm mud-drawer-clipped-always mud-elevation-0 mud-drawer-mini fbc-sidebar\">");
+        sb.Line("<div class=\"mud-drawer-content\">");
+        sb.Line(SideNavMarkup(content, path));
+        sb.Line("</div>");
+        sb.Line("</aside>");
+        return sb.ToString();
+    }
 
     /// <summary>フッター(サイト名 | 問い合わせ | プライバシーポリシー | © 公開年 作者 と、SNS のアイコン)。kit の SiteFooter と同じ構造。</summary>
     public static string Footer(SiteSettings settings, string? path)
