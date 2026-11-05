@@ -738,6 +738,11 @@ kbd {
     .article-aside .article-toc.d-lg-block {
         display: none !important;
     }
+
+    /* 右の列に入らない補足（キー一覧）は、本文（48rem）と同じ幅にそろえる */
+    .article-side {
+        max-width: 48rem;
+    }
 }
 
 /* ---------- ホームのサイト名（ポケモン・Bot のサイトと同じ: 箱で囲まず、グラデーションの文字） ----------
