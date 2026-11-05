@@ -3,7 +3,7 @@ title: Unity で着せる（Modular Avatar）
 reading: ゆにてぃーできせるもじゅらーあばたー
 description: 書き出した服を Unity に取り込み、Modular Avatar でアバターに統合して VRChat にアップロードするまでです。
 difficulty: 中級
-updated: 2026-10-10
+updated: 2026-11-06
 ---
 
 ## 使うもの
@@ -79,7 +79,7 @@ Setup Outfit が「衣装の Hips ボーンを発見できませんでした」�
 ## 7. 確認してアップロード
 
 1. **VRChat SDK > Show Control Panel** を開き、ログインする
-2. **Builder** タブで、アバターのパフォーマンスランクを確認する。服を足して **Poor** 以下になっていたら、三角形数・マテリアル数・テクスチャサイズを見直す（[トポロジーの整理](/learn/modeling/topology)、[Unity 向けの注意点](/learn/materials/for-unity)）
+2. **Builder** タブで、アバターのパフォーマンスランクを確認する。服を足して **Poor** 以下になっていたら、三角ポリゴン数・マテリアル数・テクスチャサイズを見直す（[トポロジーの整理](/learn/modeling/topology)、[Unity 向けの注意点](/learn/materials/for-unity)）
 3. **Build & Test** でローカルテストし、VRChat で動きを確認する
 4. 問題なければ **Build & Publish** でアップロードする
 
@@ -89,4 +89,4 @@ Setup Outfit が「衣装の Hips ボーンを発見できませんでした」�
 - **服が真っ白 / ピンク**: マテリアルの割り当てとシェーダーを確認してください。ピンクは「シェーダーが見つからない」です
 - **服が動かない**: Play Mode に入っていないか、Setup Outfit がされていません。`Shirt` のアーマチュアに MA Merge Armature が付いているか確認してください
 - **関節で体が貫通する**: ウェイトのずれです。Blender で [ウェイトの転送](/learn/avatar-clothing/weight-transfer) をやり直すか、服側を少し膨らませてください
-- **ランクが Very Poor になった**: PC では、三角形 70,000・マテリアルスロット 32・ボーン 400 など、Poor の上限を 1 つでも超えると Very Poor です（2026 年 10 月時点の公式の値。変わることがあります）。PC では Very Poor でもアップロードできますが、見る人の設定によっては表示されず、Android では表示されません。アバター全体で超えないように減らします
+- **ランクが Very Poor になった**: PC では、三角ポリゴン 70,000・マテリアルスロット 32・ボーン 400 など、Poor の上限を 1 つでも超えると Very Poor です（2026 年 10 月時点の公式の値。変わることがあります）。PC では Very Poor でもアップロードできますが、見る人の設定によっては表示されず、Android では表示されません。アバター全体で超えないように減らします
