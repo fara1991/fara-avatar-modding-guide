@@ -507,6 +507,7 @@ html[data-bs-theme] body {
 
 /* 画像の直後の斜体1行をキャプションとして扱う: ![alt](images/x.png) の次の行に *説明* */
 .article-body p > img + em,
+.article-body p > a:has(> img) + em,
 .article-body p > em:only-child {
     display: block;
     font-size: 0.875rem;
