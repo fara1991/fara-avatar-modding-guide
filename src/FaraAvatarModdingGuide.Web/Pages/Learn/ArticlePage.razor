@@ -49,7 +49,7 @@ else
         }
     </header>
 
-    @* スマートフォンでは記事タイトルの下に畳んで置く。PC は右の列（js/toc.js が今読んでいる見出しを強調する） *@
+    @* 1280px 未満（スマートフォン・サイドバーを開いた狭い PC）では記事タイトルの下に畳んで置く。1280px 以上の PC は右の列（js/toc.js が今読んでいる見出しを強調する） *@
     @if (headings.Count > 0)
     {
         <details class="article-toc-mobile d-lg-none mb-4">
@@ -161,7 +161,7 @@ else
     private PracticeHost? tutorials;
     private string? tutorialsUrl;
 
-    // 目次は h2 が 3 個以上の記事だけ。PC は右の列に目次とキー一覧を並べる
+    // 目次は h2 が 3 個以上の記事だけ。1280px 以上の PC は右の列に目次とキー一覧を並べる
     private bool HasAside => article is not null && (headings.Count > 0 || article.Shortcuts.Count > 0);
 
     protected override void OnParametersSet()

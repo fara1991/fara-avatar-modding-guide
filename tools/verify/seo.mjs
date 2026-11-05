@@ -196,12 +196,12 @@ if (!NO_BROWSER) {
     if (p.problems.length) fail(`起動後 ${path}: コンソール ${p.problems.join(" | ")}`);
     await p.context().close();
   }
-  // アプリ内の移動: 記事 A → 上のヘッダーの別のページ
+  // アプリ内の移動: 記事 A → サイドバーの別のページ
   const p = await newPage(b, { width: 1280, height: 800 });
   await p.goto(NEW + "/learn/basics/transform", { waitUntil: "load" });
   await p.waitForSelector(".mud-layout", { timeout: 60000 });
   const before = await snapshot(p);
-  await p.locator('.av-topnav-links a[href="/howto"]').click();
+  await p.locator('.av-side a[href="/howto"]').click();
   await p.waitForURL("**/howto");
   await p.waitForTimeout(400);
   const after = await snapshot(p);
@@ -223,7 +223,7 @@ if (!NO_BROWSER) {
   await q.waitForSelector(".fbc-not-found", { timeout: 60000 });
   const from404 = await snapshot(q);
   if (from404.canonical.length !== 0) fail("404 の head に canonical がある(あってはいけない)");
-  await q.locator('.av-topnav-links a[href="/howto"]').click();
+  await q.locator('.av-side a[href="/howto"]').click();
   await q.waitForURL("**/howto");
   await q.waitForTimeout(500);
   const to = await snapshot(q);

@@ -5,12 +5,12 @@ let fails = 0;
 const ok = (c, m) => { if (!c) { fails++; console.log("FAIL", m); } else console.log("ok  ", m); };
 const boot = async (p, path) => { await p.goto(B + path, { waitUntil: "load" }); await p.waitForSelector(".mud-layout", { timeout: 60000 }); await p.waitForTimeout(300); };
 
-// ---- 記事: 目次の強調・上のヘッダーの強調・完了の記録
+// ---- 記事: 目次の強調・サイドバーの強調・完了の記録
 {
   const p = await newPage(b, { seed: { "avatar-modding-guide.progress": JSON.stringify({ "basics/select": "2026-10-01T00:00:00.000Z", "x/unknown": "keep", "basics/zero": 0 }) } });
   await boot(p, "/learn/basics/transform");
-  ok((await p.locator(".av-topnav-links > a[aria-current=page]").count()) === 1, "header: exactly one active link on an article page");
-  ok((await p.locator(".av-topnav-links > a[aria-current=page]").getAttribute("href")) === "/learn", "header: active is 記事をよむ");
+  ok((await p.locator(".av-side a[aria-current=page]").count()) === 1, "sidebar: exactly one active link on an article page");
+  ok((await p.locator(".av-side a[aria-current=page]").getAttribute("href")) === "/learn/basics", "sidebar: active is the article's category");
   ok(!(await p.locator("header.article-header .done-mark").isVisible()), "article: not done mark hidden");
   // 完了にする
   await p.locator(".article-complete button").click();
@@ -48,9 +48,9 @@ const boot = async (p, path) => { await p.goto(B + path, { waitUntil: "load" });
   ok((await p.evaluate(() => document.querySelector(".fbc-content").scrollTop)) === 0, "nav: scroll reset to top");
   const th = await p.title();
   ok(/Avatar Modding Guide$/.test(th) && !th.startsWith("移動"), "nav: title updated: " + th);
-  ok((await p.locator(".av-topnav-links > a[aria-current=page]").count()) === 1, "header: still one active after navigation");
+  ok((await p.locator(".av-side a[aria-current=page]").count()) === 1, "sidebar: still one active after navigation");
   // 練習へ → アプリ内の移動(Phase 3 で練習も WebAssembly のページ。再読み込みしない)
-  await p.locator(".av-topnav-links a[href='/practice']").click();
+  await p.locator(".av-side a[href='/practice']").click();
   await p.waitForLoadState("load");
   await p.waitForTimeout(500);
   ok(p.url().endsWith("/practice") && (await p.evaluate(() => window.__marker)) !== undefined, "nav: practice is an in-app navigation (Phase 3 で WebAssembly のページになった)");

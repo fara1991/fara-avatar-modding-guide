@@ -92,22 +92,22 @@ public static class PageCatalog
     public static string NotFoundTitle(SiteSettings settings) => PageTitles.Compose("ページが見つかりません", settings.Title);
 
     /// <summary>
-    /// ページの本文を、ページ全体の静的な枠(ヘッダー・本文・フッター)で包む。枠は、WebAssembly が起動したあとの画面と同じ DOM 構造・同じ class にする(StaticFrame。計画書 4.10)。
+    /// ページの本文を、ページ全体の静的な枠(ヘッダー・サイドバー・本文・フッター)で包む。枠は、WebAssembly が起動したあとの画面と同じ DOM 構造・同じ class にする(StaticFrame。計画書 4.10)。
     /// 先頭の要素に entry-static を付ける(読み込み表示が、WebAssembly が描くまで操作を止めるため。kit の bodyRootClass)。
-    /// path が null のとき(404.html)は、ヘッダーのどの項目も強調しない。
+    /// path が null のとき(404.html)は、サイドバーのどの項目も強調しない。
     /// </summary>
     public static string Wrap(string main, SiteSettings settings, SiteContent content, string? path = null)
     {
         var sb = new StringBuilder();
         sb.Line("<div class=\"entry-static av-static\">");
-        sb.Append(StaticFrame.Header(settings, path));
+        sb.Append(StaticFrame.Header(settings));
+        sb.Append(StaticFrame.Sidebar(content, path));
         sb.Line("<div class=\"mud-main-content\">");
         sb.Line("<main id=\"fbc-main\" tabindex=\"-1\"><article class=\"fbc-content\">");
         sb.Append(main.TrimEnd('\n')).Append('\n');
         sb.Line("</article></main>");
         sb.Append(StaticFrame.Footer(settings, path));
         sb.Line("</div>");
-        sb.Append(StaticFrame.NoScriptMenu(path));
         sb.Line("</div>");
         return sb.ToString();
     }

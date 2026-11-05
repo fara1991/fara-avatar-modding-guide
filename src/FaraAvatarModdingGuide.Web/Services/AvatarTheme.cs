@@ -11,6 +11,9 @@ public static class AvatarTheme
 {
     public const string DefaultBorderRadius = "8px";
 
+    /// <summary>左のサイドバーの幅（PC）。</summary>
+    public const string DrawerWidth = "264px";
+
     public static MudTheme Create()
     {
         var theme = SiteTheme.Create();
@@ -34,6 +37,7 @@ public static class AvatarTheme
         theme.PaletteDark.AppbarBackground = "#0d2a34";
 
         theme.LayoutProperties.DefaultBorderRadius = DefaultBorderRadius;
+        theme.LayoutProperties.DrawerWidthLeft = DrawerWidth;   // 項目名の「プライバシーポリシー」と、右の「3/5」・開閉の印が収まる幅（静的 HTML の app.css の --mud-drawer-width-left と同じ）
         return theme;
     }
 }

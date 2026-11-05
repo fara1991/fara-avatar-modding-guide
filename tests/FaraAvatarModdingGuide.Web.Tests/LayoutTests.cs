@@ -43,14 +43,16 @@ public class LayoutTests : WebTestContext
     }
 
     [Fact]
-    public void Layout_has_the_site_header_with_links_fixed_footer_and_scroll_progress_line()
+    public void Layout_has_the_site_header_sidebar_fixed_footer_and_scroll_progress_line()
     {
         var cut = RenderLayout(MaintenanceInfo.Off);
         Assert.Contains("Avatar Modding Guide", cut.Find(".fbc-brand").TextContent);
-        Assert.Empty(cut.FindAll("#fbc-sidebar"));                                      // サイドバーは無い（上のヘッダーに各リンク）
-        Assert.Equal("メインメニュー", cut.Find("nav.av-topnav").GetAttribute("aria-label"));
-        Assert.Contains(cut.FindAll(".av-topnav a"), a => a.GetAttribute("href") == "/privacy");
-        Assert.Contains(cut.FindAll(".av-topnav-links a"), a => a.GetAttribute("href") == "/learn" && a.TextContent.Trim() == "記事をよむ");
+        Assert.NotEmpty(cut.FindAll("#fbc-sidebar"));                                   // サイドバー（Mini ドロワー）
+        Assert.Empty(cut.FindAll(".av-topnav"));                                        // 上のヘッダーに各リンクは並べない
+        Assert.Equal("サイトメニュー", cut.Find("nav.av-side").GetAttribute("aria-label"));
+        Assert.NotEmpty(cut.FindAll(".av-side-title"));                                 // 区切りの見出し
+        Assert.Contains(cut.FindAll(".fbc-sidebar a"), a => a.GetAttribute("href") == "/privacy");
+        Assert.Contains(cut.FindAll(".fbc-sidebar a"), a => a.GetAttribute("href") == "/learn" && a.TextContent.Trim() == "記事をよむ");
         var footer = cut.Find("footer.fbc-footer");                                     // 画面の下に固定のフッター（CSS は kit）
         Assert.Contains("問い合わせ", footer.TextContent);
         Assert.Contains("プライバシーポリシー", footer.TextContent);

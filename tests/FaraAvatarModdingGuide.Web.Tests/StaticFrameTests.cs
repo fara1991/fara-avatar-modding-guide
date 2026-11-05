@@ -94,6 +94,7 @@ public class StaticFrameTests : WebTestContext
     [InlineData("/learn")]
     [InlineData("/learn/getting-started")]
     [InlineData("/learn/getting-started/install")]
+    [InlineData("/learn/basics")]
     [InlineData("/learn/basics/transform")]
     [InlineData("/glossary")]
     [InlineData("/tips")]
@@ -103,41 +104,58 @@ public class StaticFrameTests : WebTestContext
     [InlineData("/shortcuts")]
     [InlineData("/report")]
     [InlineData("/privacy")]
-    public void Header_links_and_highlight_equal_the_rendered_header(string path)
+    public void Sidebar_links_highlight_and_open_folds_equal_the_rendered_sidebar(string path)
     {
         Services.GetRequiredService<NavigationManager>().NavigateTo("http://localhost" + path);
-        var cut = Render<AvTopNav>();
-        var rendered = cut.FindAll(".av-topnav-links a").Select(a => (Text: a.TextContent.Trim(), Href: a.GetAttribute("href"), Current: a.GetAttribute("aria-current"))).ToList();
-        var renderedFlat = cut.FindAll(".av-nav-flat a").Select(a => (Text: a.TextContent.Trim(), Href: a.GetAttribute("href"), Current: a.GetAttribute("aria-current"))).ToList();
+        var cut = Render<AvSideNav>();
+        var rendered = cut.FindAll("a").Select(a => (Text: a.TextContent.Trim(), Href: a.GetAttribute("href"), Current: a.GetAttribute("aria-current"))).ToList();
+        var renderedOpen = cut.FindAll("details.av-side-fold").Select(d => d.HasAttribute("open")).ToList();
+        var renderedTitles = cut.FindAll(".av-side-title").Select(t => t.TextContent.Trim()).ToList();
 
         (string Text, string? Href, string? Current) Parse(Match m) =>
             (System.Net.WebUtility.HtmlDecode(m.Groups["text"].Value).Trim(), m.Groups["href"].Value, m.Groups["cur"].Success ? "page" : null);
-        const string Link = "<a class=\"[^\"]*\" href=\"(?<href>[^\"]*)\"(?<cur> aria-current=\"page\")?>(?:<svg.*?</svg>)?(?<text>[^<]*)</a>";
+        const string Link = "<a class=\"av-side-link[^\"]*\" href=\"(?<href>[^\"]*)\"(?<cur> aria-current=\"page\")? title=\"[^\"]*\">(?:<svg.*?</svg>)?<span class=\"av-side-label\">(?<text>[^<]*)</span>";
 
-        var html = StaticFrame.TopNav(path);
-        var links = Regex.Match(html, "<div class=\"av-topnav-links\">.*?</details></div>", RegexOptions.Singleline).Value;
-        var staticLinks = Regex.Matches(links, Link, RegexOptions.Singleline).Select(Parse).ToList();
+        var html = StaticFrame.SideNavMarkup(TestData.Content, path);
+        var staticLinks = Regex.Matches(html, Link, RegexOptions.Singleline).Select(Parse).ToList();
         Assert.Equal(rendered, staticLinks.Select(l => (l.Text, (string?)l.Href, l.Current)).ToList());
+        Assert.Equal(renderedOpen, Regex.Matches(html, "<details class=\"av-side-fold\"( open)?>").Select(m => m.Groups[1].Success).ToList());
+        Assert.Equal(renderedTitles, Regex.Matches(html, "<div class=\"av-side-title\">([^<]*)</div>").Select(m => System.Net.WebUtility.HtmlDecode(m.Groups[1].Value)).ToList());
+        Assert.True(staticLinks.Count(l => l.Current == "page") <= 1);   // 強調は多くても 1 つ
 
-        var staticFlat = Regex.Matches(StaticFrame.NoScriptMenu(path), Link, RegexOptions.Singleline).Select(Parse).ToList();
-        Assert.Equal(renderedFlat, staticFlat.Select(l => (l.Text, (string?)l.Href, l.Current)).ToList());
-        Assert.Equal(HeaderNav.Main.Count + HeaderNav.More.Count, staticFlat.Count);
-        Assert.True(staticFlat.Count(l => l.Current == "page") <= 1);   // 強調は多くても 1 つ
+        // 区切りの見出し（summary）: 名前・title（Mini のツールチップ）・読んだ記事の数の印が、静的と Web で同じ
+        var renderedSummaries = cut.FindAll("summary").Select(s => (Text: s.QuerySelector(".av-side-label")!.TextContent.Trim(), Title: s.GetAttribute("title"), Progress: s.QuerySelector(".av-side-progress") is not null)).ToList();
+        var staticSummaries = Regex.Matches(html, "<summary class=\"av-side-link av-side-summary\" title=\"([^\"]*)\">(?:<svg.*?</svg>)?<span class=\"av-side-label\">([^<]*)</span>(<span class=\"category-progress av-side-progress\" hidden></span>)?", RegexOptions.Singleline)
+            .Select(m => (Text: System.Net.WebUtility.HtmlDecode(m.Groups[2].Value).Trim(), Title: (string?)System.Net.WebUtility.HtmlDecode(m.Groups[1].Value), Progress: m.Groups[3].Success)).ToList();
+        Assert.NotEmpty(staticSummaries);
+        Assert.Equal(renderedSummaries, staticSummaries);
+        Assert.All(staticSummaries, s => Assert.Equal(s.Text, s.Title));
+        Assert.Equal(cut.FindAll(".av-side-progress").Count, Regex.Matches(html, "av-side-progress\"").Count);   // 読んだ記事の数の印の個数
     }
 
     [Fact]
-    public void Header_highlights_nothing_when_there_is_no_page_like_the_404()
+    public void Sidebar_highlights_nothing_and_opens_nothing_when_there_is_no_page_like_the_404()
     {
-        Assert.DoesNotContain("aria-current", StaticFrame.TopNav(null));
-        Assert.DoesNotContain("data-active", StaticFrame.TopNav(null));
-        Assert.DoesNotContain("aria-current", StaticFrame.NoScriptMenu(null));
+        var html = StaticFrame.SideNavMarkup(TestData.Content, null);
+        Assert.DoesNotContain("aria-current", html);
+        Assert.DoesNotContain("<details class=\"av-side-fold\" open>", html);
+    }
+
+    [Fact]
+    public void Static_sidebar_is_a_left_mini_drawer_that_wraps_the_nav_like_the_kit_layout()
+    {
+        var html = StaticFrame.Sidebar(TestData.Content, "/");
+        Assert.Matches("^<aside id=\"fbc-sidebar\" class=\"mud-drawer [^\"]*mud-drawer-pos-left [^\"]*mud-drawer-mini fbc-sidebar\">", html);
+        Assert.Contains("<div class=\"mud-drawer-content\">", html);
+        Assert.Contains(StaticFrame.SideNavMarkup(TestData.Content, "/"), html);
     }
 
     [Fact]
     public void Static_nav_icons_are_the_same_svg_as_the_rendered_ones()
     {
         // 静的 HTML のサイドバーのアイコンの path が、WebAssembly の IconMap(MudBlazor の定数)と同じ
-        foreach (var entry in HeaderNav.More)
-            Assert.Equal(SiteIcons.SvgMarkup(entry.Icon), FaraAvatarModdingGuide.Web.Services.IconMap.Get(entry.Icon));
+        var items = SideNav.Build(TestData.Content).SelectMany(g => g.Items).SelectMany(i => i.Children is null ? [i] : new[] { i }.Concat(i.Children));
+        foreach (var item in items.Concat([new SideItem("開閉の印", "ExpandMore")]))
+            Assert.Equal(SiteIcons.SvgMarkup(item.Icon), FaraAvatarModdingGuide.Web.Services.IconMap.Get(item.Icon));
     }
 }

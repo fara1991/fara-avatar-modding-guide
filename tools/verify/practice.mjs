@@ -97,9 +97,9 @@ async function metrics(page) {
   return { nodes: m.Nodes, documents: m.Documents, listeners: m.JSEventListeners, heapMB: Math.round(m.JSHeapUsedSize / 1048576) };
 }
 
-/** 画面内の移動(再読み込みなし): 上のヘッダーのリンクを押す（ヘッダーに無いページは Blazor.navigateTo） */
+/** 画面内の移動(再読み込みなし): サイドバーのリンクを押す（見えているリンクだけ。閉じた区切りの中のリンクと、サイドバーに無いページは Blazor.navigateTo） */
 async function go(page, href) {
-  const link = page.locator(`.av-topnav-links a[href="${href}"]`).first();
+  const link = page.locator(`.av-side a[href="${href}"]:visible`).first();
   if (await link.count()) await link.click();
   else await page.evaluate((h) => window.Blazor.navigateTo(h), href);
   await page.waitForFunction((h) => location.pathname + location.search === h || location.pathname === h.split("?")[0], href, { timeout: 30000 });
