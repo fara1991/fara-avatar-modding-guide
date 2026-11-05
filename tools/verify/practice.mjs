@@ -99,7 +99,7 @@ async function metrics(page) {
 
 /** 画面内の移動(再読み込みなし): サイドバーのリンクを押す（サイドバーに無いページは Blazor.navigateTo） */
 async function go(page, href) {
-  const link = page.locator(`.av-side a[href="${href}"]`).first();
+  const link = page.locator(`.av-side a[href="${href}"]:visible`).first();
   if (await link.count()) await link.click();
   else await page.evaluate((h) => window.Blazor.navigateTo(h), href);
   await page.waitForFunction((h) => location.pathname + location.search === h || location.pathname === h.split("?")[0], href, { timeout: 30000 });

@@ -4,9 +4,9 @@ using FaraAvatarModdingGuide.Models;
 namespace FaraAvatarModdingGuide.Build;
 
 /// <summary>
-/// 静的 HTML の枠(ヘッダー・サイドバー・フッター)。WebAssembly が起動したあとの画面(kit の SiteLayout + サイトの AvTopNav・AvSearchBox)と
+/// 静的 HTML の枠(ヘッダー・サイドバー・フッター)。WebAssembly が起動したあとの画面(kit の SiteLayout + サイトの AvSideNav・AvSearchBox)と
 /// 同じ DOM 構造・同じ class にして、起動の前後で本文が動かない・見た目が変わらないようにする(計画書 4.10)。
-/// 起動すると Blazor が #app の中身を置き換える(二重にはならない)。枠の中の操作(検索・テーマ。上のリンクと「もっと見る」・「メニュー」は、起動の前から使える)は、起動するまで効かない(装飾)。
+/// 起動すると Blazor が #app の中身を置き換える(二重にはならない)。枠の中の操作(検索・テーマ・ハンバーガー)は、起動するまで効かない(装飾)。サイドバーのリンクと区切りの開閉(details)は、ふつうの HTML なので、起動の前から使える。
 /// サイドバーの項目は Shared の SideNav(Web の AvSideNav と同じ元)。MudBlazor の CSS の変数(--mud-*)は、起動前は無い(MudThemeProvider が起動後に入れる)ので、
 /// app.css の .av-static が持つ(値は SiteTheme と同じ。Web.Tests が確かめる)。
 /// </summary>
@@ -96,7 +96,7 @@ internal static class StaticFrame
                     continue;
                 }
                 var open = SideNav.ContainsActive(item, path) ? " open" : "";
-                sb.Append($"<details class=\"av-side-fold\"{open}><summary class=\"av-side-link av-side-summary\">{SiteIcons.Svg(item.Icon, "av-icon av-side-icon")}" +
+                sb.Append($"<details class=\"av-side-fold\"{open}><summary class=\"av-side-link av-side-summary\" title=\"{E(item.Label)}\">{SiteIcons.Svg(item.Icon, "av-icon av-side-icon")}" +
                           $"<span class=\"av-side-label\">{E(item.Label)}</span>{Progress(item)}{SiteIcons.Svg("ExpandMore", "av-icon av-side-chev")}</summary><div class=\"av-side-sub\">");
                 foreach (var child in item.Children!) sb.Append(SideLink(child, path, true));
                 sb.Append("</div></details>");

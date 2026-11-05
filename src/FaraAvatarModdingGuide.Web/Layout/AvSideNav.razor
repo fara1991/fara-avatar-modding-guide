@@ -20,7 +20,7 @@
                 @if (item.IsFold)
                 {
                     <details class="av-side-fold" open="@(SideNav.ContainsActive(item, Path) ? true : null)">
-                        <summary class="av-side-link av-side-summary">
+                        <summary class="av-side-link av-side-summary" title="@item.Label">
                             <AvIcon Name="@item.Icon" Class="av-side-icon" />
                             <span class="av-side-label">@item.Label</span>
                             @if (item.ProgressIds is { Count: > 0 })

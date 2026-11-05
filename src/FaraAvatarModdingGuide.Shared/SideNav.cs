@@ -2,12 +2,12 @@ namespace FaraAvatarModdingGuide.Models;
 
 /// <summary>
 /// 左のサイドバーの 1 項目。Href が無いものは、開閉の見出し（区切り。中に Children を持つ）。
-/// Prefixes は「このページのとき強調する」パス（そのページと、その下のページ）。Exact は、そのページだけ。Excepts は、強調から外すパス。
+/// Prefixes は「このページのとき強調する」パス（そのページと、その下のページ）。Exact は、そのページだけ。
 /// ProgressIds があれば、読んだ記事の数（3/5）を右に出す（記事の id の一覧）。
 /// </summary>
 public sealed record SideItem(
     string Label, string Icon, string? Href = null, IReadOnlyList<string>? Prefixes = null, bool Exact = false,
-    IReadOnlyList<string>? Excepts = null, IReadOnlyList<string>? ProgressIds = null, IReadOnlyList<SideItem>? Children = null)
+    IReadOnlyList<string>? ProgressIds = null, IReadOnlyList<SideItem>? Children = null)
 {
     /// <summary>開閉の見出し（リンクではない）か。</summary>
     public bool IsFold => Children is not null;
@@ -92,7 +92,6 @@ public static class SideNav
     {
         if (path is null || item.Href is null || item.Prefixes is null) return false;
         var current = path.Length > 1 ? path.TrimEnd('/') : path;
-        if (item.Excepts is not null && item.Excepts.Any(x => Under(current, x))) return false;
         if (item.Exact) return item.Prefixes.Any(p => current == p);
         return item.Prefixes.Any(p => Under(current, p));
     }

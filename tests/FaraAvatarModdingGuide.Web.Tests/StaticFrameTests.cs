@@ -122,6 +122,15 @@ public class StaticFrameTests : WebTestContext
         Assert.Equal(renderedOpen, Regex.Matches(html, "<details class=\"av-side-fold\"( open)?>").Select(m => m.Groups[1].Success).ToList());
         Assert.Equal(renderedTitles, Regex.Matches(html, "<div class=\"av-side-title\">([^<]*)</div>").Select(m => System.Net.WebUtility.HtmlDecode(m.Groups[1].Value)).ToList());
         Assert.True(staticLinks.Count(l => l.Current == "page") <= 1);   // 強調は多くても 1 つ
+
+        // 区切りの見出し（summary）: 名前・title（Mini のツールチップ）・読んだ記事の数の印が、静的と Web で同じ
+        var renderedSummaries = cut.FindAll("summary").Select(s => (Text: s.QuerySelector(".av-side-label")!.TextContent.Trim(), Title: s.GetAttribute("title"), Progress: s.QuerySelector(".av-side-progress") is not null)).ToList();
+        var staticSummaries = Regex.Matches(html, "<summary class=\"av-side-link av-side-summary\" title=\"([^\"]*)\">(?:<svg.*?</svg>)?<span class=\"av-side-label\">([^<]*)</span>(<span class=\"category-progress av-side-progress\" hidden></span>)?", RegexOptions.Singleline)
+            .Select(m => (Text: System.Net.WebUtility.HtmlDecode(m.Groups[2].Value).Trim(), Title: (string?)System.Net.WebUtility.HtmlDecode(m.Groups[1].Value), Progress: m.Groups[3].Success)).ToList();
+        Assert.NotEmpty(staticSummaries);
+        Assert.Equal(renderedSummaries, staticSummaries);
+        Assert.All(staticSummaries, s => Assert.Equal(s.Text, s.Title));
+        Assert.Equal(cut.FindAll(".av-side-progress").Count, Regex.Matches(html, "av-side-progress\"").Count);   // 読んだ記事の数の印の個数
     }
 
     [Fact]
@@ -133,12 +142,12 @@ public class StaticFrameTests : WebTestContext
     }
 
     [Fact]
-    public void Static_sidebar_is_a_drawer_with_the_same_id_and_class_as_the_kit_layout()
+    public void Static_sidebar_is_a_left_mini_drawer_that_wraps_the_nav_like_the_kit_layout()
     {
         var html = StaticFrame.Sidebar(TestData.Content, "/");
-        Assert.Contains("id=\"fbc-sidebar\"", html);
-        Assert.Contains("fbc-sidebar", html);
-        Assert.Contains("mud-drawer-mini", html);
+        Assert.Matches("^<aside id=\"fbc-sidebar\" class=\"mud-drawer [^\"]*mud-drawer-pos-left [^\"]*mud-drawer-mini fbc-sidebar\">", html);
+        Assert.Contains("<div class=\"mud-drawer-content\">", html);
+        Assert.Contains(StaticFrame.SideNavMarkup(TestData.Content, "/"), html);
     }
 
     [Fact]

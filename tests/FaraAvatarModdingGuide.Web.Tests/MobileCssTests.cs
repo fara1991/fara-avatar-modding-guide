@@ -24,6 +24,7 @@ public class MobileCssTests
         var phone = MobileBlocks("767.98px");
         Assert.Matches(@"\.av-drawer-theme \.mud-button-root,[^{]*\.fbc-menu-toggle,[^{]*\.fbc-search-toggle,[^{]*\.btn\s*\{\s*min-height:\s*44px;", phone);
         Assert.Matches(@"\.av-side-link\s*\{[^}]*min-height:\s*44px;", AppCss);                          // サイドバーのリンク（PC・スマホ共通）
+        Assert.DoesNotMatch(@"\.av-side-sublink\s*\{[^}]*min-height", AppCss);                          // 区切りの中のカテゴリも、同じ 44px（下げない）
         Assert.Matches(@"\.fbc-menu-toggle,\s*\.fbc-search-toggle\s*\{\s*min-width:\s*44px;", phone);
     }
 

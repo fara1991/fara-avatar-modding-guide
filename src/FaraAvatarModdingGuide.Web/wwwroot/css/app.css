@@ -718,7 +718,7 @@ kbd {
     font-size: 0.9rem;
 }
 
-@media (max-width: 991.98px) {
+@media (max-width: 1279.98px) {
     .article-aside {
         position: static;
         max-height: none;
@@ -727,6 +727,16 @@ kbd {
     .article-toc,
     .article-aside .article-keys {
         overflow: visible;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1279.98px) {
+    .article-toc-mobile.d-lg-none {
+        display: block !important;
+    }
+
+    .article-aside .article-toc.d-lg-block {
+        display: none !important;
     }
 }
 
@@ -2132,7 +2142,6 @@ label,
 }
 
 .av-side-sublink {
-    min-height: 40px;
     font-size: 0.88rem;
     color: #bcd2d7;
 }
@@ -2169,6 +2178,13 @@ html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-link {
     justify-content: center;
     padding-left: 0;
     padding-right: 0;
+}
+
+.fbc-sidebar.mud-drawer--closed:not(:hover) .av-side,
+.fbc-sidebar.mud-drawer-mini:not(.mud-drawer--open):not(:hover) .av-side,
+html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
 }
 
 .fbc-sidebar.mud-drawer--closed:not(:hover) .av-side-group + .av-side-group,
@@ -2622,7 +2638,8 @@ html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-group + .av
     min-width: 0;
 }
 
-@media (min-width: 992px) {
+/* 右の列（目次・キー一覧）は、左のサイドバー（264px）の分だけ広い画面（1280px 以上）から出す。それより狭いと、本文が 400px 台まで狭くなる */
+@media (min-width: 1280px) {
     .article-cols.has-aside {
         grid-template-columns: minmax(0, 48rem) 16rem;
         column-gap: 3rem;
