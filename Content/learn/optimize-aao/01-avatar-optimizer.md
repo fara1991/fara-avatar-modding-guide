@@ -13,7 +13,7 @@ updated: 2026-11-06
 AAO の目的は、**アバターの見た目をほとんど変えずに、性能を上げること**です。公式ドキュメント（基本コンセプト）には、意図しない動作の変化はバグとして扱うと書かれています。
 
 ::: tip
-この記事は、AAO **1.9.21**（2026 年 10 月 30 日リリース）を確認して書きました。取得日は 2026 年 11 月 6 日です。版が上がると挙動が変わることがあるので、使うときは [リリース一覧](https://github.com/anatawa12/AvatarOptimizer/releases) も確かめてください。
+この記事は、AAO **1.9.21**（changelog の日付は 2026 年 10 月 30 日。GitHub での公開は日本時間で 2026 年 10 月 31 日）を確認して書きました。取得日は 2026 年 11 月 6 日です。版が上がると挙動が変わることがあるので、使うときは [リリース一覧](https://github.com/anatawa12/AvatarOptimizer/releases) も確かめてください。
 
 この記事では、次の言葉を使います。
 
@@ -31,6 +31,8 @@ AAO は **非破壊** です。プレハブ（Prefab）を展開せず、コン�
 
 ### 対応環境
 
+VPM は、パッケージを配布・導入する仕組みです。公式では、ALCOM や VCC が VPM に対応したツールとして挙げられています。（略語の正式名は、公式の原文では確認できなかったため書きません。）
+
 AAO の依存関係（VPM リポジトリのメタデータ。パッケージの説明情報）は、次のとおりです。
 
 | 項目 | 内容 |
@@ -39,11 +41,11 @@ AAO の依存関係（VPM リポジトリのメタデータ。パッケージの
 | VRChat SDK（Avatars） | 3.7.0 以上 3.11.0 未満 |
 | NDMF（NDM Framework） | 1.8.0 以上 2.0.0 未満 |
 
-- Unity 2019 は、AAO 1.8.0 でサポートが終わりました。2019 で使うときは 1.7.x を使います（changelog の 1.8.0 に「Unity 2019 Support」の削除と「2019 のユーザーは 1.7.x を使う」と記載）。
+- Unity 2019 は、AAO 1.8.0 でサポートが終わりました。2019 で使うときは 1.7.x を使います（changelog の 1.8.0 に「Unity 2019 Support」の削除と、「2019 のユーザーは 1.7.x を使う」（訳。原文は "For 2019 users, please use 1.7.x."）と記載）。
 - Unity 6000.x には、1.9.18 から最初の対応（changelog の英語表記は「Initial minimal support for Unity 6000.x」）が入りました。changelog には、英語で「Those versions are not yet officially supported, but something should start working.」（まだ公式には対応していないが、動き始めるはず）と書かれています。
 
 ::: warning
-上の表は、VPM リポジトリのメタデータが根拠です。版ごとの対応は、changelog にも書かれています（VRChat SDK 3.7.0・3.8.1・3.10.6、Unity 2019・2022・6000.x など）。
+上の表は、VPM リポジトリのメタデータが根拠です。実際に使う Unity と VRChat SDK の組み合わせは、版ごとの対応を書いた changelog（VRChat SDK 3.7.0・3.8.1・3.10.6、Unity 2019・2022・6000.x など）で確かめてください。
 :::
 
 ## 入れ方
@@ -59,7 +61,7 @@ AAO は、VPM リポジトリ（パッケージの配布先）を使って公開
 
 ### そのほかの方法
 
-- **UnityPackage**: インストーラーの unitypackage を Unity にインポートするだけで入れられます。ALCOM から追加する方法と同じ結果になります。公式では、この方法は VPAI という仕組みで実現されていると書かれています。「[アセットの配布について](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/developers/distributing-prefabs/)」のページには、「VPAI インストーラーは、Avatar OptimizerのようなVPMパッケージを、unitypackageをインポートするだけでインストールするためのツールです。」と書かれています。
+- **UnityPackage**（VPAI インストーラー）: インストーラーの unitypackage を Unity にインポートするだけで入れられます。ALCOM から追加する方法と同じ結果になるかは、この記事では未確認です。VPAI インストーラーについて、「[アセットの配布について](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/developers/distributing-prefabs/)」のページには、「VPAI インストーラーは、Avatar OptimizerのようなVPMパッケージを、unitypackageをインポートするだけでインストールするためのツールです。」と書かれています。
 - **vrc-get**（コマンドラインで VPM のパッケージを入れるツール）: 次のコマンドで入れられます。`/path/to/your-unity-project` は、Unity プロジェクトのフォルダーのパスに置き換えます。
 
 ```
@@ -83,7 +85,7 @@ AAO は、パフォーマンスランクの項目のうち、一部を減らせ�
 | 項目 | AAO での扱い | 主な機能 |
 |---|---|---|
 | テクスチャメモリー | 自動と手動（AAO Merge Material の対応づけは、この記事の整理で、公式に記載なし） | 自動: Optimize Texture ／ 手動: AAO Max Texture Size、AAO Merge Material |
-| 三角ポリゴンの数 | 自動と手動 | 自動: Automatically Remove Zero Sized Polygons ／ 手動: AAO Remove Mesh By Mask・Box・UV Tile・BlendShape |
+| 三角ポリゴンの数 | 自動と手動 | 自動: Automatically Remove Zero Sized Polygons（既定ではオフ。1.7.1 以降は Advanced Optimizations。下の warning を参照） ／ 手動: AAO Remove Mesh By Mask・Box・UV Tile・BlendShape |
 | スキンドメッシュの数 | 自動と手動 | 自動: Merge Skinned Meshes ／ 手動: AAO Merge Skinned Mesh |
 | 基本メッシュの数 | 手動 | AAO Merge Skinned Mesh のメッシュレンダラー（統合対象の MeshRenderer） ／ 自動の対象になるかは未確認 |
 | マテリアルスロットの数 | 自動と手動 | 自動: Merge Skinned Meshes、Allow Shuffling Material Slots ／ 手動: AAO Merge Skinned Mesh のマテリアルの統合、AAO Merge Material |
@@ -105,7 +107,7 @@ AAO を使うときは、まず **AAO Trace And Optimize** を付けます。ア
 
 ### 付け方
 
-- アバターのルート（VRC Avatar Descriptor がある GameObject）に付けます。
+- アバターのルートに付けます（公式は「アバターのルート」とだけ書いています。この記事の補足: VRC Avatar Descriptor がある GameObject）。
 - 種別は Avatar Global Component です。
 - コンポーネント名（Unity 上の表示名）は `AAO Trace And Optimize` です（GitHub のソースの AddComponentMenu で確認）。
 
@@ -119,9 +121,9 @@ AAO を使うときは、まず **AAO Trace And Optimize** を付けます。ア
 | アニメーターの最適化（Optimize Animator） | Animator Controller（アニメーションの動きを決めるアセット）のレイヤーを整理します（下の説明）。 | レイヤーの構成。アニメーターの数への効果は未確認 |
 | スキンドメッシュレンダラーを統合する（Merge Skinned Meshes） | 分かれている必要のないスキンドメッシュレンダラーを統合します（自動では統合しないことがあり、そのときは手動の AAO Merge Skinned Mesh を使います）。 | スキンドメッシュの数、マテリアルスロット |
 | テクスチャを最適化する（Optimize Texture） | 見た目に影響を与えずに、UV パッキング（UV の配置を詰めること）とテクスチャサイズの縮小を行います（対応シェーダーのマテリアルだけが対象です）。 | テクスチャメモリー |
-| 面積がゼロのポリゴンを自動的に削除する（Automatically Remove Zero Sized Polygons） | 面積がゼロのポリゴンを削除します。高度な最適化の一つです。 | 三角ポリゴンの数 |
+| 面積がゼロのポリゴンを自動的に削除する（Automatically Remove Zero Sized Polygons） | 面積がゼロのポリゴンを削除します。高度な最適化の一つです（既定ではオフ。1.7.1 以降は Advanced Optimizations。下の warning を参照）。 | 三角ポリゴンの数 |
 
-表のオプション名は、公式ドキュメントの日本語表記です。（ ）内は英語版ドキュメントの表記で、Unity 上の表示は未確認です。
+表のオプション名は、公式ドキュメントの日本語表記です。（ ）内は英語版ドキュメントの表記です。Unity 上の表示は、ソースの Localization（en-us.po・ja-jp.po）で確認できます。例えば、英語表示は「Remove unused Objects Automatically」「Merge Skinned Mesh」、日本語表示は「アニメーターを最適化する」です（ドキュメントの「アニメーターの最適化」とは表記が違います）。
 
 **使われていないObjectを自動的に削除する**（Remove unused Objects）について、補足します。
 
@@ -157,7 +159,7 @@ AAO を使うときは、まず **AAO Trace And Optimize** を付けます。ア
 ::: tip
 既定でオンかオフかは、この記事では一覧にしていません。changelog で分かるものは次のとおりです。
 
-- **面積がゼロのポリゴンを自動的に削除する**: 1.7.1 で Advanced Optimizations に移され、既定ではオンにならない（not enabled by default）と書かれています。一部のシェーダーやアニメーションを壊すおそれがあるためです。
+- **面積がゼロのポリゴンを自動的に削除する**: 1.7.1 で Advanced Optimizations に移され、既定オフと記載されています（changelog の原文は "not enabled by default"）。一部のシェーダーやアニメーションを壊すおそれがあるためです（changelog の 1.7.1 の説明）。
 - **マテリアルスロットの前後関係を変えることを許可する**: 1.9.0 で既定オンになりました。
 
 画面で、オンとオフの状態を確かめてください。
@@ -189,16 +191,16 @@ Trace And Optimize の自動の処理では足りないときや、消す範囲�
 ### まとめる（統合する）
 
 - **AAO Merge Skinned Mesh**: 1 つ以上の SkinnedMeshRenderer と MeshRenderer を、1 つの SkinnedMeshRenderer にまとめます。SkinnedMeshRenderer を統合すると、メッシュを変形させる処理の回数が減り、負荷が軽くなります。同じマテリアルを使うマテリアルスロットもまとめられるため、描画の負荷も減らせます。
-  - 追加する場所: メッシュを指定していない SkinnedMeshRenderer を持つ、新しい GameObject に追加します。種別は Source Edit Skinned Mesh Component です。
+  - 追加する場所: 新しい空の GameObject を作り、そこに SkinnedMeshRenderer（メッシュ未指定）と Merge Skinned Mesh を付けます（公式の原文は「メッシュを指定していない SkinnedMeshRenderer コンポーネントがある新規 GameObject」に追加）。種別は Source Edit Skinned Mesh Component です。
   - 設定（公式の日本語表記。（ ）内は英語版ドキュメントの表記）:
     - スキンメッシュレンダラー（Skinned Renderers）: 統合対象の SkinnedMeshRenderer の一覧です。
     - メッシュレンダラー（Basic Renderers）: 統合対象の MeshRenderer の一覧です。
-    - 空のレンダラーオブジェクトを削除する（Remove Empty Renderer GameObject）: 統合対象の SkinnedMeshRenderer が付いている GameObject に、ほかのコンポーネントがなければ、その GameObject をヒエラルキーから取り除きます。既定はオンです（changelog の 0.4.4）。
+    - 空のレンダラーオブジェクトを削除する（Remove Empty Renderer GameObject）。Unity 上の英語表示は「Remove Empty Renderer Object」（ソースの Localization の en-us.po で確認）: 統合対象の SkinnedMeshRenderer が付いている GameObject に、ほかのコンポーネントがなければ、その GameObject をヒエラルキーから取り除きます。既定はオンです（changelog の 0.4.4）。
     - 有効無効状態が統合先と異なるレンダラーを統合しない（Skip Enablement Mismatched Renderers）: 統合先と有効無効の状態が違うレンダラーを、ビルド時に統合対象から外します。既定は、新しく追加した Merge Skinned Mesh ではオン（changelog の 1.6.0）でしたが、1.8.0 で既定オフに変わりました（Inspector で有効にできます）。
     - 有効無効状態に関するアニメーションをコピーする（Copy Enablement Animation）: 統合対象の有効無効に関するアニメーションを、統合先の SkinnedMeshRenderer にコピーします。
     - BlendShape モード（BlendShape Mode）: BlendShape の扱い方を選びます。既定は、重複を避けるために BlendShape 名を自動で変えるモードです。
     - マテリアルの統合（Merge Materials）: 同じマテリアルを使うマテリアルスロットを、1 つにまとめるかを選びます。
-  - 注意: 統合すると、個々のメッシュをアニメーションでオン・オフできなくなります。このコンポーネントが設定するのは、メッシュ・マテリアル・BlendShape・範囲（BOUNDS）です。そのほかの設定（Anchor Override など）は変わりません。そのため、AAO Merge Skinned Mesh と同じ GameObject にある SkinnedMeshRenderer で設定します。Root Bone（SkinnedMeshRenderer の基準になるボーン）も、自動では設定されません（FAQ の案内）。
+  - 注意: 統合すると、個々のメッシュをアニメーションでオン・オフできなくなります。このコンポーネントが設定するのは、メッシュ・マテリアル・BlendShape・範囲（BOUNDS）です。そのほかの設定（Anchor Override など）は変わりません。そのため、統合後の Anchor Override などは、統合先の SkinnedMeshRenderer に手動で設定します（統合先は、AAO Merge Skinned Mesh と同じ GameObject にある SkinnedMeshRenderer）。Root Bone（SkinnedMeshRenderer の基準になるボーン）も、自動では設定されません（FAQ の案内）。
   - Cloth の付いた SkinnedMeshRenderer は、統合元にするとエラーになります（changelog の 1.7.0）。Cloth のある Renderer は、BlendShape の自動最適化（changelog では AutoFreezeBlendShape）の対象から外れます（changelog の 1.7.0）。
   - 有効無効状態に関するアニメーションは、1 種類だけコピーできます。複数の GameObject（または GameObject と Renderer 自身）がアニメーションされている場合は、エラーになり、ビルドが止まります（changelog の 1.8.0）。
 - **AAO Merge Bone**: GameObject を親の GameObject に統合し、元の GameObject を取り除きます。統合対象に付いているほかのコンポーネントも削除されます。
@@ -206,7 +208,7 @@ Trace And Optimize の自動の処理では足りないときや、消す範囲�
   - 親にも Merge Bone があると、両方とも、さらに親の GameObject に統合されます。
   - Trace And Optimize が似た処理を自動で行うため、大抵の場合は使う必要はありません。
 - **AAO Merge PhysBone**: 複数の PhysBone を 1 つにまとめます。統合後の MultiChildType は Ignore になります。
-  - 新しい GameObject に追加します。統合対象の PhysBone は、同じ GameObject の子である必要があります。その代わりに「このGameObjectの子にする」（Make Children of Me）を使うこともできます。
+  - 新しい GameObject に追加します。統合対象の PhysBone は、Merge PhysBone を付ける GameObject の子にしておく必要があります（公式の原文は「同じ GameObject の子」）。その代わりに「このGameObjectの子にする」（Make Children of Me）を使うこともできます。
   - 設定の「オーバーライド」では、各項目を Copy（すべての統合対象で値が同じ場合のみ有効）か Override（新しい値を設定）から選びます。コライダーは Merge を選ぶと、統合対象のコライダーの一覧をまとめられます。Endpoint Position は Clear を選ぶと、Clear Endpoint Position を使えます。角度制限は Fix を選ぶと、Roll の値をそろえられます。
   - Endpoint Position を Clear にすると、PhysBone Affected Transforms が増えます（changelog の 1.7.0）。そのため、新しく作る Merge PhysBone の Endpoint Position の既定は Copy です（同じく 1.7.0）。
   - ルートの GameObject も PhysBone Affected Transforms に数えられるため、Merge PhysBone を 1 つ使うごとに 1 増えます。公式には、これは VRChat のパフォーマンスランクの仕組みのバグである可能性がある、と書かれています。
@@ -224,9 +226,14 @@ Remove Mesh 系のコンポーネントは、削除する範囲を間違える�
   - 注意: マスクテクスチャは、物（アイテム）ごとに色が異なります。削除モードを間違えると、別の部分が消えます。アルファマスク（透明度で範囲を指定する画像）や、gatosyocora さんの MeshDeleterWithTexture 用のマスクも使えます。
 - **AAO Remove Mesh By BlendShape**: 選んだ BlendShape で動く頂点と、その頂点を含むポリゴンを削除します。多くの素体（アバターのベースになる体のメッシュ）に入っている貫通防止用の BlendShape を使うと、簡単にメッシュを削除できると、公式に書かれています。
   - 追加する場所: SkinnedMeshRenderer のある GameObject です。種別は Modifying Edit Skinned Mesh Component です。
-  - 設定: BlendShape の一覧、許容差、プレビューの設定（切り替えた BlendShape の値を自動で 100 か 0 にする設定）です。
-  - 許容差: 選んだ BlendShape が頂点を許容差より大きく動かしていたら、その頂点を削除します（公式の定義。実際には、その頂点を含むポリゴンが削除されます）。通常モードでは、許容差を大きくすると削除される範囲が減り、小さくすると増えます。
-  - 公式の例（「消えて欲しい箇所が消えない場合は許容差の値を大きく、消えて欲しくない箇所が消えてしまう場合は許容差の値を小さくしましょう」）は、この通常モードとは逆に読めます。例の向きは、反転モード（changelog の 1.9.0。ソースの `invertSelection`）の挙動に合います。公式のリファレンスには反転の説明がありません。プレビューで、削除される範囲が増えるか減るかを確かめてから調整してください。
+  - 設定: BlendShape の一覧、許容差、反転（Invert Selection）、プレビューの設定（「プレビューのために、切り替えたBlendShapeの値を自動的に変更する」。切り替えた BlendShape の値を自動で 100 か 0 にする設定）です。
+  - 手順: 先にプレビューで範囲を確かめ、それから許容差を調整します。
+    1. 削除したい部分の BlendShape を選びます。
+    2. 「プレビューのために、切り替えたBlendShapeの値を自動的に変更する」をオンにし、編集モードのプレビュー（ソース: Editor/EditModePreview/RemoveMeshByBlendShapeRenderFilter.cs。表示の見え方は未確認）で、削除される範囲を確かめます。
+    3. 範囲が合わないときだけ、許容差を調整して、もう一度プレビューで確かめます。
+  - 許容差: 選んだ BlendShape が頂点を許容差より大きく動かしていたら、その頂点を削除します（公式の定義。実際には、その頂点を含むポリゴンが削除されます）。通常モード（Invert Selection がオフ。既定）では、許容差を大きくすると削除される範囲が減り、小さくすると増えます。Unity 内の説明（ja-jp.po の Tolerance のツールチップ。en-us.po も同じ向き）は、意図していない頂点が削除されたら値を大きく、思った通りに削除されなかったら小さくする、という書き方です。
+  - 反転モード: Inspector の「Invert Selection（反転）」にチェックを入れると、選んだ BlendShape のどれでも許容差より大きく動かさない頂点を削除します（既定はオフ。changelog の 1.9.0 で追加。ソース: Editor/Inspector/RemoveMeshByBlendShapeEditor.cs の 68 行目付近。識別子は `invertSelection`）。ラベルは Unity が自動で付けるもので、日本語の表示は未確認です。
+  - 公式の例（「消えて欲しい箇所が消えない場合は許容差の値を大きく、消えて欲しくない箇所が消えてしまう場合は許容差の値を小さくしましょう」）は、通常モードとは逆に読めます。公式の例は反転モードの挙動に合うように見えますが、公式は反転に触れていないため、これは推測です。
 - **AAO Remove Mesh By Box**: 1 つ以上の箱で指定した範囲のポリゴンを削除します。設定の詳細は、[公式ドキュメント](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-box/) で確かめてください。
 - **AAO Remove Mesh By UV Tile**: UV タイルで指定した範囲のポリゴンを削除します。Poiyomi や lilToon の UV Tile Discard の Vertex モードのように動作します。設定の詳細は、[公式ドキュメント](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-uv-tile/) で確かめてください。
 
@@ -245,7 +252,7 @@ Remove Mesh 系のコンポーネントは、削除する範囲を間違える�
   - 設定は、Average（end ボーンのローカル座標の平均）か Override（Endpoint Position Override で指定した値）です。
   - 同じ GameObject にあるすべての PhysBone に適用されます。
   - この記事の注意として、先端の揺れ方が変わることがあるため、確かめてください。
-- **AAO Clear Endpoint Position**: PhysBone の Endpoint Position の値を 0 にし、`_EndPhysBone` という GameObject を追加します。コンポーネント単体の効果は、この記事では未確認です。なお、changelog の 1.7.0 には、Merge PhysBone の Endpoint Position を「Clear」にすると PhysBone Affected Transforms が増える、と書かれています。
+- **AAO Clear Endpoint Position**: PhysBone の Endpoint Position の値を 0 にし、末端のボーン（子のないボーン）ごとに、ボーン名の後ろに _EndPhysBone を付けた GameObject を追加します（公式ページの表記は「_EndPhysBone GameObject」。名前の付け方は、ソース Editor/Processors/ClearEndpointPositionProcessor.cs の `{target.name}_EndPhysBone` で確認しました）。コンポーネント単体の効果は、この記事では未確認です。なお、changelog の 1.7.0 には、Merge PhysBone の Endpoint Position を「Clear」にすると PhysBone Affected Transforms が増える、と書かれています。
 - **AAO Max Texture Size**: テクスチャサイズの上限を設定します。特定のミップマップ（縮小した画像を段階ごとに用意したもの）のレベルを減らして縮小しますが、元のテクスチャフォーマットと設定は保持されます。任意の GameObject に付けられ、その子孫すべてに適用されます。
   - 複数の AAO Max Texture Size があるときは、最も近い親の設定が適用されます。
   - 1 つのテクスチャが、異なる設定の AAO Max Texture Size から同時に影響を受けるときは、最も大きいサイズの設定が使われます。
@@ -295,7 +302,7 @@ AAO の処理は、VRChat SDK の Control Panel では確かめにくいもの�
 | 統合後に、マテリアルスロットのアニメーションが競合する | マテリアルを入れ替えるアニメーションがあるときは、AAO Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにします（公式 FAQ の方法）。 |
 | OSC（ゲームや外部ツールと値をやりとりする通信の仕組み）のギミックで、PhysBone や Contact Receiver が効かない | AAO の Trace And Optimize は、OSC で使われているかを判別できないため、使われていないように見えるものを削除することがあります。公式 FAQ では、Asset Description ファイルを作成し、Parameters Read By External Tools に設定する方法が書かれています。 |
 | VRChat SDK のハードリミットを超えて、アップロードできない | VRChat SDK 3.8.1 以降は、シーン上のアバターがハードリミット（アバターの上限値）を超えていても、ビルドとアップロードを開始できます。公式では、VRChat SDK を最新版に更新することが推奨されています。 |
-| Android（Quest）で、ビルド前のチェックがアップロードを止める | 回避策が、公式のよくある質問（FAQ）にあります。この記事では手順を省きます。 |
+| Android（Quest）で、ビルド前のチェックがアップロードを止める | 基本的な使い方のページが Android（Quest）向けのアップロードの件を挙げ、回避策は FAQ の「ビルド前のハードリミットチェック」の項を見るよう案内しています（FAQ に Android の項目はありません）。この記事では手順を省きます。 |
 
 ## ほかのツールとの併用
 
@@ -303,7 +310,7 @@ AAO の処理は、VRChat SDK の Control Panel では確かめにくいもの�
 
 - AAO のパッケージの依存には、Modular Avatar は含まれていません。
 - 公式の FAQ と Merge Skinned Mesh の項では、Modular Avatar の MA Mesh Settings コンポーネントの案内があります。アバターのルートに置くと、アバター全体の Root Bone と範囲（BOUNDS）を設定できます（FAQ の「非表示」の項）。Anchor Override も、アバター全体をまとめて設定できます（FAQ の「明るさ」の項）。
-- 処理の順序: changelog の 1.1.0 には、「modular avatar will be applied before AvatarOptimizer main logic and after removing EditorOnly」（Modular Avatar は、EditorOnly の削除のあと、AAO の主な処理より前に適用される）と書かれています。これは、1.1.0 で Play モードでの適用の仕組みを作り直したときの記述です。
+- 処理の順序（古い記述と、現在の既定）: changelog の 1.1.0 には、「modular avatar will be applied before AvatarOptimizer main logic and after removing EditorOnly」（Modular Avatar は、EditorOnly の削除のあと、AAO の主な処理より前に適用される）と書かれています。これは、1.1.0 で Play モードでの適用の仕組みを作り直したときの記述です。
   - 現在の既定は、changelog の 1.9.0 の「Avatar Optimizer will run as late as possible in NDMF Pipeline by default」（既定では、AAO は NDMF の処理の中で、できるだけ遅く実行される）です。
   - Modular Avatar との現在の順序は、この記事では未確認です。
 - 衝突する場合の扱いは、この記事では未確認です。
@@ -331,7 +338,7 @@ TexTransTool（TTT）については、changelog の 1.8.0 に「Improve RemoveM
 
 補足として、次の記載があります。
 
-- コンストレイント: changelog の 1.6.12 に、Constraint の有効無効の最適化が「Removed」（削除）と書かれています。理由は、「正しく確実に最適化するには複雑すぎる」です。
+- コンストレイント: changelog の 1.6.12 に、Constraint の有効無効の最適化が「Removed」（削除）と書かれています。理由は、「正しく確実に最適化するには複雑すぎる」（訳。原文は "too complex to optimize correctly and reliably"）です。
 - パーティクル: changelog には、パーティクルシステムに関する不具合の修正が書かれています。効果の記載ではありません。
 
 ::: tip
@@ -342,7 +349,6 @@ TexTransTool（TTT）については、changelog の 1.8.0 に「Improve RemoveM
 
 - 範囲（BOUNDS）: changelog には、Merge Skinned Mesh で範囲を自動で計算する記載があります。減らす効果の記載ではありません。
 - PHYSBONE 衝突チェックの数
-- コライダーの数
 - レイキャスト（光線を飛ばして、当たりを調べる処理）の数: changelog の 1.9.9 に、RaycastCount の performance category への対応の記載があります。減らせるかは未確認です。
 
 これらの項目は、AAO 以外の方法も含めて、[アバターを軽くする](/learn/vrchat/optimization) の手順を見てください。

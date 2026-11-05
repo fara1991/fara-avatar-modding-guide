@@ -10,13 +10,13 @@ VRChat のアバターを軽くするツールは何種類もあり、ツール�
 
 略称は、MA（Modular Avatar）、TTT（TexTransTool）、MMS（Meshia Mesh Simplification）、AAO（Avatar Optimizer）です。lilAvatarUtils は、そのまま書きます。
 
-ツールを入れるときに出てくる VCC（VRChat Creator Companion）と ALCOM は、どちらもパッケージを管理するツールです。ALCOM は、VRChat Package Manager のオープンソースの GUI クライアントです（[vrc-get/vrc-get](https://github.com/vrc-get/vrc-get) のリポジトリの説明）。VCC について詳しくは、[用語集: VCC](/glossary#vcc) を見てください。
+ツールを入れるときに出てくる VCC（VRChat Creator Companion）と ALCOM は、どちらもパッケージを管理するツールです。VPM（VRChat Package Manager。パッケージを配布・導入する仕組み）のパッケージの配布先を、この記事では「VPM リポジトリ」と書いています。ALCOM は、VRChat Package Manager のオープンソースの GUI クライアントです（[vrc-get/vrc-get](https://github.com/vrc-get/vrc-get) のリポジトリの説明）。VCC について詳しくは、[用語集: VCC](/glossary#vcc) を見てください。
 
-表の項目名は、画面に表示される名前に合わせています。項目の上限の値は、[パフォーマンスランク（Performance Rank）](/learn/vrchat/performance-rank) にあります。PhysBone は、髪や服を揺らす仕組みです（[用語集: PhysBone](/glossary#physbone)）。コンストレイントは、ある物の位置・回転・スケールを、別の物に紐づける仕組みです（[Unity マニュアル: コンストレイント](https://docs.unity3d.com/ja/2022.3/Manual/Constraints.html)）。
+表の項目名は、画面に表示される名前に合わせています。項目の上限の値は、[パフォーマンスランク（Performance Rank）](/learn/vrchat/performance-rank) にあります。PhysBone は、ボーンを物理やほかのプレイヤーの影響で動かす仕組みです（髪や服の揺れなどに使われます。[用語集: PhysBone](/glossary#physbone)）。コンストレイントは、ある物の位置・回転・スケールを、別の物に紐づける仕組みです（[Unity マニュアル: コンストレイント](https://docs.unity3d.com/ja/2022.3/Manual/Constraints.html)）。
 
 各ツールのコンポーネントを追加するメニュー名は、公式のドキュメントか、パッケージのソースで確認できたものだけを、出典つきで書いています。それ以外は、コンポーネント名だけを書いています。
 
-この記事で「未確認」は、公式の資料やパッケージのソースで確かめられなかったことを指します。減らせないという意味ではありません。記号の意味は、「項目 × ツールの早見表」の前の凡例にあります。
+この記事で「未確認」は、この記事では確認していない、という意味です。無い・できないという意味ではありません。記号の意味は、「項目 × ツールの早見表」の前の凡例にあります。
 
 ::: warning
 ツールは更新されることがあります。この記事は **2026 年 11 月 6 日** に公式ページを確かめて書きました。版が変わっているときは、公式ページの最新の情報を優先してください。
@@ -31,7 +31,7 @@ Modular Avatar は、衣装などを本体に組み立てるためのツール�
   - ALCOM: 「パッケージ管理」から「VPMリポジトリを追加」を選び、リポジトリ `https://vpm.nadena.dev/vpm.json` を追加します。プロジェクトの「管理」で Modular Avatar の「+」を押して、「適用」します。
   - VCC: 公式ページのリンクからリポジトリを追加し、manage project で「+」を押します。
   - テスト版は、公式が ALCOM から入れるよう案内しています。VCC では依存関係の解決にバグがあると書かれています。
-- **ライセンス**: MIT License。ただし `Editor/images` の画像は MIT の対象外で、公式パッケージの一部としてのみ再配布できます。
+- **ライセンス**: MIT License（リポジトリの `COPYING.md`）。ただし `Editor/Images` の画像は MIT の対象外で、公式パッケージの一部としてのみ再配布できます。
 - **対応**: Unity 2022.3（1.18.7 の package.json の値）。changelog の 1.18.4（2026 年 8 月 29 日）に「Unity 6.1〜6.7 に対する実験的な対応」とあります。VRChat SDK の対応版は、未確認です。NDMF（ビルド時の処理を動かす仕組み）が必要です。
 - **公式ページ**: https://modular-avatar.nadena.dev/ja （GitHub: https://github.com/bdunderscore/modular-avatar ）
 - **減らせる主な項目**: ボーン（Merge Armature）、アニメーター（Merge Animator）、三角ポリゴン（Mesh Cutter・Shape Changer。条件つき）
@@ -53,7 +53,7 @@ TexTransTool は、テクスチャを元のまま残して加工するツール�
 - **公式ページ**: https://ttt.rs64.net （チュートリアル: https://ttt.rs64.net/docs/Tutorial ）
 - **減らせる主な項目**: テクスチャメモリー（条件つき）、マテリアルスロットの数（条件つき）
 - **注意**:
-  - テクスチャの圧縮は、プレビューでは行われません。圧縮の結果を見るには、NDMF の Apply On Play や Manual Bake などを使います（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
+  - テクスチャの圧縮は、プレビューでは行われません。圧縮の結果を見るには、NDMF の Apply On Play（Play モードに入ったときに処理を行う）や Manual Bake（処理を適用した複製のアバターを手動で作る。AAO の公式では、NDM Framework の「Manual bake avatar」と説明）などを使います（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
   - アトラス化の出力をそのまま使うと、VRAM が増える場合があると書かれています（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
   - TextureConfigurator は実験的なコンポーネントです。予告なく機能が変わったり、削除されたりすることがあります（[公式: TextureConfigurator](https://ttt.rs64.net/docs/Reference/TextureConfigurator)）。
   - 元に戻す（Revert）方法は、未確認です。
@@ -69,7 +69,7 @@ lilAvatarUtils は、アバターの改変を助けるツールです。公式�
 - **ライセンス**: MIT License。
 - **対応**: Unity 2022.3（VPM の情報）。VRChat SDK の対応版は、未確認です。
 - **公式ページ**: https://lilxyzw.github.io/lilAvatarUtils/ja_JP/
-- **減らせる主な項目**: テクスチャメモリー（インポート設定を変えて減らす作業を想定）。PhysBone と PBコライダーは、一覧で確認して、減らす候補を見つけるためのタブです。減らす操作の詳細は、この記事では未確認です。
+- **減らせる主な項目**: テクスチャメモリー（△。Unity のインポート設定を変える作業の補助）。PhysBone と PBコライダーは、一覧で確認して、減らす候補を見つけるためのタブです。減らす操作の詳細は、この記事では未確認です。
 - **注意**:
   - ツールのタブには、不要なものを削除する操作があります。マテリアルのクリーンアップ（使われていない不要なプロパティの削除）、AnimatorController のクリーンアップ（どこからも参照されない不要なサブアセットの削除）、Missing なコンポーネントの削除です（[公式: ツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。これらはアセットを変更する操作なので、作業の前にプロジェクトのバックアップを取るのが安全です。
   - 不要なテクスチャの割り当てが残っていると、使われないテクスチャがアバターに含まれて容量が大きくなることがあります。マテリアルのクリーンアップは、その整理にも使えます（[公式: ツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。
@@ -79,7 +79,7 @@ lilAvatarUtils は、アバターの改変を助けるツールです。公式�
 
 ## 4. Meshia Mesh Simplification（MMS）
 
-Meshia Mesh Simplification は、メッシュの三角ポリゴンの数を減らす（簡略化する）ツールです。パッケージのソース（`Ndmf/Runtime`）には、アバター向けの「Meshia Cascading Avatar Mesh Simplifier」があり、目標の三角ポリゴン数を、複数のメッシュに配分できます。公式ドキュメントの NDMF 統合の項は、「MeshiaMeshSimplifier」を案内しています。目標は、三角ポリゴンの数で指定します。ランク名のついたプリセットから選ぶこともできます（下の注を見てください）。
+Meshia Mesh Simplification は、メッシュの三角ポリゴンの数を減らす（簡略化する）ツールです。パッケージのソースには、アバター向けの「Meshia Cascading Avatar Mesh Simplifier」があり、目標の三角ポリゴン数を、複数のメッシュに配分できます。公式ドキュメントの NDMF 統合の項は、「MeshiaMeshSimplifier」を案内しています。目標は、三角ポリゴンの数で指定します。ランク名のついたプリセットから選ぶこともできます（下の注を見てください）。
 
 - **確認した版**: 3.3.1（2026 年 11 月 4 日に公開。GitHub のリリース）。
 - **入れ方**: VCC に作者の VPM リポジトリ `https://ramtype0.github.io/VpmRepository/index.json` を追加し、Manage Project から Manage Packages を開いて Meshia Mesh Simplification を追加します。案内ページ（HTML）は https://ramtype0.github.io/VpmRepository/ です。VCC・ALCOM での実機確認は、まだしていません。ALCOM での入れ方は、未確認です。
@@ -119,11 +119,11 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **公式ページ**: https://vpm.anatawa12.com/avatar-optimizer/ja/ （GitHub: https://github.com/anatawa12/AvatarOptimizer ）
 - **減らせる主な項目**: テクスチャメモリー、三角ポリゴンの数（隠れた部分）、スキンドメッシュの数、マテリアルスロットの数、PHYSBONE のコンポーネント・トランスフォーム・コライダーの数、ボーンの数（自動と手動の両方で減らせます）
 - **注意**:
-  - Trace And Optimize は、アバターのルート（VRC Avatar Descriptor のある GameObject）に付けます。
-  - Merge Skinned Mesh で統合すると、メッシュを個別にアニメーションでオン・オフできなくなります。一方で、マテリアルに関するアニメーションは、統合前のものがそのまま機能すると、公式ページの備考に書かれています（[公式: Merge Skinned Mesh](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-skinned-mesh/)）。ただし、マテリアルプロパティのアニメーションは競合する場合があります（次の項目を見てください）。
+  - Trace And Optimize は、アバターのルートに付けます（[公式: 基本的な使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。
+  - Merge Skinned Mesh で統合すると、メッシュを個別にアニメーションでオン・オフできなくなります。マテリアルプロパティのアニメーションは、現時点では競合します（既知の不具合。詳しくは [Avatar Optimizer の記事](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」）。公式の備考にある「統合前のものがそのまま機能する」は、競合しない種類（マテリアルの差し替えなど）に限ります（[公式: Merge Skinned Mesh](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-skinned-mesh/)）。
   - 公式の FAQ には、「Merge Skinned Mesh を使用すると、マテリアルプロパティに対するアニメーションが競合する」という項目があります。既知のバグだと書かれていて、issue は #340 です。競合するときは警告が表示されます。
   - 同じ FAQ には、マテリアルスロットのアニメーションで、それぞれのマテリアルを別のものに置き換える場合は、Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにする、とあります。
-  - 公式ドキュメントでは、VRChat SDK の Control Panel のパフォーマンスランクは、非破壊改変ツールを使うと、あてにならなくなると書かれています。Play モードに入ったときのランクは、anatawa12 さんの Gist Pack の Actual Performance Window で確認する方法が案内されています。
+  - 公式の[基本的な使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)（tutorial/basic-usage の「UploadせずにPerformance Rankを見る方法」）では、VRChat SDK の Control Panel のパフォーマンスランクは、非破壊改変ツールを使うと、あてにならなくなると書かれています。Play モードに入ったときのランクは、anatawa12 さんの Gist Pack の Actual Performance Window で確認する方法が案内されています。
   - 「使われていないObjectを自動的に削除する」は、アニメーションなどを走査して、使われていない GameObject・コンポーネント・テクスチャなどを自動で削除する機能です（[公式: Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。版によって削除の対象が増えています（下の表の注を見てください）。
 
 ## 項目 × ツールの早見表
@@ -136,16 +136,16 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **△ 条件つき**: 条件を満たすと減ると書かれています。または、減らす作業の判断に使えると書かれています。増える場合もあります。下の表の注を見てください。
 - **確認のみ**: 数や値を一覧で確認できると書かれています。減らす操作は、この記事では未確認です。
 - **× 減らせない**: 公式に明記されたものだけに使います。この表には該当がありません。
-- **？ 未確認**: この記事で確認していない項目です。減らせないという意味ではありません。
-- **公式に記載なし**: 公式の全ページと changelog を検索して、本当に無いと確かめたものだけに使います。この表には該当がありません。
+- **？ 未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **？ 公式に記載なし**: その項目について、そのツールの公式の資料（全ページと changelog）を検索して、本当に無いと確かめたものだけに使います。この表では、AAO の列だけが該当します。
 
 ### メッシュ・テクスチャ・マテリアル
 
-表の「テクスチャメモリー（VRAM）」は、グラフィックボードのメモリー（VRAM）に読み込まれるテクスチャの量のことです。
+表の「テクスチャメモリー」は、テクスチャが使うメモリーの推定値です（公式の統計表では、システム RAM と GPU のメモリーの両方を使うと説明。VRAM は GPU 側のメモリー）。
 
 | 項目 | MA | TTT | lilAvatarUtils | MMS | AAO |
 |---|---|---|---|---|---|
-| テクスチャメモリー | ？ 未確認 | △ | ○（インポート設定を変えて減らす作業） | ？ 未確認 | ○ |
+| テクスチャメモリー | ？ 未確認 | △ | △（条件つき） | ？ 未確認 | ○ |
 | 三角ポリゴンの数 | △ | ？ 未確認 | 確認のみ | ○ | ○ |
 | 範囲（BOUNDS） | ？ 未確認 | ？ 未確認 | 確認のみ | ？ 未確認 | ？ 未確認 |
 | スキンドメッシュの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ○ |
@@ -161,7 +161,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 | PHYSBONE コライダーの数 | ？ 未確認 | ？ 未確認 | △ | ？ 未確認 | ○ |
 | PHYSBONE 衝突チェックの数 | ？ 未確認 | ？ 未確認 | 確認のみ | ？ 未確認 | ？ 未確認 |
 | コンタクトの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | △ |
-| コンストレイントの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
+| コンストレイントの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | コンストレイントの深さ | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
 | アニメーターの数 | △ | ？ 未確認 | ？ 未確認 | ？ 未確認 | △ |
 | ボーンの数 | △ | ？ 未確認 | ？ 未確認 | ？ 未確認 | ○ |
@@ -170,23 +170,23 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 
 | 項目 | MA | TTT | lilAvatarUtils | MMS | AAO |
 |---|---|---|---|---|---|
-| ライトの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
-| パーティクルシステムの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
-| 最大パーティクルの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
+| ライトの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
+| パーティクルシステムの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
+| 最大パーティクルの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | メッシュパーティクルの三角ポリゴン数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
-| パーティクルトレイル | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
-| パーティクルの衝突 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
-| トレイルレンダラーの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
-| CLOTH メッシュの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
-| CLOTH の最大頂点の数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
+| パーティクルトレイル | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
+| パーティクルの衝突 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
+| トレイルレンダラーの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
+| CLOTH メッシュの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
+| CLOTH の最大頂点の数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | コライダーの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
-| リジッドボディの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
-| オーディオソースの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
+| リジッドボディの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
+| オーディオソースの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | レイキャストの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 |
 
 ### 表の注
 
-- **テクスチャメモリー**: TTT は、アトラス化・解像度・圧縮で減らせる場合があります。ただし、アトラス化の出力をそのまま使うと、増えることがあります。lilAvatarUtils は、テクスチャのタブでテクスチャを VRAM 容量順に並べ、インポート設定を変えて VRAM を減らす作業ができると説明しています（[公式: テクスチャ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)）。どの項目をツール内で編集できるかは、未確認です。最大解像度（縦または横の最大サイズ）を下げると、インポート時に縮小されます。元の画像ファイルは変わりません。AAO は、対応しているシェーダーのマテリアルについて、テクスチャのサイズを自動で小さくします。
+- **テクスチャメモリー**: TTT は、アトラス化・解像度・圧縮で減らせる場合があります。ただし、アトラス化の出力をそのまま使うと、増えることがあります。lilAvatarUtils の公式の説明は、テクスチャの一括置き換えと、テクスチャを VRAM 容量順に並べて Unity 側でインポート設定を変える作業です。減らすのは Unity のインポート設定で、ツール内で減らす操作ではありません（[公式: テクスチャ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)）。どの項目をツール内で編集できるかは、未確認です。最大解像度（縦または横の最大サイズ）を下げると、インポート時に縮小されます。元の画像ファイルは変わりません。AAO は、対応しているシェーダーのマテリアルについて、テクスチャのサイズを自動で小さくします。
 - **三角ポリゴンの数**:
   - MA の Mesh Cutter は、「1. Modular Avatar」の注を見てください。
   - MA の Shape Changer は、「Delete」モードのとき、アニメーションされていないならポリゴンを削除して数を減らせます。アニメーションされているときは非表示になりますが、測定されるポリゴン数は減りません（[公式: Shape Changer](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/shape-changer)）。
@@ -197,11 +197,12 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **スキンドメッシュの数・基本メッシュの数**: AAO の Merge Skinned Mesh は、スキンドメッシュを 1 つにまとめます。基本メッシュ（ボーンで動かないメッシュ）は、Merge Skinned Mesh の「メッシュレンダラー」の設定で、手動でまとめられます。自動の対象になるかは、未確認です。
 - **マテリアルスロットの数**: TTT の AtlasTexture には、マテリアルの結合を設定する「マテリアル設定」があります（[公式: AtlasTexture](https://ttt.rs64.net/docs/Reference/AtlasTexture)）。AtlasTexture を使うマテリアルに限ります。AAO の Merge Skinned Mesh は、統合対象のメッシュで同じマテリアルを使っているマテリアルスロットを、既定で統合します（[公式 FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。
 - **PHYSBONE の項目（AAO）**: AAO の Merge PhysBone は、まとめるたびに PhysBone Affected Transforms の数が 1 つ増えます（公式ページの記載）。一方、[Replace End Bone With Endpoint Position](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/replace-end-bone-with-endpoint-position/) は、end ボーンを Endpoint Position に置き換えて、PhysBone Affected Transforms の数を減らせます（公式ページの記載）。
+- **PHYSBONE トランスフォームの数（lilAvatarUtils）**: 公式の項目は「ボーン数」（揺れが計算されるボーン数）です。Transform の数と同じかは未確認です。
 - **PHYSBONE の項目（lilAvatarUtils）**: PhysBone のタブは、親が同じ PhysBone を見つけて、コンポーネントを統一できる候補を確認するのに役立つと書かれています。PBコライダーのタブは、どこからも参照されない無駄なコライダーの削減に役立つと書かれています。統一や削除の操作は、この記事では未確認です。
 - **PHYSBONE コライダーの数（MA）**: MA の [PhysBone Blocker](https://modular-avatar.nadena.dev/ja/docs/reference/physbone-blocker) は、子オブジェクトから、親オブジェクトをルートとする PhysBone の影響を防ぎます。[Global Collider](https://modular-avatar.nadena.dev/ja/docs/reference/global-collider) は、VRChat のグローバルコライダーの数に上限があるため、既存のグローバルコライダー（指や手など）を差し替える機能です。どちらも、コライダーの数を減らす機能としては、未確認です。
 - **コライダーの数（lilAvatarUtils）**: PBコライダーのタブで一覧を確認できるのは、PhysBone 用のコライダーです。通常の Collider を含むかは、未確認です。
 - **コンタクトの数（AAO）**: AAO の「使われていないObjectを自動的に削除する」（英語名は Remove Unused Objects）は、1.7.0（2024 年 4 月 30 日）から、Animator Controller で使われていないパラメーターを持つ PhysBone と Contact Receiver を削除するようになりました（公式の [changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。条件つきで、自動で行われます。
-- **コンストレイントの数**: MA の [Convert Constraints](https://modular-avatar.nadena.dev/ja/docs/reference/convert-constraints) は、あらかじめ変換するとパフォーマンスが大幅に向上すると、公式が書いています。公式は性能向上のみを書いており、件数への効果は未確認です。
+- **コンストレイントの数**: MA の [Convert Constraints](https://modular-avatar.nadena.dev/ja/docs/reference/convert-constraints) は、あらかじめ変換するとパフォーマンスが大幅に向上すると、公式が書いています。公式は性能向上のみを書いており、件数への効果は未確認です。AAO の changelog には、1.6.12（2024 年 4 月 9 日）の Removed に「Activeness Optimization for Constraint component」（理由は「The constraint component is too complex to optimize correctly and reliably」。複雑すぎて、正しく確実に最適化できない）があります。そのため、AAO の列は「？ 公式に記載なし」のままにしています。
 - **アニメーターの数**: MA の Merge Animator は、「付属アニメーターを削除」をオンにしたときに減らせます。AAO の「使われていないObjectを自動的に削除する」は、1.6.0（2023 年 11 月 27 日）から、Animator Controller のない Animator を、意味のないものとして削除するようになりました（公式の changelog）。
 - **ボーンの数**: MA の Merge Armature は、名前が一致するボーンを統合先にまとめます。名前が合わないと、新しいボーンが増えます。AAO は、使われていないObjectを削除します。
 - **ライトの数（lilAvatarUtils）**: ライティングのタブは、見え方を確かめる機能です。ライトを減らす機能は、未確認です。
