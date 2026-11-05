@@ -115,7 +115,6 @@ public class NavigationTests
             Assert.Contains($"/learn/{category.Id}", reachable);
     }
 
-
     [Fact]
     public void Icon_map_has_every_icon_the_build_can_emit()
     {

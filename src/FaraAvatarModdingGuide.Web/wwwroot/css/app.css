@@ -1424,6 +1424,14 @@ h1:focus {
     }
 }
 
+/* 1025px 以上（PC）: サイドバーの開閉ボタンは、ヘッダーの常設の操作なので、押せる範囲を 44px にする（40px → 44px。ヘッダーの高さ 56px の中で、サイト名との間隔 12px は変わらない） */
+@media (min-width: 1025px) {
+    .fbc-header .fbc-menu-toggle {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+
 /* 768〜1024（タブレット）: ヘッダーのメニューボタン（40px）の押せる範囲を 44px にする。見た目と配置は変えず、透明な領域を外に 2px ずつ足す（::after）。
    サイト名との間は 12px あるので重ならない。ドロワーのリンクは、広げると 1 件ずつ並びが動く（隙間なしに 40px で並んでいる）ので、ここでは変えない */
 @media (min-width: 768px) and (max-width: 1024px) {
@@ -2643,7 +2651,7 @@ html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-group + .av
     min-width: 0;
 }
 
-/* 右の列（目次・キー一覧）は、左のサイドバー（264px）の分だけ広い画面（1280px 以上）から出す。それより狭いと、本文が 400px 台まで狭くなる */
+/* 右の列（目次・キー一覧）は、左のサイドバー（264px）の分だけ広い画面（1280px 以上）でだけ出す。1280px 未満は 1 列にして、目次は記事タイトルの下に畳む（右の列を 992px 前後で出すと、本文が 400px 前後まで狭くなる） */
 @media (min-width: 1280px) {
     .article-cols.has-aside {
         grid-template-columns: minmax(0, 48rem) 16rem;

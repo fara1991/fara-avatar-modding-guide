@@ -38,7 +38,7 @@ internal static class StaticFrame
     private static string MudSvg(string materialName, string extraClasses = "") =>
         $"<svg class=\"{IconClasses}{extraClasses}\" focusable=\"false\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" role=\"img\">{SiteIcons.SvgMarkup(materialName)}</svg>";
 
-    /// <summary>ヘッダー(PC: ハンバーガー・名前・検索欄・ライト/ダークのスイッチ。スマホ: ハンバーガー・名前・検索ボタン)。PC とスマホの出し分けは CSS(.av-pc / .av-sp)。</summary>
+    /// <summary>ヘッダー(PC: ハンバーガー・名前・検索欄・ライト／ダークのスイッチ。スマホ: ハンバーガー・名前・検索ボタン)。PC とスマホの出し分けは CSS(.av-pc / .av-sp)。</summary>
     public static string Header(SiteSettings settings)
     {
         var sb = new StringBuilder();
