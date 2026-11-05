@@ -88,7 +88,7 @@ Meshia Mesh Simplification は、メッシュの三角ポリゴンの数を減�
 - **依存**:
   - パッケージには、NDMF 向けの部分が含まれています（パッケージのソース）。NDMF が無いときの動作は、未確認です。
   - VPM のメタデータ（package.json）では、anatawa12 さんが作ったローカライズ用パッケージ `com.anatawa12.custom-localization-for-editor-extension`（^1.2.1）に依存しています。これは AAO とは別のパッケージで、AAO の機能の説明には関係しません。
-  - ほかに必要なツールは、公式のインストールの説明で案内されています。アバター改変で両方（MMS と Cascading）を使うときは [Modular Avatar](https://modular-avatar.nadena.dev/ja)、ワールド改変で MMS を使うときは NDMF です（[インストールの説明](https://github.com/RamType0/Meshia.MeshSimplification/blob/main/.docfx/docs/ja/vrchat/installation.md)）。
+  - ほかに必要なツールは、公式のインストールの説明で案内されています。アバター改変で MMS と Meshia Cascading Avatar Mesh Simplifier の両方を使うときは [Modular Avatar](https://modular-avatar.nadena.dev/ja)、ワールド改変で MMS を使うときは NDMF です（[インストールの説明](https://github.com/RamType0/Meshia.MeshSimplification/blob/main/.docfx/docs/ja/vrchat/installation.md)）。
 - **メニュー**: GameObject > Meshia Mesh Simplification > Meshia Cascading Avatar Mesh Simplifier です（パッケージのソースの MenuItem で確認。公式ドキュメントは、アバターの直下にこの GameObject を作成する手順を案内しています）。
 - **公式ページ**: https://ramtype0.github.io/Meshia.MeshSimplification/ （README: https://github.com/RamType0/Meshia.MeshSimplification ）
 - **減らせる主な項目**: 三角ポリゴンの数（目標の数を指定）
@@ -124,7 +124,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
     - [公式: Merge Skinned Mesh](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-skinned-mesh/) の備考は、「マテリアルに関するアニメーションは統合前のものがそのまま機能します」と書いています。
     - [公式 FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/) には、「マテリアルプロパティに対するアニメーションが競合する」という項目があります。「この問題は既知のバグであり、現時点では競合してしまう仕様です」と書かれていて、issue は [issue 340](https://github.com/anatawa12/AvatarOptimizer/issues/340) です。競合するときは警告が表示されます。詳しくは [Avatar Optimizer の記事](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」を見てください。
     - 同じ FAQ の「マテリアルスロットに対するアニメーションが競合する」の項目には、アニメーションでそれぞれのマテリアルを別のものに置き換える場合は、Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにする、とあります。
-    - 公式の中で書き方が食い違う（備考は「そのまま機能する」、FAQ は競合する場合がある）ので、統合するときは実際に確かめてください。
+    - 公式の中で書き方が食い違います（備考は「統合前のものがそのまま機能します」、FAQ は「現時点では競合してしまう仕様です」）。FAQ の書き方（競合する）を前提にして、統合したあとは、マテリアルのアニメーションが動くかを、実際に確かめてください。
   - 公式の[基本的な使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)（tutorial/basic-usage の「UploadせずにPerformance Rankを見る方法」）では、VRChat SDK の Control Panel のパフォーマンスランクは、非破壊改変ツールを使うと、あてにならなくなると書かれています。Play モードに入ったときのランクは、anatawa12 さんの Gist Pack（Unity 用の補助ツールの集まり。複数の gist で構成され、その一つが Actual Performance Window）で確認する方法が案内されています。
   - 「使われていないObjectを自動的に削除する」は、アニメーションなどを走査して、使われていない GameObject・コンポーネント・テクスチャなどを自動で削除する機能です（[公式: Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。版によって削除の対象が増えています（下の表の注を見てください）。
 

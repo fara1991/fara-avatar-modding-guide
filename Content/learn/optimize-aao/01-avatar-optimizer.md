@@ -17,7 +17,7 @@ AAO の目的は、**アバターの見た目をほとんど変えずに、性�
 
 この記事では、次の言葉を使います。
 
-- **公式に記載なし**: 公式ドキュメント（日本語版の公式ドキュメントの各ページと changelog）を検索して、書かれていないことを確かめた、という意味です。
+- **公式に記載なし**: 日本語版の公式ドキュメントの各ページと changelog を検索して、書かれていないことを確かめた、という意味です。
 - **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 
 「リファレンス本文」は各コンポーネントのページ、「changelog」は公式ドキュメント内の変更履歴を指します。
@@ -300,7 +300,7 @@ AAO の処理は、VRChat SDK の Control Panel では確かめにくいもの�
 | 見た目や動きが変わった | Trace And Optimize で見た目や動きが変わった場合は、AAO の不具合の可能性があります。ただし、ほかの AAO コンポーネントのバグの挙動に頼っている場合は除きます。報告してください。報告先は、[GitHub Issues](https://github.com/anatawa12/AvatarOptimizer/issues) や NDMF の Discord などです。公式には、報告用の Bug Report Helper のページもあります。 |
 | メッシュが見えない | 公式 FAQ によると、多くの場合は、統合先のメッシュ（AAO Merge Skinned Mesh と一緒に付いている SkinnedMeshRenderer）の Root Bone を指定し忘れていることが原因です。AAO Merge Skinned Mesh は Root Bone を自動で設定しないため、手動で設定します。Modular Avatar を使っている場合は、アバターのルートに MA Mesh Settings を追加すると、アバター全体の Root Bone と範囲（BOUNDS）を設定できます。 |
 | 統合したメッシュの明るさが違う | 公式 FAQ によると、多くの場合は、統合先のメッシュの Anchor Override を指定し忘れていることが原因です。AAO Merge Skinned Mesh は Anchor Override を自動で設定しないため、手動で設定します。Modular Avatar を使っている場合は、アバターのルートに MA Mesh Settings を追加すると、アバター全体の Anchor Override を設定できます。 |
-| 統合後に、マテリアルプロパティのアニメーションが競合する | 既知の不具合で、現時点では競合します（公式の備考は「マテリアルに関するアニメーションは統合前のものがそのまま機能します」と書いていて、書き方が食い違います。詳しくは [軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。解決を求める issue は、[#340](https://github.com/anatawa12/AvatarOptimizer/issues/340)（マテリアルのアニメーションパラメータの競合の解決。open）です。公式 FAQ では、マテリアルプロパティに対してアニメーションされるメッシュを統合するときは、競合しないよう注意するよう書かれています。競合するときは警告が表示されます。 |
+| 統合後に、マテリアルプロパティのアニメーションが競合する | 既知の不具合で、現時点では競合します。統合したあとは、マテリアルのアニメーションが動くかを確かめてください（公式の備考は「マテリアルに関するアニメーションは統合前のものがそのまま機能します」と書いていて、書き方が食い違います。詳しくは [軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。解決を求める issue は、[#340](https://github.com/anatawa12/AvatarOptimizer/issues/340)（マテリアルのアニメーションパラメータの競合の解決。open）です。公式 FAQ では、マテリアルプロパティに対してアニメーションされるメッシュを統合するときは、競合しないよう注意するよう書かれています。競合するときは警告が表示されます。 |
 | 統合後に、マテリアルスロットのアニメーションが競合する | マテリアルを別のものに置き換えるアニメーションがあるときは、AAO Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにします（公式 FAQ の方法）。 |
 | OSC（ゲームや外部ツールと値をやりとりする通信の仕組み）のギミックで、PhysBone や Contact Receiver が効かない | AAO の Trace And Optimize は、OSC で使われているかを判別できないため、使われていないように見えるものを削除することがあります。公式 FAQ では、Asset Description ファイルを作成し、Parameters Read By External Tools に設定する方法が書かれています。 |
 | VRChat SDK のハードリミットを超えて、アップロードできない | VRChat SDK 3.8.1 以降は、シーン上のアバターがハードリミット（アバターの上限値）を超えていても、ビルドとアップロードを開始できます。公式では、VRChat SDK を最新版に更新することが推奨されています。 |
@@ -324,11 +324,11 @@ AAO の処理は、VRChat SDK の Control Panel では確かめにくいもの�
 
 ### TexTransTool・MMS
 
-TexTransTool（TTT）について、AAO の changelog の 1.8.0 に「Improve RemoveMeshByMask compability with Tex Trans Tool」（RemoveMeshByMask と TTT の互換性の改善）があります。changelog の表記は「Tex Trans Tool」です（この記事の地の文では、TexTransTool（TTT）と書きます）。TTT との併用の注意は、公式の資料には書かれていません。MMS（Meshia Mesh Simplification。展開は、この記事の補足です）との併用についても、公式の資料には書かれていません。どちらも、日本語版の公式ドキュメントの各ページと changelog を検索して確認しました。併用するときは、それぞれの公式の情報を確かめてください。
+TexTransTool（TTT）について、AAO の changelog の 1.8.0 に「Improve RemoveMeshByMask compability with Tex Trans Tool」（RemoveMeshByMask と TTT の互換性の改善）があります。changelog の表記は「Tex Trans Tool」です（この記事の地の文では、TexTransTool（TTT）と書きます）。AAO の日本語版の公式ドキュメントの各ページと changelog を検索しましたが、TTT との併用の注意は書かれていません（公式に記載なし）。MMS（Meshia Mesh Simplification。展開は、この記事の補足です）との併用についても、同じ範囲に記載がありません（公式に記載なし）。TTT・MMS 側の公式の資料は、この記事では確認していません（未確認）。併用するときは、それぞれの公式の情報を確かめてください。
 
 ## AAO の機能一覧に、公式に記載なしの項目
 
-次の項目は、日本語版の公式ドキュメントの各ページと changelog を検索して、AAO による効果の記載が無いことを確かめました（公式に記載なし）。効果が無いという意味ではありません。パフォーマンスランクの項目としては残ります。
+次の項目は、日本語版の公式ドキュメントの各ページと changelog を検索して、AAO による「減らす効果」の記載が無いことを確かめました（公式に記載なし）。ただし、Cloth・コンストレイント・パーティクルシステムについては、挙動や不具合の記載があります（changelog。下の補足）。効果が無いという意味ではありません。パフォーマンスランクの項目としては残ります。
 
 - コンストレイントの数、コンストレイントの深さ
 - ライトの数
@@ -341,7 +341,8 @@ TexTransTool（TTT）について、AAO の changelog の 1.8.0 に「Improve Re
 補足として、次の記載があります。
 
 - コンストレイント: changelog の 1.6.12 に、Constraint の有効無効の最適化が「Removed」（削除）と書かれています。理由は、「正しく確実に最適化するには複雑すぎる」（訳。原文は "too complex to optimize correctly and reliably"）です。
-- パーティクル: changelog には、パーティクルシステムに関する不具合の修正が書かれています。効果の記載ではありません。
+- パーティクル: changelog には、パーティクルシステムに関する不具合の修正が書かれています（「使われていないObjectを自動的に削除する」が ParticleSystem を壊すことがあった、など）。減らす効果の記載ではありません。
+- CLOTH: changelog に、Merge Skinned Mesh で Cloth を持つレンダラーがエラーになること（1.7.0）、Cloth を持つ SkinnedMeshRenderer では BlendShape の自動の固定が無効になることが書かれています。減らす効果の記載ではありません。
 
 ::: tip
 「使われていないObjectを自動的に削除する」の対象には、未使用のライトやパーティクルなどのコンポーネントも含まれることがあります。公式には、個々の種類は書かれていません。詳しくは、上の「自動で行われること」の注意を見てください。

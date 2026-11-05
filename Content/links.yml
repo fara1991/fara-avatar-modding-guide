@@ -877,5 +877,5 @@
   url: https://github.com/RamType0/Meshia.MeshSimplification
   category: unity-tool
   description: メッシュの三角ポリゴン数を減らす（簡略化する）
-  note: 減らせるのは三角ポリゴンの数。アバター改変で Meshia Cascading Avatar Mesh Simplifier も使うときは Modular Avatar、ワールド改変で使うときは NDMF が必要（公式のインストール手順）。
+  note: 減らせるのは三角ポリゴンの数。アバター改変で Meshia Cascading Avatar Mesh Simplifier も使うときは Modular Avatar、ワールド改変で MMS を使うときは NDMF が必要（公式のインストール手順）。
   status: current
