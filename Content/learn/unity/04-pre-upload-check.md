@@ -3,7 +3,7 @@ title: アップロード前の確認
 reading: あっぷろーどまえのかくにん
 description: VRChat にアップロードする前に確かめること（Avatar Descriptor、パフォーマンスランク、使わないものの整理、Build & Test、Blueprint ID）です。
 difficulty: 初級
-updated: 2026-10-11
+updated: 2026-11-06
 ---
 
 ## チェックリスト
@@ -21,7 +21,7 @@ updated: 2026-10-11
 
 ## パフォーマンスランク
 
-VRChat は、アバターの重さを **Excellent / Good / Medium / Poor / Very Poor** で表します。三角形の数・マテリアルの数・Skinned Mesh の数・ボーンの数・PhysBone の数などの項目ごとにランクが付き、**いちばん悪い項目** がアバターのランクになります。
+VRChat は、アバターの重さを **Excellent / Good / Medium / Poor / Very Poor** で表します。三角ポリゴンの数・マテリアルの数・Skinned Mesh の数・ボーンの数・PhysBone の数などの項目ごとにランクが付き、**いちばん悪い項目** がアバターのランクになります。
 
 - ランクは VRChat SDK の **Builder** で、アバターを選ぶと表示されます
 - Very Poor のアバターは、ほかの人の設定によっては表示されません。Android（Quest など）では Very Poor のアバターは表示されません
