@@ -93,14 +93,14 @@
   title: 軽量化の基本
   reading: けいりょうかのきほん
   en: Optimization Basics
-  description: パフォーマンスの内訳の画面の見方と、5 つのツール（MA・TTT・lilAvatarUtils・MMS・AAO）でできること。
+  description: パフォーマンスの内訳の画面の見方と、軽量化に使う 5 つのツール（Modular Avatar など）でできること。
   icon: bi-search
 
 - id: optimize-aao
   section: optimize
-  title: Avatar Optimizer で自動で軽くする
+  title: Avatar Optimizer の使い方
   nav_title: Avatar Optimizer
-  reading: あばたーおぷてぃまいざーでじどうでかるくする
+  reading: あばたーおぷてぃまいざーのつかいかた
   en: Avatar Optimizer
-  description: Avatar Optimizer（AAO）で、ビルドのときに自動で軽くする。できること・使い方・うまくいかないとき。
+  description: Avatar Optimizer（AAO）でできること、入れ方、使い方、うまくいかないとき。
   icon: bi-puzzle

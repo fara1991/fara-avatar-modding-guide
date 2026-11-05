@@ -23,5 +23,5 @@
 
 - id: optimize
   title: アバター軽量化
-  description: VRChat のパフォーマンスランクの項目ごとに、何が重くなる原因か、どのツールでどう減らせるかを説明する。
+  description: VRChat の「パフォーマンスの内訳」の見方、軽量化に使うツールの一覧、Avatar Optimizer の使い方を説明する。
   icon: bi-tools

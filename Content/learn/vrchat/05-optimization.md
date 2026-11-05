@@ -53,7 +53,7 @@ PhysBone の項目の意味は [PhysBone と Contact](/learn/vrchat-features/phy
 **Avatar Optimizer**（AAO）は、アップロードのとき（ビルドの途中）に、アバターを自動で軽くするツールです。元のシーンやデータは変わらないので、外せばいつでも元に戻ります。Modular Avatar と同じ NDMF という仕組みで動きます（[用語集: NDMF](/glossary#ndmf)）。
 
 ::: tip
-AAO の入れ方（公式は ALCOM を推奨していて、VCC では正しく動かないことがあると書いています）、オプションごとの詳しい説明、うまくいかないときは、[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer)にまとめています。
+AAO の入れ方（公式は ALCOM を推奨していて、VCC では正しく動かないことがあると書いています。この記事の「入れる」の手順は VCC の例です）、オプションごとの詳しい説明、うまくいかないときは、[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer) にまとめています。
 :::
 
 ### 入れる

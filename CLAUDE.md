@@ -25,7 +25,7 @@ Avatar Modding Guide（https://avatar.fara-labs.com/）。.NET 10 / Blazor WebAs
 - `src/FaraAvatarModdingGuide.Build`: 本文入りの静的 HTML・`data/*.json`・robots・sitemap・`_headers`・`_redirects` を、`dotnet publish` の出力に書き足す。本番用（`--env production`）と確認用（`--env develop`）で内容が違う（sitemap・noindex・canonical）
 - `src/FaraAvatarModdingGuide.Content`・`Shared`: 記事を読む部分（ビルド時のみ）と、Build と Web が共有する型
 - ルートの `wwwroot/` は `images/`（画像）と `og.png`（OGP。4 サイト共通の名前、URL は `/og.png?v=N`）だけ（Build がコピーする。画像の作り方は docs/phase3b-design.md の §17.7）
-- 左のサイドバー（F 案。上のヘッダーに各リンクを並べる B 案は、やめた）: 項目・強調の規則・開閉は Shared の `SideNav` が持つ。区切りと記事のカテゴリは content.json から作る。「記事をよむ」は目次のページだけ強調し、カテゴリは、区切り（Blender・Unity・VRChat・通しで作る）ごとの開閉の中に出す。「はじめかた」は独立した項目
+- 左のサイドバー（F 案。上のヘッダーに各リンクを並べる B 案は、やめた）: 項目・強調の規則・開閉は Shared の `SideNav` が持つ。区切りと記事のカテゴリは content.json から作る。「記事をよむ」は目次のページだけ強調し、カテゴリは、区切り（Blender・Unity・VRChat・通しで作る）ごとの開閉の中に出す。作業の手順書の区切り（`optimize`＝アバター軽量化）は、`SideNav.MakeSectionIds` で、「学ぶ」ではなく、その次の「つくる」に出す。「はじめかた」は独立した項目
   - 描画: Web の `Layout/AvSideNav.razor`・`SideLink.razor`（kit の `SiteLayout` の `DrawerContent`）と、Build の `StaticFrame.Sidebar`・`SideNavMarkup` が、同じ構造・同じ class（`av-side*`）で作る。PC は既定で開いた状態（264px）で、畳むと Mini（アイコンだけの細い列。ホバーで広がる）、スマホはハンバーガーで開く一時的なメニュー
   - 開閉と強調: 開閉はブラウザ標準の `details`（`MudNavGroup` は入れ子の `nav` を出すので使わない）。いまのページを含む区切りは `open`、いまのページは `aria-current="page"`、404 ではどれも強調しない。項目（カテゴリ・区切り・「はじめかた」）の右に、読んだ記事の数（`CategoryProgress`）
   - 幅は `AvatarTheme.DrawerWidth`（264px）。app.css の `.av-static` の `--mud-drawer-width-left` と同じ値にする（`StaticFrameTests` が確かめる）。項目を足したら `NavigationTests`・`StaticFrameTests` の対応も直す

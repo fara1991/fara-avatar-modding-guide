@@ -32,7 +32,7 @@ public class MobileCssTests
     public void Article_links_wrap_so_a_long_url_does_not_widen_the_page()
     {
         // 本文のリンクに長い URL がそのまま文字として出ていても、ページ全体が横に動かない（360px で 455px まで広がった）
-        Assert.Matches(@"\.article-body a\s*\{\s*overflow-wrap:\s*anywhere;\s*\}", AppCss);
+        Assert.Matches(@"\.article-body a:not\(\.btn\)\s*\{\s*overflow-wrap:\s*anywhere;\s*\}", AppCss);
     }
 
     [Fact]

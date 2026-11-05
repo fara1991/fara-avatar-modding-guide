@@ -89,7 +89,7 @@ public static class SideNav
         };
 
         // 作業の手順書の区切り（アバター軽量化）は、「学ぶ」の次に「つくる」として出す
-        if (make.Count > 0) groups.Insert(2, new SideGroup("つくる", make));
+        if (make.Count > 0) groups.Insert(groups.FindIndex(g => g.Title == "学ぶ") + 1, new SideGroup("つくる", make));
         return groups;
     }
 

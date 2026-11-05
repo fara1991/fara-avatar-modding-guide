@@ -5,7 +5,7 @@
 ```
 Content/
   learn/
-    sections.yml          # 目次の大きな区切り（Blender / Unity / VRChat / 通しで作る）
+    sections.yml          # 目次の大きな区切り（Blender / Unity / VRChat / 通しで作る / アバター軽量化）
     categories.yml        # 目次の段階（並び順 = 読む順。section でどの区切りに入るかを決める）
     <category-id>/
       01-slug.md          # 記事。ファイル名が「番号-スラッグ.md」で、URL は /learn/<category-id>/<slug>

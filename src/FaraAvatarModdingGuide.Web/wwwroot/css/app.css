@@ -615,7 +615,7 @@ kbd {
 }
 
 /* 本文のリンクは、長い URL がそのまま文字として出ていても、幅に収まらないときだけ折り返す（折り返せないと、ページ全体が横に動く） */
-.article-body a {
+.article-body a:not(.btn) {
     overflow-wrap: anywhere;
 }
 
