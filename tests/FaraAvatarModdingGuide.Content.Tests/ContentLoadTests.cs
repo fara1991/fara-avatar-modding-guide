@@ -23,11 +23,12 @@ public class ContentLoadTests
     [Fact]
     public void The_original_ten_categories_and_fifty_articles_are_still_there()
     {
-        // 計画書 1.1: 移行した 10 カテゴリ・50 記事（アバター軽量化の区切りを除く）が、消えていない
+        // 計画書 1.1: 移行した 10 カテゴリ・50 記事（アバター軽量化の区切りを除く）が、消えていない。
+        // 移行した 10 カテゴリに記事を足してもよいので、記事の数は下限（50）で確かめる
         var content = Load();
         var original = content.Categories.Where(c => c.Section != "optimize").ToList();
         Assert.Equal(10, original.Count);
-        Assert.Equal(50, content.Articles.Count(a => original.Any(c => c.Id == a.Category)));
+        Assert.True(content.Articles.Count(a => original.Any(c => c.Id == a.Category)) >= 50);
     }
 
     [Fact]
