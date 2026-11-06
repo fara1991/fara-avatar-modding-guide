@@ -51,7 +51,7 @@ updated: 2026-11-06
 
 **TextureConfigurator（実験的）**: 解像度と MipMap を、非破壊的に制御するコンポーネントです。メニューは「TexTransTool/Other/TTT TextureConfigurator」です。一括で作る場合は「TexTransTool/Generate/TTT TextureConfigurator」を使います（無効化された TextureConfigurator を一括生成すると、公式チュートリアルに書かれています）。
 
-公式のチュートリアル（[テクスチャ設定でテクスチャーメモリを削減する](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByTextureSetting)）には、解像度を 2048 から 1024 にし、圧縮を Normal から High にする例があります。公式は、解像度を 1 段階下げると容量が 1/4 になると書いています。圧縮設定は、PC 向けの場合に Normal から High の間で上げると容量が 2 倍になると書いています。PC 向けの場合のこの例では、公式は「VRAM の使用量は元の半分になります」と書いています（1/4 × 2 = 1/2）。これは公式の例であり、どのテクスチャでも同じ結果になるとは限りません。
+公式のチュートリアル（[テクスチャ設定でテクスチャーメモリを削減する](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByTextureSetting)）には、解像度を 2048 から 1024 にし、圧縮を Normal から High にする例があります。公式は、解像度を 1 段階下げると容量が 1/4 になると書いています。PC 向けの場合は、圧縮設定を Normal から High に上げると容量が 2 倍になると書いています。PC 向けの場合のこの例では、公式は「VRAM の使用量は元の半分になります」と書いています（1/4 × 2 = 1/2）。これは公式の例であり、どのテクスチャでも同じ結果になるとは限りません。
 
 **注意**:
 
@@ -101,8 +101,8 @@ updated: 2026-11-06
 ## 注意・うまくいかないとき
 
 ::: warning
-- TTT のテクスチャの圧縮は、NDMF のプレビューには基本的に反映されません。公式は、NDMF の Apply On Play か Manual Bake で確かめるよう書いています。
-- TTT のコンポーネントは、基本的に、ビルドのときに有効（Active）でないと動きません。公式 FAQ の原文は「TexTransTool のコンポーネントは基本的に、ビルド時に Active でないと動作しません。」です。アバター改変では NDMF が必要です（TTT の公式の説明）。
+- TTT のテクスチャの圧縮は、NDMF のプレビューには反映されません。公式は、NDMF の Apply On Play か Manual Bake で確かめるよう書いています（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
+- TTT のコンポーネントは、ビルドのときに有効（Active）でないと動きません。公式 FAQ の原文は「TexTransTool のコンポーネントは基本的に、ビルド時に Active でないと動作しません。」です。アバター改変では NDMF が必要です（TTT の公式の説明）。
 - TextureSize を元の設定より大きくすると、無意味に拡大されると公式が書いています。
 - MipMap の設定は、よく分からないときは触らないよう、公式が警告しています。
 - Format Quality の「None」について、公式は「シェーダーについて完全に理解している人ではない、技術者ではないのであるならば、絶対に「None」を選ばないでください」と書いています。シェーダーに詳しくない人は、None を選ばないよう公式が勧めています。

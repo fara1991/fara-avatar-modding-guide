@@ -40,7 +40,7 @@ updated: 2026-11-06
 
 ### TexTransTool（TTT）
 
-- **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、マテリアルスロットの結合はできないと明記しています（[公式: Quest 対応のアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
+- **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、AtlasTexture のマテリアルの結合では、マテリアルスロットは結合できないと明記しています（[公式: Quest 対応のアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
 - **公式に記載なし**: 基本メッシュの数を減らす機能は、公式に記載なし（確かめた範囲: Reference のコンポーネント一覧、チュートリアル、FAQ。一覧に、メッシュを統合するコンポーネントはありません）。
 
 ### lilAvatarUtils

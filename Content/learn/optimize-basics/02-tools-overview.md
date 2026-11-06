@@ -53,7 +53,7 @@ TexTransTool は、テクスチャを元のまま残して加工するツール�
 - **公式ページ**: https://ttt.rs64.net （チュートリアル: https://ttt.rs64.net/docs/Tutorial ）
 - **減らせる主な項目**: テクスチャメモリー（条件つき）、マテリアルの結合（AtlasTexture では、マテリアルスロットは結合されないと公式が明記）
 - **注意**:
-  - テクスチャの圧縮は、プレビューでは行われません。圧縮の結果を見るには、NDMF の Apply On Play（Play モードに入ったときに処理を行う）や Manual Bake（処理を適用した複製のアバターを手動で作る。AAO の公式では、NDM Framework の「Manual bake avatar」と説明）などを使います（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
+  - テクスチャの圧縮は、NDMF のプレビューには反映されません。圧縮の結果を見るには、NDMF の Apply On Play（Play モードに入ったときに処理を行う）や Manual Bake（処理を適用した複製のアバターを手動で作る。AAO の公式では、NDM Framework の「Manual bake avatar」と説明）などを使います（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
   - アトラス化の出力をそのまま使うと、VRAM が増える場合があると書かれています（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
   - TextureConfigurator は実験的なコンポーネントです。予告なく機能が変わったり、削除されたりすることがあります（[公式: TextureConfigurator](https://ttt.rs64.net/docs/Reference/TextureConfigurator)）。
   - 元に戻す（Revert）方法は、未確認です。

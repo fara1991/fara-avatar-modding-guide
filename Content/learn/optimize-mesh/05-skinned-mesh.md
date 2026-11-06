@@ -40,7 +40,7 @@ updated: 2026-11-06
 
 ### TexTransTool（TTT）
 
-- **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、マテリアルスロットの結合はできないと明記しています（[公式: Quest 対応のアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
+- **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、AtlasTexture のマテリアルの結合では、マテリアルスロットは結合できないと明記しています（[公式: Quest 対応のアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
 - **どう使うか**: そのチュートリアルの末尾には、マテリアルスロットも減らすには、AAO の Trace And Optimize や Merge Skinned Mesh との併用を強く推奨する、と書かれています。
 - **公式に記載なし**: スキンドメッシュの数を減らす機能は、公式に記載なし（確かめた範囲: Reference のコンポーネント一覧、AtlasTexture と TextureFineTuning のページ、チュートリアル、FAQ）。
 
@@ -62,7 +62,7 @@ updated: 2026-11-06
   - 同じマテリアルを使うマテリアルスロットも統合できます。公式は、マテリアルの統合は DrawCall（描画の呼び出し）を減らすと書いています。
 - **どう使うか**:
   - Trace And Optimize はアバターのルートに付けます。行う最適化は、チェックボックスで選べます。
-  - AAO Merge Skinned Mesh は、新しい空の GameObject に、メッシュを指定していない SkinnedMeshRenderer と一緒に付けます（種別は「Source Edit Skinned Mesh Component」です。公式ドキュメントでは、メッシュなどを生成するコンポーネントの小分類です）。
+  - AAO Merge Skinned Mesh は、新しい空の GameObject に、メッシュを指定していない SkinnedMeshRenderer と一緒に付けます（種別は「Source Edit Skinned Mesh Component」です。公式ドキュメントに書かれている分類名です）。
   - 主な設定は、次のとおりです。
     - スキンメッシュレンダラー（Skinned Renderers）: 統合対象の SkinnedMeshRenderer の一覧です。
     - メッシュレンダラー（Basic Renderers）: 統合対象の MeshRenderer の一覧です（[基本メッシュの数を減らす](/learn/optimize-mesh/basic-mesh)）。
