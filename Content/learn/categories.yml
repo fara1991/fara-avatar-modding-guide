@@ -122,3 +122,12 @@
   en: Reduce PhysBones and Contacts
   description: PhysBone のコンポーネント・トランスフォーム・コライダー・衝突チェックと、コンタクトの数を減らす方法と、使えるツール。
   icon: bi-arrows-move
+
+- id: optimize-constraint
+  section: optimize
+  title: コンストレイント・アニメーター・ライトを減らす
+  nav_title: コンストレイント・アニメーター・ライト
+  reading: こんすとれいんとあにめーたーらいとをへらす
+  en: Reduce Constraints, Animators and Lights
+  description: コンストレイントの数と深さ、アニメーターの数、ライトの数を減らす方法と、使えるツール。
+  icon: bi-lightbulb

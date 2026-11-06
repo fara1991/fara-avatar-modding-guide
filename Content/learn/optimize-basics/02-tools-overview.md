@@ -163,16 +163,16 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 | PHYSBONE コライダーの数 | ？ 公式に記載なし | ？ 公式に記載なし | △ | ？ 公式に記載なし | ○ |
 | PHYSBONE 衝突チェックの数 | ？ 公式に記載なし | ？ 公式に記載なし | 確認のみ | ？ 公式に記載なし | ？ 公式に記載なし |
 | コンタクトの数 | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | △ |
-| コンストレイントの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
-| コンストレイントの深さ | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
-| アニメーターの数 | △ | ？ 未確認 | ？ 未確認 | ？ 未確認 | △ |
+| コンストレイントの数 | △ | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし |
+| コンストレイントの深さ | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし |
+| アニメーターの数 | △ | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | △ |
 | ボーンの数 | △ | ？ 未確認 | ？ 未確認 | ？ 未確認 | ○ |
 
 ### そのほかの項目
 
 | 項目 | MA | TTT | lilAvatarUtils | MMS | AAO |
 |---|---|---|---|---|---|
-| ライトの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
+| ライトの数 | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし |
 | パーティクルシステムの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | 最大パーティクルの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | メッシュパーティクルの三角ポリゴン数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
@@ -206,7 +206,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **コンタクトの数（AAO）**: AAO の「使われていないObjectを自動的に削除する」（英語名は Remove Unused Objects）は、1.7.0（2024 年 4 月 30 日）から、Animator Controller で使われていないパラメーターを持つ PhysBone と Contact Receiver を削除するようになりました（公式の [changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。条件つきで、自動で行われます。
 - **コンストレイントの数**: MA の [Convert Constraints](https://modular-avatar.nadena.dev/ja/docs/reference/convert-constraints) は、あらかじめ変換するとパフォーマンスが大幅に向上すると、公式が書いています。公式は性能向上のみを書いており、件数への効果は未確認です。AAO の changelog には、1.6.12（2024 年 4 月 9 日）の Removed に「Activeness Optimization for Constraint component」（理由は「The constraint component is too complex to optimize correctly and reliably」。複雑すぎて、正しく確実に最適化できない）があります。1.7.12 の changelog には、「VRCConstraints with Target might be removed unexpectedly」（Target を持つ VRCConstraints が意図せず削除される）という修正の記録もあります。件数を減らす機能としての記載ではありません。そのため、AAO の列は「？ 公式に記載なし」としています。
 - **パーティクルシステムの数（AAO）**: AAO の changelog には、件数を減らす機能としての記載はありません。使われていない Particle System の扱いについては、削除まわりの修正の記録があります。1.6.0（2023 年 11 月 27 日）の「Remove Unused Object may break ParticleSystem」と、1.8.10（2025 年 5 月 4 日）の「Fixed Particle Systems are not correctly removed」です。
-- **アニメーターの数**: MA の Merge Animator は、「付属アニメーターを削除」をオンにしたときに減らせます。AAO の「使われていないObjectを自動的に削除する」は、1.6.0（2023 年 11 月 27 日）から、Animator Controller のない Animator を、意味のないものとして削除するようになりました（公式の changelog）。
+- **アニメーターの数**: MA の Merge Animator は、「付属アニメーターを削除」をオンにすると、同じオブジェクトの Animator を削除します（Animator の数への効果は、公式に記載なし。詳しくは「アニメーターの数を減らす」）。AAO の「使われていないObjectを自動的に削除する」は、1.6.0（2023 年 11 月 27 日）から、Animator Controller のない Animator を、意味のないものとして削除するようになりました（公式の changelog）。
 - **ボーンの数**: MA の Merge Armature は、名前が一致するボーンを統合先にまとめます。名前が合わないと、新しいボーンが増えます。AAO は、使われていないObjectを削除します。
 - **ライトの数（lilAvatarUtils）**: ライティングのタブは、見え方を確かめる機能です。ライトを減らす機能は、未確認です。
 - **レイキャストの数（AAO）**: AAO の changelog 1.9.9（2026 年 4 月 18 日）は、VRCRaycast への対応と、RaycastCount のパフォーマンスカテゴリへの対応を挙げています。ただし、対応によって数が減るかは、この記事では未確認です。
