@@ -67,7 +67,7 @@
   nav_title: メニュー・表情・揺れ
   reading: めにゅーひょうじょうゆれもの
   en: Menu, Expressions, Physics
-  description: Expression メニューとパラメーター、表情と FX の基礎、PhysBone と Contact。
+  description: Expression メニューとパラメーター、表情と FX の基礎、PhysBone と Contact、AvatarPoseLibrary でのポーズの設定。
   icon: bi-ui-radios-grid
 
 - id: modding
