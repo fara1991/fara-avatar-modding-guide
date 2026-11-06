@@ -9,7 +9,7 @@ updated: 2026-10-11
 ::: point
 - ピンク（マゼンタ）はシェーダーの不足、真っ白はマテリアルの割り当て忘れ
 - Blender から書き出した FBX はマテリアルが外れる。Remapped Materials で割り当て直す
-- 顔と体、体と服で明るさが違うときは、MA Mesh Settings で Anchor Override と Bounds を「設定」にそろえ、lilToon の明るさの下限・上限もそろえる
+- 顔と体で明るさが違うときは、MA Mesh Settings で Anchor Override と Bounds を「設定」にそろえ、lilToon の明るさの下限・上限もそろえる
 :::
 
 ## 症状から探す
