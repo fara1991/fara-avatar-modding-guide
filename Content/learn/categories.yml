@@ -131,3 +131,12 @@
   en: Reduce Constraints, Animators and Lights
   description: コンストレイントの数と深さ、アニメーターの数、ライトの数を減らす方法と、使えるツール。
   icon: bi-lightbulb
+
+- id: optimize-particle
+  section: optimize
+  title: パーティクル・トレイルを減らす
+  nav_title: パーティクル・トレイル
+  reading: ぱーてぃくるとれいるをへらす
+  en: Reduce Particles and Trails
+  description: パーティクルシステムの数、最大パーティクル、メッシュパーティクルの三角ポリゴン、パーティクルトレイル、パーティクルの衝突、トレイルレンダラーの数の確かめ方と、公式に書かれていること。
+  icon: bi-rocket-takeoff
