@@ -143,9 +143,9 @@
 
 - id: optimize-physics
   section: optimize
-  title: Cloth・コライダー・音・レイキャストを減らす
+  title: Cloth・コライダー・リジッドボディ・音・レイキャストを確かめる
   nav_title: Cloth・コライダー・音など
-  reading: くろーすこらいだーおとれいきゃすとをへらす
-  en: Reduce Cloth, Colliders, Audio and Raycasts
-  description: Cloth のメッシュ数と最大頂点数、コライダー、リジッドボディ、オーディオソース、レイキャストの数の確かめ方と、公式に書かれていること。
+  reading: くろーすこらいだーりじっどぼでぃおとれいきゃすとをたしかめる
+  en: Check Cloth, Colliders, Rigidbodies, Audio and Raycasts
+  description: Cloth コンポーネントの数と最大頂点数、コライダー、リジッドボディ、オーディオソース、レイキャストの数の確かめ方と、公式に書かれていること。
   icon: bi-grid-3x3-gap

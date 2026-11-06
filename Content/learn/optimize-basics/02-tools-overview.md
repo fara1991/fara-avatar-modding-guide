@@ -46,7 +46,7 @@ Modular Avatar は、衣装などを本体に組み立てるためのツール�
 
 TexTransTool は、テクスチャを元のまま残して加工するツールです。公式は「非破壊テクスチャ改変ツール」と説明しています。デカール（テクスチャに画像を貼る機能）や PSD の取り込みなどがあります。アトラス化は、必要な部分だけを集めた 1 枚のテクスチャを作る機能です。VRAM（グラフィックボードのメモリー）を減らす目的で使います。
 
-- **確認した版**: v1.0.2（2026 年 6 月 26 日。GitHub のリリース）。
+- **確認した版**: サイトに版の表示は無い。GitHub の最新リリースは v1.0.2（2026 年 6 月 26 日。2026 年 11 月 6 日時点）。
 - **入れ方**: VCC か ALCOM から、パッケージ `net.rs64.tex-trans-tool` を入れます。VPM リポジトリは `https://vpm.rs64.net/vpm.json` です。公式サイトの「Download-VPM」ボタンからも追加できます。
 - **ライセンス**: MIT License（Copyright (c) 2023 Reina_Sakiria）。ただし、`Image` 以下のファイルは MIT の対象外で、公式パッケージの一部としてのみ再配布が許可されています。v1.0.2 の zip に入っている LICENSE.md で確認しました。
 - **対応**: Unity 2022.3（VPM の情報）。VRChat SDK の対応版は、未確認です。アバターの改変に使うときは、NDMF が必要です。公式は、NDMF と同時に入れることを強く推奨しています。
@@ -64,7 +64,7 @@ lilAvatarUtils は、アバターの改変を助けるツールです。公式�
 
 テクスチャ、マテリアル、レンダラー、PhysBone、PBコライダー、アニメーションの一覧を、タブで確認できます。一部のプロパティは編集でき、変更は「適用」ボタンでまとめて反映されます。ライティングのタブでは見え方を確かめ、ツールのタブでは不要なものを整理できます。
 
-- **確認した版**: 2.1.2（2025 年 8 月 11 日。公式の [changelog](https://github.com/lilxyzw/lilAvatarUtils/blob/master/CHANGELOG.md) の記載）。
+- **確認した版**: サイトに版の表示は無い。GitHub の最新リリースは 2.1.2（2025 年 8 月 11 日。2026 年 11 月 6 日時点。[changelog](https://github.com/lilxyzw/lilAvatarUtils/blob/master/CHANGELOG.md) の記載）。
 - **入れ方**: VCC は、公式サイトの「Add to VCC」ボタンで VPM リポジトリ `https://lilxyzw.github.io/vpm-repos/vpm.json` を追加します。ALCOM での入れ方は、未確認です。
 - **ライセンス**: MIT License。
 - **対応**: Unity 2022.3（VPM の情報）。VRChat SDK の対応版は、未確認です。
@@ -202,7 +202,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **PHYSBONE トランスフォームの数（lilAvatarUtils）**: PhysBone タブにあるのは「ボーン数」（揺れが計算されるボーン数）です。トランスフォームの数を表示する項目は見つからなかったため、表では「公式に記載なし」としています。ボーン数がトランスフォームの数と同じかは、未確認です。
 - **PHYSBONE の項目（lilAvatarUtils）**: PhysBone のタブは、親が同じ PhysBone を見つけて、コンポーネントを統一できる候補を確認するのに役立つと書かれています。PBコライダーのタブは、どこからも参照されない無駄なコライダーの削減に役立つと書かれています。統一や削除の操作は、この記事では未確認です。
 - **PHYSBONE コライダーの数（MA）**: MA の [PhysBone Blocker](https://modular-avatar.nadena.dev/ja/docs/reference/physbone-blocker) は、子オブジェクトから、親オブジェクトをルートとする PhysBone の影響を防ぎます。[Global Collider](https://modular-avatar.nadena.dev/ja/docs/reference/global-collider) は、VRChat のグローバルコライダーの数に上限があるため、既存のグローバルコライダー（指や手など）を差し替える機能です。どちらも、コライダーの数を減らす機能としては、公式に記載なしです（確かめた範囲: MA の日本語版のリファレンス一式と CHANGELOG）。
-- **コライダーの数（lilAvatarUtils）**: PBコライダーのタブで一覧を確認できるのは、PhysBone 用のコライダーです。通常の Collider を含むかは、未確認です。
+- **コライダーの数（lilAvatarUtils）**: 公式に記載なし（確かめた範囲: ja_JP の公式ドキュメント）。PBコライダーのタブは、PhysBone 用のコライダーの一覧で、Unity の Collider の数とは別です。
 - **コンタクトの数（AAO）**: AAO の「使われていないObjectを自動的に削除する」（英語名は Remove Unused Objects）は、1.7.0（2024 年 4 月 30 日）から、Animator Controller で使われていないパラメーターを持つ PhysBone と Contact Receiver を削除するようになりました（公式の [changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。条件つきで、自動で行われます。
 - **コンストレイントの数**: MA の [Convert Constraints](https://modular-avatar.nadena.dev/ja/docs/reference/convert-constraints) は、あらかじめ変換するとパフォーマンスが大幅に向上すると、公式が書いています。公式は性能向上のみを書いており、件数への効果は未確認です。AAO の changelog には、1.6.12（2024 年 4 月 9 日）の Removed に「Activeness Optimization for Constraint component」（理由は「The constraint component is too complex to optimize correctly and reliably」。複雑すぎて、正しく確実に最適化できない）があります。1.7.12 の changelog には、「VRCConstraints with Target might be removed unexpectedly」（Target を持つ VRCConstraints が意図せず削除される）という修正の記録もあります。件数を減らす機能としての記載ではありません。そのため、AAO の列は「？ 公式に記載なし」としています。
 - **パーティクルシステムの数（AAO）**: AAO の公式ドキュメント（docs）と changelog には、件数を減らす機能としての記載はありません。changelog のパーティクル関連の項目（7 件）には、壊れることや、パーティクルシステムが正しく削除されない不具合の修正の記録があります。例えば、1.6.0（2023 年 11 月 27 日）の「Remove Unused Object may break ParticleSystem」と、1.8.10（2025 年 5 月 4 日）の「Fixed Particle Systems are not correctly removed」です。これらは、減らす機能の記載ではありません。
