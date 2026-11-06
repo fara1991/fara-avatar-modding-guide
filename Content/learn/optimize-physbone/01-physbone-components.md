@@ -13,10 +13,10 @@ PhysBone コンポーネントの数は、アバターにある PhysBone コン�
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
+- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 
-この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は未確認）、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は日本語に訳した要約です。版が上がると挙動が変わることがあります。
+この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は日本語に訳した要約です。版が上がると挙動が変わることがあります。
 :::
 
 ## 減らす前に確かめること
@@ -42,27 +42,27 @@ VRChat 公式の PhysBones のページには、コンポーネントの使い�
 
 ## ツール別の方法
 
-### Modular Avatar（MA）
+### Modular Avatar（MA） {.tool .tool-ma}
 
-公式に記載なし（確かめた範囲: MA の日本語版の reference 一式と CHANGELOG）。PhysBone の数を数える・減らすという記述は見つかりませんでした。Merge Armature は、PhysBone の「Target欄」を統合先のボーンに書き換えると書かれていますが、コンポーネントの数への効果は書かれていません。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版の reference 一式と CHANGELOG）。PhysBone の数を数える・減らすという記述は見つかりませんでした。Merge Armature は、PhysBone の「Target欄」を統合先のボーンに書き換えると書かれていますが、コンポーネントの数への効果は書かれていません。
 
-### TexTransTool（TTT）
+### TexTransTool（TTT） {.tool .tool-ttt}
 
-公式に記載なし（確かめた範囲: 日本語版のページ 81 件。PhysBone・Contact などの語で検索しました）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版のページ 81 件。PhysBone・Contact などの語で検索しました）。
 
-### lilAvatarUtils
+### lilAvatarUtils {.tool .tool-lil}
 
 **何をするか**: PhysBones タブで、アバターにあるすべての PhysBone を一覧できます。一部の項目は編集でき、変更したものは左上の適用ボタンで一括して反映されます（[PhysBones（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
 
 **どう使うか**: 「親オブジェクト」の項目について、公式は「親が同じ場合はコンポーネントを統一してコンポーネント数を削減できる場合があります。」と書いています。統合できそうなものを見つける手がかりとして使えます。
 
-**注意**: 一覧から統合を実行する機能は、確かめた範囲の資料には書かれていませんでした（公式に記載なし）。どの項目が編集できるかは、この記事では確認していません（未確認）。
+**注意**: 一覧から統合を実行する機能は、確かめた範囲の資料には書かれていませんでした（**公式に記載なし**{.lbl .lbl-none}）。どの項目が編集できるかは、この記事では確認していません（**未確認**{.lbl .lbl-unk}）。
 
-### Meshia Mesh Simplification（MMS）
+### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-公式に記載なし（確かめた範囲: 作者 RamType0 の GitHub リポジトリの README（英語・日本語）と、日本語のドキュメント。公式サイトからの直接の確認は未確認です）。PhysBone・Contact などの語を検索しましたが、該当する記述はありませんでした。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 作者 RamType0 の GitHub リポジトリの README（英語・日本語）と、日本語のドキュメント。公式サイトからの直接の確認は**未確認**{.lbl .lbl-unk}です）。PhysBone・Contact などの語を検索しましたが、該当する記述はありませんでした。
 
-### Avatar Optimizer（AAO）
+### Avatar Optimizer（AAO） {.tool .tool-aao}
 
 AAO の PhysBone の機能は、次の 3 つに分かれます。ほかに、コライダーの統合（[PhysBone コライダーの数を減らす](/learn/optimize-physbone/physbone-colliders)）と、トランスフォームの置き換え（[PhysBone トランスフォームの数を減らす](/learn/optimize-physbone/physbone-transforms)）があります。
 
@@ -96,7 +96,7 @@ AAO の PhysBone の機能は、次の 3 つに分かれます。ほかに、コ
 ## 注意・うまくいかないとき
 
 ::: warning
-- **OSC で使う PhysBone や Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。そのため、ほかで使われていなければ削除するように設計されています。公式 FAQ（[よくある質問](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）は、この仮定は正しいとは限らないと書いています。Animator や Expression Menu を使わずに、OSC のギミックで PhysBone や Contact Receiver を使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools に設定するよう案内しています（[Asset Description（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/developers/asset-description/)）。OSC を使うアバターでは、自動の最適化のあとに、PhysBone と Contact が動くかを確かめてください（この記事の助言）。
+- **OSC で使う PhysBone や Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。そのため、ほかで使われていなければ削除するように設計されています。公式 FAQ（[よくある質問](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）は、この仮定は正しいとは限らないと書いています。Animator や Expression Menu を使わずに、OSC のギミックで PhysBone や Contact Receiver を使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools に設定するよう案内しています（[Asset Description（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/developers/asset-description/)）。OSC を使うアバターでは、自動の最適化のあとに、PhysBone と Contact が動くかを確かめてください（**この記事の助言**{.lbl .lbl-adv}）。
 - **統合後は掴めるのが 1 か所だけ**: 統合前は、それぞれの PhysBone のボーンを同時に掴めますが、統合後は 1 つのボーンしか掴めません（[Merge PhysBone（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-physbone/)）。
 - **PhysBone トランスフォームの数が 1 つ増える**: Merge PhysBone を 1 つ使うごとに、ルートの GameObject も PhysBone トランスフォームに数えられるため、数が 1 増えます。公式は、これは VRChat のパフォーマンスランクの仕組みのバグである可能性がある、と書いています。減らす目的のときは、この増え方を考えてください（[PhysBone トランスフォームの数を減らす](/learn/optimize-physbone/physbone-transforms)）。
 - **Merge PhysBone の条件**: CHANGELOG の 1.7.0 には、統合元が 1 つだけのときはエラーになること、チェーンの長さがそろっていないと警告が出ることが書かれています。

@@ -15,10 +15,10 @@ Cloth の数は、アバターにある Cloth コンポーネント（布の動�
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
+- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 
-この記事は、AAO 1.9.21（changelog の最新版）、Modular Avatar（GitHub の main。正式版 1.18.7 との差は未確認）、TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を、2026 年 11 月 6 日に確かめて書きました。TexTransTool と lilAvatarUtils は、サイトに版の表示は無い。GitHub の最新リリースは TexTransTool v1.0.2（2026-06-26）、lilAvatarUtils 2.1.2（2025-08-11）（2026-11-06 時点）。Meshia Mesh Simplification の公開サイト（ramtype0.github.io）は、トップページを確認。サブページは未確認。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。公開サイトの表示は、この記事では確かめていません。
+この記事は、AAO 1.9.21（changelog の最新版）、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を、2026 年 11 月 6 日に確かめて書きました。TexTransTool と lilAvatarUtils は、サイトに版の表示は無い。GitHub の最新リリースは TexTransTool v1.0.2（2026-06-26）、lilAvatarUtils 2.1.2（2025-08-11）（2026-11-06 時点）。Meshia Mesh Simplification の公開サイト（ramtype0.github.io）は、トップページを確認。サブページは**未確認**{.lbl .lbl-unk}。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。公開サイトの表示は、この記事では確かめていません。
 :::
 
 ## 減らす前に確かめること
@@ -37,42 +37,42 @@ VRChat 公式の勧めは、次のとおりです（[Avatar Optimization Tips（
 
 この記事の整理として、減らす方法を次の 2 つに分けます（公式の分類ではありません）。
 
-1. 使っているかを確かめる方法は、この記事では未確認です。そのため、取り除く操作は勧めません。使っているか判断できないものは残します。
+1. 使っているかを確かめる方法は、この記事では**未確認**{.lbl .lbl-unk}です。そのため、取り除く操作は勧めません。使っているか判断できないものは残します。
 2. 残す Cloth は、公式の勧めに沿って、使う場所を見直す。頂点数の勧めは、[Cloth の最大頂点の確かめ方](/learn/optimize-physics/cloth-vertices) で扱います。
 
 ## ツール別の方法
 
-### Modular Avatar（MA）
+### Modular Avatar（MA） {.tool .tool-ma}
 
-公式に記載なし（確かめた範囲: MA の日本語版と英語版のドキュメント 136 ファイル（changelog のページを含む）、CHANGELOG 4 種、README）。Cloth の語は、衣装の手順に出てきます。手順には「Clothをオフにすればこの衣装の設定を完全に自動化することもできます。」（原文（ja））とありますが、数を減らす機能の記述ではありません。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のドキュメント 136 ファイル（changelog のページを含む）、CHANGELOG 4 種、README）。Cloth の語は、衣装の手順に出てきます。手順には「Clothをオフにすればこの衣装の設定を完全に自動化することもできます。」（原文（ja））とありますが、数を減らす機能の記述ではありません。
 
-### TexTransTool（TTT）
+### TexTransTool（TTT） {.tool .tool-ttt}
 
-公式に記載なし（確かめた範囲: 日本語版の公式ドキュメント 81 ページ（sitemap の /docs 配下）。Cloth の語は 1 件もありませんでした）。英語版は未確認です。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版の公式ドキュメント 81 ページ（sitemap の /docs 配下）。Cloth の語は 1 件もありませんでした）。英語版は**未確認**{.lbl .lbl-unk}です。
 
-### lilAvatarUtils
+### lilAvatarUtils {.tool .tool-lil}
 
-公式に記載なし（確かめた範囲: 日本語版の公式ドキュメント 11 ページ（トップ・一覧・各タブ・ツール））。Cloth の語は見つかりませんでした。英語版は未確認です。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版の公式ドキュメント 11 ページ（トップ・一覧・各タブ・ツール））。Cloth の語は見つかりませんでした。英語版は**未確認**{.lbl .lbl-unk}です。
 
-### Meshia Mesh Simplification（MMS）
+### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-公式に記載なし（確かめた範囲: GitHub の README（英語・日本語）、`.docfx` の日本語・英語のドキュメント。公開サイトは、トップページを確認。サブページは未確認）。Cloth の語は見つかりませんでした。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub の README（英語・日本語）、`.docfx` の日本語・英語のドキュメント。公開サイトは、トップページを確認。サブページは**未確認**{.lbl .lbl-unk}）。Cloth の語は見つかりませんでした。
 
-### Avatar Optimizer（AAO）
+### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-公式に記載なし（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページと CHANGELOG）。Cloth の数を減らす機能は書かれていません。CHANGELOG の Cloth の記録は 2 件あり、どちらも 1.7.0（2024 年 4 月 30 日）の Changed（仕様の変更）です。減らす効果の記録ではありません。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページと CHANGELOG）。Cloth の数を減らす機能は書かれていません。CHANGELOG の Cloth の記録は 2 件あり、どちらも 1.7.0（2024 年 4 月 30 日）の Changed（仕様の変更）です。減らす効果の記録ではありません。
 
 - 1 件目（[AAO の CHANGELOG](https://github.com/anatawa12/AvatarOptimizer/blob/master/CHANGELOG.md) の 1.7.0。PR は 949）: Merge Skinned Mesh（複数のメッシュを 1 つにまとめる機能）で、Cloth コンポーネントのある SkinnedMeshRenderer（ボーンで変形するメッシュの部品）を統合元にすると、エラーにする仕様になりました。原文は "Since this version, AAO will make an error if the source Skinned Mesh Renderer is with Cloth component." です（訳: この版から、統合元の SkinnedMeshRenderer に Cloth コンポーネントがあるとエラーにします）。以前の版では、バグによって元の SkinnedMeshRenderer を残していた、と書かれています。
 - 2 件目（同じ 1.7.0。PR は 1029）: Cloth コンポーネントのある SkinnedMeshRenderer では、BlendShape（表情などでメッシュの形を変える仕組み）の自動の固定（AutoFreezeBlendShape）を行わないことにしました。報告によると、自動の固定で一部のポリゴンをサイズゼロにすると、アバターの初期化が非常に重くなったためです（英語の原文の要約です）。
 
-現行の 1.9.21 で、これらの挙動が同じかは、この記事では未確認です。
+現行の 1.9.21 で、これらの挙動が同じかは、この記事では**未確認**{.lbl .lbl-unk}です。
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「CLOTH メッシュの数」（公式の定義は Cloth コンポーネントの数）の値と上限を確かめます。PC の上限は Poor が 1 で、Android では無効です。
-2. アバターの中から、Cloth コンポーネントが付いているオブジェクトを探します。そのうえで、布の動きがアバターの見せ方に必要かを確かめます（この記事の助言）。
-3. 変更の前に、プロジェクトのバックアップを取り、確かめたい布の動きを記録しておきます（この記事の助言）。
-4. 使っているかを確かめる方法は、この記事では未確認です。そのため、取り除く操作は勧めません。使っているか判断できないものは残し、手順 3 で記録した布の動きと比べてください（この記事の助言）。
+2. アバターの中から、Cloth コンポーネントが付いているオブジェクトを探します。そのうえで、布の動きがアバターの見せ方に必要かを確かめます（**この記事の助言**{.lbl .lbl-adv}）。
+3. 変更の前に、プロジェクトのバックアップを取り、確かめたい布の動きを記録しておきます（**この記事の助言**{.lbl .lbl-adv}）。
+4. 使っているかを確かめる方法は、この記事では**未確認**{.lbl .lbl-unk}です。そのため、取り除く操作は勧めません。使っているか判断できないものは残し、手順 3 で記録した布の動きと比べてください（**この記事の助言**{.lbl .lbl-adv}）。
 5. 残す Cloth は、公式の勧めに沿って、使う場所を見直します（頂点数の勧めは [Cloth の最大頂点の確かめ方](/learn/optimize-physics/cloth-vertices) を参照）。
 6. Play モードに入って、残した Cloth の動きが、記録したものと同じかを確かめます。
 7. もう一度 SDK の「パフォーマンスの内訳」で、値を確かめます。AAO を使っているときは、Play モードに入ったときのランクを Actual Performance Window で確かめます。
@@ -82,7 +82,7 @@ VRChat 公式の勧めは、次のとおりです（[Avatar Optimization Tips（
 ::: warning
 - **Android と Quest では Cloth は使えません**: 公式の制限のページは、「Cloth | Completely disabled on Android and Quest.」（訳: Cloth は Android と Quest で完全に無効）と書いています（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。Mobile Removed Components の一覧の値について、公式は「These values may still appear in VRChat's avatar details screen, but they are always zero.」（訳: これらの値は VRChat のアバターの詳細画面に出ることがあるが、常にゼロです）と書いています。
 - **無効にしただけでは数は減りません**: 無効にしたものも数えられるという公式の書き方は、上の「減らす前に確かめること」を参照してください。
-- **AAO の Cloth の記録（1.7.0）**: 上の AAO の節のとおり、1.7.0 から、Cloth のある SkinnedMeshRenderer を Merge Skinned Mesh の統合元にするとエラーにすると、CHANGELOG に記録されています。現行の 1.9.21 での挙動は、この記事では未確認です。
+- **AAO の Cloth の記録（1.7.0）**: 上の AAO の節のとおり、1.7.0 から、Cloth のある SkinnedMeshRenderer を Merge Skinned Mesh の統合元にするとエラーにすると、CHANGELOG に記録されています。現行の 1.9.21 での挙動は、この記事では**未確認**{.lbl .lbl-unk}です。
 :::
 
 ## 関連ページ

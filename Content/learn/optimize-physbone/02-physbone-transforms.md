@@ -13,10 +13,10 @@ PhysBone トランスフォームの数は、PhysBone コンポーネントが�
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**: そのツールの公式の資料（日本語版のページと changelog）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog）を検索して、書かれていないと確かめた、という意味です。
+- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 
-この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は未確認）、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は日本語に訳した要約です。版が上がると挙動が変わることがあります。
+この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は日本語に訳した要約です。版が上がると挙動が変わることがあります。
 :::
 
 ## 減らす前に確かめること
@@ -38,47 +38,47 @@ VRChat 公式の PhysBones のページには、トランスフォームの数�
 この記事の整理として、減らす方法を次のように分けます（この記事の整理。公式の分類ではありません）。
 
 - **末端のボーンを Endpoint Position に置き換える**: AAO の Replace End Bone With Endpoint Position（手動）と、Trace And Optimize の自動の置き換え。
-- **チェーンを分ける**: 公式の勧め（上の原文）。チェーンを分けるツールの機能は、この記事で確かめた範囲では見つかりませんでした（公式に記載なし）。
+- **チェーンを分ける**: 公式の勧め（上の原文）。チェーンを分けるツールの機能は、この記事で確かめた範囲では見つかりませんでした（**公式に記載なし**{.lbl .lbl-none}）。
 - **動かないボーンを整理する**: Trace And Optimize の「使われていないObjectを自動的に削除する」や AAO Merge Bone。数への効果は、ツールの節で書きます。
 
 ## ツール別の方法
 
-### Modular Avatar（MA）
+### Modular Avatar（MA） {.tool .tool-ma}
 
 **何をするか**: Merge Armature は、衣装などの PhysBone や Contact の「Target欄」を、統合先のボーンに書き換えます。公式の原文は「PhysBonesやContactはTarget欄が統合先のボーンに書き換えられます。」です（[Merge Armature（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature)）。
 
-**注意**: PhysBone トランスフォームの数への効果は、公式に記載なし（確かめた範囲: MA の日本語版の reference 一式と CHANGELOG）。PhysBone Blocker の説明にも、数える・減らすという記述はありません。
+**注意**: PhysBone トランスフォームの数への効果は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版の reference 一式と CHANGELOG）。PhysBone Blocker の説明にも、数える・減らすという記述はありません。
 
-### TexTransTool（TTT）
+### TexTransTool（TTT） {.tool .tool-ttt}
 
-公式に記載なし（確かめた範囲: 日本語版のページ 81 件。PhysBone・bone などの語で検索しました）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版のページ 81 件。PhysBone・bone などの語で検索しました）。
 
-### lilAvatarUtils
+### lilAvatarUtils {.tool .tool-lil}
 
 **何をするか**: PhysBones タブで、アバターにある PhysBone の「ボーン数」（揺れが計算されるボーン数）と「ルートボーン」を見られます。ルートボーンは、PhysBone の計算を行うボーンまたは Transform の親で、この配下にある Transform に揺れが適用される、と説明されています（[PhysBones（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
 
-**注意**: 「トランスフォームの数」を表示する項目は、確かめた範囲では見つかりませんでした（公式に記載なし）。ボーン数の値を減らす機能の説明もありません。
+**注意**: 「トランスフォームの数」を表示する項目は、確かめた範囲では見つかりませんでした（**公式に記載なし**{.lbl .lbl-none}）。ボーン数の値を減らす機能の説明もありません。
 
-### Meshia Mesh Simplification（MMS）
+### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-公式に記載なし（確かめた範囲: 作者 RamType0 の GitHub リポジトリの README（英語・日本語）と、日本語のドキュメント。公式サイトからの直接の確認は未確認です）。PhysBone・bone などの語で検索しても、該当する記述はありませんでした。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 作者 RamType0 の GitHub リポジトリの README（英語・日本語）と、日本語のドキュメント。公式サイトからの直接の確認は**未確認**{.lbl .lbl-unk}です）。PhysBone・bone などの語で検索しても、該当する記述はありませんでした。
 
-### Avatar Optimizer（AAO）
+### Avatar Optimizer（AAO） {.tool .tool-aao}
 
 **AAO Replace End Bone With Endpoint Position（手動）**: PhysBone の end ボーン（末端のボーン）を、Endpoint Position（末端の位置を値で決める設定）に置き換えます。公式の原文は、「End BoneをEndpoint Positionに置き換えることにより、VRChatのPerformance Rankシステムにおける`PhysBone Affected Transforms`の数を減らすことができます。」です（[Replace End Bone With Endpoint Position（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/replace-end-bone-with-endpoint-position/)）。
 
 - **設定**: Average（end ボーンのローカル座標の平均）か Override（Endpoint Position Override で指定した値）を選びます。
 - **対象**: 同じ GameObject にある PhysBone コンポーネントが複数あるときは、その全てに設定が適用される、と公式は書いています。
 
-**Trace And Optimize の「PhysBone を最適化する」（自動）**: 公式の原文は、「Endpoint Positionで問題なく表現できる場合に、endボーンを削除してEndpoint Positionに置き換えます。」です（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。同じ置き換えを自動で行うと書かれていますが、このページでは数への効果は書かれていません（公式に記載なし）。
+**Trace And Optimize の「PhysBone を最適化する」（自動）**: 公式の原文は、「Endpoint Positionで問題なく表現できる場合に、endボーンを削除してEndpoint Positionに置き換えます。」です（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。同じ置き換えを自動で行うと書かれていますが、このページでは数への効果は書かれていません（**公式に記載なし**{.lbl .lbl-none}）。
 
-**Trace And Optimize の「end ボーンを残す」（Preserve EndBone）**: 親が削除されていない end ボーンを、削除しないようにします。公式は、名前が end（大文字小文字の区別なし）で終わるボーンを end ボーンとして扱うと書いています。PhysBone トランスフォームの数への効果は、公式に記載なし。
+**Trace And Optimize の「end ボーンを残す」（Preserve EndBone）**: 親が削除されていない end ボーンを、削除しないようにします。公式は、名前が end（大文字小文字の区別なし）で終わるボーンを end ボーンとして扱うと書いています。PhysBone トランスフォームの数への効果は、**公式に記載なし**{.lbl .lbl-none}。
 
-**AAO Clear Endpoint Position**: 公式の原文は、「このコンポーネントは、Endpoint Positionの値を0に置換し、`_EndPhysBone`GameObjectを追加します。」です（[Clear Endpoint Position（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/clear-endpoint-position/)）。PhysBone トランスフォームの数への効果は、公式に記載なし。
+**AAO Clear Endpoint Position**: 公式の原文は、「このコンポーネントは、Endpoint Positionの値を0に置換し、`_EndPhysBone`GameObjectを追加します。」です（[Clear Endpoint Position（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/clear-endpoint-position/)）。PhysBone トランスフォームの数への効果は、**公式に記載なし**{.lbl .lbl-none}。
 
 - 注意: CHANGELOG の 1.7.0 には、新しく作る Merge PhysBone の Endpoint Position の既定を Clear から Copy に変えたと書かれ、その理由として「Clear の設定は PhysBone トランスフォームの数を増やす」（英語の原文の訳）と書かれています。これは Merge PhysBone の Endpoint Position の設定についての記述です。
 
-**AAO Merge Bone**: GameObject を親の GameObject に統合して、元の GameObject を取り除きます。公式は、Trace And Optimize が似た処理を自動で行うため、大抵の場合は使う必要がないと書いています（[Merge Bone（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-bone/)）。PhysBone トランスフォームの数への効果は、公式に記載なし。
+**AAO Merge Bone**: GameObject を親の GameObject に統合して、元の GameObject を取り除きます。公式は、Trace And Optimize が似た処理を自動で行うため、大抵の場合は使う必要がないと書いています（[Merge Bone（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-bone/)）。PhysBone トランスフォームの数への効果は、**公式に記載なし**{.lbl .lbl-none}。
 
 ## 手順
 
@@ -95,7 +95,7 @@ VRChat 公式の PhysBones のページには、トランスフォームの数�
 - **先端の揺れ方が変わることがある**: Endpoint Position に置き換えると、先端の揺れ方が変わることがあります。この記事の注意として、置き換えたあとに確かめてください。
 - **過去の不具合の修正**: CHANGELOG には、置き換えに関する修正が 3 つあります。1.9.2 では、アニメーションされている end ボーンが、意図せず Endpoint Position に置き換えられることがありました（修正済み）。1.9.4 では、場合によって誤って置き換えられることがありました（修正済み）。1.9.17 では、ボーンの位置が (0, 0, 0) のとき、PhysBone が壊れることがありました（修正済み）。使うときは、AAO のバージョンを確かめてください。
 - **Merge PhysBone を使うと数が増える**: Merge PhysBone を 1 つ使うごとに、ルートの GameObject も数えられるため、PhysBone トランスフォームの数が 1 増えます（[PhysBone コンポーネントの数を減らす](/learn/optimize-physbone/physbone-components)）。
-- **OSC で使う PhysBone や Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。そのため、ほかで使われていなければ削除するように設計されています。公式 FAQ（[よくある質問](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）は、この仮定は正しいとは限らないと書いています。OSC で使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools に設定するよう案内しています。PhysBone が効かなくなっていないかを、自動の最適化のあとに確かめてください（この記事の助言）。
+- **OSC で使う PhysBone や Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。そのため、ほかで使われていなければ削除するように設計されています。公式 FAQ（[よくある質問](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）は、この仮定は正しいとは限らないと書いています。OSC で使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools に設定するよう案内しています。PhysBone が効かなくなっていないかを、自動の最適化のあとに確かめてください（**この記事の助言**{.lbl .lbl-adv}）。
 :::
 
 ## 関連ページ

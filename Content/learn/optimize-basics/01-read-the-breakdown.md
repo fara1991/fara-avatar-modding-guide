@@ -19,7 +19,7 @@ VRChat のアバターを作ると、SDK（VRChat の公式の制作ツール）
 この記事で使う言葉は、次のとおりです。
 
 - **公式**: VRChat の公式ドキュメント（creators.vrchat.com と docs.vrchat.com）を指します。
-- **未確認**: この記事では確認していない（無い・できないという意味ではない）。
+- **未確認**{.lbl .lbl-unk}: この記事では確認していない（無い・できないという意味ではない）。
 
 ## 画面の読み方の決まり
 
@@ -44,7 +44,7 @@ VRChat のアバターを作ると、SDK（VRChat の公式の制作ツール）
 
 同じ緑でも明るさが違う項目があります。Excellent と Good のどちらかは、[パフォーマンスランク](/learn/vrchat/performance-rank) の表と比べて確かめてください。この記事で確かめた範囲では、画面の色（見た目）はすべての項目で上の区分と一致していました。
 
-赤には、Poor の範囲と、Poor の上限を超えた範囲（Very Poor）の両方が入ります。この 2 つが色で分かれているかは、未確認です。
+赤には、Poor の範囲と、Poor の上限を超えた範囲（Very Poor）の両方が入ります。この 2 つが色で分かれているかは、**未確認**{.lbl .lbl-unk}です。
 
 ### 数字の無い項目
 
@@ -61,19 +61,19 @@ Android と iOS の欄に出る「使用不可」（灰色）の意味につい�
 
 公式の Performance Ranks には、将来、モバイルの Very Poor のアバターが Android・iOS から無くなることや、「Show Avatar」が使えなくなることがある、という注意もあります。
 
-iOS については、Avatar Fallback System のページで確認できたのは、フォールバックの条件として「currently Windows and Android」（現在は Windows と Android）と書かれていることだけです。そのため、iOS の「使用不可」の意味は未確認です。一方、Performance Ranks のページは、Android と iOS のモバイル向けの上限を同じ表で示しています。
+iOS については、Avatar Fallback System のページで確認できたのは、フォールバックの条件として「currently Windows and Android」（現在は Windows と Android）と書かれていることだけです。そのため、iOS の「使用不可」の意味は**未確認**{.lbl .lbl-unk}です。一方、Performance Ranks のページは、Android と iOS のモバイル向けの上限を同じ表で示しています。
 
 ### 「FALSE/あり」（パーティクルトレイル・パーティクルの衝突）
 
 この 2 項目は、数字ではなく「FALSE/あり」と出ます。左は、このアバターの値です。公式では、パーティクルシステムの 1 つにでも Particle Trails（トレイル。尾を引く表示）や Particle Collision（衝突）が有効になっていると True になります。FALSE は、そうしたものが 1 つも有効になっていないことを表すと読めます。
 
-右の「あり」は、PC の Poor の上限（True）に当たると読めます。公式の表では、Excellent と Good は False、Medium と Poor は True です。ただし、画面の「あり」という文言の定義は未確認のため、この読み方は推定です。
+右の「あり」は、PC の Poor の上限（True）に当たると読めます。公式の表では、Excellent と Good は False、Medium と Poor は True です。ただし、画面の「あり」という文言の定義は**未確認**{.lbl .lbl-unk}のため、この読み方は推定です。
 
 ### 表の読み方
 
 - 表の「公式の定義・補足」は、公式の統計表の説明（定義）と、公式の注記（補足）をまとめたものです。「補足: ―」は、この記事の表では補足を載せていない項目です（公式の統計表の説明に補足が見当たらない項目）。
 - 「上限（PC / Android）」は、左が PC、右が Android の Poor の上限です。「モバイル（Android・iOS）では無効」は、公式の Mobile Removed Components に挙げられた項目です。
-- 「減らし方（公式の勧め）」の列は、公式の減らし方の勧めを出典つきで書いています。出典は、Avatar Optimization Tips（公式の勧め）、Avatar Size Limits（サイズの減らし方）、Performance Ranks › Avatar Performance Ranking Stats › Face Tracking のいずれかです。公式は勧めを書いているだけで、効果の大きさは書かれていないため、この列には書きません。「未確認」は、この記事では確認していない項目です（無い・できないという意味ではない）。
+- 「減らし方（公式の勧め）」の列は、公式の減らし方の勧めを出典つきで書いています。出典は、Avatar Optimization Tips（公式の勧め）、Avatar Size Limits（サイズの減らし方）、Performance Ranks › Avatar Performance Ranking Stats › Face Tracking のいずれかです。公式は勧めを書いているだけで、効果の大きさは書かれていないため、この列には書きません。「**未確認**{.lbl .lbl-unk}」は、この記事では確認していない項目です（無い・できないという意味ではない）。
 
 ## 1. プラットフォーム欄とメッシュ系
 
@@ -93,7 +93,7 @@ iOS については、Avatar Fallback System のページで確認できたの�
 | テクスチャメモリー | テクスチャが使うメモリーの推定値。補足: テクスチャは、システム RAM と GPU のメモリーの両方を使う | 150 MB / 40 MB | 公式の勧め（Avatar Optimization Tips）: Unity のインポート設定で Max Size を下げる。高解像度のテクスチャを何枚も使わない |
 | 非圧縮サイズ | 展開（非圧縮）したあとの asset bundle の大きさ。補足: 個々のアセットは展開せず、bundle 全体で数える。テクスチャの圧縮を High Quality にすると、ダウンロードと非圧縮の両方が増える | ランクの表の項目ではない（サイズの上限は上の節を参照） | サイズを減らす手順は同上 |
 | 三角ポリゴンの数 | モデルの三角ポリゴンの数（公式の項目名は Triangles。以前は誤って「Polygons」と呼ばれていた）。補足: Mesh Read/Write を、いずれかの mesh（particle systems を含む）で無効にすると、この項目は「Mesh Read/Write Disabled」と表示され、ランクは即座に Very Poor になる（下の注意を参照） | 70,000 / 20,000 | 公式の勧め（Avatar Optimization Tips）: 法線マップの焼き込み、decimation（間引き）や retopology（作り直し）によるメッシュの簡略化を検討する |
-| 範囲（BOUNDS） | アバター全体の大きさ（3 方向の寸法）。Trail Renderer と Line Renderer は計算に入らない。補足: 大きいと、常時は見えない大きなアニメーションがある可能性がある。範囲（BOUNDS）は、アバターの表示が制限される理由にはなりません（公式の注記） | 5 × 6 × 5 m / 5 × 6 × 5 m | 未確認 |
+| 範囲（BOUNDS） | アバター全体の大きさ（3 方向の寸法）。Trail Renderer と Line Renderer は計算に入らない。補足: 大きいと、常時は見えない大きなアニメーションがある可能性がある。範囲（BOUNDS）は、アバターの表示が制限される理由にはなりません（公式の注記） | 5 × 6 × 5 m / 5 × 6 × 5 m | **未確認**{.lbl .lbl-unk} |
 | スキンドメッシュの数 | Skinned Mesh Renderer（ボーンで動くメッシュ）のコンポーネントの数。補足: ― | 16 / 2 | 公式の勧め（Avatar Optimization Tips）: メッシュを統合する。Skinned Mesh Renderer は 1 つまで、静的（Static）メッシュは 3 つまでを推奨（ランクの上限とは別の推奨値） |
 | 基本メッシュの数 | ボーンで動かない Mesh Renderer のコンポーネントの数。補足: ― | 24 / 2 | 公式の勧め（Avatar Optimization Tips）: メッシュを統合する。静的（Static）メッシュは 3 つまでを推奨（ランクの上限とは別の推奨値） |
 | マテリアルスロットの数 | マテリアルを割り当てる枠の数。補足: パーティクルシステムは 1 枠、トレイル付きのパーティクルシステムは 2 枠、Line Renderer は 1 枠を使う | 32 / 4 | 公式の勧め（Avatar Optimization Tips）: マテリアルが 10 を超えるなら、テクスチャアトラス（Texture Atlasing。複数のテクスチャを 1 枚にまとめたもの）を検討する |
@@ -119,20 +119,20 @@ iOS については、Avatar Fallback System のページで確認できたの�
 
 | 項目（画面の表示） | 公式の定義・補足 | 上限（PC / Android） | 減らし方（公式の勧め） |
 |---|---|---|---|
-| PHYSBONE コンポーネントの数 | PhysBone コンポーネントの数。補足: ― | 32 / 8 | 未確認 |
-| PHYSBONE トランスフォームの数 | PhysBone が影響を与えるトランスフォームの数（公式の項目名は PhysBones Affected Transforms）。補足: ― | 256 / 64 | 未確認 |
-| PHYSBONE コライダーの数 | PhysBone のコライダーのスクリプトの数。補足: ― | 32 / 16 | 未確認 |
-| PHYSBONE 衝突チェックの数 | 各コライダーが影響しうるトランスフォーム数の合計。補足: 同じトランスフォームが複数のコライダーに影響されると、その分だけ重ねて数える | 512 / 64 | 未確認 |
-| コンタクトの数 | Contact の数（フィルタリングが「Local Only」の Receiver は数えない）。補足: ― | 32 / 16 | 未確認 |
+| PHYSBONE コンポーネントの数 | PhysBone コンポーネントの数。補足: ― | 32 / 8 | **未確認**{.lbl .lbl-unk} |
+| PHYSBONE トランスフォームの数 | PhysBone が影響を与えるトランスフォームの数（公式の項目名は PhysBones Affected Transforms）。補足: ― | 256 / 64 | **未確認**{.lbl .lbl-unk} |
+| PHYSBONE コライダーの数 | PhysBone のコライダーのスクリプトの数。補足: ― | 32 / 16 | **未確認**{.lbl .lbl-unk} |
+| PHYSBONE 衝突チェックの数 | 各コライダーが影響しうるトランスフォーム数の合計。補足: 同じトランスフォームが複数のコライダーに影響されると、その分だけ重ねて数える | 512 / 64 | **未確認**{.lbl .lbl-unk} |
+| コンタクトの数 | Contact の数（フィルタリングが「Local Only」の Receiver は数えない）。補足: ― | 32 / 16 | **未確認**{.lbl .lbl-unk} |
 | コンストレイントの数 | VRChat のコンストレイントと Unity のコンストレイントの総数。補足: ― | 350 / 150 | 公式の勧め（Avatar Optimization Tips）: Unity の Constraint は使わず、VRChat の Constraint を使う |
 | コンストレイントの深さ | すべてのコンストレイントの依存関係の、最も深いつながり。補足: ― | 100 / 50 | 公式の考え方（Constraints）: いちばん長いつながりを短くする（詳しくは「コンストレイントの深さを減らす」） |
-| アニメーターの数 | Animator の数（ルートの Animator も数えるため、最低 1）。補足: Excellent では、ルート以外の Animator を追加できない | 32 / 2 | 未確認 |
+| アニメーターの数 | Animator の数（ルートの Animator も数えるため、最低 1）。補足: Excellent では、ルート以外の Animator を追加できない | 32 / 2 | **未確認**{.lbl .lbl-unk} |
 | ボーンの数 | アバターのリグ（骨組み）のボーンの数。補足: ― | 400 / 150 | 公式の勧め（Avatar Optimization Tips）: 使わないボーンは、削除して親のボーンに統合することを検討する |
 | ライトの数 | Light コンポーネントの数。補足: ― | 1 / モバイル（Android・iOS）では無効 | 公式の勧め（Avatar Optimization Tips）: 常時点灯のライトは使わない。アバターではライトを使わないことを勧めている |
 | パーティクルシステムの数 | Particle System コンポーネントの数。補足: ― | 16 / 2 | 公式の勧め（Avatar Optimization Tips）: パーティクルシステムの数を制限する |
 | 最大パーティクルの数 | 各 Particle System の maxParticles（最大粒子数）の合計。補足: ― | 2,500 / 200 | 公式の勧め（Avatar Optimization Tips）: 同時に放出する粒子の最大数を制限する |
 | メッシュパーティクルの三角ポリゴン数 | 有効（active）なパーティクルシステムが出すメッシュパーティクルの三角ポリゴンの数（maxEmission × meshParticleVerts）。補足: ― | 5,000 / 400 | 公式の勧め（Avatar Optimization Tips）: 粒子の放出の数を減らす（見出しは「Reduce the emission amount」。粒子全般の勧めで、三角ポリゴン数への対応は推定） |
-| パーティクルトレイル | Particle Trails を有効にしたパーティクルシステムが、アバターに 1 つでもあるか（True / False）。補足: ― | True / True | 未確認 |
+| パーティクルトレイル | Particle Trails を有効にしたパーティクルシステムが、アバターに 1 つでもあるか（True / False）。補足: ― | True / True | **未確認**{.lbl .lbl-unk} |
 
 ### この画面の読み方
 
@@ -155,14 +155,14 @@ iOS については、Avatar Fallback System のページで確認できたの�
 | 項目（画面の表示） | 公式の定義・補足 | 上限（PC / Android） | 減らし方（公式の勧め） |
 |---|---|---|---|
 | パーティクルの衝突 | Particle Collision を有効にしたパーティクルシステムが、アバターに 1 つでもあるか（True / False）。補足: ― | True / True | 公式の勧め（Avatar Optimization Tips）: 多くの粒子を出すときは、衝突（collision）を使わない |
-| トレイルレンダラーの数 | Trail Renderer の数（尾を引く線を描く部品）。補足: 範囲（BOUNDS）の計算には入らない | 8 / 1 | 未確認 |
+| トレイルレンダラーの数 | Trail Renderer の数（尾を引く線を描く部品）。補足: 範囲（BOUNDS）の計算には入らない | 8 / 1 | **未確認**{.lbl .lbl-unk} |
 | CLOTH メッシュの数 | Cloth コンポーネントの数（布の動きを物理で計算する部品）。補足: Cloth は、Skinned Mesh Renderer と組み合わせて使う（Unity マニュアル） | 1 / モバイル（Android・iOS）では無効 | 公式の勧め（Avatar Optimization Tips）: Cloth の使用を控える。約 200 の頂点を超えるメッシュには使わない |
-| CLOTH の最大頂点の数 | 公式の項目名は Total Cloth Vertices。公式の統計表（Performance Ranks）には定義の行を確認できなかった（未確認）。「最大」の意味も未確認。補足: ― | 200 / モバイル（Android・iOS）では無効 | 未確認 |
-| コライダーの数 | 公式の項目名は Physics Colliders。公式の統計表（Performance Ranks）には定義の行を確認できなかった（未確認）。Unity の Collider（物理の衝突の形を決める部品）の数と推定。補足: ― | 8 / モバイル（Android・iOS）では無効 | 未確認 |
-| リジッドボディの数 | 公式の項目名は Physics Rigidbodies。公式の統計表（Performance Ranks）には定義の行を確認できなかった（未確認）。Unity の Rigidbody（物理演算で動く部品）の数と推定。補足: ― | 8 / モバイル（Android・iOS）では無効 | 未確認 |
-| オーディオソースの数 | 公式の項目名は Audio Sources。公式の統計表（Performance Ranks）には定義の行を確認できなかった（未確認）。Unity の Audio Source（音を鳴らす部品）の数と推定。補足: ― | 8 / モバイル（Android・iOS）では無効 | 未確認 |
-| ラインレンダラーの数（画面には出ない項目） | アバターにある Line Renderer の数（公式の項目名は Line Renderers）。補足: ― | 8 / 1 | 未確認 |
-| レイキャストの数 | VRCRaycast コンポーネントの数。補足: 全プラットフォームで 1 アバターあたり 80 個が上限（固定の上限、公式の脚注） | 15 / 8 | 未確認 |
+| CLOTH の最大頂点の数 | 公式の項目名は Total Cloth Vertices。公式の統計表（Performance Ranks）には定義の行を確認できなかった（**未確認**{.lbl .lbl-unk}）。「最大」の意味も**未確認**{.lbl .lbl-unk}。補足: ― | 200 / モバイル（Android・iOS）では無効 | **未確認**{.lbl .lbl-unk} |
+| コライダーの数 | 公式の項目名は Physics Colliders。公式の統計表（Performance Ranks）には定義の行を確認できなかった（**未確認**{.lbl .lbl-unk}）。Unity の Collider（物理の衝突の形を決める部品）の数と推定。補足: ― | 8 / モバイル（Android・iOS）では無効 | **未確認**{.lbl .lbl-unk} |
+| リジッドボディの数 | 公式の項目名は Physics Rigidbodies。公式の統計表（Performance Ranks）には定義の行を確認できなかった（**未確認**{.lbl .lbl-unk}）。Unity の Rigidbody（物理演算で動く部品）の数と推定。補足: ― | 8 / モバイル（Android・iOS）では無効 | **未確認**{.lbl .lbl-unk} |
+| オーディオソースの数 | 公式の項目名は Audio Sources。公式の統計表（Performance Ranks）には定義の行を確認できなかった（**未確認**{.lbl .lbl-unk}）。Unity の Audio Source（音を鳴らす部品）の数と推定。補足: ― | 8 / モバイル（Android・iOS）では無効 | **未確認**{.lbl .lbl-unk} |
+| ラインレンダラーの数（画面には出ない項目） | アバターにある Line Renderer の数（公式の項目名は Line Renderers）。補足: ― | 8 / 1 | **未確認**{.lbl .lbl-unk} |
+| レイキャストの数 | VRCRaycast コンポーネントの数。補足: 全プラットフォームで 1 アバターあたり 80 個が上限（固定の上限、公式の脚注） | 15 / 8 | **未確認**{.lbl .lbl-unk} |
 | FORWARDED PARAMETERS | Face Tracking の Parameter Behavior で「Forward to Animator」を使う Avatar Parameter の数。補足: Forward to Animator は、その値で Animator の同名のパラメーターを更新する | 40 / 40 | 公式の勧め（Performance Ranks › Avatar Performance Ranking Stats › Face Tracking）: Animator に必要な値だけを転送する |
 | FACE TRACKING OPERATIONS | Face Tracking の計算の作業量の推定値。Blendshapes Set ごとの tracking または viseme の mapping を、対象の BlendShape を持つ Face Tracking Meshes のメッシュごとに 1 回ずつ数える。Parameter Behavior の入力や、Custom mode の Expression の入力・演算子・関数も数える（数値の定数は数えない）。補足: 例は、表の下の箇条書きを参照 | 16,000 / 16,000 | 公式の勧め（Performance Ranks › Avatar Performance Ranking Stats › Face Tracking）: 直接の BlendShape の対応づけと、Face Tracking 内の計算を優先する |
 
@@ -199,14 +199,14 @@ PHYSBONE 衝突チェックの数（329/512）、ライトの数（1/1）、ト�
 
 ### 手をつける順番（目安）
 
-公式の順番は、この記事では確認していません（未確認）。次は、この画面を見たうえでの、この記事の目安です。
+公式の順番は、この記事では確認していません（**未確認**{.lbl .lbl-unk}）。次は、この画面を見たうえでの、この記事の目安です。
 
 1. **上限の何倍も超えている項目から確かめる。** 最大パーティクルの数やメッシュパーティクルの三角ポリゴン数は、上限の 200 倍以上です。公式では、メッシュパーティクルの三角ポリゴン数は、maxEmission と meshParticleVerts の積とされています。パーティクルの設定を見直すと、大きく下がる可能性があります（この記事の推定）。
 2. **数の多い PhysBone や、ボーン・メッシュ系を減らす。** 手順は [アバターを軽くする](/learn/vrchat/optimization) にまとめています。
 3. **1 つ直すたびに、パフォーマンスの内訳をもう一度見る。** 赤い項目の数が減ったか、どの項目が変わったかを確かめます。
 
 ::: warning
-**無効にしただけ** のオブジェクトも、ランクの計算に入ると公式に書かれています。EditorOnly にすると、ビルドから外れます（Unity マニュアル）。SDK のランクの計算から外れるかは未確認です。確実なのは、使わないものを削除することです。以下はこの記事の助言です。使わない衣装や小物は、Tag を EditorOnly にするか、削除してください。
+**無効にしただけ** のオブジェクトも、ランクの計算に入ると公式に書かれています。EditorOnly にすると、ビルドから外れます（Unity マニュアル）。SDK のランクの計算から外れるかは**未確認**{.lbl .lbl-unk}です。確実なのは、使わないものを削除することです。以下は**この記事の助言**{.lbl .lbl-adv}です。使わない衣装や小物は、Tag を EditorOnly にするか、削除してください。
 
 **Mesh Read/Write**（Unity の Read/Write Enabled。スクリプトからメッシュのデータを読み書きできるようにする設定）を、いずれかの mesh（particle systems を含む）で無効にすると、ランクは即座に Very Poor になります（公式の記述）。
 :::

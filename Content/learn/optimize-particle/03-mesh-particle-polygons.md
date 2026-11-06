@@ -13,10 +13,10 @@ updated: 2026-11-06
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
+- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 
-この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は未確認）、TexTransTool・lilAvatarUtils・Meshia Mesh Simplification（版番号は未確認。取得日 2026 年 11 月 6 日の公開サイトと GitHub の main）の資料を、2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。
+この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、TexTransTool・lilAvatarUtils・Meshia Mesh Simplification（版番号は**未確認**{.lbl .lbl-unk}。取得日 2026 年 11 月 6 日の公開サイトと GitHub の main）の資料を、2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。
 :::
 
 ## 減らす前に確かめること
@@ -27,7 +27,7 @@ updated: 2026-11-06
   > "The total number of triangles of Mesh Particles emitted by Particle Systems that are active. In other words, maxEmission * meshParticleVerts."
 
   訳: 有効な Particle System が出すメッシュパーティクルの三角形（triangles）の合計数。言い換えると、maxEmission × meshParticleVerts。
-- **定義の食い違い**: 定義の文は「三角形（triangles）の数」と書いていますが、式の meshParticleVerts は、名前のとおり頂点（verts）の数と読めます。この 2 つの関係は、公式の資料からは判断できず、未確認です。この記事では、表示名と式の両方を、原文のまま並べています。
+- **定義の食い違い**: 定義の文は「三角形（triangles）の数」と書いていますが、式の meshParticleVerts は、名前のとおり頂点（verts）の数と読めます。この 2 つの関係は、公式の資料からは判断できず、**未確認**{.lbl .lbl-unk}です。この記事では、表示名と式の両方を、原文のまま並べています。
 
 ## 減らし方の考え方
 
@@ -37,7 +37,7 @@ VRChat 公式の勧めは、パーティクル全般のものです。Avatar Opt
 
 訳: 使う Particle System の数を制限し、同時に放出される粒子の最大数を制限する。
 
-メッシュパーティクルの三角ポリゴンだけに当てはめた減らし方は、公式に記載なし（確かめた範囲: VRChat 公式の Avatar Performance Ranking System、Avatar Optimization Tips、Android 向けの 2 ページ）。PC の Particle System の上限の専用ページ（Avatar Particle System Limits）は、この記事では取得できていないため、未確認です。上の勧めが、この項目にどれだけ効くかも、この記事では確かめていません。
+メッシュパーティクルの三角ポリゴンだけに当てはめた減らし方は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: VRChat 公式の Avatar Performance Ranking System、Avatar Optimization Tips、Android 向けの 2 ページ）。PC の Particle System の上限の専用ページ（Avatar Particle System Limits）は、この記事では取得できていないため、**未確認**{.lbl .lbl-unk}です。上の勧めが、この項目にどれだけ効くかも、この記事では確かめていません。
 
 ::: tip
 この記事の判断: 減らす具体的な操作は、効果を確かめられなかったため、手順には入れていません。ツールの節は、そのツールの資料で確かめた範囲だけを書いています。
@@ -45,40 +45,40 @@ VRChat 公式の勧めは、パーティクル全般のものです。Avatar Opt
 
 ## ツール別の方法
 
-### Modular Avatar（MA）
+### Modular Avatar（MA） {.tool .tool-ma}
 
-公式に記載なし（確かめた範囲: MA の日本語版と英語版のドキュメント、CHANGELOG、README）。ドキュメントに「パーティクル」が出るのは、サンプル（Clap プレハブ）の説明の 1 箇所だけで、仕様の記述ではありません。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のドキュメント、CHANGELOG、README）。ドキュメントに「パーティクル」が出るのは、サンプル（Clap プレハブ）の説明の 1 箇所だけで、仕様の記述ではありません。
 
-### TexTransTool（TTT）
+### TexTransTool（TTT） {.tool .tool-ttt}
 
-公式に記載なし（確かめた範囲: ttt.rs64.net の /docs/ 配下 81 ページ。「パーティクル」「トレイル」「LineRenderer」の語は見つかりませんでした）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: ttt.rs64.net の /docs/ 配下 81 ページ。「パーティクル」「トレイル」「LineRenderer」の語は見つかりませんでした）。
 
-### lilAvatarUtils
+### lilAvatarUtils {.tool .tool-lil}
 
-未確認。レンダラーのタブの「ポリゴン数」は、「メッシュのポリゴン数です。」と説明されていますが、パーティクルのメッシュを数えるかは書かれていません（確かめた範囲: ja_JP の公式ドキュメント 9 ページ）。
+**未確認**{.lbl .lbl-unk}。レンダラーのタブの「ポリゴン数」は、「メッシュのポリゴン数です。」と説明されていますが、パーティクルのメッシュを数えるかは書かれていません（確かめた範囲: ja_JP の公式ドキュメント 9 ページ）。
 
-### Meshia Mesh Simplification（MMS）
+### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-公式に記載なし（確かめた範囲: README（英語・日本語）と、`.docfx` にあるドキュメント 11 件（目次を含めると 19 件）。公開サイト（ramtype0.github.io）は未確認）。パーティクルの語は見つかりませんでした。簡略化の入力は Mesh と書かれているだけで、対象のレンダラーの種類の記載もありません。パーティクルのメッシュに使えるかは、未確認です。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: README（英語・日本語）と、`.docfx` にあるドキュメント 11 件（目次を含めると 19 件）。公開サイト（ramtype0.github.io）は**未確認**{.lbl .lbl-unk}）。パーティクルの語は見つかりませんでした。簡略化の入力は Mesh と書かれているだけで、対象のレンダラーの種類の記載もありません。パーティクルのメッシュに使えるかは、**未確認**{.lbl .lbl-unk}です。
 
-### Avatar Optimizer（AAO）
+### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-公式に記載なし（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページと CHANGELOG）。CHANGELOG のパーティクル関連の項目は 7 件あり、そのうち 6 件は「壊れる」ことの修正、1 件（1.8.10）は、パーティクルシステムが正しく削除されない不具合の修正です。いずれも、三角ポリゴンを減らす効果の記載ではありません。例えば 1.9.19 には、次の原文があります（原文のまま。誤字を含みます。[公式の changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページと CHANGELOG）。CHANGELOG のパーティクル関連の項目は 7 件あり、そのうち 6 件は「壊れる」ことの修正、1 件（1.8.10）は、パーティクルシステムが正しく削除されない不具合の修正です。いずれも、三角ポリゴンを減らす効果の記載ではありません。例えば 1.9.19 には、次の原文があります（原文のまま。誤字を含みます。[公式の changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
 
 > "Particle Systems with the Shape of vertices of Skinnd Mesh Renderers only with no-triangle submeshesas would be borken"
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「メッシュパーティクルの三角ポリゴン数」の今の値と上限（PC の Poor が 5,000、Android の Poor が 400）を確かめます。
-2. 作業の前に、プロジェクトのバックアップを取り、対象のパーティクルの見た目と動きを記録します（この記事の助言）。
+2. 作業の前に、プロジェクトのバックアップを取り、対象のパーティクルの見た目と動きを記録します（**この記事の助言**{.lbl .lbl-adv}）。
 3. 作業するときは、Mesh Read/Write を無効にしないでください（下の注意）。
-4. 対象のパーティクルシステムの設定を変えたあとは、Play モードに入って見た目と動きが変わっていないかを確かめ、パフォーマンスの内訳をもう一度見て、数が変わったかを確かめます（この記事の助言）。
+4. 対象のパーティクルシステムの設定を変えたあとは、Play モードに入って見た目と動きが変わっていないかを確かめ、パフォーマンスの内訳をもう一度見て、数が変わったかを確かめます（**この記事の助言**{.lbl .lbl-adv}）。
 
 ## 注意・うまくいかないとき
 
 ::: warning
 - **Mesh Read/Write**: 公式の記述によると、アバターのいずれかの mesh（パーティクルシステムのメッシュを含む）で Mesh Read/Write を無効にすると、アバターの Triangles（三角ポリゴン数）の行が「Mesh Read/Write Disabled」と表示され、ランクは即座に Very Poor になります。原文は "regardless of the actual triangle count on the avatar"（アバターの実際の三角ポリゴン数にかかわらず）です（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
-- **MMS と AAO**: 上のツールの節のとおり、この項目を減らす効果が資料で確かめられたツールはありません。MMS をパーティクルのメッシュに使えるかは未確認です。使う前に、確かめてください。
+- **MMS と AAO**: 上のツールの節のとおり、この項目を減らす効果が資料で確かめられたツールはありません。MMS をパーティクルのメッシュに使えるかは**未確認**{.lbl .lbl-unk}です。使う前に、確かめてください。
 :::
 
 ## 関連ページ

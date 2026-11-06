@@ -2795,3 +2795,134 @@ html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-group + .av
 
 /* ページの端のゴム伸び・「引っ張って更新」には、overscroll-behavior を指定しない。iOS の Chrome で、引っ張って更新が無効になるため。
    ゴム伸びで見える領域は、html の単色の背景色でサイトの色にしている */
+
+/* ---------- 記事のラベル・ツール別の見出し（「公式に記載なし」「未確認」などを色で見分ける） ---------- */
+
+/* 本文中の短いラベル。Markdown では **未確認**{.lbl .lbl-unk} のように書く（strong に class が付く） */
+.article-body .lbl {
+    display: inline-block;
+    padding: 0.05em 0.55em;
+    border-radius: 999px;
+    font-size: 0.88em;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+    background: rgba(148, 163, 184, 0.22);
+    color: #e2e8f0;
+}
+
+.article-body .lbl-unk {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fde68a;
+}
+
+.article-body .lbl-adv {
+    background: rgba(96, 165, 250, 0.2);
+    color: #bfdbfe;
+}
+
+.article-body .lbl-ok {
+    background: rgba(52, 211, 153, 0.2);
+    color: #a7f3d0;
+}
+
+.article-body .lbl-ng {
+    background: rgba(248, 113, 113, 0.2);
+    color: #fecaca;
+}
+
+[data-bs-theme="light"] .article-body .lbl {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+[data-bs-theme="light"] .article-body .lbl-unk {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+[data-bs-theme="light"] .article-body .lbl-adv {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+[data-bs-theme="light"] .article-body .lbl-ok {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+[data-bs-theme="light"] .article-body .lbl-ng {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ツール別の見出し（### Modular Avatar（MA） {.tool .tool-ma}）。左の帯の色でツールを見分ける */
+.article-body h3.tool {
+    padding: 0.3rem 0.75rem;
+    border-left: 6px solid var(--tool-color, var(--accent));
+    border-radius: 4px;
+    background: rgba(var(--tool-rgb, var(--accent-rgb)), 0.1);
+}
+
+/* ライトのテーマは、帯の背景を薄くして、見出しの文字のコントラストを 4.5 以上に保つ */
+[data-bs-theme="light"] .article-body h3.tool {
+    background: rgba(var(--tool-rgb, var(--accent-rgb)), 0.05);
+}
+
+/* 表のセルの中のラベルは折り返してよい（折り返さないと、表が本文の列からはみ出して、目次に重なる） */
+.article-body td .lbl,
+.article-body th .lbl {
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: keep-all;
+}
+
+.article-body h3.tool-ma {
+    --tool-color: #14b8a6;
+    --tool-rgb: 20, 184, 166;
+}
+
+.article-body h3.tool-ttt {
+    --tool-color: #a78bfa;
+    --tool-rgb: 167, 139, 250;
+}
+
+.article-body h3.tool-lil {
+    --tool-color: #fb923c;
+    --tool-rgb: 251, 146, 60;
+}
+
+.article-body h3.tool-mms {
+    --tool-color: #60a5fa;
+    --tool-rgb: 96, 165, 250;
+}
+
+.article-body h3.tool-aao {
+    --tool-color: #4ade80;
+    --tool-rgb: 74, 222, 128;
+}
+
+[data-bs-theme="light"] .article-body h3.tool-ma {
+    --tool-color: #0f766e;
+    --tool-rgb: 15, 118, 110;
+}
+
+[data-bs-theme="light"] .article-body h3.tool-ttt {
+    --tool-color: #6d28d9;
+    --tool-rgb: 109, 40, 217;
+}
+
+[data-bs-theme="light"] .article-body h3.tool-lil {
+    --tool-color: #c2410c;
+    --tool-rgb: 194, 65, 12;
+}
+
+[data-bs-theme="light"] .article-body h3.tool-mms {
+    --tool-color: #1d4ed8;
+    --tool-rgb: 29, 78, 216;
+}
+
+[data-bs-theme="light"] .article-body h3.tool-aao {
+    --tool-color: #15803d;
+    --tool-rgb: 21, 128, 61;
+}

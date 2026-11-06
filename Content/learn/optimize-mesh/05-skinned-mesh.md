@@ -11,8 +11,8 @@ updated: 2026-11-06
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**: そのツールの公式の資料（日本語版のページと changelog）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog）を検索して、書かれていないと確かめた、という意味です。
+- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 
 この記事は、AAO 1.9.21 と、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。版が上がると挙動が変わることがあります。
 :::
@@ -27,34 +27,34 @@ updated: 2026-11-06
 
 - VRChat 公式の勧め（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表。出典は Avatar Optimization Tips）は、メッシュを統合することです。Skinned Mesh Renderer は 1 つまで、静的（Static）メッシュは 3 つまでを推奨しています。この数は、ランクの上限とは別の推奨値です。
 - 統合には、AAO の Trace And Optimize による自動の統合と、AAO Merge Skinned Mesh による手動の統合があります。公式は、自動では一部のメッシュを統合しないこともあるため、必要に応じて手動の Merge Skinned Mesh を使うよう書いています。
-- 統合すると、個々のメッシュをアニメーションでオン・オフできなくなります。衣装の切り替えに使っているメッシュは、統合の対象にするかを先に決めてください（この記事の助言）。
+- 統合すると、個々のメッシュをアニメーションでオン・オフできなくなります。衣装の切り替えに使っているメッシュは、統合の対象にするかを先に決めてください（**この記事の助言**{.lbl .lbl-adv}）。
 - AAO は、アバターの見た目をほとんど変えずに性能を上げることを目的にしています（[AAO の基本コンセプト](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/basic-concept/)）。統合のあとは、見た目と動きを確かめてください。
 
 ## ツール別の方法
 
-### Modular Avatar（MA）
+### Modular Avatar（MA） {.tool .tool-ma}
 
 - **何をするか**: Merge Armature は、衣装のアーマチュア（ボーンの階層）をアバターに統合するコンポーネントです。スキンドメッシュを 1 つにまとめる機能ではありません（[Merge Armature](https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature)）。
 - **どう使うか**: 衣装を組み込む手順は、[Modular Avatar で衣装を着せる](/learn/unity/modular-avatar-outfit) を見てください。
-- **公式に記載なし**: スキンドメッシュの数を減らす機能は、公式に記載なし（確かめた範囲: MA の日本語版と英語版のリファレンス一覧、Merge Armature・Bone Proxy・Mesh Settings のページ）。
+- **公式に記載なし**{.lbl .lbl-none}: スキンドメッシュの数を減らす機能は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のリファレンス一覧、Merge Armature・Bone Proxy・Mesh Settings のページ）。
 
-### TexTransTool（TTT）
+### TexTransTool（TTT） {.tool .tool-ttt}
 
 - **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、AtlasTexture のマテリアルの結合では、マテリアルスロットは結合できないと明記しています（[公式: Quest 対応のアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
 - **どう使うか**: そのチュートリアルの末尾には、マテリアルスロットも減らすには、AAO の Trace And Optimize や Merge Skinned Mesh との併用を強く推奨する、と書かれています。
-- **公式に記載なし**: スキンドメッシュの数を減らす機能は、公式に記載なし（確かめた範囲: Reference のコンポーネント一覧、AtlasTexture と TextureFineTuning のページ、チュートリアル、FAQ）。
+- **公式に記載なし**{.lbl .lbl-none}: スキンドメッシュの数を減らす機能は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Reference のコンポーネント一覧、AtlasTexture と TextureFineTuning のページ、チュートリアル、FAQ）。
 
-### lilAvatarUtils
+### lilAvatarUtils {.tool .tool-lil}
 
 - **何をするか**: レンダラーのタブで、メッシュごとのポリゴン数・マテリアルスロット数などを一覧で表示します。ポリゴン数やマテリアルスロットの多いメッシュを特定するための機能です（[公式: レンダラー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/RenderersGUI.html)）。
-- **公式に記載なし**: メッシュを結合する機能は、公式に記載なし（確かめた範囲: レンダラー・マテリアル・テクスチャ・ツールの各タブの説明。ツールのタブは、マテリアルのクリーンアップ、AnimatorController のクリーンアップ、Missing なコンポーネントの削除です）。
+- **公式に記載なし**{.lbl .lbl-none}: メッシュを結合する機能は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: レンダラー・マテリアル・テクスチャ・ツールの各タブの説明。ツールのタブは、マテリアルのクリーンアップ、AnimatorController のクリーンアップ、Missing なコンポーネントの削除です）。
 
-### Meshia Mesh Simplification（MMS）
+### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
 - **何をするか**: メッシュを簡略化するツールです。コンポーネントは、1 つの Renderer に付ける Meshia Mesh Simplifier と、アバター直下に 1 つ置く Meshia Cascading Avatar Mesh Simplifier の 2 種類です（[公式ドキュメント](https://ramtype0.github.io/Meshia.MeshSimplification/)）。
-- **公式に記載なし**: スキンドメッシュの数を減らす機能は、公式に記載なし（確かめた範囲: README、公式ドキュメント、この 2 種類のコンポーネントの説明。どちらも、メッシュを簡略化するものとして書かれています）。
+- **公式に記載なし**{.lbl .lbl-none}: スキンドメッシュの数を減らす機能は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: README、公式ドキュメント、この 2 種類のコンポーネントの説明。どちらも、メッシュを簡略化するものとして書かれています）。
 
-### Avatar Optimizer（AAO）
+### Avatar Optimizer（AAO） {.tool .tool-aao}
 
 - **何をするか**:
   - **Trace And Optimize の「スキンメッシュレンダラーを統合する」**: 分かれている必要のないスキンメッシュレンダラーを、自動で統合します。
@@ -107,8 +107,8 @@ updated: 2026-11-06
 - **マテリアルのプロパティのアニメーションが競合する**: 公式の書き方は食い違っています。備考には「マテリアルに関するアニメーションは統合前のものがそのまま機能します」とあります。一方、FAQ には「マテリアルプロパティに対するアニメーションが競合する」という項目があり、「既知のバグであり、現時点では競合してしまう仕様です」と書かれています（issue は [#340](https://github.com/anatawa12/AvatarOptimizer/issues/340)）。競合するときは警告が表示されます。この記事では、FAQ の書き方を前提にして、統合のあとにマテリアルのアニメーションが動くかを実際に確かめてください。
 - **マテリアルスロットのアニメーションが競合する**: FAQ の方法は、「マテリアルの統合」の「統合する」をオフにすることです。
 - **PhysBone・Contact が効かない（OSC ギミック）**: 注意と対応（FAQ の Asset Description の方法）は、[ボーンの数を減らす](/learn/optimize-mesh/bones) の「注意・うまくいかないとき」にまとめています。
-- **自動で統合されないメッシュ**: 公式に記載なし（確かめた範囲: Trace And Optimize と Merge Skinned Mesh の日本語版のページ。自動で統合されない条件の一覧は書かれていません）。統合されなかったメッシュは、手動の AAO Merge Skinned Mesh を使います。
-- **ほかのツールとの併用**: MA と AAO を併用するときの順序や衝突は、未確認です（[軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。TTT の AtlasTexture と AAO を併用するときは、TTT の公式の推奨があります。
+- **自動で統合されないメッシュ**: **公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Trace And Optimize と Merge Skinned Mesh の日本語版のページ。自動で統合されない条件の一覧は書かれていません）。統合されなかったメッシュは、手動の AAO Merge Skinned Mesh を使います。
+- **ほかのツールとの併用**: MA と AAO を併用するときの順序や衝突は、**未確認**{.lbl .lbl-unk}です（[軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。TTT の AtlasTexture と AAO を併用するときは、TTT の公式の推奨があります。
 
 ## 関連ページ
 
