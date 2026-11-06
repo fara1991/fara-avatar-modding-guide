@@ -140,3 +140,12 @@
   en: Reduce Particles and Trails
   description: パーティクルシステムの数、最大パーティクル、メッシュパーティクルの三角ポリゴン、パーティクルトレイル、パーティクルの衝突、トレイルレンダラーの数の確かめ方と、公式に書かれていること。
   icon: bi-rocket-takeoff
+
+- id: optimize-physics
+  section: optimize
+  title: Cloth・コライダー・リジッドボディ・音・レイキャスト
+  nav_title: Cloth・コライダー・音など
+  reading: くろーすこらいだーりじっどぼでぃおとれいきゃすと
+  en: Cloth, Colliders, Rigidbodies, Audio and Raycasts
+  description: Cloth コンポーネントの数と最大頂点数、コライダー、リジッドボディ、オーディオソース、レイキャストの数の確かめ方と、公式に書かれていること。
+  icon: bi-grid-3x3-gap
