@@ -1,0 +1,37 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><link rel="stylesheet" href="common.css">
+<style>
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px 38px; }
+.step { position: relative; background: #f0fdfa; border: 2px solid #14b8a6; border-radius: 12px; padding: 18px 16px 16px; min-height: 150px; }
+.step .n { position: absolute; top: -18px; left: 14px; width: 36px; height: 36px; border-radius: 50%; background: #0f766e; color: #fff; font-weight: 700; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+.step .t { font-size: 20px; font-weight: 700; margin-top: 6px; line-height: 1.4; }
+.step .d { font-size: 16.5px; color: #334155; margin-top: 8px; line-height: 1.5; }
+.step.last { background: #ede9fe; border-color: #7c3aed; }
+.step.last .n { background: #6d28d9; }
+.step:not(:nth-child(3n))::after { content: "▶"; position: absolute; right: -30px; top: 50%; transform: translateY(-50%); color: #0f766e; font-size: 22px; }
+.step:nth-child(3)::before { }
+</style><style id="narrow">
+.card { width: 480px !important; padding: 22px 20px 20px !important; }
+h1 { font-size: 22px !important; }
+.sub { font-size: 15px !important; margin-bottom: 16px !important; }
+.note { font-size: 16.5px !important; padding: 12px 14px !important; margin-top: 16px !important; }
+.pill { font-size: 14.5px !important; }
+
+.steps { grid-template-columns: 1fr !important; gap: 26px !important; }
+.step { min-height: 0 !important; padding: 16px 14px 14px !important; }
+.step .t { font-size: 19px !important; }
+.step .d { font-size: 16px !important; }
+.step:not(:nth-child(3n))::after { content: none !important; }
+.step:not(:last-child)::after { content: "▼" !important; position: absolute; left: 50%; right: auto; top: auto; bottom: -26px; transform: translateX(-50%); color: #0f766e; font-size: 18px; }
+</style></head><body><div class="card">
+<h1>APL でポーズを設定する流れ</h1>
+<div class="sub">AvatarPoseLibrary（APL）の公式の README・wiki（Beginner-Tutorials・Unity-Manual）の手順を、6 つに分けたものです。</div>
+<div class="steps">
+  <div class="step"><div class="n">1</div><div class="t">VCC にリポジトリを追加</div><div class="d">Settings → Packages → Add Repository に URL を貼り、Add</div></div>
+  <div class="step"><div class="n">2</div><div class="t">プロジェクトに APL を追加</div><div class="d">任意のプロジェクトの Manage Project から追加</div></div>
+  <div class="step"><div class="n">3</div><div class="t">アバターの子に空の GameObject</div><div class="d">アバターを Hierarchy に置き、右クリック → Create Empty。アバターの直下にする</div></div>
+  <div class="step"><div class="n">4</div><div class="t">コンポーネントを付ける</div><div class="d">Add Component → 「Avatar Pose Library」を選ぶ</div></div>
+  <div class="step"><div class="n">5</div><div class="t">カテゴリーとポーズを登録</div><div class="d">右上の + でカテゴリー。ポーズは項目で設定（複数なら Drop Area に Animation Clip をまとめてドロップ）</div></div>
+  <div class="step last"><div class="n">6</div><div class="t">アップロードして使う</div><div class="d">VRChat のアクションメニューに、Library Name の名前で出る</div></div>
+</div>
+<div class="note warn"><b>ポーズの元になる Animation Clip は、別に用意します。</b>APL でポーズを作って保存する方法は、公式の資料に書かれていません（<span class="pill none">公式に記載なし</span>）。</div>
+</div></body></html>

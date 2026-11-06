@@ -24,6 +24,9 @@ APL の公式の資料には、ポーズを作って保存する方法（Scene �
 この記事では、その方法は扱いません。
 :::
 
+[![APL でポーズを設定する流れ。VCC にリポジトリを追加、プロジェクトに追加、アバターの子に空の GameObject、コンポーネントを付ける、カテゴリーとポーズを登録、アップロードして使う、の 6 つ](images/avatar-pose-library-flow.png)](/learn/vrchat-features/images/avatar-pose-library-flow.png)
+*APL でポーズを設定する全体の流れ（導入から使うまで。README・wiki の手順を、この記事で 6 つにまとめたもの。ポーズの設定の細かい手順は、「ポーズを設定する」の 1〜6）*
+
 ## この記事の版と確かめ方
 
 この記事は、APL の [1.2.44](https://github.com/HhotateA/AvatarPoseLibrary/releases/tag/1.2.44) を基に書いています。このリリースは 2026 年 9 月 21 日（日本時間。UTC では 9 月 20 日）に公開されました。対応する Unity は 2022.3 です（リポジトリの [package.json](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Packages/com.hhotatea.avatar-pose-library/package.json) の `unity` の項目）。2026 年 11 月 6 日に、公式の資料を確かめて書きました。
@@ -114,6 +117,9 @@ Mode Settings の 4 つの項目には、それぞれ次の説明があります
 - Enable Speed: 「ポーズの再生速度を変更できるようになります。これが有効な場合、静的なアニメーションも自動的に生物らしいランダムなアニメーションに変換されます。」
 - Enable Mirror: 「ポーズを左右反転できるようになります。」
 - Enable Trackings: 「トラッキングメニューを表示します。」
+
+[![APL の設定の入れ子。アバターの Prefab の下に空の GameObject、その中に Avatar Pose Library コンポーネント、その中にカテゴリー、カテゴリーの中にポーズ](images/avatar-pose-library-structure.png)](/learn/vrchat-features/images/avatar-pose-library-structure.png)
+*設定の入れ子（Unity-Manual の説明を、この記事で図にしたもの）*
 
 ::: tip
 Q&A には、「Animation Clip を APL にドラッグ＆ドロップ → Generate を押す」だけで基本的な設定が完了すると書かれています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。ただし、wiki の Unity-Manual と Beginner-Tutorials の項目の一覧に、「Generate」という名前の項目はありません。パッケージの表示名（英語・日本語）にも、この名前のボタンは見当たりませんでした。画面にそのボタンがあるかは、**未確認**{.lbl .lbl-unk}です。Drop Area のツールチップ（英語版）には、"You can generate poses by dropping animation clips here in bulk." と書かれています。この記事では、Drop Area に入れる手順を書いています。
