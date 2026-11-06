@@ -23,8 +23,8 @@ AAO の目的は、**アバターの見た目をほとんど変えずに、性�
 「リファレンス本文」は各コンポーネントのページ、「changelog」は公式ドキュメント内の変更履歴を指します。
 :::
 
-[![AAO の 2 つの使い方。自動は AAO Trace And Optimize（7 つの最適化をチェックボックスで選ぶ）、手動はコンポーネントを自分で付ける（まとめる、消す・減らす、テクスチャ・マテリアル）](images/avatar-optimizer-two-ways.png)](/learn/optimize-aao/images/avatar-optimizer-two-ways.png)
-*AAO の 2 つの使い方（公式ドキュメントを、この記事で整理したもの）*
+[![AAO の 2 つの使い方。自動は AAO Trace And Optimize（7 つの最適化をチェックボックスで選ぶ）、手動はコンポーネントを自分で付ける（まとめる、消す、PhysBone・テクスチャ・マテリアルの主なもの）](images/avatar-optimizer-two-ways.png)](/learn/optimize-aao/images/avatar-optimizer-two-ways.png)
+*AAO の 2 つの使い方（公式ドキュメントを、この記事で整理したもの。手動は主なものだけ）*
 
 ### 非破壊とは
 
@@ -115,7 +115,7 @@ AAO を使うときは、まず **AAO Trace And Optimize** を付けます。ア
 - コンポーネント名（Unity 上の表示名）は `AAO Trace And Optimize` です（GitHub のソースの AddComponentMenu で確認）。
 
 [![AAO のコンポーネントを付ける場所。Trace And Optimize はアバターのルートに、Merge Skinned Mesh は新しい空の GameObject に付ける](images/avatar-optimizer-where-to-attach.png)](/learn/optimize-aao/images/avatar-optimizer-where-to-attach.png)
-*コンポーネントを付ける場所（公式ドキュメントの「追加する場所」を図にしたもの）*
+*コンポーネントを付ける場所（公式の説明を図にしたもの。右の Merge Skinned Mesh は手動のコンポーネントで、詳しくは「まとめる（統合する）」を見てください）*
 
 ### 自動で行われること
 

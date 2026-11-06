@@ -24,14 +24,14 @@ h1 { font-size: 22px !important; }
 .step:not(:last-child)::after { content: "▼" !important; position: absolute; left: 50%; right: auto; top: auto; bottom: -26px; transform: translateX(-50%); color: #0f766e; font-size: 18px; }
 </style></head><body><div class="card">
 <h1>APL でポーズを設定する流れ</h1>
-<div class="sub">AvatarPoseLibrary（APL）の公式の wiki（Beginner-Tutorials・Unity-Manual）の手順を、6 つに分けたものです。</div>
+<div class="sub">AvatarPoseLibrary（APL）の公式の README・wiki（Beginner-Tutorials・Unity-Manual）の手順を、6 つに分けたものです。</div>
 <div class="steps">
   <div class="step"><div class="n">1</div><div class="t">VCC にリポジトリを追加</div><div class="d">Settings → Packages → Add Repository に URL を貼り、Add</div></div>
   <div class="step"><div class="n">2</div><div class="t">プロジェクトに APL を追加</div><div class="d">任意のプロジェクトの Manage Project から追加</div></div>
-  <div class="step"><div class="n">3</div><div class="t">アバターの子に空の GameObject</div><div class="d">Hierarchy で右クリック → Create Empty。アバターの直下にする</div></div>
+  <div class="step"><div class="n">3</div><div class="t">アバターの子に空の GameObject</div><div class="d">アバターを Hierarchy に置き、右クリック → Create Empty。アバターの直下にする</div></div>
   <div class="step"><div class="n">4</div><div class="t">コンポーネントを付ける</div><div class="d">Add Component → 「Avatar Pose Library」を選ぶ</div></div>
-  <div class="step"><div class="n">5</div><div class="t">カテゴリーとポーズを登録</div><div class="d">右上の + でカテゴリー。Drop Area に AnimationClip をまとめてドロップ</div></div>
+  <div class="step"><div class="n">5</div><div class="t">カテゴリーとポーズを登録</div><div class="d">右上の + でカテゴリー。ポーズは項目で設定（複数なら Drop Area に Animation Clip をまとめてドロップ）</div></div>
   <div class="step last"><div class="n">6</div><div class="t">アップロードして使う</div><div class="d">VRChat のアクションメニューに、Library Name の名前で出る</div></div>
 </div>
-<div class="note warn"><b>ポーズの元になる AnimationClip は、別に用意します。</b>APL でポーズを作って保存する方法は、公式の資料に書かれていません（<span class="pill none">公式に記載なし</span>）。</div>
+<div class="note warn"><b>ポーズの元になる Animation Clip は、別に用意します。</b>APL でポーズを作って保存する方法は、公式の資料に書かれていません（<span class="pill none">公式に記載なし</span>）。</div>
 </div></body></html>
