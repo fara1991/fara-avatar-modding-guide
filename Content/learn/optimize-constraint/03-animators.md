@@ -8,7 +8,7 @@ updated: 2026-11-06
 
 アニメーターの数は、アバターにある Animator コンポーネントの数を数える項目です（VRChat 公式の定義は "The number of Animators on the avatar." です）。上限は PC の Poor が 32、Android の Poor が 2 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
-上限を超えると、公式の表では、表示される最低のランクを設定しているときに、ルート以外のすべてのアニメーターが取り除かれると書かれています（"All animators (aside from root animator) removed"。[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) の英語の原文の要約）。Android で上限を超えたときの扱いは、ランキングの文書に記述が無いため、未確認です。
+上限を超えると、公式の表では、表示される最低のランクを設定しているときに、ルート以外のすべてのアニメーターが取り除かれると書かれています（"All animators (aside from root animator) removed"。[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) の英語の原文の要約）。Android で上限を超えたときの扱いは、公式に記載なしです（確かめた範囲: Avatar Performance Ranking System の Mobile Limits と Mobile Avatar Component Limits の節。後者の制限の対象に、アニメーターは挙げられていません）。
 
 ::: tip
 この記事で使う言葉は、次のとおりです。
@@ -46,8 +46,7 @@ VRChat 公式の Playable Layers の文書は、アバターのアニメータ�
 
 **注意**:
 
-- 「付属アニメーターを削除」を入れると、同じオブジェクト内の Animator が自動的に排除されると、公式は書いています（[Merge Animator（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/merge-animator)）。
-- 同じレイヤー種別で、複数のアニメーターを「置き換える」設定にするとエラーになります（同じ公式ページ）。
+- 「付属アニメーターを削除」を入れると、同じオブジェクト内の Animator が自動的に排除（削除）されると、公式は書いています（[Merge Animator（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/merge-animator)）。
 - ページは「レイヤーに追加する」「統合する」と書いています。統合後のアニメーター（コントローラー）の数が減るかどうかは、公式に記載なしです。この記事では、数の確かめ方を手順に入れます。
 - MA のトップページ（[Modular Avatar（MA 公式）](https://modular-avatar.nadena.dev/ja/)）は「アバターのFXアニメーター等を分割し、実行時に統合しよう。」と書いています。Merge Animator のページには実行時・ビルド時の記述が無いため、この記事では統合の時点を書きません。
 - 未リリース（CHANGELOG の `[Unreleased]` の [MA の変更履歴](https://github.com/bdunderscore/modular-avatar/blob/main/CHANGELOG-jp.md)）の変更として、Reactive Component の生成をブレンドツリー方式に変えて、アニメーターの処理負荷を軽減すると書かれています。数の話ではなく、リリース前の変更です。
@@ -83,8 +82,8 @@ VRChat 公式の Playable Layers の文書は、アバターのアニメータ�
 1. SDK の「パフォーマンスの内訳」で、「アニメーターの数」を確かめます（上限は PC の Poor が 32、Android の Poor が 2）。
 2. アバターの中で、ルート以外の Animator があるオブジェクトを探します。探す画面の操作は、この記事の資料には書かれていないため、説明しません。Unity の画面の基本は [Unity の画面の見方](/learn/unity/editor-overview) を見てください。
 3. 追加のアニメーターを、Playable Layers の仕組みの中にまとめられないかを確かめます。Playable Layer のスロットには Animation Controller だけを使い、同じコントローラーを複数のレイヤーで使わないようにします（公式の勧め）。
-4. Modular Avatar の Merge Animator で、指定したレイヤーに統合するものを決めます。既存のアニメーターを替えるときは「既存アニメーターを置き換える」を選び、同じレイヤー種別に「置き換える」設定を 2 つ以上入れないでください。同じオブジェクトの Animator は、「付属アニメーターを削除」で扱えます。統合で数が減るかは公式に記載なしのため、手順 6 で確かめます。
-5. AAO を使う場合は、先に「注意・うまくいかないとき」の OSC の注意（FAQ）を読みます。そのうえで、アバターのルートに AAO Trace And Optimize を付け、「使われていないObjectを自動的に削除する」をオンにします。AAO の CHANGELOG（1.6.0）には、Animator Controller の無い Animator が削除されると書かれています（公式ドキュメントには書かれていません）。Animator Controller を持たない Animator があるときは、この機能で減る可能性があります。「アニメーターの最適化」は Animator Controller の中身を整理する機能で、Animator の数への効果は公式に記載なしのため、手順には入れません。
+4. Modular Avatar の Merge Animator で、指定したレイヤーに統合するものを決めます。既存のアニメーターを替えるかどうかは、下の「注意・うまくいかないとき」の「置き換え」の注意を見て決めます。同じオブジェクトの Animator は、「付属アニメーターを削除」で扱えます。統合で数が減るかは公式に記載なしのため、手順 6 で確かめます。
+5. AAO を使う場合は、先に「注意・うまくいかないとき」の OSC の注意（FAQ）を読みます。AAO の「使われていないObjectを自動的に削除する」の効果は、公式に記載なしのため、この手順には入れていません。使う場合は、手順 6 で数と動きを確かめてください。
 6. 処理のあと、SDK の「アニメーターの数」と、Play モードでの Actual Performance Window の値を比べます。あわせて、アニメーションの動きが変わっていないかを確かめます。
 
 ## 注意・うまくいかないとき
@@ -92,7 +91,8 @@ VRChat 公式の Playable Layers の文書は、アバターのアニメータ�
 ::: warning
 - **Playable Layers のスロットには Animation Controller だけ**: 公式は、ほかの種類のコントローラーを使うと、エラーになるか、アップロードできなくなると書いています。
 - **無効にしても数は減りません**: 公式は、無効化されたものも数えると書いています（上の「減らす前に確かめること」を見てください）。
-- **Merge Animator の置き換えはエラーになることがあります**: 同じレイヤー種別で、「置き換える」設定を 2 つ以上入れると、エラーになります。
+- **Merge Animator の「置き換える」**: 公式は、同じレイヤー種別で複数のアニメーターを「置き換える」設定にするとエラーになると書いています（[Merge Animator（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/merge-animator)）。既存のアニメーターを替えるときは、同じレイヤー種別の「置き換える」を 1 つだけにしてください。
+- **AAO の削除の効果**: 効果は公式に記載なしです（CHANGELOG 1.6.0 に、Animator Controller の無い Animator が無意味と判断される旨の記録がある）。使う場合は、適用の前後でアニメーターの数と動きを確かめてください。
 - **OSC で使うコンポーネントがある場合**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。公式 FAQ（[よくある質問](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）は、そのようなコンポーネントを使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools を設定するよう案内しています。自動の最適化のあとは、動くかを確かめてください（この記事の助言）。
 - **未リリースの変更**: 上の Modular Avatar の節の、Reactive Component の処理負荷の改善は、未リリースです。
 :::
