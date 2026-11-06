@@ -41,7 +41,7 @@ updated: 2026-11-06
 ### TexTransTool（TTT）
 
 - **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、マテリアルスロットの結合はできないと明記しています（[公式: Quest 対応のアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
-- **どう使うか**: 同じ箇所で、マテリアルスロットも減らすには、AAO の Trace And Optimize や Merge Skinned Mesh との併用を強く推奨すると書かれています。
+- **どう使うか**: そのチュートリアルの末尾には、マテリアルスロットも減らすには、AAO の Trace And Optimize や Merge Skinned Mesh との併用を強く推奨する、と書かれています。
 - **公式に記載なし**: スキンドメッシュの数を減らす機能は、公式に記載なし（確かめた範囲: Reference のコンポーネント一覧、AtlasTexture と TextureFineTuning のページ、チュートリアル、FAQ）。
 
 ### lilAvatarUtils
@@ -62,7 +62,7 @@ updated: 2026-11-06
   - 同じマテリアルを使うマテリアルスロットも統合できます。公式は、マテリアルの統合は DrawCall（描画の呼び出し）を減らすと書いています。
 - **どう使うか**:
   - Trace And Optimize はアバターのルートに付けます。行う最適化は、チェックボックスで選べます。
-  - AAO Merge Skinned Mesh は、新しい空の GameObject に、メッシュを指定していない SkinnedMeshRenderer と一緒に付けます（種別は Source Edit Skinned Mesh Component）。
+  - AAO Merge Skinned Mesh は、新しい空の GameObject に、メッシュを指定していない SkinnedMeshRenderer と一緒に付けます（種別は「Source Edit Skinned Mesh Component」です。公式ドキュメントでは、メッシュなどを生成するコンポーネントの小分類です）。
   - 主な設定は、次のとおりです。
     - スキンメッシュレンダラー（Skinned Renderers）: 統合対象の SkinnedMeshRenderer の一覧です。
     - メッシュレンダラー（Basic Renderers）: 統合対象の MeshRenderer の一覧です（[基本メッシュの数を減らす](/learn/optimize-mesh/basic-mesh)）。
@@ -88,11 +88,11 @@ updated: 2026-11-06
 ## 手順
 
 1. Control Panel の「パフォーマンスの内訳」で、「スキンドメッシュの数」と「基本メッシュの数」を控えます。
-2. アバターのルートに AAO Trace And Optimize を付け、「スキンメッシュレンダラーを統合する」を使うかを選びます。
+2. アバターのルートに AAO Trace And Optimize を付け、「スキンメッシュレンダラーを統合する」を使うかを選びます。OSC（外部ツールと値をやりとりする仕組み）を使うアバターでは、付ける前に、[ボーンの数を減らす](/learn/optimize-mesh/bones) の「注意・うまくいかないとき」を読んでください（自動の最適化で、OSC 用の PhysBone・Contact が消えるおそれがあるためです）。
 3. Play モード（Actual Performance Window で確かめる）か、Manual bake avatar で、統合後の見た目と動きを確かめます。
 4. 統合されなかったメッシュは、新しい空の GameObject に、メッシュを指定していない SkinnedMeshRenderer と AAO Merge Skinned Mesh を付けて、スキンメッシュレンダラーの一覧に入れます。
 5. 同じマテリアルのマテリアルスロットを 1 つにまとめるなら、「マテリアルの統合（Merge Materials）」をオンにします。アニメーションでマテリアルを別のものに置き換えているメッシュは、「マテリアルの統合」の「統合する」をオフにします（FAQ の案内）。
-6. 統合先の SkinnedMeshRenderer で、Root Bone と Anchor Override を設定します。アバター全体をまとめて設定するなら、アバターのルートに MA Mesh Settings を追加します（FAQ の案内）。
+6. 統合先の SkinnedMeshRenderer で、Root Bone と Anchor Override を設定します。Modular Avatar を使うなら、アバターのルートに MA Mesh Settings を追加します。FAQ の「見えない」の項では、アバター全体の Root Bone と範囲（BOUNDS）を、「明るさ」の項では、アバター全体の Anchor Override を、MA Mesh Settings で設定できると案内されています。
 7. Build & Test で、見た目と動き（衣装のオン・オフ、マテリアルのアニメーション）が変わっていないかを確かめます（[軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。
 
 ## 注意・うまくいかないとき
@@ -105,9 +105,9 @@ updated: 2026-11-06
 - **統合後に明るさが違う**: FAQ によると、多くの場合は、統合先の SkinnedMeshRenderer の Anchor Override を指定し忘れていることが原因です。
 - **統合後に個別のオン・オフができない**: 公式の注意のとおりです。「有効無効状態に関するアニメーションをコピーする」は、コピーできるのは 1 種類だけです。複数の GameObject がアニメーションされていると、エラーになり、ビルドが止まります（changelog の 1.8.0）。統合先の SkinnedMeshRenderer の enabled を、この機能を使うときにアニメーションしてはいけないとも書かれています。
 - **マテリアルのプロパティのアニメーションが競合する**: 公式の書き方は食い違っています。備考には「マテリアルに関するアニメーションは統合前のものがそのまま機能します」とあります。一方、FAQ には「マテリアルプロパティに対するアニメーションが競合する」という項目があり、「既知のバグであり、現時点では競合してしまう仕様です」と書かれています（issue は [#340](https://github.com/anatawa12/AvatarOptimizer/issues/340)）。競合するときは警告が表示されます。この記事では、FAQ の書き方を前提にして、統合のあとにマテリアルのアニメーションが動くかを実際に確かめてください。
-- **マテリアルスロットのアニメーションが競合する**: FAQ の方法は、「マテリアルの統合」の「統合する」をオフにすることです。FAQ には、この問題は AAO 1.8.0 で修正されたとも書かれています。
-- **PhysBone・Contact が効かない（OSC ギミック）**: FAQ によると、Trace And Optimize は、PhysBone や Contact Receiver が OSC ギミックで使われているかを判別できません。他の用途で使われていなければ削除するよう設計されています。これは「使われていないObjectを自動的に削除する」の働きで、スキンドメッシュの統合とは別のオプションです。FAQ では、Asset Description ファイルを作成し、Parameters Read By External Tools に設定する方法が書かれています。OSC を使うアバターでは、自動の最適化のあとに、PhysBone と Contact が効くかを確かめてください（この記事の助言）。詳しくは、[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」を見てください。
-- **自動で統合されないメッシュ**: 公式には、自動で統合されない条件の一覧はありません（未確認）。統合されなかったメッシュは、手動の AAO Merge Skinned Mesh を使います。
+- **マテリアルスロットのアニメーションが競合する**: FAQ の方法は、「マテリアルの統合」の「統合する」をオフにすることです。
+- **PhysBone・Contact が効かない（OSC ギミック）**: 注意と対応（FAQ の Asset Description の方法）は、[ボーンの数を減らす](/learn/optimize-mesh/bones) の「注意・うまくいかないとき」にまとめています。
+- **自動で統合されないメッシュ**: 公式に記載なし（確かめた範囲: Trace And Optimize と Merge Skinned Mesh の日本語版のページ。自動で統合されない条件の一覧は書かれていません）。統合されなかったメッシュは、手動の AAO Merge Skinned Mesh を使います。
 - **ほかのツールとの併用**: MA と AAO を併用するときの順序や衝突は、未確認です（[軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。TTT の AtlasTexture と AAO を併用するときは、TTT の公式の推奨があります。
 
 ## 関連ページ

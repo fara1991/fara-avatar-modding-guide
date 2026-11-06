@@ -6,7 +6,7 @@ difficulty: 中級
 updated: 2026-11-06
 ---
 
-基本メッシュ（MeshRenderer。ボーンで動かないメッシュのことです）の数は、パフォーマンスランクの「基本メッシュの数」で数えられます。上限は PC が 24、Android が 2 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。上限を超えると次のランクになります。描画の呼び出し（ドローコール）は、メッシュごとに 1 回ずつ必要になるのが基本で、減らすと描画の時間が短くなると、同じ記事に Unity マニュアルの説明として書かれています。
+基本メッシュ（MeshRenderer。ボーンで動かないメッシュのことです）の数は、パフォーマンスランクの「基本メッシュの数」で数えられます。上限は PC が 24、Android が 2 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。上限を超えると次のランクになります。描画の呼び出し（ドローコール）は、メッシュごとに 1 回ずつ必要になるのが基本で、減らすと描画の時間が短くなると、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) に、Unity マニュアルの説明として書かれています。
 
 ::: tip
 この記事で使う言葉は、次のとおりです。
@@ -72,7 +72,7 @@ updated: 2026-11-06
 3. 新しい空の GameObject に、メッシュを指定していない SkinnedMeshRenderer と AAO Merge Skinned Mesh を付けます。
 4. 「メッシュレンダラー（Basic Renderers）」の一覧に、統合する MeshRenderer を入れます。
 5. 同じマテリアルのマテリアルスロットを 1 つにまとめるなら、「マテリアルの統合（Merge Materials）」をオンにします。統合したいマテリアルが別のメッシュにあるなら、同じ GameObject に AAO Merge Material を追加します。
-6. 統合先の SkinnedMeshRenderer で、Root Bone と Anchor Override を設定します。アバター全体をまとめて設定するなら、アバターのルートに MA Mesh Settings を追加します（FAQ の案内）。
+6. 統合先の SkinnedMeshRenderer で、Root Bone と Anchor Override を設定します。Modular Avatar を使うなら、アバターのルートに MA Mesh Settings を追加します。FAQ の「見えない」の項では、アバター全体の Root Bone と範囲（BOUNDS）を、「明るさ」の項では、アバター全体の Anchor Override を、MA Mesh Settings で設定できると案内されています。
 7. Play モード（Actual Performance Window で確かめる）か Manual bake avatar で確かめたうえで、Build & Test で見た目と動きが変わっていないかを確かめます（[軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。
 
 ## 注意・うまくいかないとき
@@ -84,7 +84,7 @@ updated: 2026-11-06
 - **統合後にメッシュが見えない**: FAQ によると、多くの場合は、統合先の SkinnedMeshRenderer の Root Bone を指定し忘れていることが原因です。AAO Merge Skinned Mesh は Root Bone を自動で設定しません。
 - **統合後に明るさが違う**: FAQ によると、多くの場合は、統合先の SkinnedMeshRenderer の Anchor Override を指定し忘れていることが原因です。
 - **マテリアルのアニメーションが競合する**: 公式の書き方は食い違っています。詳しくは、[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の「注意・うまくいかないとき」を見てください。
-- **Trace And Optimize が自動で統合しないメッシュ**: 公式には、自動で統合されない条件の一覧はありません。公式の案内は、自動で統合しないメッシュがあるときは、手動の AAO Merge Skinned Mesh を使う、というものです。
+- **Trace And Optimize が自動で統合しないメッシュ**: 公式に記載なし（確かめた範囲: Trace And Optimize と Merge Skinned Mesh の日本語版のページ。自動で統合されない条件の一覧は書かれていません）。公式の案内は、自動では統合しないメッシュがあるときは、手動の AAO Merge Skinned Mesh を使う、というものです。
 - **ほかのツールとの併用**: MA と AAO を併用するときの順序や衝突は、未確認です（[軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。
 
 ## 関連ページ

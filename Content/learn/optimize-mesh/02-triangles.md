@@ -37,16 +37,16 @@ MA には、三角ポリゴンを減らせる条件つきの機能がありま�
 
 **何をするか**:
 
-- **Mesh Cutter**: メッシュの一部を、頂点フィルターで指定して、削除または非表示にするコンポーネントです。常に有効（アクティブ）なときは選んだポリゴンが削除され、ときどき無効になるときは非表示になります。どちらの場合も部位が見えなくなるので、見た目が変わります。
+- **Mesh Cutter**: メッシュの一部を、頂点フィルターで指定して、削除または非表示にするコンポーネントです。公式は、Mesh Cutter が常に有効（アクティブ）な場合は選んだポリゴンを完全に削除し、時々非アクティブになる場合は選んだポリゴンを非表示にすると書いています（[公式: Mesh Cutter](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/mesh-cutter)）。どちらの場合も部位が見えなくなるので、見た目が変わります。
 - **Shape Changer（Delete モード）**: アニメーションされていない場合は、ポリゴンを削除して数を減らせます。アニメーションされている場合は非表示になりますが、測定されるポリゴン数は減りません（[公式: Shape Changer](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/shape-changer)）。
 
 **注意**:
 
-- Mesh Cutter の公式ページの原文は、この記事では確かめていません（未確認）。使う前に、公式ページで確かめてください。
+- 公式ページには、「場合によっては、Constraint を生成する必要があり、パフォーマンスランクの増加に寄与する可能性がありますのでご注意ください。」と書かれています。Mesh Cutter が時々非アクティブになる場合に当たる注意です。
 
 ### TexTransTool（TTT）
 
-公式に記載なし（確かめた範囲: TTT の公式サイトのコンポーネント一覧、チュートリアル、FAQ、テクスチャ設定の説明）。TTT は、テクスチャとマテリアルを扱うツールとして説明されていて、三角ポリゴンを減らす機能の説明は見つかりませんでした。
+公式に記載なし（確かめた範囲: TTT の公式サイトのリファレンス（コンポーネント一覧）、チュートリアル、FAQ、TextureFineTuning の説明）。TTT は、テクスチャとマテリアルを扱うツールとして説明されていて、三角ポリゴンを減らす機能の説明は見つかりませんでした。
 
 ### lilAvatarUtils
 
@@ -77,7 +77,7 @@ MMS には 2 種類のコンポーネントがあります。
 
 **注意**:
 
-- **Preserve Border Edges（メッシュの端の辺を保持）**: 指先に穴が空く場合は、有効化してみるよう、公式ドキュメントに書かれています。ツールチップでは、穴や断面など、他の面に接していない辺を削除しないようにする設定と説明されています（パッケージのソース）。
+- **Preserve Border Edges（メッシュの端の辺を保持）**: 公式ドキュメントには、「指先に穴が空いたりする場合、有効化してみてください。」と書かれています。ツールチップでは、穴や断面など、他の面に接していない辺を削除しないようにする設定と説明されています（パッケージのソース）。
 - Cascading では、既定で左右の手と指のボーンが保持の対象になっています（パッケージのソースの既定値。公式ドキュメントの本文には記載なし）。
 - 処理の順序は、パッケージのソースでは、AAO より前に行われます（ソースからの読み取りで、公式の記述ではありません）。
 - MMS が「非破壊」かどうかは、公式に記載なしです。バックアップを取ってから使うのが安全です（この記事の整理）。
@@ -89,7 +89,7 @@ MMS には 2 種類のコンポーネントがあります。
 - **AAO Remove Mesh By Mask**: マスクテクスチャで指定した範囲のポリゴンを削除します。マスクは、削除する範囲を色で指定する画像です。削除モードは「Remove Black」か「Remove White」を選びます。
 - **AAO Remove Mesh By Box**: 1 つ以上の箱で指定した範囲のポリゴンを削除します。箱の内側と外側のどちらを削るかを選べます（[公式: Remove Mesh By Box](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-box/)）。
 - **AAO Remove Mesh By UV Tile**: UV タイルで指定した範囲のポリゴンを削除します。Poiyomi や lilToon の UV Tile Discard の Vertex モードに近い動きです（[公式: Remove Mesh By UV Tile](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-uv-tile/)）。
-- **AAO Remove Mesh By BlendShape**: 選んだ BlendShape で動く頂点と、その頂点を含むポリゴンを削除します。多くの素体に入っている貫通防止用の BlendShape を使うと簡単に削除できると、公式に書かれています。
+- **AAO Remove Mesh By BlendShape**: 選んだ BlendShape で動く頂点と、その頂点を含むポリゴンを削除します。公式は、多くの素体に含まれている貫通防止用の BlendShape を使うと「簡単にメッシュを削除することができます」と書いています。
 - **AAO Remove Zero Sized Polygon**: 面積がゼロのポリゴンを削除します。これは高度な最適化の一つで、既定ではオフです（下の注意を見てください）。
 
 **どう使うか**:
@@ -101,9 +101,10 @@ MMS には 2 種類のコンポーネントがあります。
 
 **注意**:
 
-- AAO の Trace And Optimize が、三角形を削る処理を自動で行うかは、公式に記載なしです。自動の一覧には、Remove Mesh 系は含まれていません。
+- **形で削る Remove Mesh 系（Mask・Box・UV Tile・BlendShape）は、Trace And Optimize の自動の対象に入りません。** 公式の [Trace And Optimize のページ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/) の自動の一覧に、これらの項目は入っていません。使うときは、手動のコンポーネントとして追加します。
+- **面積がゼロのポリゴンの削除は、Trace And Optimize の高度な最適化「面積がゼロのポリゴンを自動的に削除する」で、自動で行えます**（[公式: Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。ただし既定ではオフです。公式の changelog（1.7.1）には「not enabled by default」と書かれています。公式は、一部のシェーダーやアニメーションを壊すおそれがあると書いています。
+- 面積がゼロのポリゴンを削除する Remove Zero Sized Polygon を手動で追加することは、公式は勧めていません。公式は、手動で追加するより Trace And Optimize を使うことを勧めています。統合対象の SkinnedMeshRenderer に追加しても、効果がないと書かれています。
 - Remove Mesh By BlendShape の許容差の向きは、公式の例文と Unity 内の説明で、通常モードの向きと食い違って読めます。この記事では向きを断定しません。プレビューで確かめながら調整してください。
-- Remove Zero Sized Polygon は、Trace And Optimize の「面積がゼロのポリゴンを自動的に削除する」として使われ、既定ではオフです。公式は、一部のシェーダーやアニメーションを壊すおそれがあると書いています。手動で追加することは、公式で推奨されていません。統合対象の SkinnedMeshRenderer に付けても、効果がないと書かれています。
 
 ## 手順
 
@@ -119,12 +120,11 @@ MMS には 2 種類のコンポーネントがあります。
 ::: warning
 - 削除の範囲を間違えると、見える部分が消えたり、隠れる部分が残ったりします（AAO の公式の注意）。
 - Mesh Read/Write を、いずれかの mesh（パーティクルを含む）で無効にすると、ランクは即座に Very Poor になると、公式に書かれています（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。
-:::
-
-- モバイル（Android）では、Very Poor のアバターは表示されないことがあると、公式に書かれています。三角ポリゴンの Android の上限は 20,000 です。
-- MMS の Vertex Link（頂点リンク）は、40,000 頂点を超えるメッシュでは処理時間が増え、クラッシュのおそれがあると、設定の説明に書かれています（パッケージの説明）。
+- Android では、ランクが Very Poor のアバターは表示されないことがあると、公式に書かれています（三角ポリゴンの Android の Poor の上限は 20,000 です）。
+- MMS の「マージ候補に含める頂点同士の距離」（Vertex Link Distance）は、値を大きくすると処理時間が伸びる場合があります。また、4 万頂点以上のメッシュで大きな値を指定するとクラッシュする場合があると、パッケージのツールチップに書かれています（ソースの ja.po。公式ドキュメントの本文ではありません）。
 - MA の Shape Changer は、アニメーションされているポリゴンを減らさないため、数が減らないことがあります。
 - MMS と AAO を一緒に使うときは、MMS が先に処理されます（パッケージのソースからの読み取り）。MA と AAO の順序など、ほかの組み合わせは、この記事では未確認です。
+:::
 
 ## 関連ページ
 
