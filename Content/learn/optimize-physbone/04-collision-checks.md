@@ -72,10 +72,12 @@ VRChat の公式には、衝突チェックの数を直接減らす手順は見�
 2. lilAvatarUtils の PhysBone タブで、「コリジョン数」が大きい PhysBone を見つけます。この数は lilAvatarUtils の項目なので、SDK の値とは別に読みます。
 3. 同じ PhysBone の「コライダー数」と「ボーン数」を確かめます。
 4. lilAvatarUtils の PBコライダー タブで「参照数」を見て、どの PhysBone からも参照されていないコライダーがないかを確かめます。
-5. AAO の Trace And Optimize の「PhysBone を最適化する」を使うときは、コライダーの統合が動きを変えないかを確かめてから使います。Merge PhysBone でコライダーをまとめるときは、統合対象のコライダーの一覧を確かめます。
+5. OSC で使う PhysBone や Contact Receiver がある場合は、先に「注意・うまくいかないとき」の OSC の項目を読んで、必要な設定を済ませます。AAO の Trace And Optimize の「PhysBone を最適化する」を使うときは、コライダーの統合が動きを変えないかを確かめてから使います。Merge PhysBone でコライダーをまとめるときは、統合対象のコライダーの一覧を確かめます。
 6. Play モードのランク、または Build & Test で、SDK の値と見た目・動きを確かめます。
 
 ## 注意・うまくいかないとき
+
+- **OSC で使う PhysBone や Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できず、ほかで使われていなければ削除するように設計されています（[よくある質問（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。OSC で使う場合は、Asset Description ファイルの Parameters Read By External Tools に設定するよう案内されています（[Asset Description（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/developers/asset-description/)）。
 
 ::: warning
 - **無効のものも数えられます**: 公式の Performance Ranks には、「All GameObjects and Components, **including those that are currently disabled**, count towards the Avatar Performance Rank.」（無効化されているものも含めて数える）と書かれています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
