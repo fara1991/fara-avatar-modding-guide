@@ -22,10 +22,10 @@ updated: 2026-11-06
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
-- **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
+- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 
-この記事は、AAO 1.9.21 と Modular Avatar（GitHub の main。正式版 1.18.7 との差は未確認）を含む 5 つのツールの公式の資料を、2026 年 11 月 6 日に確かめて書きました。ほかのツールは版番号を未確認のまま、取得日の時点の公式の資料を確かめました。MMS の公開ドキュメント（ramtype0.github.io）は、未確認です。
+この記事は、AAO 1.9.21 と Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）を含む 5 つのツールの公式の資料を、2026 年 11 月 6 日に確かめて書きました。ほかのツールは版番号を**未確認**{.lbl .lbl-unk}のまま、取得日の時点の公式の資料を確かめました。MMS の公開ドキュメント（ramtype0.github.io）は、**未確認**{.lbl .lbl-unk}です。
 
 VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。公開サイトの表示は、この記事では確かめていません。VRChat の公式は英語の原文だけなので、ここでの引用は原文に訳を添えています。
 :::
@@ -45,31 +45,31 @@ VRChat 公式の資料に、トレイルレンダラーを減らす専用の勧�
 
 ## ツール別の方法
 
-### Modular Avatar（MA）
+### Modular Avatar（MA） {.tool .tool-ma}
 
-公式に記載なし（確かめた範囲: MA の日本語版と英語版のドキュメント、CHANGELOG、README で、Trail・トレイル・LineRenderer の語を検索）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のドキュメント、CHANGELOG、README で、Trail・トレイル・LineRenderer の語を検索）。
 
-### TexTransTool（TTT）
+### TexTransTool（TTT） {.tool .tool-ttt}
 
-公式に記載なし（確かめた範囲: 公式サイトの `/docs/` 配下 81 ページで、Trail・トレイル・LineRenderer の語を検索）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 公式サイトの `/docs/` 配下 81 ページで、Trail・トレイル・LineRenderer の語を検索）。
 
-### lilAvatarUtils
+### lilAvatarUtils {.tool .tool-lil}
 
-未確認。レンダラーのタブは「アバターに含まれる全てのレンダラーの一覧です。」と説明していますが、トレイルレンダラーを一覧に含むかは書かれていません。
+**未確認**{.lbl .lbl-unk}。レンダラーのタブは「アバターに含まれる全てのレンダラーの一覧です。」と説明していますが、トレイルレンダラーを一覧に含むかは書かれていません。
 
-### Meshia Mesh Simplification（MMS）
+### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-公式に記載なし（確かめた範囲: GitHub のリポジトリの README と、`.docfx` にあるドキュメント 11 件（目次を含めると 19 件）で、Trail・トレイル・LineRenderer の語を検索。公開サイト（ramtype0.github.io）は未確認）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README と、`.docfx` にあるドキュメント 11 件（目次を含めると 19 件）で、Trail・トレイル・LineRenderer の語を検索。公開サイト（ramtype0.github.io）は**未確認**{.lbl .lbl-unk}）。
 
-### Avatar Optimizer（AAO）
+### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-公式に記載なし（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページと CHANGELOG で、TrailRenderer・LineRenderer・Trail を検索）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページと CHANGELOG で、TrailRenderer・LineRenderer・Trail を検索）。
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「トレイルレンダラーの数」を確かめます（上限は PC の Poor が 8、Android の Poor が 1）。
 2. アバターの中で、Trail Renderer のコンポーネントが付いているオブジェクトを探して、数えます（探す方法は、下の注意を見てください）。
-3. 変更の前に、プロジェクトのバックアップを取り、今のトレイルの見た目を記録します（公式の勧めではなく、この記事の助言です）。
+3. 変更の前に、プロジェクトのバックアップを取り、今のトレイルの見た目を記録します（公式の勧めではなく、**この記事の助言**{.lbl .lbl-adv}です）。
 4. 必要のないトレイルレンダラーは、無効にするのではなく、コンポーネントを削除します。無効のままでも数に入るためです（公式の注記による）。
 5. 変更のあと、トレイルの見た目が想定どおりかを、手順 3 の記録と比べて確かめます。
 6. もう一度 SDK の「パフォーマンスの内訳」を開き、「トレイルレンダラーの数」が減ったかを確かめます。

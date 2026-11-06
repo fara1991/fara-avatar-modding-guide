@@ -13,8 +13,8 @@ updated: 2026-11-06
 ::: tip
 この記事では、次の言葉を使います。
 
-- **公式に記載なし**: 各ツールの公式の資料（日本語版のページや更新履歴）を検索して、書かれていないことを確かめた、という意味です。
-- **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: 各ツールの公式の資料（日本語版のページや更新履歴）を検索して、書かれていないことを確かめた、という意味です。
+- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 :::
 
 ## 減らす前に確かめること
@@ -31,11 +31,11 @@ updated: 2026-11-06
 
 ## ツール別の方法
 
-### Modular Avatar（MA）
+### Modular Avatar（MA） {.tool .tool-ma}
 
-公式に記載なし（確かめた範囲: MA の日本語版と英語版のリファレンス一覧と、各ページ）。更新履歴には「MA Material Setter」の項目がありますが、説明のページは確かめていないため、スロット数への効果は未確認です。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のリファレンス一覧と、各ページ）。更新履歴には「MA Material Setter」の項目がありますが、説明のページは確かめていないため、スロット数への効果は**未確認**{.lbl .lbl-unk}です。
 
-### TexTransTool（TTT）
+### TexTransTool（TTT） {.tool .tool-ttt}
 
 **何をするか**: AtlasTexture は、マテリアルを 1 つにまとめて、テクスチャを 1 枚にまとめる機能です。公式は、AtlasTexture のマテリアルの結合は「マテリアルをまとめるだけ」で、マテリアルスロットの結合はできないと明言しています。
 
@@ -51,17 +51,17 @@ updated: 2026-11-06
 
 - 公式は、マテリアルスロットを減らすには、AAO の Trace And Optimize や Merge Skinned Mesh との併用を「強く推奨」すると書いています（同じチュートリアル）。
 - TTT の公式のチュートリアル（[Quest対応のためのアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）には、Quest 向けにマテリアルを結合する例があります。公式は、これを「Quest対応のための、見た目を維持できない軽量化になります」と明記しています。
-- マテリアルの結合の条件として「同じシェーダーであること」は、公式に記載なしです。
+- マテリアルの結合の条件として「同じシェーダーであること」は、**公式に記載なし**{.lbl .lbl-none}です。
 
-### lilAvatarUtils
+### lilAvatarUtils {.tool .tool-lil}
 
-レンダラーのタブで、メッシュごとのマテリアルスロット数を見られます。マテリアルのタブの「置き換え」は、全マテリアルを一括で別のマテリアルに置き換える機能ですが、スロットの数が減るとは書かれていません。マテリアルのクリーンアップは、割り当て中のシェーダーで使用されない不要なプロパティを削除する機能で（[公式: ツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）、スロットの数を減らす機能の説明はありません。公式に記載なし（確かめた範囲: レンダラー・マテリアル・ツールの各タブの説明）。
+レンダラーのタブで、メッシュごとのマテリアルスロット数を見られます。マテリアルのタブの「置き換え」は、全マテリアルを一括で別のマテリアルに置き換える機能ですが、スロットの数が減るとは書かれていません。マテリアルのクリーンアップは、割り当て中のシェーダーで使用されない不要なプロパティを削除する機能で（[公式: ツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）、スロットの数を減らす機能の説明はありません。**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: レンダラー・マテリアル・ツールの各タブの説明）。
 
-### Meshia Mesh Simplification（MMS）
+### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-未確認。MMS は三角ポリゴンを減らすツールとして説明されていて、マテリアルスロットについては、この記事では確認していません。
+**未確認**{.lbl .lbl-unk}。MMS は三角ポリゴンを減らすツールとして説明されていて、マテリアルスロットについては、この記事では確認していません。
 
-### Avatar Optimizer（AAO）
+### Avatar Optimizer（AAO） {.tool .tool-aao}
 
 **何をするか**: AAO には、スロットを減らす機能が 3 つあります。
 
@@ -99,7 +99,7 @@ updated: 2026-11-06
 - 統合後に、マテリアルのアニメーションが動かないときは、AAO の公式 FAQ の案内を見てください（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 - AAO Merge Skinned Mesh で統合したメッシュは、見えない・明るさが違うなどの症状が出ることがあります。FAQ では、Root Bone や Anchor Override の指定忘れが原因として挙がっています（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」）。
 - Modular Avatar を使っている場合は、アバターのルートに MA Mesh Settings を追加します。AAO の FAQ の「見えない」の項では、アバター全体の Root Bone と Bounds を設定できると案内されています。「明るさ」の項では、アバター全体の Anchor Override を設定できると案内されています（[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。
-- MMS のマテリアルスロットへの効果は、この記事では未確認です。
+- MMS のマテリアルスロットへの効果は、この記事では**未確認**{.lbl .lbl-unk}です。
 :::
 
 ## 関連ページ

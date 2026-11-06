@@ -13,16 +13,16 @@ updated: 2026-11-06
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
+- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 
-この記事は、AAO 1.9.21（changelog の最新版）、Modular Avatar（GitHub の main。正式版 1.18.7 との差は未確認）、lilAvatarUtils・TexTransTool・Meshia Mesh Simplification（版番号は未確認。取得時点の公開サイトまたは GitHub の main）の公式の資料を、2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。公開サイトの表示は、この記事では確かめていません。
+この記事は、AAO 1.9.21（changelog の最新版）、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、lilAvatarUtils・TexTransTool・Meshia Mesh Simplification（版番号は**未確認**{.lbl .lbl-unk}。取得時点の公開サイトまたは GitHub の main）の公式の資料を、2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。公開サイトの表示は、この記事では確かめていません。
 :::
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「最大パーティクルの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、622,022（上限 2,500）と表示されていました。
-- **合計の出し方**: 定義どおり、アバターの各 Particle System の maxParticles を足し合わせると、どれが大きいかを見つけられます（この記事の助言）。足した値が SDK の表示と一致するかは、この記事では未確認です。
+- **合計の出し方**: 定義どおり、アバターの各 Particle System の maxParticles を足し合わせると、どれが大きいかを見つけられます（**この記事の助言**{.lbl .lbl-adv}）。足した値が SDK の表示と一致するかは、この記事では**未確認**{.lbl .lbl-unk}です。
 - **行名の Active について**: 行名には Active とありますが、定義は「アバターのすべての Particle System」を対象にしていて、有効・無効の区別は書かれていません。また、公式は、現在無効化されているものを含めて、すべての GameObject とコンポーネントがパフォーマンスランクに数えられると書いています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 - **AAO を使うときのランク**: AAO の公式ドキュメントは、非破壊改変ツールを使う改変では、SDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています。Play モードに入ったときのランクは、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」の方法で確かめます。
 
@@ -46,36 +46,36 @@ VRChat 公式の勧めは、次のとおりです（[Avatar Optimization Tips（
 
 ## ツール別の方法
 
-### Modular Avatar（MA）
+### Modular Avatar（MA） {.tool .tool-ma}
 
-公式に記載なし（確かめた範囲: MA の日本語版と英語版のドキュメント全件と CHANGELOG。「パーティクル」の語は、サンプル（Clap プレハブ）の説明に 1 件だけあり、仕様の記述ではありません）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のドキュメント全件と CHANGELOG。「パーティクル」の語は、サンプル（Clap プレハブ）の説明に 1 件だけあり、仕様の記述ではありません）。
 
-### TexTransTool（TTT）
+### TexTransTool（TTT） {.tool .tool-ttt}
 
-公式に記載なし（確かめた範囲: sitemap に載る公式サイトのドキュメント 81 ページ。目次のページは取得できなかったため、この 81 ページで確かめました）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: sitemap に載る公式サイトのドキュメント 81 ページ。目次のページは取得できなかったため、この 81 ページで確かめました）。
 
-### lilAvatarUtils
+### lilAvatarUtils {.tool .tool-lil}
 
-公式に記載なし（確かめた範囲: 日本語版の公式ドキュメント 9 ページと、英語版のレンダラーのタブで、「パーティクル」の語を検索。見つかりませんでした）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版の公式ドキュメント 9 ページと、英語版のレンダラーのタブで、「パーティクル」の語を検索。見つかりませんでした）。
 
-### Meshia Mesh Simplification（MMS）
+### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-公式に記載なし（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にある日本語・英語のドキュメント 11 件（目次を含めると 19 件）。公開サイト（ramtype0.github.io）は未確認）。MMS は、ポリゴン数を減らすツールとして説明されています。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にある日本語・英語のドキュメント 11 件（目次を含めると 19 件）。公開サイト（ramtype0.github.io）は**未確認**{.lbl .lbl-unk}）。MMS は、ポリゴン数を減らすツールとして説明されています。
 
-### Avatar Optimizer（AAO）
+### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-公式に記載なし（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページ 72 件と CHANGELOG）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページ 72 件と CHANGELOG）。
 
 CHANGELOG のパーティクル関連の項目は 7 件あり、そのうち 6 件は、パーティクルが壊れることの修正です（1.6.0 の "Remove Unused Object may break ParticleSystem" など）。残る 1 件（1.8.10）は、パーティクルシステムが正しく削除されない不具合の修正で、削除の処理がパーティクルシステムに及ぶことを示します。どちらも、パーティクルを減らす効果の記載ではありません。詳しくは [パーティクルシステムの数を減らす](/learn/optimize-particle/particle-systems) の AAO の項を見てください。
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「最大パーティクルの数」を確かめます（上限は PC の Poor が 2,500、Android の Poor が 200）。
-2. アバターの各 Particle System の maxParticles を見て、合計を出します。大きいものから順に見ると、見直す場所を決めやすくなります（この記事の助言）。
-3. 変更の前に、プロジェクトのバックアップを取ります。見た目と動きは、変更の前に記録しておきます（この記事の助言）。
+2. アバターの各 Particle System の maxParticles を見て、合計を出します。大きいものから順に見ると、見直す場所を決めやすくなります（**この記事の助言**{.lbl .lbl-adv}）。
+3. 変更の前に、プロジェクトのバックアップを取ります。見た目と動きは、変更の前に記録しておきます（**この記事の助言**{.lbl .lbl-adv}）。
 4. 使っていないと確かめたパーティクルシステムは、無効にするのではなく削除します（[パーティクルシステムの数を減らす](/learn/optimize-particle/particle-systems) の手順 4）。
-5. 残したパーティクルシステムは、この記事の整理として、同時に放出される粒子の最大数を見直します。数を下げると、粒子の見え方が変わることがあるので、記録したものと比べます（この記事の助言）。
-6. Build & Test や Play モードで、見た目と動きが変わっていないかを確かめます（この記事の助言）。
+5. 残したパーティクルシステムは、この記事の整理として、同時に放出される粒子の最大数を見直します。数を下げると、粒子の見え方が変わることがあるので、記録したものと比べます（**この記事の助言**{.lbl .lbl-adv}）。
+6. Build & Test や Play モードで、見た目と動きが変わっていないかを確かめます（**この記事の助言**{.lbl .lbl-adv}）。
 7. SDK の「パフォーマンスの内訳」で、「最大パーティクルの数」が上限以下になったかを確かめます。
 
 ## 注意・うまくいかないとき

@@ -13,10 +13,10 @@ updated: 2026-11-06
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
+- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 
-この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は未確認）、TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を 2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は日本語に訳した要約です。版が上がると挙動が変わることがあります。
+この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を 2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は日本語に訳した要約です。版が上がると挙動が変わることがあります。
 :::
 
 ## 減らす前に確かめること
@@ -24,7 +24,7 @@ updated: 2026-11-06
 - **SDK の「パフォーマンスの内訳」**: 「ライトの数」で、今の値と上限を見ます。例の画面では、1（上限 1）と表示されていました。上限ちょうどのため、Poor の範囲になります。
 - **無効にしたものも数えられます。** 公式は、「現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられる」（原文: "including those that are currently disabled"）と書いています（[パフォーマンスランク（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。ライトを消すだけでは、数は減りません。
 - **PC の既定の設定**: 公式は、PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えると書いています。ただし、極端に最適化されていないアバターは、使えなくなる場合があると書いています。上限を超えたライトが取り除かれると表に書かれているのは、表示される最低のランクを設定しているときです。
-- **上限を超えたとき（Very Poor）**: PC Limits の表の列は Excellent・Good・Medium・Poor だけで、Very Poor の列はありません。Poor の上限（1）を超えて、ライトが 2 つ以上になったときの扱いは、公式に記載なしです（確かめた範囲: 同じ文書の PC Limits の表と注記。表示される最低のランクを設定したときの「All Lights removed」以外の記述は見つかりませんでした）。
+- **上限を超えたとき（Very Poor）**: PC Limits の表の列は Excellent・Good・Medium・Poor だけで、Very Poor の列はありません。Poor の上限（1）を超えて、ライトが 2 つ以上になったときの扱いは、**公式に記載なし**{.lbl .lbl-none}です（確かめた範囲: 同じ文書の PC Limits の表と注記。表示される最低のランクを設定したときの「All Lights removed」以外の記述は見つかりませんでした）。
 - **AAO を使うときの数**: AAO の公式ドキュメントは、非破壊改変ツールを使う改変では、VRChat SDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードに入ったときのランクは、anatawa12's Gist Pack の Actual Performance Window で確かめます（[AAO の結果の確認](/learn/optimize-aao/avatar-optimizer) を見てください）。
 
 ## 減らし方の考え方
@@ -44,32 +44,32 @@ VRChat 公式の Avatar Optimization Tips は、ライトについて次のよ�
 
 ## ツール別の方法
 
-### Modular Avatar（MA）
+### Modular Avatar（MA） {.tool .tool-ma}
 
-公式に記載なし（確かめた範囲: 日本語版のリファレンス一式と CHANGELOG）。「ライト」の語は、MA Mesh Settings のライトプローブの記述（バウンズとライトプローブアンカーの設定）だけで、ライトの数を扱う記述はありませんでした。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版のリファレンス一式と CHANGELOG）。「ライト」の語は、MA Mesh Settings のライトプローブの記述（バウンズとライトプローブアンカーの設定）だけで、ライトの数を扱う記述はありませんでした。
 
-### TexTransTool（TTT）
+### TexTransTool（TTT） {.tool .tool-ttt}
 
-公式に記載なし（確かめた範囲: 日本語版の公式ドキュメントと、リポジトリの CHANGELOG）。CHANGELOG の「light」は、画像の合成モードの名前（LightenColorOnly など）だけで、アバターのライトの話ではありません。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版の公式ドキュメントと、リポジトリの CHANGELOG）。CHANGELOG の「light」は、画像の合成モードの名前（LightenColorOnly など）だけで、アバターのライトの話ではありません。
 
-### lilAvatarUtils
+### lilAvatarUtils {.tool .tool-lil}
 
-公式に記載なし（確かめた範囲: 日本語版のドキュメントの 9 ページと CHANGELOG）。ライティングのタブ（LightingTestGUI）は、Unity のデフォルトシーンでは気付けない特殊な照明の状況で、アバターの見た目を確認するためのプレビューです（[公式: LightingTestGUI](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/LightingTestGUI.html)）。「ライトなし」「スポットライト」などは、テスト用の照明パターンの名前で、アバターが持つライトの数ではありません。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版のドキュメントの 9 ページと CHANGELOG）。ライティングのタブ（LightingTestGUI）は、Unity のデフォルトシーンでは気付けない特殊な照明の状況で、アバターの見た目を確認するためのプレビューです（[公式: LightingTestGUI](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/LightingTestGUI.html)）。「ライトなし」「スポットライト」などは、テスト用の照明パターンの名前で、アバターが持つライトの数ではありません。
 
-### Meshia Mesh Simplification（MMS）
+### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-公式に記載なし（確かめた範囲: 作者の GitHub リポジトリの README（英語と日本語）と、日本語の docfx のドキュメント）。ライトの語を検索しましたが、該当する記述は見つかりませんでした。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 作者の GitHub リポジトリの README（英語と日本語）と、日本語の docfx のドキュメント）。ライトの語を検索しましたが、該当する記述は見つかりませんでした。
 
-### Avatar Optimizer（AAO）
+### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-**何をするか**: AAO に、ライトの数を減らす機能の記載はありません（公式に記載なし。ja と en の全ページで、ライトの意味の語は見つかりませんでした）。
+**何をするか**: AAO に、ライトの数を減らす機能の記載はありません（**公式に記載なし**{.lbl .lbl-none}。ja と en の全ページで、ライトの意味の語は見つかりませんでした）。
 
 AAO の Trace And Optimize の「使われていないObjectを自動的に削除する」は、公式では次のように書かれています（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。
 
 - 原文（ja）: 「アニメーションなどを走査して、使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します。」
 - 原文（en）: "By scanning animation etc., automatically removes unused Objects (e.g. GameObjects, Components, Textures)."
 
-Light は名指しされていません。未使用のライトが、この自動の削除の対象に含まれるかどうかは、公式に記載なしです。
+Light は名指しされていません。未使用のライトが、この自動の削除の対象に含まれるかどうかは、**公式に記載なし**{.lbl .lbl-none}です。
 
 **注意**: AAO の CHANGELOG（1.9.15）には、AutoMergeSkinnedMesh の生成レンダラーのレイヤーを選ぶ修正（#1749）があります。その説明には、"This prevents layer-based cameras, lights, and shader gimmicks work correctly in Play mode after optimization." と書かれています（[CHANGELOG（AAO）](https://raw.githubusercontent.com/anatawa12/AvatarOptimizer/95c231830cefb62dde91e134642c70942f92ed2a/CHANGELOG.md)）。ライトという語が出るのは、この修正の説明だけです。ライトを減らす機能の記載ではありません。
 
@@ -87,7 +87,7 @@ Light は名指しされていません。未使用のライトが、この自�
 ::: warning
 - **Android と Quest ではライトは無効**: 公式の Android Content Limitations は、"Completely disabled for avatars on Android and Quest."（訳: Android と Quest のアバターでは、ライトは完全に無効になります）と書いています。Android 向けのアバターでは、ライトを当てにしないでください。
 - **無効にしても数は減りません**: 公式は、無効化されたものも数えると書いています。
-- **Poor の上限は 1**: 2 つ目のライトが、ランクにどう響くかは、上の「上限を超えたとき」にあるとおり、公式に記載なしです。
+- **Poor の上限は 1**: 2 つ目のライトが、ランクにどう響くかは、上の「上限を超えたとき」にあるとおり、**公式に記載なし**{.lbl .lbl-none}です。
 - **AAO のライトへの効果は公式に記載なし**: AAO の Trace And Optimize で、ライトが自動で減るとは、公式には書かれていません。手順には含めていません。AAO の Trace And Optimize を使う場合は、先に OSC の注意（[よくある質問（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）を読んでください。AAO は、OSC（外部ツールと値をやりとりする仕組み）で使われている PhysBone や Contact Receiver を判別できないため、Asset Description の設定が必要になることがあります。
 - **パーティクルのライト**: 公式（Avatar Optimization Tips）は、ライトの付いたパーティクルは、それぞれがリアルタイムライトとして扱われ、非常に負荷が大きいと書いています（原文: "Each particle with a light counts as a real-time light, which is (once again) extremely expensive."）。
 :::
