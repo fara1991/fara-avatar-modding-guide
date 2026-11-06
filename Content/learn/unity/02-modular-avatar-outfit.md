@@ -6,6 +6,12 @@ difficulty: 初級
 updated: 2026-10-11
 ---
 
+::: point
+- 衣装の説明で対応アバターを確かめ、Hierarchy のアバターの子に入れて Setup Outfit を実行する
+- 元の服は無効にしただけでは、アップロードに含まれるので、EditorOnly にするか削除する
+- Build & Test で動かして確かめてから、Build & Publish でアップロードする
+:::
+
 ## 流れ
 
 対応アバター向けに配られている衣装（Prefab）を、**Modular Avatar**（MA）で着せる基本の流れです。

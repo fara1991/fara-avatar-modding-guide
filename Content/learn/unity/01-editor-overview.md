@@ -6,6 +6,12 @@ difficulty: 初級
 updated: 2026-10-11
 ---
 
+::: point
+- 作業でよく使うのは Scene・Hierarchy・Inspector・Project・Console の 5 つ
+- 赤いエラーが出ていたら、まず Console を読む
+- Unity は Y が上、Blender は Z が上。Blender で作ったものは Rotation の X に -90 などの値が入って見えることがある
+:::
+
 ## アバターの作業で使うウィンドウ
 
 Unity の画面はいくつものウィンドウに分かれています。アバターの作業でよく使うのは次の 5 つです。

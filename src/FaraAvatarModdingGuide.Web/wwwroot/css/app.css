@@ -2926,3 +2926,28 @@ html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-group + .av
     --tool-color: #15803d;
     --tool-rgb: 21, 128, 61;
 }
+
+/* ---------- 記事の先頭の「ポイント」の囲み（::: point） ---------- */
+.article-body .point {
+    padding: 0.75rem 1rem;
+    margin: 1.25rem 0;
+    border-left: 4px solid #14b8a6;
+    border-radius: 8px;
+    background: rgba(20, 184, 166, 0.1);
+}
+
+.article-body .point::before {
+    content: "📌 この記事のポイント";
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.article-body .point > :last-child {
+    margin-bottom: 0;
+}
+
+[data-bs-theme="light"] .article-body .point {
+    border-color: #0f766e;
+    background: rgba(15, 118, 110, 0.07);
+}
