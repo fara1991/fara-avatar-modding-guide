@@ -8,7 +8,7 @@ updated: 2026-11-06
 
 コンストレイントの数は、アバターにあるコンストレイント（ある物の位置・回転・スケールを、別の物に紐づける部品）の総数を数える項目です。VRChat 公式の定義は "The total number of VRChat constraints and Unity constraints on the avatar." で、VRChat のコンストレイントと Unity のコンストレイントを合わせた数です。上限は PC の Poor が 350、Android の Poor が 150 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
-上限を超えると、公式では次のランク（Very Poor）になると書かれています。Android では、ハード上限（150）を超えると、「Show Avatar」を選んでも回避できず、制限の対象のコンポーネントがすべて取り除かれると公式は書いています。PC では、既定の表示の下限は Very Poor で、ほとんどのアバターは見えると書かれています。ただし、極端に最適化されていないアバターは、使えなくなる場合があると書かれています（いずれも英語の原文の訳です）。
+上限を超えると、公式では次のランク（Very Poor）になると書かれています。Android では、ハード上限（150）を超えると、「Show Avatar」を選んでも回避できず、制限の対象のコンポーネントがすべて取り除かれると公式は書いています。PC では、既定の表示の下限は Very Poor で、ほとんどのアバターは見えると書かれています。ただし、極端に最適化されていないアバターは、使えなくなる場合があると書かれています（英語の原文の要約と訳です）。
 
 ::: tip
 この記事で使う言葉は、次のとおりです。
@@ -80,13 +80,14 @@ VRChat 公式の勧めは、次の 2 点です（[Avatar Optimization Tips（VRC
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「コンストレイントの数」を確かめます（上限は PC の Poor が 350、Android の Poor が 150）。
-2. Unity のコンストレイントがあれば、VRChat のコンストレイントに変えます。公式は、次のように書いています（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
+2. 変換の前に、プロジェクトのバックアップを取り、確かめたい動き（対象のアニメーションとコンストレイントの追従）を記録しておきます。公式の資料では、変換を元に戻せるかは、この記事では未確認です。
+3. Unity のコンストレイントがあれば、VRChat のコンストレイントに変えます。公式は、次のように書いています（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
    - 原文: "You can convert all the Unity constraints on your avatar into equivalent VRChat constraints by using the relevant Auto Fix option in the control panel in the SDK."（訳: アバターの Unity のコンストレイントは、SDK の Control Panel にある該当する Auto Fix の項目を使うと、同等の VRChat のコンストレイントに変換できます。）
    - 変換後の動きへの影響は、この記事では未確認です。詳しくは [コンストレイントの深さを減らす](/learn/optimize-constraint/constraint-depth) の注意も見てください。
-3. 変換したあとは、Play モードに入り、対象のアニメーションとコンストレイントの追従が、変換の前と同じかを確かめます。
-4. MA を使っているなら、アバターのルートに Convert Constraints を付けます。付けたあと、SDK の「パフォーマンスの内訳」で、数が変わったかを確かめます。
-5. 使っていないと確かめたコンストレイントは、取り除きます。無効にするだけでは数に残るためです（公式の注記による）。
-6. 変更のあと、もう一度 SDK の「パフォーマンスの内訳」で確かめます。
+4. 変換したあとは、Play モードに入り、対象のアニメーションとコンストレイントの追従が、変換の前と同じかを確かめます。
+5. MA を使っているなら、アバターのルートに Convert Constraints を付けます。付けたあと、SDK の「パフォーマンスの内訳」で、数が変わったかを確かめます。
+6. 使っていないと確かめたコンストレイントは、取り除きます。無効にするだけでは数に残るためです（公式の注記による）。
+7. 変更のあと、もう一度 SDK の「パフォーマンスの内訳」で確かめます。
 
 ## 注意・うまくいかないとき
 
