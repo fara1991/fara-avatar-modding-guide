@@ -77,8 +77,6 @@ VRChat の公式には、衝突チェックの数を直接減らす手順は見�
 
 ## 注意・うまくいかないとき
 
-- **OSC で使う PhysBone や Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できず、ほかで使われていなければ削除するように設計されています（[よくある質問（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。OSC で使う場合は、Asset Description ファイルの Parameters Read By External Tools に設定するよう案内されています（[Asset Description（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/developers/asset-description/)）。
-
 ::: warning
 - **無効のものも数えられます**: 公式の Performance Ranks には、「All GameObjects and Components, **including those that are currently disabled**, count towards the Avatar Performance Rank.」（無効化されているものも含めて数える）と書かれています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 - **Allow Collision**: 公式の [PhysBones](https://creators.vrchat.com/common-components/physbones) のページには、「If set to **False**, this PhysBone will only collide with the colliders that are listed in the `Colliders` list.」（False にすると、この PhysBone は Colliders のリストに入ったコライダーとだけ衝突します）と書かれています。衝突の対象が変わるので、動きも変わります。衝突チェックの数への効果は、未確認です。Play モードで確かめてください。
