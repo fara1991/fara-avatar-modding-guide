@@ -2864,6 +2864,17 @@ html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-group + .av
     background: rgba(var(--tool-rgb, var(--accent-rgb)), 0.1);
 }
 
+/* ライトのテーマは、帯の背景を薄くして、見出しの文字のコントラストを 4.5 以上に保つ */
+[data-bs-theme="light"] .article-body h3.tool {
+    background: rgba(var(--tool-rgb, var(--accent-rgb)), 0.05);
+}
+
+/* 表のセルの中のラベルは折り返してよい（折り返さないと、表が本文の列からはみ出して、目次に重なる） */
+.article-body td .lbl,
+.article-body th .lbl {
+    white-space: normal;
+}
+
 .article-body h3.tool-ma {
     --tool-color: #14b8a6;
     --tool-rgb: 20, 184, 166;
