@@ -41,7 +41,7 @@ VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-c
 
 VRChat 公式の資料に、トレイルレンダラーを減らす専用の勧めは見当たりませんでした（Avatar Optimization Tips と Android の制限の文書を確かめた範囲）。そのため、この記事では、減らす具体的な方法は書きません。パーティクルシステムの勧めは、パーティクルの項目で扱います。
 
-減らし方は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) と [アバターを軽くする](/learn/vrchat/optimization) を見てください。
+この項目の減らし方は、公式に専用の勧めが見つからなかったため、この記事には書きません。数の確かめ方は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) を見てください。
 
 ## ツール別の方法
 
