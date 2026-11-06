@@ -37,7 +37,7 @@ updated: 2026-11-06
 - **公式の補足**: Avatar Performance Ranking System の Material Slots の説明には、トレイル付きの Particle System は、マテリアルスロットを 2 つ使うと書かれています（原文: "Particle System with trails use two"）。これは枠の数え方の補足で、トレイルを減らす方法の記述ではありません。
 - **ツールごと**: 5 つのツールの資料で確かめた範囲は、下の節のとおりです。
 
-この項目の減らし方は、公式に専用の勧めが見つからなかったため、この記事には書きません。数の確かめ方は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) を見てください。
+この項目の減らし方は、公式に専用の勧めが見つからなかったため、この記事には書きません。画面の表示（FALSE/あり）の読み方は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の「FALSE/あり」の節を見てください。
 
 ## ツール別の方法
 
