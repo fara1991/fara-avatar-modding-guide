@@ -1,6 +1,6 @@
 ---
 title: PhysBone トランスフォームの数を減らす
-reading: ふぃじっくすぼーんとらんすふぉーむのかずをへらす
+reading: ふぃじっくぼーんとらんすふぉーむのかずをへらす
 description: PhysBone トランスフォーム（Affected Transforms）の数の上限と確かめ方、Avatar Optimizer（AAO）の Replace End Bone With Endpoint Position などで減らす方法を、公式の資料に効果が書かれている範囲でまとめます。
 difficulty: 中級
 updated: 2026-11-06
@@ -22,7 +22,7 @@ PhysBone トランスフォームの数は、PhysBone コンポーネントが�
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」** の「PHYSBONE トランスフォームの数」で、今の値と上限を見ます。例の画面では、409（上限 256）と表示されていました。
-- **1 つのコンポーネントの数**: 上限の 256 は、1 つのコンポーネントについての上限でもあります。公式は、1 つのコンポーネントが 128 を超えるトランスフォームに影響するなら、チェーンを分けることを検討するよう書いています（[PhysBones（VRChat 公式）](https://creators.vrchat.com/common-components/physbones)）。
+- **1 つのコンポーネントが影響するトランスフォームの数**: 上限の 256 は、1 つのコンポーネントについての上限でもあります。公式は、1 つのコンポーネントが 128 を超えるトランスフォームに影響するなら、チェーンを分けることを検討するよう書いています（[PhysBones（VRChat 公式）](https://creators.vrchat.com/common-components/physbones)）。
 - **lilAvatarUtils の PhysBone タブの「ボーン数」**: 公式の定義は「揺れが計算されるボーン数」です。PhysBone トランスフォームの数と同じものだとは書かれていないため、この値をそのまま PhysBone トランスフォームの数として扱うことはできません（[PhysBones（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。同じタブの「ルートボーン」は、PhysBone の計算を行うボーンまたは Transform の親で、この配下の Transform に揺れが適用される、と説明されています。
 - **無効にしたものも数えられます。** 公式は、無効化されているものも含めて、すべての GameObject とコンポーネントがパフォーマンスランクに数えられると書いています（[パフォーマンスランク（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 
@@ -76,7 +76,7 @@ VRChat 公式の PhysBones のページには、トランスフォームの数�
 
 **AAO Clear Endpoint Position**: 公式の原文は、「このコンポーネントは、Endpoint Positionの値を0に置換し、`_EndPhysBone`GameObjectを追加します。」です（[Clear Endpoint Position（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/clear-endpoint-position/)）。PhysBone トランスフォームの数への効果は、公式に記載なし。
 
-- 注意: CHANGELOG の 1.7.0 には、新しく作る Merge PhysBone の Endpoint Position の既定を Clear から Copy に変えたと書かれ、その理由として「Clear の設定は PhysBone トランスフォームの数を増やす」と書かれています。これは Merge PhysBone の Endpoint Position の設定についての記述です。
+- 注意: CHANGELOG の 1.7.0 には、新しく作る Merge PhysBone の Endpoint Position の既定を Clear から Copy に変えたと書かれ、その理由として「Clear の設定は PhysBone トランスフォームの数を増やす」（英語の原文の訳）と書かれています。これは Merge PhysBone の Endpoint Position の設定についての記述です。
 
 **AAO Merge Bone**: GameObject を親の GameObject に統合して、元の GameObject を取り除きます。公式は、Trace And Optimize が似た処理を自動で行うため、大抵の場合は使う必要がないと書いています（[Merge Bone（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-bone/)）。PhysBone トランスフォームの数への効果は、公式に記載なし。
 

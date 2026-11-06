@@ -1,6 +1,6 @@
 ---
 title: PhysBone コライダーの数を減らす
-reading: ふぃじっくすぼーんこらいだーのかずをへらす
+reading: ふぃじっくぼーんこらいだーのかずをへらす
 description: PhysBone コライダーの数の上限と確かめ方、Avatar Optimizer（AAO）で同じ設定のコライダーをまとめる方法と注意点を、公式の資料に書かれた範囲でまとめます。VRChat 公式の Global Collision の上限も書きます。
 difficulty: 中級
 updated: 2026-11-06
@@ -31,13 +31,11 @@ PhysBone コライダーの数は、アバター上の PhysBone コライダー�
 
 VRChat 公式の PhysBones のページには、コライダーに関連する仕組みの記述があります（[PhysBones（VRChat 公式）](https://creators.vrchat.com/common-components/physbones)。日本語への訳は要約です）。
 
-- **Limits**: 公式は、Limits を使うと、PhysBone チェーンが動ける量を制限できると書いています。頭に髪が食い込むのを防ぐような場面で役立ち、「コライダーよりもはるかに軽い」（原文: "far more performant than a collider"）とも書かれています。
 - **Global Collision**: 公式は、Global Collision は Sphere と Capsule のコライダーにだけ対応すると書いています。
 
-コライダーをどこまで減らせるかは、ツールの機能と、公式の勧めの両方から考えます。この記事の整理として、減らす方法を次の 2 つに分けます（この記事の整理。公式の分類ではありません）。
+VRChat 公式には、コライダーの数を減らす手順は見つかりませんでした（[PhysBones](https://creators.vrchat.com/common-components/physbones) のページを確かめた範囲）。この記事の整理として、減らす方法は次のとおりです（この記事の整理。公式の分類ではありません）。
 
 - **同じ設定のコライダーをまとめる**: AAO Trace And Optimize（自動）と、AAO Merge PhysBone の Colliders の Merge（手動）。
-- **コライダーの代わりに Limits を使う**: 公式は、Limits はコライダーよりはるかに軽いと書いています。ただし、どの場面でコライダーを Limits に置き換えられるかは、アバターごとに確かめる必要があります（この記事の助言）。
 
 ## ツール別の方法
 
@@ -86,6 +84,7 @@ VRChat 公式の PhysBones のページには、コライダーに関連する�
 
 ::: warning
 - **全く同じ設定だけが統合の対象**: Trace And Optimize の統合は、「全く同じ設定」のコライダーだけです。少し違う設定のコライダーは、そのままでは統合されません。
+- **Limits は数を減らす機能の説明ではありません**: 公式が Limits について「far more performant than a collider」（コライダーよりはるかに軽い）と書いているのは、頭に髪が食い込むのを防ぐ場面での性能の話です。コライダーの数を減らす根拠としては書かれていません。
 - **Global Collision の上限**: 公式は、アバターでは Global Collision を有効にしたコライダーは最大 4 つ、Sphere と Capsule のコライダーだけに対応すると書いています。上限を超えたときの動作は、公式のドキュメントでは見つからなかったため、未確認です。
 - **標準コライダーの扱い**: 標準コライダーは性能ランクに影響しないと公式は書いていますが、PhysBone コライダーの数に入るかは未確認です。
 - **OSC で使う PhysBone や Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。そのため、ほかで使われていなければ削除するように設計されています。公式 FAQ（[よくある質問](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）は、この仮定は正しいとは限らないと書いています。FAQ が挙げているのは PhysBone と Contact Receiver で、コライダーについては書かれていません。OSC で PhysBone や Contact Receiver を使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools に設定するよう案内しています（[Asset Description（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/developers/asset-description/)）。OSC を使うアバターでは、自動の最適化のあとに、PhysBone と Contact が動くかを確かめてください（この記事の助言）。

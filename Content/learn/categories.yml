@@ -118,7 +118,7 @@
   section: optimize
   title: PhysBone・コンタクトを減らす
   nav_title: PhysBone・コンタクト
-  reading: ふぃじっくすぼーんこんたくとをへらす
+  reading: ふぃじっくぼーんこんたくとをへらす
   en: Reduce PhysBones and Contacts
   description: PhysBone のコンポーネント・トランスフォーム・コライダー・衝突チェックと、コンタクトの数を減らす方法と、使えるツール。
   icon: bi-arrows-move
