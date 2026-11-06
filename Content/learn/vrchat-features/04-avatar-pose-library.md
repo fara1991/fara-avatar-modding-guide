@@ -8,12 +8,6 @@ updated: 2026-11-06
 
 [AvatarPoseLibrary（APL）](https://github.com/HhotateA/AvatarPoseLibrary) は、Unity 上で VRChat 向けのアバター用のポーズを管理・適用するためのツールです（[README](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/README.md) の説明）。この記事では、APL の入れ方と、ポーズを登録する手順、VRChat での使い方を説明します。パラメーター（Expression Parameters）への影響と、注意点もまとめます。
 
-::: warning
-APL は、既存の AnimationClip を登録して、VRChat のメニューから呼び出すツールです。[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual) は、ポーズの元になるものを「ポーズに関連付けられたAnimationClipです。」と説明しています。そのため、ポーズそのものは、別の方法で作った AnimationClip を用意してください。APL の公式の資料には、ポーズを作って保存する方法（Scene ビューで関節を動かして保存するなど）は書かれていません（公式に記載なし）。この記事では、その方法は扱いません。
-:::
-
-## この記事の版と確かめ方
-
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
@@ -21,7 +15,17 @@ APL は、既存の AnimationClip を登録して、VRChat のメニューから
 - **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 :::
 
-この記事は、APL の [1.2.44](https://github.com/HhotateA/AvatarPoseLibrary/releases/tag/1.2.44) を基に書いています。このリリースは 2026 年 9 月 20 日に公開されました。対応する Unity は 2022.3 です（リポジトリの [package.json](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Packages/com.hhotatea.avatar-pose-library/package.json) の `unity` の項目）。2026 年 11 月 6 日に、公式の資料を確かめて書きました。
+::: warning
+APL は、既存の AnimationClip（Unity のアニメーションの動きを保存したファイル）を登録して、VRChat のメニューから呼び出すツールです。
+[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual) は、ポーズの元になるものを「ポーズに関連付けられたAnimationClipです。」と説明しています。
+そのため、ポーズそのものは、別の方法で作った AnimationClip を用意してください。
+APL の公式の資料には、ポーズを作って保存する方法（Scene ビューで関節を動かして保存するなど）は書かれていません（公式に記載なし）。
+この記事では、その方法は扱いません。
+:::
+
+## この記事の版と確かめ方
+
+この記事は、APL の [1.2.44](https://github.com/HhotateA/AvatarPoseLibrary/releases/tag/1.2.44) を基に書いています。このリリースは 2026 年 9 月 21 日（日本時間。UTC では 9 月 20 日）に公開されました。対応する Unity は 2022.3 です（リポジトリの [package.json](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Packages/com.hhotatea.avatar-pose-library/package.json) の `unity` の項目）。2026 年 11 月 6 日に、公式の資料を確かめて書きました。
 
 公式の wiki の最終の更新は 2026 年 4 月 4 日で、1.2.44 のリリースより前です。wiki の説明が 1.2.44 と一致するかは、未確認です。版が上がると、設定の名前や動きが変わることがあります。
 
@@ -29,8 +33,8 @@ APL は、既存の AnimationClip を登録して、VRChat のメニューから
 
 - **Unity 2022.3**（APL の対応版）
 - **VRChat のアバター SDK（`com.vrchat.avatars`）**
-- **NDMF（`nadena.dev.ndmf`）**
-- **Modular Avatar（`nadena.dev.modular-avatar`）**。Q&A は「APLはModular Avatarを前提として設計されています。」と書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
+- **NDMF（`nadena.dev.ndmf`）**（Non-Destructive Modular Framework の略。アバターを非破壊で改変するための基盤です）
+- **Modular Avatar（`nadena.dev.modular-avatar`、以下 MA）**（衣装などを、アバターを壊さずに組み込むツールです）。Q&A は「APLはModular Avatarを前提として設計されています。」と書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
 
 依存パッケージの版は、公式の資料の中で 2 通りに書かれています。どちらも原文のまま並べます。
 
@@ -40,7 +44,11 @@ APL は、既存の AnimationClip を登録して、VRChat のメニューから
 | `nadena.dev.ndmf` | `"nadena.dev.ndmf": "1.7.9"` | `">=1.5.0"` |
 | `nadena.dev.modular-avatar` | `"nadena.dev.modular-avatar": "1.12.5"` | `">=1.10.0"` |
 
-導入ページの版は、「あらかじめ以下の依存パッケージをプロジェクトに追加しておく」と書かれた版です。package.json の値は、そのパッケージの条件です。どちらを使うべきかは、公式の資料では説明されていません（公式に記載なし）。この記事では、導入ページの版を使うことをおすすめします（この記事の助言）。
+導入ページの版は、「あらかじめ以下の依存パッケージをプロジェクトに追加しておく」と書かれた版です。package.json の値は、そのパッケージの条件です。どちらを使うべきかは、公式の資料では説明されていません（公式に記載なし。確かめた範囲: wiki の How-to-Install、リポジトリの package.json）。導入ページは 1.7.9 / 1.12.5 と書いていますが、wiki は 1.2.44 より前の更新で、AAO の記事は NDMF 1.8.0 以上を要件にしています。版の組み合わせは未確認です。VCC で最新版を入れ、組み合わせの不具合は別途確かめてください（この記事の助言）。
+
+::: warning
+導入の前に、Unity のプロジェクトのバックアップを取ってください。
+:::
 
 ## 入れ方
 
@@ -66,7 +74,7 @@ ALCOM から入れる手順は、公式に記載なし（確かめた範囲: REA
 ### UnityPackage から入れる
 
 1. 先に、「用意するもの」の依存パッケージを、Unity のプロジェクトに入れておきます。
-2. [リリースのページ](https://github.com/HhotateA/AvatarPoseLibrary/releases/latest/) から UnityPackage を取得します。
+2. [リリースのページ](https://github.com/HhotateA/AvatarPoseLibrary/releases/latest/) から [UnityPackage](/glossary#unitypackage) を取得します。
 3. Unity のプロジェクトを開き、UnityPackage をドラッグ＆ドロップします。
 4. 追加されるファイルを確かめて、**Import** をクリックします。
 
@@ -78,10 +86,10 @@ ALCOM から入れる手順は、公式に記載なし（確かめた範囲: REA
 
 手順は、wiki の [Beginner-Tutorials](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Beginner-Tutorials) の流れに、[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual) の項目の説明を合わせたものです。
 
-1. アバターの Prefab を、Hierarchy ウィンドウにドラッグ＆ドロップします。
+1. アバターの [Prefab](/glossary#prefab) を、Hierarchy ウィンドウにドラッグ＆ドロップします。
 2. Hierarchy 上で右クリックし、**Create Empty** を選びます。作った GameObject を、アバターの子にします。Unity-Manual は「アバターの直下にGameObjectを生成します。」と書いています。
 3. その GameObject を選び、Inspector で **Add Component** をクリックします。検索欄に「Avatar Pose Library」と入力し、表示されたコンポーネントを選びます。
-4. コンポーネントの右上の **＋** をクリックして、カテゴリーを追加します。
+4. コンポーネントの右上の **+** をクリックして、カテゴリーを追加します。
 5. カテゴリーの中に、ポーズを登録します。各項目は、次の表のとおりです。
 6. 複数のポーズをまとめて追加するときは、**Drop Area** に AnimationClip をまとめてドラッグ＆ドロップします。
 
@@ -107,20 +115,20 @@ Mode Settings の 4 つの項目には、それぞれ次の説明があります
 - Enable Trackings: 「トラッキングメニューを表示します。」
 
 ::: tip
-Q&A には、「Animation Clip を APL にドラッグ＆ドロップ → Generate を押す」だけで基本的な設定が完了すると書かれています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。ただし、wiki の Unity-Manual と Beginner-Tutorials の項目の一覧に、「Generate」という名前の項目はありません。パッケージの表示名（英語・日本語）にも、この名前のボタンは見当たりませんでした。画面にそのボタンがあるかは、未確認です。この記事では、Drop Area に入れる手順を書いています。
+Q&A には、「Animation Clip を APL にドラッグ＆ドロップ → Generate を押す」だけで基本的な設定が完了すると書かれています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。ただし、wiki の Unity-Manual と Beginner-Tutorials の項目の一覧に、「Generate」という名前の項目はありません。パッケージの表示名（英語・日本語）にも、この名前のボタンは見当たりませんでした。画面にそのボタンがあるかは、未確認です。Drop Area のツールチップ（英語版）には、"You can generate poses by dropping animation clips here in bulk." と書かれています。この記事では、Drop Area に入れる手順を書いています。
 
-パッケージの表示名には「Create Pose（新規作成）」もあります。ただし、作られるもの（AnimationClip を新しく作るのかどうか）は、公式に記載がなく、未確認です。この記事では使いません。
+ポーズ行の右クリックメニューには「Create Pose（新規作成）」の項目もあります。公式の説明は無い。リポジトリの Editor コードでは、空の項目を追加するだけ（公式の説明ではなく、この記事がコードを読んだ結果）。この記事では使いません。
 :::
 
 ## 保存して共有する
 
-設定が済んだ GameObject は、Project タブにドラッグ＆ドロップすると、Prefab にできます。Unity-Manual は、この Prefab と AnimationClip をセットで UnityPackage として出力すると、APL を持つ人同士で設定を共有できると書いています（[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual)）。
+設定が済んだ GameObject は、Project タブにドラッグ＆ドロップすると、Prefab にできます。Unity-Manual は、この Prefab と AnimationClip をセットで UnityPackage として出力すると、APL を持つ人同士で設定を共有できると書いています（[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual)）。配布する前に、下の「注意・うまくいかないとき」にあるライセンスの注意を読んでください。
 
 Prefab を使う側の手順は、Unity-Manual の「Prefabの使用」に書かれています。
 
 1. APL を含む依存パッケージが、Unity のプロジェクトに入っているかを確かめます。
 2. APL 対応の UnityPackage を Import します。
-3. 設定済みの Prefab を、アバターの直下にドラッグ＆ドロップします。
+3. バックアップを取ってから、設定済みの Prefab を、アバターの直下にドラッグ＆ドロップします。
 4. アバターをアップロードし、導入を確認します。
 
 ## VRChat での使い方
@@ -136,41 +144,43 @@ Beginner-Tutorials は、Quest の場合は、左手のメニューから「表�
 
 ## パラメーター（Expression Parameters）への影響
 
-APL のパラメーターへの影響は、公式の資料の中で、向きが違うように読める書き方があります。どちらも原文のまま並べます。どちらの向きが正しいかは、未確認です。
+APL のパラメーターへの影響は、公式の資料の中で、向きが違うように読める書き方があります。どちらも原文のまま並べます。Q&A とリポジトリのソースの向きは一致しますが、削減数の数字は未確認です。
 
 - Unity-Manual の Mode Settings の説明:
-  - 「Enable Height : … （パラメーター数が8削減されます）」
-  - 「Enable Speed : … （パラメーター数が8削減されます）」
-  - 「Enable Mirror : … （パラメーター数が1削減されます）」
-  - 「Enable Trackings : … （パラメーター数の削減にはなりません）」
+  - 「Enable Height: … （パラメーター数が8削減されます）」
+  - 「Enable Speed: … （パラメーター数が8削減されます）」
+  - 「Enable Mirror: … （パラメーター数が1削減されます）」
+  - 「Enable Trackings: … （パラメーター数の削減にはなりません）」
 - Q&A の「パラメーター数が心配です。」の答え:
-  - 「少しでも削減したい場合は、**Enable Height**、**Enable Speed**、**Enable Mirror**の3項目を無効化することで、17パラメーター削減できます。」
+  - 「少しでも削減したい場合は、**Enable Height**、**Enable Speed**、**Enable Mirror** の 3 項目を無効化することで、17パラメーター削減できます。」
 
-Q&A は、複数のポーズを 1 つの Int パラメーターで制御する設計だとも書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。ポーズ数の上限については、Q&A に「最新版にて65280ポーズ（16パラメータ）が上限となっています。」とあります。ただし、「最新版」が 1.2.44 を指すかは、未確認です。
+リポジトリの `Editor/Logic/ParameterBuilder.cs` では、Height・Speed・Mirror は、有効にするとパラメーターが追加されます（Q&A の向きと一致）。ただし、Unity-Manual の「8」「1」と Q&A の「17」という削減数は、コードの追加数と一致しないため、未確認です。
 
-パラメーターの数を実際に確かめたいときは、アップロードの前に、Expression Parameters の数を見て比べてください（この記事の助言）。Expression Parameters の基本は、[Expression メニューとパラメーター](/learn/vrchat-features/expressions) を見てください。
+Q&A は、複数のポーズを 1 つの Int パラメーターで制御する設計だとも書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。ポーズ数の上限については、Q&A に「最新版にて65280ポーズ（16パラメータ）が上限となっています。」とあります。ただし、「最新版」が 1.2.44 を指すかは、未確認です。Q&A の数字は、ビット数や考え方が分かりにくいです。ビルド時間を考えると実際の上限は Q&A の「1000 前後」と読めます（Q&A の原文どおり。ビルド時間は後述）。
+
+パラメーターの数を実際に確かめたいときは、アップロードの前に、Builder の警告を確かめてください（この記事の助言）。Expression Parameters の基本は、[Expression メニューとパラメーター](/learn/vrchat-features/expressions) を見てください。
 
 ## 注意・うまくいかないとき
 
 ::: warning
 - **非破壊について**: Q&A は、「アバターに対して非破壊的に改変を行っているので、問題が発生した場合でもAPLをアンインストールすれば問題なく動作します。」と書いています。これは作者の説明で、この記事では確かめていません（未確認）。念のため、アップロードの前にバックアップを取ってください。
-- **名前の衝突**: Q&A は、APL が作る Animator レイヤーやパラメーターは、ユニークな名前空間で管理されていると書いています。ただし、特殊な構成のアバターでは、手動の調整が必要な場合もあると書かれています。
-- **テレメトリ（利用状況データ）**: Unity Editor からは、利用状況のデータが送られます（[Analytics.md](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Analytics.md)、[privacy.html](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Website/privacy.html)）。初回起動時に「最小限のみ」か「詳細送信を許可」を選びます。変更は `Tools > Avatar Pose Library > Privacy Settings` からできます。Analytics.md は、「どちらのモードでもイベントは送信されます。」と書いています。送られる内容は、モードによって違います。
-- **ライセンス**: README は「MIT ライセンス」と書いています。一方、[LICENSE](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/LICENSE) は、「Files under Resources/ may only be redistributed as part of the official AvatarPoseLibrary package. Please remove any modifications. All other files are licensed under the MIT License.」と書いています。ポーズのデータを配布する前に、LICENSE を読んでください（この記事の助言）。README のライセンスの節のリンク先は、リポジトリ上では確認できませんでした（未確認）。
+- **名前の衝突**: Q&A は、APL が作る Animator（アニメーションの切り替えを制御する Unity の部品）のレイヤーやパラメーターは、ユニークな名前空間で管理されていると書いています。ただし、特殊な構成のアバターでは、手動の調整が必要な場合もあると書かれています。
+- **テレメトリ（利用状況データ）**: Unity Editor からは、利用状況のデータが送られます（[Analytics.md](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Analytics.md)、[privacy.html](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Website/privacy.html)）。初回起動時に「最小限のみ」か「詳細送信を許可」を選びます（画面のボタンは「最小限」「許可」）。変更は `Tools > Avatar Pose Library > Privacy Settings` からできます。Analytics.md は、「どちらのモードでもイベントは送信されます。」と書いています。送られる内容は、モードによって違います。最小限のモードでも送信されます。どこまで止められるかは未確認です。
+- **ライセンス**: README は「MIT ライセンス」と書いています。一方、[LICENSE](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/LICENSE) は、「Files under Resources/ may only be redistributed as part of the official AvatarPoseLibrary package. Please remove any modifications. All other files are licensed under the MIT License.」と書いています。ポーズのデータを配布する前に、LICENSE を読んでください（この記事の助言）。README の LICENCE のリンク先（`Packages/com.hhotatea.avatar-pose-library/LICENCE`）は存在しません（ルートには `LICENSE` があります）。README の「許諾なしで再配布OK」という説明は、Resources/ には当てはまりません（LICENSE が Resources/ を制限しているため）。
 - **サポート対象外の機能**: wiki の [Secret](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Secret) には、メニューの階層化などの機能があります。Secret は、「これらの機能は全てサポート対象外です。」と書いています。この記事の手順には入れていません。
 :::
 
 ### 既知の問題
 
 - **ほかのツールとの併用**: [Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting) は、可愛いポーズツール（ゆにスタジオ様）の「他のAnimatorControllerのトラッキング機能を統合する」機能を使うと、APL の Animator が壊れるようだと書いています。「こちらに対する対策アップデートの予定はありません」と書かれ、この機能をオフにすることを勧めています。
-- **リップシンクや表情が固定される**: Troubleshooting は、「WriteDefaultなどの値によって、動作が不安定になるケースが報告されています。」と書いています。Write Defaults の説明は、[表情と FX の基礎](/learn/vrchat-features/fx-basics) を見てください。Q&A は、WriteDefault の設定を見直すことと、プリセット「ポーズのみ」を試すことを勧めています。Troubleshooting は、AnimationClip に含まれる表情のキーを削除すると、正常に動作する可能性があると書いています（「可能性があります」）。
+- **リップシンクや表情が固定される**: Troubleshooting は、「WriteDefaultなどの値によって、動作が不安定になるケースが報告されています。」と書いています。Write Defaults の説明は、[表情と FX の基礎](/learn/vrchat-features/fx-basics) を見てください。Q&A は、WriteDefault の設定を見直すことと、プリセット「ポーズのみ」（場所は未確認）を試すことを勧めています。Troubleshooting は、AnimationClip に含まれる表情のキーを削除すると、正常に動作する可能性があると書いています（「可能性があります」）。元のクリップは直接消さず、複製してから試してください。
 - **頭の固定を解除すると腰が浮く**: Q&A は、「VRChatの仕様です。（たぶん）」と書いています。頭の位置に合わせて、高さや姿勢を微調整することを勧めています。
-- **フルトラで棒立ちになる**: Q&A は、「移動アニメーションを有効にすることで改善するようです。」と書いています。どの設定を指すかは、未確認です。
+- **フルトラ（全身トラッキング）で棒立ちになる**: Q&A は、「移動アニメーションを有効にすることで改善するようです。」と書いています。どの設定を指すかは、未確認です。
 - **VRChat 上で動かない**: Q&A は、VRChat の整合性チェックを試すことを勧めています。改善しないときは、[作者の Discord](https://discord.gg/j393GwU4Es) で相談できます。
 
 ### ビルド時間とデータ量
 
-Q&A には、ポーズ数とビルド時間の表があります（提供: aster 様）。APL なしは 4 秒、256 ポーズは 16 秒、1024 ポーズは 1 分 59 秒です。また、ポーズ 1 種につき 100kb ほどと書かれています。Q&A は、ポーズごとにデータ量とビルド時間が増えるため、実質的な上限は 1000 前後だとも書いています。
+Q&A（版は未確認）には、ポーズ数とビルド時間の表があります（提供: aster 様）。APL なしは 4 秒、256 ポーズは 16 秒、1024 ポーズは 1 分 59 秒です。また、ポーズ 1 種につき 100kb ほどと書かれています。Q&A は、ポーズごとにデータ量とビルド時間が増えるため、実質的な上限は 1000 前後だとも書いています。
 
 ## 関連ページ
 
