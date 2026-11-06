@@ -95,7 +95,7 @@ AAO は、パフォーマンスランクの項目のうち、一部を減らせ�
 | PHYSBONE コライダーの数 | 自動と手動（コライダーの Merge の対応づけは、この記事の整理で、公式に記載なし） | 自動: Optimize PhysBone Settings ／ 手動: AAO Merge PhysBone のコライダー（Merge） |
 | アニメーターの数 | 自動（条件つき） | 自動: Remove unused Objects（Animator Controller が無い Animator） ／ Optimize Animator の効果は未確認 |
 | 範囲（BOUNDS） | 未確認 | AAO Merge Skinned Mesh は範囲（BOUNDS）を設定しますが、減らす効果は未確認です |
-| PHYSBONE 衝突チェックの数 | 未確認 | Optimize PhysBone Settings はコライダーを統合しますが、衝突チェックの数への効果は未確認です |
+| PHYSBONE 衝突チェックの数 | 公式に記載なし（確かめた範囲: 日本語・英語の公式ドキュメントの全ページと CHANGELOG で「衝突」「Collision」「Collision Check」「CollisionCheck」を検索し、ヒットなし） | 自動: Optimize PhysBone Settings（コライダーを統合します。衝突チェックの数への効果は書かれていません） |
 | コンタクトの数 | 自動（条件つき） | 自動: Remove unused Objects（Animator Controller で使われていないパラメーターを持つ Contact Receiver） |
 | そのほかの項目（コンストレイント・ライト・パーティクル系・トレイルレンダラー・CLOTH・リジッドボディ・オーディオソース） | 公式に記載なし | 後述の「AAO の機能一覧に、公式に記載なしの項目」を見てください |
 
@@ -210,7 +210,7 @@ Trace And Optimize の自動の処理では足りないときや、消す範囲�
   - 親にも Merge Bone があると、両方とも、さらに親の GameObject に統合されます。
   - Trace And Optimize が似た処理を自動で行うため、大抵の場合は使う必要はありません。
 - **AAO Merge PhysBone**: 複数の PhysBone を 1 つにまとめます。統合後の MultiChildType は Ignore になります。
-  - 新しい GameObject に追加します。統合対象の PhysBone は、Merge PhysBone を付ける GameObject の子にしておく必要があります（公式の原文は「同じ GameObject の子」）。その代わりに「このGameObjectの子にする」（Make Children of Me）を使うこともできます。
+  - 新しい GameObject に追加します。統合対象は同じ GameObject の子である必要があります（公式の原文は「統合対象は同じGameObjectの子である必要があります。」）。その代わりに「このGameObjectの子にする」（Make Children of Me）を使うこともできます。
   - 設定の「オーバーライド」では、各項目を Copy（すべての統合対象で値が同じ場合のみ有効）か Override（新しい値を設定）から選びます。コライダーは Merge を選ぶと、統合対象のコライダーの一覧をまとめられます。Endpoint Position は Clear を選ぶと、Clear Endpoint Position を使えます。角度制限は Fix を選ぶと、Roll の値をそろえられます。
   - Endpoint Position を Clear にすると、PhysBone Affected Transforms が増えます（changelog の 1.7.0）。そのため、新しく作る Merge PhysBone の Endpoint Position の既定は Copy です（同じく 1.7.0）。
   - ルートの GameObject も PhysBone Affected Transforms に数えられるため、Merge PhysBone を 1 つ使うごとに 1 増えます。公式には、これは VRChat のパフォーマンスランクの仕組みのバグである可能性がある、と書かれています。
@@ -254,7 +254,7 @@ Remove Mesh 系のコンポーネントは、削除する範囲を間違える�
   - 設定は、Average（end ボーンのローカル座標の平均）か Override（Endpoint Position Override で指定した値）です。
   - 同じ GameObject にあるすべての PhysBone に適用されます。
   - この記事の注意として、先端の揺れ方が変わることがあるため、確かめてください。
-- **AAO Clear Endpoint Position**: PhysBone の Endpoint Position の値を 0 にし、末端のボーン（子のないボーン）ごとに、ボーン名の後ろに _EndPhysBone を付けた GameObject を追加します（公式ページの表記は「_EndPhysBone GameObject」。名前の付け方は、ソースで確認しました）。公式ページには、「今のところ、このコンポーネントに設定項目はありませんが、ボタンが1つあります。適用して今すぐcomponentを削除するをクリックすると、この操作が適用され、コンポーネントが削除されます。」と書かれています。ソースでは、Endpoint Position が 0 のときは何もせず、PhysBone の ignoreTransforms（除外するボーンの設定）に入っているボーンと、その子は対象外になります（ソースで確認）。なお、changelog の 1.7.0 には、Merge PhysBone の Endpoint Position を「Clear」にすると PhysBone Affected Transforms が増える、と書かれています。
+- **AAO Clear Endpoint Position**: PhysBone の Endpoint Position の値を 0 にし、_EndPhysBone GameObject を追加します（公式ページの表記。どのボーンに対して追加されるかの条件は、公式ページには書かれておらず、この記事では未確認です）。公式ページには、「今のところ、このコンポーネントに設定項目はありませんが、ボタンが1つあります。適用して今すぐcomponentを削除するをクリックすると、この操作が適用され、コンポーネントが削除されます。」と書かれています。なお、changelog の 1.7.0 には、Merge PhysBone の Endpoint Position を「Clear」にすると PhysBone Affected Transforms が増える、と書かれています。
 - **AAO Max Texture Size**: テクスチャサイズの上限を設定します。特定のミップマップ（縮小した画像を段階ごとに用意したもの）のレベルを減らして縮小しますが、元のテクスチャフォーマットと設定は保持されます。任意の GameObject に付けられ、その子孫すべてに適用されます。
   - 複数の AAO Max Texture Size があるときは、最も近い親の設定が適用されます。
   - 1 つのテクスチャが、異なる設定の AAO Max Texture Size から同時に影響を受けるときは、最も大きいサイズの設定が使われます。
@@ -351,7 +351,6 @@ TexTransTool（TTT）について、AAO の changelog の 1.8.0 に「Improve Re
 次の項目は、関係する記載はあるものの、効果の範囲は未確認です。
 
 - 範囲（BOUNDS）: changelog には、Merge Skinned Mesh で範囲を自動で計算する記載があります。減らす効果の記載ではありません。
-- PHYSBONE 衝突チェックの数
 - レイキャスト（光線を飛ばして、当たりを調べる処理）の数: changelog の 1.9.9 に、RaycastCount の performance category への対応の記載があります。減らせるかは未確認です。
 
 これらの項目は、AAO 以外の方法も含めて、[アバターを軽くする](/learn/vrchat/optimization) の手順を見てください。
