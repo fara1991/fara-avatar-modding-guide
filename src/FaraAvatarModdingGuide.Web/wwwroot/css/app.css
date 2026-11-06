@@ -2873,6 +2873,8 @@ html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-group + .av
 .article-body td .lbl,
 .article-body th .lbl {
     white-space: normal;
+    overflow-wrap: normal;
+    word-break: keep-all;
 }
 
 .article-body h3.tool-ma {

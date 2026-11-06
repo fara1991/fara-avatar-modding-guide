@@ -139,7 +139,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **確認のみ**{.lbl .lbl-adv}: 数や値を一覧で確認できると書かれています。減らす操作は、この記事では**未確認**{.lbl .lbl-unk}です。
 - **×**{.lbl .lbl-ng} **減らせない**: 公式に明記されたものだけに使います。この表の該当は、TTT のマテリアルスロットの数だけです。対象は AtlasTexture のマテリアルの結合で、公式は、この結合ではマテリアルスロットは結合されないと明記しています（「マテリアルスロットの結合はできません」。[公式: アトラス化のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。TTT のほかの機能すべてについて、減らせないという意味ではありません。
 - **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
-- **公式に記載なし**{.lbl .lbl-none}: その項目について、そのツールの公式の資料（日本語版の公式ドキュメントの各ページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめたものだけに使います。AAO の欄は、AAO の公式ドキュメント（docs）に、その項目を減らす機能の記載が無いことを確かめた、という意味です（changelog の記録は、減らす機能の記載ではありません）。この表では、たとえば、PhysBone・コンタクトの行の MA・TTT・MMS の列、lilAvatarUtils のトランスフォーム・コンタクト・最大パーティクル・パーティクルトレイル・パーティクルの衝突の欄、MA・TTT・MMS のパーティクル系の行、AAO の衝突チェックの欄が該当します（ほかの欄も、表の記号のとおりです）。AAO の Trace And Optimize の説明（「使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します」）は種類を限らない一般的な記述なので、コンストレイントやライトなどは、件数を減らす機能としての個別の記載が無い、という意味です。
+- **公式に記載なし**{.lbl .lbl-none}（表では **記載なし**{.lbl .lbl-none} と短く書きます）: その項目について、そのツールの公式の資料（日本語版の公式ドキュメントの各ページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめたものだけに使います。AAO の欄は、AAO の公式ドキュメント（docs）に、その項目を減らす機能の記載が無いことを確かめた、という意味です（changelog の記録は、減らす機能の記載ではありません）。この表では、たとえば、PhysBone・コンタクトの行の MA・TTT・MMS の列、lilAvatarUtils のトランスフォーム・コンタクト・最大パーティクル・パーティクルトレイル・パーティクルの衝突の欄、MA・TTT・MMS のパーティクル系の行、AAO の衝突チェックの欄が該当します（ほかの欄も、表の記号のとおりです）。AAO の Trace And Optimize の説明（「使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します」）は種類を限らない一般的な記述なので、コンストレイントやライトなどは、件数を減らす機能としての個別の記載が無い、という意味です。
 
 ### メッシュ・テクスチャ・マテリアル
 
@@ -158,33 +158,33 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 
 | 項目 | MA | TTT | lilAvatarUtils | MMS | AAO |
 |---|---|---|---|---|---|
-| PHYSBONE コンポーネントの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **△**{.lbl .lbl-unk} | **公式に記載なし**{.lbl .lbl-none} | **○**{.lbl .lbl-ok} |
-| PHYSBONE トランスフォームの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **○**{.lbl .lbl-ok} |
-| PHYSBONE コライダーの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **△**{.lbl .lbl-unk} | **公式に記載なし**{.lbl .lbl-none} | **○**{.lbl .lbl-ok} |
-| PHYSBONE 衝突チェックの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **確認のみ**{.lbl .lbl-adv} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| コンタクトの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **△**{.lbl .lbl-unk} |
-| コンストレイントの数 | **未確認**{.lbl .lbl-unk} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| コンストレイントの深さ | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| アニメーターの数 | **未確認**{.lbl .lbl-unk} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **△**{.lbl .lbl-unk} |
+| PHYSBONE コンポーネントの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **△**{.lbl .lbl-unk} | **記載なし**{.lbl .lbl-none} | **○**{.lbl .lbl-ok} |
+| PHYSBONE トランスフォームの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **○**{.lbl .lbl-ok} |
+| PHYSBONE コライダーの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **△**{.lbl .lbl-unk} | **記載なし**{.lbl .lbl-none} | **○**{.lbl .lbl-ok} |
+| PHYSBONE 衝突チェックの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **確認のみ**{.lbl .lbl-adv} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| コンタクトの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **△**{.lbl .lbl-unk} |
+| コンストレイントの数 | **未確認**{.lbl .lbl-unk} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| コンストレイントの深さ | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| アニメーターの数 | **未確認**{.lbl .lbl-unk} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **△**{.lbl .lbl-unk} |
 | ボーンの数 | **△**{.lbl .lbl-unk} | **未確認**{.lbl .lbl-unk} | **未確認**{.lbl .lbl-unk} | **未確認**{.lbl .lbl-unk} | **○**{.lbl .lbl-ok} |
 
 ### そのほかの項目
 
 | 項目 | MA | TTT | lilAvatarUtils | MMS | AAO |
 |---|---|---|---|---|---|
-| ライトの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| パーティクルシステムの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **未確認**{.lbl .lbl-unk} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| 最大パーティクルの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| メッシュパーティクルの三角ポリゴン数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **未確認**{.lbl .lbl-unk} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| パーティクルトレイル | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| パーティクルの衝突 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| トレイルレンダラーの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **未確認**{.lbl .lbl-unk} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| CLOTH メッシュの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| CLOTH の最大頂点の数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| コライダーの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| リジッドボディの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| オーディオソースの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
-| レイキャストの数 | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} | **公式に記載なし**{.lbl .lbl-none} |
+| ライトの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| パーティクルシステムの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **未確認**{.lbl .lbl-unk} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| 最大パーティクルの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| メッシュパーティクルの三角ポリゴン数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **未確認**{.lbl .lbl-unk} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| パーティクルトレイル | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| パーティクルの衝突 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| トレイルレンダラーの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **未確認**{.lbl .lbl-unk} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| CLOTH メッシュの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| CLOTH の最大頂点の数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| コライダーの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| リジッドボディの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| オーディオソースの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
+| レイキャストの数 | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} | **記載なし**{.lbl .lbl-none} |
 
 ### 表の注
 
