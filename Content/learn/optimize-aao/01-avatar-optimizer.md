@@ -23,6 +23,9 @@ AAO の目的は、**アバターの見た目をほとんど変えずに、性�
 「リファレンス本文」は各コンポーネントのページ、「changelog」は公式ドキュメント内の変更履歴を指します。
 :::
 
+[![AAO の 2 つの使い方。自動は AAO Trace And Optimize（7 つの最適化をチェックボックスで選ぶ）、手動はコンポーネントを自分で付ける（まとめる、消す・減らす、テクスチャ・マテリアル）](images/avatar-optimizer-two-ways.png)](/learn/optimize-aao/images/avatar-optimizer-two-ways.png)
+*AAO の 2 つの使い方（公式ドキュメントを、この記事で整理したもの）*
+
 ### 非破壊とは
 
 AAO は **非破壊** です。プレハブ（Prefab）を展開せず、コンポーネントを追加するだけで使えます。プロジェクトの中のアバターは変わりません。AAO は、Play モードに入るときや、アバターをビルドするときに作られる一時的なコピーにだけ作用します。
@@ -110,6 +113,9 @@ AAO を使うときは、まず **AAO Trace And Optimize** を付けます。ア
 - アバターのルートに付けます（公式は「アバターのルート」とだけ書いています。この記事の補足: VRC Avatar Descriptor がある GameObject）。
 - 種別は Avatar Global Component です。
 - コンポーネント名（Unity 上の表示名）は `AAO Trace And Optimize` です（GitHub のソースの AddComponentMenu で確認）。
+
+[![AAO のコンポーネントを付ける場所。Trace And Optimize はアバターのルートに、Merge Skinned Mesh は新しい空の GameObject に付ける](images/avatar-optimizer-where-to-attach.png)](/learn/optimize-aao/images/avatar-optimizer-where-to-attach.png)
+*コンポーネントを付ける場所（公式ドキュメントの「追加する場所」を図にしたもの）*
 
 ### 自動で行われること
 

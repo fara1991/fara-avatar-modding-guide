@@ -1,0 +1,12 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #ffffff; font-family: "Yu Gothic UI", "Yu Gothic", "Meiryo", "Noto Sans JP", sans-serif; color: #1e293b; }
+.card { width: 1000px; padding: 32px 36px 28px; background: #ffffff; }
+h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; color: #0f172a; }
+.sub { font-size: 17px; color: #475569; margin-bottom: 22px; }
+.note { margin-top: 20px; padding: 14px 18px; border-radius: 10px; font-size: 18px; line-height: 1.6; }
+.note.warn { background: #fef3c7; color: #78350f; border-left: 6px solid #d97706; }
+.note.info { background: #dbeafe; color: #1e3a8a; border-left: 6px solid #2563eb; }
+.pill { display: inline-block; padding: 1px 10px; border-radius: 999px; font-weight: 700; font-size: 16px; }
+.pill.none { background: #e2e8f0; color: #334155; }
+.pill.unk { background: #fef3c7; color: #92400e; }
+code, .mono { font-family: "Cascadia Mono", "Consolas", monospace; font-size: 0.92em; }

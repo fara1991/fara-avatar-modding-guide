@@ -1,0 +1,61 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><link rel="stylesheet" href="common.css">
+<style>
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.col { border-radius: 14px; padding: 18px 20px 20px; }
+.col.auto { background: #f0fdf4; border: 2px solid #16a34a; }
+.col.manual { background: #eff6ff; border: 2px solid #2563eb; }
+.col .ttl { font-size: 22px; font-weight: 700; }
+.col .badge { display: inline-block; color: #fff; font-size: 15px; font-weight: 700; padding: 1px 10px; border-radius: 6px; margin-bottom: 8px; }
+.auto .badge { background: #15803d; }
+.manual .badge { background: #1d4ed8; }
+.col .how { font-size: 17px; color: #334155; margin: 6px 0 12px; line-height: 1.5; }
+.list { list-style: none; }
+.list li { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 7px 12px; margin-bottom: 7px; font-size: 17px; line-height: 1.4; }
+.list li small { display: block; color: #64748b; font-size: 14.5px; margin-top: 2px; }
+.grp { font-size: 16px; font-weight: 700; color: #1e3a8a; margin: 10px 0 6px; }
+</style><style id="narrow">
+.card { width: 480px !important; padding: 22px 20px 20px !important; }
+h1 { font-size: 22px !important; }
+.sub { font-size: 15px !important; margin-bottom: 16px !important; }
+.note { font-size: 16.5px !important; padding: 12px 14px !important; margin-top: 16px !important; }
+.pill { font-size: 14.5px !important; }
+
+.cols { grid-template-columns: 1fr !important; gap: 18px !important; }
+.col { padding: 14px 14px 14px !important; }
+.col .ttl { font-size: 20px !important; }
+.col .how { font-size: 16px !important; }
+.list li { font-size: 16px !important; padding: 6px 10px !important; }
+.list li small { font-size: 14px !important; }
+.grp { font-size: 15.5px !important; }
+</style></head><body><div class="card">
+<h1>AAO の 2 つの使い方：自動と手動</h1>
+<div class="sub">公式ドキュメントの「Trace And Optimize」と「手動で使うコンポーネント」を、この記事で整理したものです。</div>
+<div class="cols">
+  <div class="col auto">
+    <span class="badge">自動</span>
+    <div class="ttl">AAO Trace And Optimize</div>
+    <div class="how">アバターのルートに付けると、アバター全体を調べて、できる範囲で自動で最適化します。行う最適化は、チェックボックスで選びます。</div>
+    <ul class="list">
+      <li>BlendShape を最適化する</li>
+      <li>使われていないObjectを自動的に削除する</li>
+      <li>PhysBone を最適化する</li>
+      <li>アニメーターの最適化</li>
+      <li>スキンドメッシュレンダラーを統合する</li>
+      <li>テクスチャを最適化する</li>
+      <li>面積がゼロのポリゴンを自動的に削除する<small>高度な最適化。既定ではオフ</small></li>
+    </ul>
+  </div>
+  <div class="col manual">
+    <span class="badge">手動</span>
+    <div class="ttl">コンポーネントを自分で付ける</div>
+    <div class="how">自動で足りないときや、消す範囲を自分で決めたいときに使います。</div>
+    <div class="grp">まとめる</div>
+    <ul class="list"><li>AAO Merge Skinned Mesh</li><li>AAO Merge Bone</li><li>AAO Merge PhysBone</li></ul>
+    <div class="grp">消す・減らす</div>
+    <ul class="list"><li>AAO Remove Mesh By Mask・Box・UV Tile・BlendShape</li><li>AAO Replace End Bone With Endpoint Position</li></ul>
+    <div class="grp">テクスチャ・マテリアル</div>
+    <ul class="list"><li>AAO Max Texture Size</li><li>AAO Merge Material</li></ul>
+  </div>
+</div>
+<div class="note info">公式は、多くの手動のコンポーネントについて、Trace And Optimize が同様の処理を自動で行うため、<b>大抵の場合は使う必要がない</b>と書いています。まず Trace And Optimize を付けて、足りないときに手動を足します。</div>
+</div></body></html>

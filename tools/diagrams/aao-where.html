@@ -1,0 +1,54 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><link rel="stylesheet" href="common.css">
+<style>
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+.box { border-radius: 12px; padding: 14px 16px; margin-top: 12px; }
+.box .h { font-size: 19px; font-weight: 700; }
+.box .d { font-size: 16px; color: #475569; margin-top: 5px; line-height: 1.5; }
+.tag { display: inline-block; font-size: 13.5px; font-weight: 700; padding: 1px 9px; border-radius: 6px; margin-right: 8px; color: #fff; vertical-align: 2px; }
+.root { background: #f1f5f9; border: 2px solid #64748b; }
+.root .tag { background: #475569; }
+.comp { background: #f0fdf4; border: 2px solid #16a34a; margin-left: 26px; }
+.comp .tag { background: #15803d; }
+.go { background: #eff6ff; border: 2px solid #2563eb; }
+.go .tag { background: #1d4ed8; }
+.comp2 { background: #ede9fe; border: 2px solid #7c3aed; margin-left: 26px; }
+.comp2 .tag { background: #6d28d9; }
+.ttl { font-size: 21px; font-weight: 700; }
+.lead { font-size: 16px; color: #334155; margin-top: 6px; line-height: 1.5; }
+.arrow { text-align: center; font-size: 22px; color: #1d4ed8; margin: 6px 0 -4px; }
+</style><style id="narrow">
+.card { width: 480px !important; padding: 22px 20px 20px !important; }
+h1 { font-size: 22px !important; }
+.sub { font-size: 15px !important; margin-bottom: 16px !important; }
+.note { font-size: 16.5px !important; padding: 12px 14px !important; margin-top: 16px !important; }
+.pill { font-size: 14.5px !important; }
+
+.cols { grid-template-columns: 1fr !important; gap: 22px !important; }
+.ttl { font-size: 19px !important; }
+.lead { font-size: 16px !important; }
+.box .h { font-size: 17.5px !important; }
+.box .d { font-size: 15.5px !important; }
+.tag { font-size: 13px !important; }
+.comp, .comp2 { margin-left: 16px !important; }
+</style></head><body><div class="card">
+<h1>AAO のコンポーネントを付ける場所</h1>
+<div class="sub">公式ドキュメントの「追加する場所」の説明を、図にしたものです。</div>
+<div class="cols">
+  <div>
+    <div class="ttl">Trace And Optimize（自動）</div>
+    <div class="lead">アバター全体を調べるコンポーネントなので、アバターのルートに付けます。</div>
+    <div class="box root"><div class="h"><span class="tag">アバター</span>アバターのルート</div></div>
+    <div class="box comp"><div class="h"><span class="tag">コンポーネント</span>AAO Trace And Optimize</div>
+      <div class="d">種別は Avatar Global Component です。</div></div>
+  </div>
+  <div>
+    <div class="ttl">Merge Skinned Mesh（手動）</div>
+    <div class="lead">新しい空の GameObject を作り、そこに付けます。</div>
+    <div class="box go"><div class="h"><span class="tag">GameObject</span>新しい空の GameObject</div>
+      <div class="d">メッシュを指定していない SkinnedMeshRenderer を付けます。</div></div>
+    <div class="box comp2"><div class="h"><span class="tag">コンポーネント</span>AAO Merge Skinned Mesh</div>
+      <div class="d">種別は Source Edit Skinned Mesh Component です。統合したいレンダラーを、一覧に入れます。</div></div>
+  </div>
+</div>
+<div class="note warn"><b>統合すると、個々のメッシュをアニメーションでオン・オフできなくなります。</b>統合後の Anchor Override や Root Bone は、統合先の SkinnedMeshRenderer に、手動で設定します。</div>
+</div></body></html>
