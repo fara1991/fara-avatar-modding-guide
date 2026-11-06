@@ -139,7 +139,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **確認のみ**: 数や値を一覧で確認できると書かれています。減らす操作は、この記事では未確認です。
 - **× 減らせない**: 公式に明記されたものだけに使います。この表の該当は、TTT のマテリアルスロットの数だけです。対象は AtlasTexture のマテリアルの結合で、公式は、この結合ではマテリアルスロットは結合されないと明記しています（「マテリアルスロットの結合はできません」。[公式: アトラス化のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。TTT のほかの機能すべてについて、減らせないという意味ではありません。
 - **？ 未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
-- **？ 公式に記載なし**: その項目について、そのツールの公式の資料（日本語版の公式ドキュメントの各ページと changelog）を検索して、本当に無いと確かめたものだけに使います。この表では、AAO の列だけが該当します。AAO の Trace And Optimize の説明（「使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します」）は種類を限らない一般的な記述なので、コンストレイントやライトなどは、件数を減らす機能としての個別の記載が無い、という意味です。
+- **？ 公式に記載なし**: その項目について、そのツールの公式の資料（日本語版の公式ドキュメントの各ページと changelog。VRChat は英語の原文）を検索して、本当に無いと確かめたものだけに使います。この表では、PhysBone・コンタクトの行の MA・TTT・MMS の列、lilAvatarUtils のトランスフォームとコンタクトの欄、AAO の衝突チェックの欄が該当します。AAO の Trace And Optimize の説明（「使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します」）は種類を限らない一般的な記述なので、コンストレイントやライトなどは、件数を減らす機能としての個別の記載が無い、という意味です。
 
 ### メッシュ・テクスチャ・マテリアル
 
@@ -158,11 +158,11 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 
 | 項目 | MA | TTT | lilAvatarUtils | MMS | AAO |
 |---|---|---|---|---|---|
-| PHYSBONE コンポーネントの数 | ？ 未確認 | ？ 未確認 | △ | ？ 未確認 | ○ |
-| PHYSBONE トランスフォームの数 | ？ 未確認 | ？ 未確認 | 確認のみ | ？ 未確認 | ○ |
-| PHYSBONE コライダーの数 | ？ 未確認 | ？ 未確認 | △ | ？ 未確認 | ○ |
-| PHYSBONE 衝突チェックの数 | ？ 未確認 | ？ 未確認 | 確認のみ | ？ 未確認 | ？ 未確認 |
-| コンタクトの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | △ |
+| PHYSBONE コンポーネントの数 | ？ 公式に記載なし | ？ 公式に記載なし | △ | ？ 公式に記載なし | ○ |
+| PHYSBONE トランスフォームの数 | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | ○ |
+| PHYSBONE コライダーの数 | ？ 公式に記載なし | ？ 公式に記載なし | △ | ？ 公式に記載なし | ○ |
+| PHYSBONE 衝突チェックの数 | ？ 公式に記載なし | ？ 公式に記載なし | 確認のみ | ？ 公式に記載なし | ？ 公式に記載なし |
+| コンタクトの数 | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | ？ 公式に記載なし | △ |
 | コンストレイントの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | コンストレイントの深さ | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 公式に記載なし |
 | アニメーターの数 | △ | ？ 未確認 | ？ 未確認 | ？ 未確認 | △ |
@@ -199,9 +199,9 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **スキンドメッシュの数・基本メッシュの数**: AAO の Merge Skinned Mesh は、スキンドメッシュを 1 つにまとめます。基本メッシュ（ボーンで動かないメッシュ）は、Merge Skinned Mesh の「メッシュレンダラー」の設定で、手動でまとめられます。自動の対象になるかは、未確認です。
 - **マテリアルスロットの数**: TTT の表の × は、AtlasTexture のマテリアルの結合では、マテリアルスロットは結合されないと公式が明記していることを指します。AtlasTexture は、マテリアルをまとめる機能ですが、公式は「マテリアルスロットの結合はできません」と書いています（[詳しくは「マテリアルスロットを減らす方法」](/learn/optimize-mesh/material-slots)）。AAO の Merge Skinned Mesh は、統合対象のメッシュで同じマテリアルを使っているマテリアルスロットを、既定で統合します（[公式 FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。
 - **PHYSBONE の項目（AAO）**: AAO の Merge PhysBone は、まとめるたびに PhysBone Affected Transforms の数が 1 つ増えます（公式ページの記載）。一方、[Replace End Bone With Endpoint Position](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/replace-end-bone-with-endpoint-position/) は、end ボーンを Endpoint Position に置き換えて、PhysBone Affected Transforms の数を減らせます（公式ページの記載）。
-- **PHYSBONE トランスフォームの数（lilAvatarUtils）**: 公式の項目は「ボーン数」（揺れが計算されるボーン数）です。Transform の数と同じかは未確認です。
+- **PHYSBONE トランスフォームの数（lilAvatarUtils）**: PhysBone タブにあるのは「ボーン数」（揺れが計算されるボーン数）です。トランスフォームの数を表示する項目は見つからなかったため、表では「公式に記載なし」としています。ボーン数がトランスフォームの数と同じかは、未確認です。
 - **PHYSBONE の項目（lilAvatarUtils）**: PhysBone のタブは、親が同じ PhysBone を見つけて、コンポーネントを統一できる候補を確認するのに役立つと書かれています。PBコライダーのタブは、どこからも参照されない無駄なコライダーの削減に役立つと書かれています。統一や削除の操作は、この記事では未確認です。
-- **PHYSBONE コライダーの数（MA）**: MA の [PhysBone Blocker](https://modular-avatar.nadena.dev/ja/docs/reference/physbone-blocker) は、子オブジェクトから、親オブジェクトをルートとする PhysBone の影響を防ぎます。[Global Collider](https://modular-avatar.nadena.dev/ja/docs/reference/global-collider) は、VRChat のグローバルコライダーの数に上限があるため、既存のグローバルコライダー（指や手など）を差し替える機能です。どちらも、コライダーの数を減らす機能としては、未確認です。
+- **PHYSBONE コライダーの数（MA）**: MA の [PhysBone Blocker](https://modular-avatar.nadena.dev/ja/docs/reference/physbone-blocker) は、子オブジェクトから、親オブジェクトをルートとする PhysBone の影響を防ぎます。[Global Collider](https://modular-avatar.nadena.dev/ja/docs/reference/global-collider) は、VRChat のグローバルコライダーの数に上限があるため、既存のグローバルコライダー（指や手など）を差し替える機能です。どちらも、コライダーの数を減らす機能としては、公式に記載なしです（確かめた範囲: MA の日本語版のリファレンス一式と CHANGELOG）。
 - **コライダーの数（lilAvatarUtils）**: PBコライダーのタブで一覧を確認できるのは、PhysBone 用のコライダーです。通常の Collider を含むかは、未確認です。
 - **コンタクトの数（AAO）**: AAO の「使われていないObjectを自動的に削除する」（英語名は Remove Unused Objects）は、1.7.0（2024 年 4 月 30 日）から、Animator Controller で使われていないパラメーターを持つ PhysBone と Contact Receiver を削除するようになりました（公式の [changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。条件つきで、自動で行われます。
 - **コンストレイントの数**: MA の [Convert Constraints](https://modular-avatar.nadena.dev/ja/docs/reference/convert-constraints) は、あらかじめ変換するとパフォーマンスが大幅に向上すると、公式が書いています。公式は性能向上のみを書いており、件数への効果は未確認です。AAO の changelog には、1.6.12（2024 年 4 月 9 日）の Removed に「Activeness Optimization for Constraint component」（理由は「The constraint component is too complex to optimize correctly and reliably」。複雑すぎて、正しく確実に最適化できない）があります。1.7.12 の changelog には、「VRCConstraints with Target might be removed unexpectedly」（Target を持つ VRCConstraints が意図せず削除される）という修正の記録もあります。件数を減らす機能としての記載ではありません。そのため、AAO の列は「？ 公式に記載なし」としています。
