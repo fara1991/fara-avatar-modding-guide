@@ -115,7 +115,7 @@ AAO を使うときは、まず **AAO Trace And Optimize** を付けます。ア
 - コンポーネント名（Unity 上の表示名）は `AAO Trace And Optimize` です（GitHub のソースの AddComponentMenu で確認）。
 
 [![AAO のコンポーネントを付ける場所。Trace And Optimize はアバターのルートに、Merge Skinned Mesh は新しい空の GameObject に付ける](images/avatar-optimizer-where-to-attach.png)](/learn/optimize-aao/images/avatar-optimizer-where-to-attach.png)
-*コンポーネントを付ける場所（公式の説明を図にしたもの。右の Merge Skinned Mesh は手動のコンポーネントで、詳しくは「まとめる（統合する）」を見てください）*
+*コンポーネントを付ける場所（公式の説明を図にしたもの。下の Merge Skinned Mesh は手動のコンポーネントで、詳しくは「まとめる（統合する）」を見てください）*
 
 ### 自動で行われること
 
@@ -192,7 +192,7 @@ Exclusions は、日本語版のリファレンス（Trace And Optimize のペ�
 
 ## 手動で使うコンポーネント
 
-Trace And Optimize の自動の処理では足りないときや、消す範囲を自分で決めたいときに使います。公式ドキュメントでは、多くのコンポーネントについて、Trace And Optimize が同様の処理を自動で行うため、大抵の場合は使う必要がないと書かれています。
+Trace And Optimize の自動の処理では足りないときや、消す範囲を自分で決めたいときに使います。公式ドキュメントでは、多くのコンポーネントについて、Trace And Optimize が同様の処理を自動で行うため、大抵の場合は使う必要がないと書かれています。まず Trace And Optimize を付けて、足りないときに手動のコンポーネントを足すのがおすすめです（**この記事の助言**{.lbl .lbl-adv}）。
 
 コンポーネント名は、公式ドキュメントの表記（`AAO` で始まる名前）で書いています。Unity 上の表示名（AddComponentMenu。GitHub の AAO のソース v1.9.21 で確認）は、次の点が表記と違います。`AAO Freeze BlendShapes`（ドキュメントは AAO Freeze BlendShape）、`AAO Merge Toon Lit Material`（ドキュメントは AAO Merge ToonLit Material。Toon と Lit の間に空白）。検索するときは、Unity 上の表示名で探してください。
 

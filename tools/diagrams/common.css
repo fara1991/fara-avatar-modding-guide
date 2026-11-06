@@ -1,5 +1,5 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #ffffff; font-family: "Yu Gothic UI", "Yu Gothic", "Meiryo", "Noto Sans JP", sans-serif; color: #1e293b; }
+body { word-break: auto-phrase; line-break: strict; background: #ffffff; font-family: "Yu Gothic UI", "Yu Gothic", "Meiryo", "Noto Sans JP", sans-serif; color: #1e293b; }
 .card { width: 1000px; padding: 32px 36px 28px; background: #ffffff; }
 h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; color: #0f172a; }
 .sub { font-size: 17px; color: #475569; margin-bottom: 22px; }

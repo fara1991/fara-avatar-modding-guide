@@ -25,7 +25,7 @@ APL の公式の資料には、ポーズを作って保存する方法（Scene �
 :::
 
 [![APL でポーズを設定する流れ。VCC にリポジトリを追加、プロジェクトに追加、アバターの子に空の GameObject、コンポーネントを付ける、カテゴリーとポーズを登録、アップロードして使う、の 6 つ](images/avatar-pose-library-flow.png)](/learn/vrchat-features/images/avatar-pose-library-flow.png)
-*APL でポーズを設定する流れ（この記事で説明する 6 つの手順。README・wiki の手順を、この記事で 6 つにまとめたもの）*
+*APL でポーズを設定する全体の流れ（導入から使うまで。README・wiki の手順を、この記事で 6 つにまとめたもの。ポーズの設定の細かい手順は、「ポーズを設定する」の 1〜6）*
 
 ## この記事の版と確かめ方
 
