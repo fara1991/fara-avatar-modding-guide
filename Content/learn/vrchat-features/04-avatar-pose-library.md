@@ -45,7 +45,7 @@ APL の公式の資料には、ポーズを作って保存する方法（Scene �
 | `nadena.dev.ndmf` | `"nadena.dev.ndmf": "1.7.9"` | `">=1.5.0"` |
 | `nadena.dev.modular-avatar` | `"nadena.dev.modular-avatar": "1.12.5"` | `">=1.10.0"` |
 
-導入ページの版は、「あらかじめ以下の依存パッケージをプロジェクトに追加しておく」と書かれた版です。package.json の値は、そのパッケージの条件です。どちらを使うべきかは、公式の資料では説明されていません（公式に記載なし。確かめた範囲: wiki の How-to-Install、リポジトリの package.json）。導入ページは NDMF 1.7.9、Modular Avatar 1.12.5 と書いていますが、wiki は 1.2.44 より前の更新で、現在の版との組み合わせは確かめられていません（未確認）。AAO（Avatar Optimizer）と一緒に使う場合は、NDMF を 1.8.0 以上 2.0.0 未満にしてください（AAO の要件。[AAO の記事](/learn/optimize-aao/avatar-optimizer) を参照）。APL だけを使う場合の版は、公式の資料でも、この記事でも確かめられていません（未確認）。
+導入ページの版は、「あらかじめ以下の依存パッケージをプロジェクトに追加しておく」と書かれた版です。package.json の値は、そのパッケージの条件です。どちらを使うべきかは、公式の資料では説明されていません（公式に記載なし。確かめた範囲: wiki の How-to-Install、リポジトリの package.json）。導入ページは NDMF 1.7.9、Modular Avatar 1.12.5 と書いていますが、wiki は 1.2.44 より前の更新で、現在の版との組み合わせは確かめられていません（未確認）。導入ページの NDMF 1.7.9 は、AAO（Avatar Optimizer）の要件（1.8.0 以上）より低いため、AAO と一緒に使う場合は、NDMF を 1.8.0 以上 2.0.0 未満にしてください（AAO の要件。[AAO の記事](/learn/optimize-aao/avatar-optimizer) を参照）。APL だけを使う場合の版は、公式の資料でも、この記事でも確かめられていません（未確認）。
 
 ::: warning
 導入の前に、Unity のプロジェクトのバックアップを取ってください。
@@ -70,7 +70,7 @@ APL は、[VCC（VRChat Creator Companion）](/learn/vrchat/vcc-project) から�
 
 wiki の [Beginner-Tutorials](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Beginner-Tutorials) には、APL の公式サイトにある「VCCに追加」ボタンから入れる、別の手順があります。その手順では、「Creator Companion を開く」を選び、「I Understand、AddRepository」をクリックします。
 
-ALCOM（VCC の代わりに使える、非公式の管理ツール）から入れる手順は、公式に記載なし（確かめた範囲: README、wiki の How-to-Install と Beginner-Tutorials）です。
+ALCOM（VCC の代わりに使える、VRChat 公式ではないコミュニティのツール）から入れる手順は、公式に記載なし（確かめた範囲: README、wiki の How-to-Install と Beginner-Tutorials）です。
 
 ### UnityPackage から入れる
 
@@ -159,7 +159,7 @@ APL のパラメーターへの影響は、公式の資料の中で、向きが�
 
 Q&A は、複数のポーズを 1 つの Int パラメーターで制御する設計だとも書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。ポーズ数の上限については、Q&A に「最新版にて65280ポーズ（16パラメータ）が上限となっています。」とあります。ただし、「最新版」が 1.2.44 を指すかは、未確認です。Q&A の数字は、ビット数や考え方が分かりにくいです。Q&A は、ポーズごとにアバターのデータ量とビルド時間が増えるため、実質的な上限は 1000 前後だと書いています（ビルド時間は後述）。
 
-APL のソースには、パラメーターの数を知らせる警告の処理は見当たりませんでした（この記事の調べ）。パラメーターの数は、VRChat SDK の Expression Parameters の表示で確かめてください（SDK 側の表示は、この記事では未確認です。この記事の助言）。Expression Parameters の基本は、[Expression メニューとパラメーター](/learn/vrchat-features/expressions) を見てください。
+APL のソース（1.2.44 の Editor コードなど、確かめた範囲）には、パラメーターの数を知らせる警告の処理は見当たりませんでした（この記事の調べ）。パラメーターの数は、VRChat SDK の Expression Parameters の表示で確かめてください（この記事の助言）。Expression Parameters の基本は、[Expression メニューとパラメーター](/learn/vrchat-features/expressions) を見てください。
 
 ## 注意・うまくいかないとき
 
