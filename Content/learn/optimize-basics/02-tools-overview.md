@@ -51,7 +51,7 @@ TexTransTool は、テクスチャを元のまま残して加工するツール�
 - **ライセンス**: MIT License（Copyright (c) 2023 Reina_Sakiria）。ただし、`Image` 以下のファイルは MIT の対象外で、公式パッケージの一部としてのみ再配布が許可されています。v1.0.2 の zip に入っている LICENSE.md で確認しました。
 - **対応**: Unity 2022.3（VPM の情報）。VRChat SDK の対応版は、未確認です。アバターの改変に使うときは、NDMF が必要です。公式は、NDMF と同時に入れることを強く推奨しています。
 - **公式ページ**: https://ttt.rs64.net （チュートリアル: https://ttt.rs64.net/docs/Tutorial ）
-- **減らせる主な項目**: テクスチャメモリー（条件つき）、マテリアルスロットの数（条件つき）
+- **減らせる主な項目**: テクスチャメモリー（条件つき）、マテリアルの結合（スロットの結合は不可。公式が明記）
 - **注意**:
   - テクスチャの圧縮は、プレビューでは行われません。圧縮の結果を見るには、NDMF の Apply On Play（Play モードに入ったときに処理を行う）や Manual Bake（処理を適用した複製のアバターを手動で作る。AAO の公式では、NDM Framework の「Manual bake avatar」と説明）などを使います（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
   - アトラス化の出力をそのまま使うと、VRAM が増える場合があると書かれています（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
@@ -137,7 +137,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **○ 減らせる**: そのツールに、その項目を減らす操作が書かれています。
 - **△ 条件つき**: 条件を満たすと減ると書かれています。または、減らす作業の判断に使えると書かれています。増える場合もあります。下の表の注を見てください。
 - **確認のみ**: 数や値を一覧で確認できると書かれています。減らす操作は、この記事では未確認です。
-- **× 減らせない**: 公式に明記されたものだけに使います。この表には該当がありません。
+- **× 減らせない**: 公式に明記されたものだけに使います。この表の該当は、TTT のマテリアルスロットの数だけです（AtlasTexture は「マテリアルスロットの結合はできません」と公式が書いています。[公式: アトラス化のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
 - **？ 未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
 - **？ 公式に記載なし**: その項目について、そのツールの公式の資料（日本語版の公式ドキュメントの各ページと changelog）を検索して、本当に無いと確かめたものだけに使います。この表では、AAO の列だけが該当します。AAO の Trace And Optimize の説明（「使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します」）は種類を限らない一般的な記述なので、コンストレイントやライトなどは、件数を減らす機能としての個別の記載が無い、という意味です。
 
@@ -152,7 +152,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 | 範囲（BOUNDS） | ？ 未確認 | ？ 未確認 | 確認のみ | ？ 未確認 | ？ 未確認 |
 | スキンドメッシュの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ○ |
 | 基本メッシュの数 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ？ 未確認 | ○ |
-| マテリアルスロットの数 | ？ 未確認 | △ | 確認のみ | ？ 未確認 | ○ |
+| マテリアルスロットの数 | ？ 未確認 | × | 確認のみ | ？ 未確認 | ○ |
 
 ### PhysBone・コンタクト・コンストレイント・アニメーター・ボーン
 
@@ -197,7 +197,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
   - lilAvatarUtils は、ポリゴン数を表示します。減らす操作は、この記事では未確認です。
 - **範囲（BOUNDS）**: MA の Mesh Settings では、範囲（BOUNDS）は「Root Bone」として指定したボーンを基準に決まります（公式の記載）。ランクへの効果は、未確認です。lilAvatarUtils のレンダラーのタブには Bounds の項目があります。編集できるかは、未確認です。
 - **スキンドメッシュの数・基本メッシュの数**: AAO の Merge Skinned Mesh は、スキンドメッシュを 1 つにまとめます。基本メッシュ（ボーンで動かないメッシュ）は、Merge Skinned Mesh の「メッシュレンダラー」の設定で、手動でまとめられます。自動の対象になるかは、未確認です。
-- **マテリアルスロットの数**: TTT の AtlasTexture には、マテリアルの結合を設定する「マテリアル設定」があります（[公式: AtlasTexture](https://ttt.rs64.net/docs/Reference/AtlasTexture)）。AtlasTexture を使うマテリアルに限ります。AAO の Merge Skinned Mesh は、統合対象のメッシュで同じマテリアルを使っているマテリアルスロットを、既定で統合します（[公式 FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。
+- **マテリアルスロットの数**: TTT の AtlasTexture は、マテリアルをまとめる機能ですが、公式は「マテリアルスロットの結合はできません」と書いています（[詳しくは「マテリアルスロットを減らす方法」](/learn/optimize-mesh/material-slots)）。AAO の Merge Skinned Mesh は、統合対象のメッシュで同じマテリアルを使っているマテリアルスロットを、既定で統合します（[公式 FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。
 - **PHYSBONE の項目（AAO）**: AAO の Merge PhysBone は、まとめるたびに PhysBone Affected Transforms の数が 1 つ増えます（公式ページの記載）。一方、[Replace End Bone With Endpoint Position](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/replace-end-bone-with-endpoint-position/) は、end ボーンを Endpoint Position に置き換えて、PhysBone Affected Transforms の数を減らせます（公式ページの記載）。
 - **PHYSBONE トランスフォームの数（lilAvatarUtils）**: 公式の項目は「ボーン数」（揺れが計算されるボーン数）です。Transform の数と同じかは未確認です。
 - **PHYSBONE の項目（lilAvatarUtils）**: PhysBone のタブは、親が同じ PhysBone を見つけて、コンポーネントを統一できる候補を確認するのに役立つと書かれています。PBコライダーのタブは、どこからも参照されない無駄なコライダーの削減に役立つと書かれています。統一や削除の操作は、この記事では未確認です。

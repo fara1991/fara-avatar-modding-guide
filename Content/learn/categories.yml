@@ -104,3 +104,12 @@
   en: Avatar Optimizer
   description: Avatar Optimizer（AAO）でできること、入れ方、使い方、うまくいかないとき。
   icon: bi-puzzle
+
+- id: optimize-mesh
+  section: optimize
+  title: テクスチャ・メッシュ・ボーンを減らす
+  nav_title: テクスチャ・メッシュ・ボーン
+  reading: てくすちゃめっしゅぼーんをへらす
+  en: Reduce Textures, Meshes and Bones
+  description: Texture メモリー、三角ポリゴン、範囲（BOUNDS）、スキンドメッシュ、基本メッシュ、マテリアルスロット、ボーンを減らす方法と、使えるツール。
+  icon: bi-box
