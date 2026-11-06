@@ -13,6 +13,7 @@ updated: 2026-11-06
 
 - **公式に記載なし**: そのツールの公式の資料（README・wiki・リポジトリ内の資料）を検索して、書かれていないと確かめた、という意味です。確かめた範囲は、その都度書いています。
 - **未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **この記事の助言**: この記事が勧める手順や注意で、公式の説明ではない、という意味です。
 :::
 
 ::: warning
@@ -34,7 +35,7 @@ APL の公式の資料には、ポーズを作って保存する方法（Scene �
 - **Unity 2022.3**（APL の対応版）
 - **VRChat のアバター SDK（`com.vrchat.avatars`）**
 - **NDMF（`nadena.dev.ndmf`）**（Non-Destructive Modular Framework の略。アバターを非破壊で改変するための基盤です）
-- **Modular Avatar（`nadena.dev.modular-avatar`、以下 MA）**（衣装などを、アバターを壊さずに組み込むツールです）。Q&A は「APLはModular Avatarを前提として設計されています。」と書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
+- **Modular Avatar（`nadena.dev.modular-avatar`）**（衣装などを、アバターを壊さずに組み込むツールです）。Q&A は「APLはModular Avatarを前提として設計されています。」と書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
 
 依存パッケージの版は、公式の資料の中で 2 通りに書かれています。どちらも原文のまま並べます。
 
@@ -44,7 +45,7 @@ APL の公式の資料には、ポーズを作って保存する方法（Scene �
 | `nadena.dev.ndmf` | `"nadena.dev.ndmf": "1.7.9"` | `">=1.5.0"` |
 | `nadena.dev.modular-avatar` | `"nadena.dev.modular-avatar": "1.12.5"` | `">=1.10.0"` |
 
-導入ページの版は、「あらかじめ以下の依存パッケージをプロジェクトに追加しておく」と書かれた版です。package.json の値は、そのパッケージの条件です。どちらを使うべきかは、公式の資料では説明されていません（公式に記載なし。確かめた範囲: wiki の How-to-Install、リポジトリの package.json）。導入ページは 1.7.9 / 1.12.5 と書いていますが、wiki は 1.2.44 より前の更新で、AAO の記事は NDMF 1.8.0 以上を要件にしています。版の組み合わせは未確認です。VCC で最新版を入れ、組み合わせの不具合は別途確かめてください（この記事の助言）。
+導入ページの版は、「あらかじめ以下の依存パッケージをプロジェクトに追加しておく」と書かれた版です。package.json の値は、そのパッケージの条件です。どちらを使うべきかは、公式の資料では説明されていません（公式に記載なし。確かめた範囲: wiki の How-to-Install、リポジトリの package.json）。導入ページは NDMF 1.7.9、Modular Avatar 1.12.5 と書いていますが、wiki は 1.2.44 より前の更新で、現在の版との組み合わせは確かめられていません（未確認）。AAO（Avatar Optimizer）と一緒に使う場合は、NDMF を 1.8.0 以上 2.0.0 未満にしてください（AAO の要件。[AAO の記事](/learn/optimize-aao/avatar-optimizer) を参照）。APL だけを使う場合の版は、公式の資料でも、この記事でも確かめられていません（未確認）。
 
 ::: warning
 導入の前に、Unity のプロジェクトのバックアップを取ってください。
@@ -69,7 +70,7 @@ APL は、[VCC（VRChat Creator Companion）](/learn/vrchat/vcc-project) から�
 
 wiki の [Beginner-Tutorials](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Beginner-Tutorials) には、APL の公式サイトにある「VCCに追加」ボタンから入れる、別の手順があります。その手順では、「Creator Companion を開く」を選び、「I Understand、AddRepository」をクリックします。
 
-ALCOM から入れる手順は、公式に記載なし（確かめた範囲: README、wiki の How-to-Install と Beginner-Tutorials）です。
+ALCOM（VCC の代わりに使える、非公式の管理ツール）から入れる手順は、公式に記載なし（確かめた範囲: README、wiki の How-to-Install と Beginner-Tutorials）です。
 
 ### UnityPackage から入れる
 
@@ -117,7 +118,7 @@ Mode Settings の 4 つの項目には、それぞれ次の説明があります
 ::: tip
 Q&A には、「Animation Clip を APL にドラッグ＆ドロップ → Generate を押す」だけで基本的な設定が完了すると書かれています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。ただし、wiki の Unity-Manual と Beginner-Tutorials の項目の一覧に、「Generate」という名前の項目はありません。パッケージの表示名（英語・日本語）にも、この名前のボタンは見当たりませんでした。画面にそのボタンがあるかは、未確認です。Drop Area のツールチップ（英語版）には、"You can generate poses by dropping animation clips here in bulk." と書かれています。この記事では、Drop Area に入れる手順を書いています。
 
-ポーズ行の右クリックメニューには「Create Pose（新規作成）」の項目もあります。公式の説明は無い。リポジトリの Editor コードでは、空の項目を追加するだけ（公式の説明ではなく、この記事がコードを読んだ結果）。この記事では使いません。
+ポーズ行の右クリックメニューには「Create Pose（新規作成）」の項目もあります。公式に記載なし（確かめた範囲: README、wiki）です。リポジトリの Editor コードでは、空の項目を追加するだけ（公式の説明ではなく、この記事がコードを読んだ結果）。この記事では使いません。
 :::
 
 ## 保存して共有する
@@ -156,9 +157,9 @@ APL のパラメーターへの影響は、公式の資料の中で、向きが�
 
 リポジトリの `Editor/Logic/ParameterBuilder.cs` では、Height・Speed・Mirror は、有効にするとパラメーターが追加されます（Q&A の向きと一致）。ただし、Unity-Manual の「8」「1」と Q&A の「17」という削減数は、コードの追加数と一致しないため、未確認です。
 
-Q&A は、複数のポーズを 1 つの Int パラメーターで制御する設計だとも書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。ポーズ数の上限については、Q&A に「最新版にて65280ポーズ（16パラメータ）が上限となっています。」とあります。ただし、「最新版」が 1.2.44 を指すかは、未確認です。Q&A の数字は、ビット数や考え方が分かりにくいです。ビルド時間を考えると実際の上限は Q&A の「1000 前後」と読めます（Q&A の原文どおり。ビルド時間は後述）。
+Q&A は、複数のポーズを 1 つの Int パラメーターで制御する設計だとも書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。ポーズ数の上限については、Q&A に「最新版にて65280ポーズ（16パラメータ）が上限となっています。」とあります。ただし、「最新版」が 1.2.44 を指すかは、未確認です。Q&A の数字は、ビット数や考え方が分かりにくいです。Q&A は、ポーズごとにアバターのデータ量とビルド時間が増えるため、実質的な上限は 1000 前後だと書いています（ビルド時間は後述）。
 
-パラメーターの数を実際に確かめたいときは、アップロードの前に、Builder の警告を確かめてください（この記事の助言）。Expression Parameters の基本は、[Expression メニューとパラメーター](/learn/vrchat-features/expressions) を見てください。
+APL のソースには、パラメーターの数を知らせる警告の処理は見当たりませんでした（この記事の調べ）。パラメーターの数は、VRChat SDK の Expression Parameters の表示で確かめてください（SDK 側の表示は、この記事では未確認です。この記事の助言）。Expression Parameters の基本は、[Expression メニューとパラメーター](/learn/vrchat-features/expressions) を見てください。
 
 ## 注意・うまくいかないとき
 
@@ -173,7 +174,7 @@ Q&A は、複数のポーズを 1 つの Int パラメーターで制御する�
 ### 既知の問題
 
 - **ほかのツールとの併用**: [Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting) は、可愛いポーズツール（ゆにスタジオ様）の「他のAnimatorControllerのトラッキング機能を統合する」機能を使うと、APL の Animator が壊れるようだと書いています。「こちらに対する対策アップデートの予定はありません」と書かれ、この機能をオフにすることを勧めています。
-- **リップシンクや表情が固定される**: Troubleshooting は、「WriteDefaultなどの値によって、動作が不安定になるケースが報告されています。」と書いています。Write Defaults の説明は、[表情と FX の基礎](/learn/vrchat-features/fx-basics) を見てください。Q&A は、WriteDefault の設定を見直すことと、プリセット「ポーズのみ」（場所は未確認）を試すことを勧めています。Troubleshooting は、AnimationClip に含まれる表情のキーを削除すると、正常に動作する可能性があると書いています（「可能性があります」）。元のクリップは直接消さず、複製してから試してください。
+- **リップシンクや表情が固定される**: Troubleshooting は、「WriteDefaultなどの値によって、動作が不安定になるケースが報告されています。」と書いています。Write Defaults の説明は、[表情と FX の基礎](/learn/vrchat-features/fx-basics) を見てください。Q&A は、WriteDefault の設定を見直すことと、プリセット「ポーズのみ」（場所は未確認）を試すことを勧めています。Troubleshooting は、AnimationClip に含まれる表情のキーを削除すると、正常に動作する可能性があると書いています（「可能性があります」）。元のクリップは直接消さず、複製してから試してください（この記事の助言）。
 - **頭の固定を解除すると腰が浮く**: Q&A は、「VRChatの仕様です。（たぶん）」と書いています。頭の位置に合わせて、高さや姿勢を微調整することを勧めています。
 - **フルトラ（全身トラッキング）で棒立ちになる**: Q&A は、「移動アニメーションを有効にすることで改善するようです。」と書いています。どの設定を指すかは、未確認です。
 - **VRChat 上で動かない**: Q&A は、VRChat の整合性チェックを試すことを勧めています。改善しないときは、[作者の Discord](https://discord.gg/j393GwU4Es) で相談できます。
