@@ -71,7 +71,7 @@ CHANGELOG には、ネストしたコンストレイントが Trace And Optimize
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「コンストレイントの深さ」を確かめます（上限は PC の Poor が 100、Android の Poor が 50）。
-2. 変換の前に、プロジェクトのバックアップを取り、確かめたい動き（対象のアニメーションとコンストレイントの追従）を記録しておきます。公式の資料では、変換を元に戻せるかは、この記事では未確認です。
+2. 変換の前に、プロジェクトのバックアップを取り、確かめたい動き（対象のアニメーションとコンストレイントの追従）を記録しておきます。変換を元に戻せるかは、この記事では未確認です（この記事の助言で、公式の勧めではありません）。
 3. Unity のコンストレイントが含まれているなら、VRChat のコンストレイントに変えます。公式は、次のように書いています（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
    - 原文: "You can convert all the Unity constraints on your avatar into equivalent VRChat constraints by using the relevant Auto Fix option in the control panel in the SDK."（訳: アバターの Unity のコンストレイントは、SDK の Control Panel にある該当する Auto Fix の項目を使うと、同等の VRChat のコンストレイントに変換できます。）
    - 公式は、Unity のコンストレイントがあると、深さが過大に見積もられることがあると書いています。変換後の動きへの影響は、この記事では未確認です。
