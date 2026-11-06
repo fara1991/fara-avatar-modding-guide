@@ -8,7 +8,7 @@ updated: 2026-11-06
 
 最大パーティクルの数は、アバターのすべての Particle System の maxParticles（最大粒子数）の合計を数える項目です。VRChat 公式のランキングの表では、この項目の行名は Total Particles Active です。定義は "The sum of maxParticles across all particle systems on the avatar." で、訳は「アバターのすべてのパーティクルシステムの maxParticles の合計」です。上限は PC の Poor が 2,500、Android の Poor が 200 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
-上限を超えると、ランクが次のランクに下がります。表示の下限（Minimum Displayed Performance Rank）に届かないと、公式の表示制限では All Particle Systems removed（パーティクルシステムがすべて取り除かれる）と書かれています（英語の原文の要約）。PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。ただし、極端に最適化されていないアバターは使えなくなることがあります（英語の原文の要約。原文: "the default Minimum Displayed Performance Rank level is Very Poor. This means that users can see most avatars by default. However, if your avatar is extremely unoptimized, VRChat may prevent you from using it."）。Android の既定の表示の下限は Medium で、Poor と Very Poor のアバターは既定では見えない、と書かれています（英語の原文の要約）。
+上限を超えると、ランクが次のランクに下がります。表示の下限（Minimum Displayed Performance Rank）に届かないと、公式の表示制限では All Particle Systems removed（パーティクルシステムがすべて取り除かれる）と書かれています（英語の原文の要約）。PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。ただし、極端に最適化されていないアバターは使えなくなることがあります（英語の原文の要約。原文: "the default Minimum Displayed Performance Rank level is "Very Poor". This means that users can see most avatars by default. … However, if your avatar is extremely unoptimized, VRChat may prevent you from using it."）。Android の既定の表示の下限は Medium で、Poor と Very Poor のアバターは既定では見えない、と書かれています（英語の原文の要約）。
 
 ::: tip
 この記事で使う言葉は、次のとおりです。
@@ -60,13 +60,13 @@ VRChat 公式の勧めは、次のとおりです（[Avatar Optimization Tips（
 
 ### Meshia Mesh Simplification（MMS）
 
-公式に記載なし（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にある日本語・英語のドキュメント 19 件。公開ドキュメントの本体は、この記事では確かめていません）。MMS は、メッシュの三角ポリゴンを減らすツールとして説明されています。
+公式に記載なし（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にある日本語・英語のドキュメント 11 件（目次を含めると 19 件）。公開サイト（ramtype0.github.io）は未確認）。MMS は、ポリゴン数を減らすツールとして説明されています。
 
 ### Avatar Optimizer（AAO）
 
 公式に記載なし（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページ 72 件と CHANGELOG）。
 
-CHANGELOG のパーティクルの項目は、どれも「壊れる」ことの修正の記録です（1.6.0 の "Remove Unused Object may break ParticleSystem" など）。パーティクルを減らす効果の記載ではありません。詳しくは [パーティクルシステムの数を減らす](/learn/optimize-particle/particle-systems) の AAO の項を見てください。
+CHANGELOG のパーティクル関連の項目は 7 件あり、そのうち 6 件は、パーティクルが壊れることの修正です（1.6.0 の "Remove Unused Object may break ParticleSystem" など）。残る 1 件（1.8.10）は、パーティクルシステムが正しく削除されない不具合の修正で、削除の処理がパーティクルシステムに及ぶことを示します。どちらも、パーティクルを減らす効果の記載ではありません。詳しくは [パーティクルシステムの数を減らす](/learn/optimize-particle/particle-systems) の AAO の項を見てください。
 
 ## 手順
 
@@ -74,7 +74,7 @@ CHANGELOG のパーティクルの項目は、どれも「壊れる」ことの�
 2. アバターの各 Particle System の maxParticles を見て、合計を出します。大きいものから順に見ると、見直す場所を決めやすくなります（この記事の助言）。
 3. 変更の前に、プロジェクトのバックアップを取ります。見た目と動きは、変更の前に記録しておきます（この記事の助言）。
 4. 使っていないと確かめたパーティクルシステムは、無効にするのではなく削除します（[パーティクルシステムの数を減らす](/learn/optimize-particle/particle-systems) の手順 4）。
-5. 残したパーティクルシステムは、公式の勧めに沿って、同時に放出される粒子の最大数を見直します。数を下げると、粒子の見え方が変わることがあるので、記録したものと比べます（この記事の助言）。
+5. 残したパーティクルシステムは、この記事の整理として、同時に放出される粒子の最大数を見直します。数を下げると、粒子の見え方が変わることがあるので、記録したものと比べます（この記事の助言）。
 6. Build & Test や Play モードで、見た目と動きが変わっていないかを確かめます（この記事の助言）。
 7. SDK の「パフォーマンスの内訳」で、「最大パーティクルの数」が上限以下になったかを確かめます。
 

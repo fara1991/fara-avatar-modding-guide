@@ -139,7 +139,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **確認のみ**: 数や値を一覧で確認できると書かれています。減らす操作は、この記事では未確認です。
 - **× 減らせない**: 公式に明記されたものだけに使います。この表の該当は、TTT のマテリアルスロットの数だけです。対象は AtlasTexture のマテリアルの結合で、公式は、この結合ではマテリアルスロットは結合されないと明記しています（「マテリアルスロットの結合はできません」。[公式: アトラス化のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。TTT のほかの機能すべてについて、減らせないという意味ではありません。
 - **？ 未確認**: この記事では確認していない、という意味です。無い・できないという意味ではありません。
-- **？ 公式に記載なし**: その項目について、そのツールの公式の資料（日本語版の公式ドキュメントの各ページと changelog。VRChat は英語の原文）を検索して、本当に無いと確かめたものだけに使います。この表では、たとえば、PhysBone・コンタクトの行の MA・TTT・MMS の列、lilAvatarUtils のトランスフォーム・コンタクト・最大パーティクル・パーティクルトレイル・パーティクルの衝突の欄、MA・TTT・MMS のパーティクル系の行、AAO の衝突チェックの欄が該当します（ほかの欄も、表の記号のとおりです）。AAO の Trace And Optimize の説明（「使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します」）は種類を限らない一般的な記述なので、コンストレイントやライトなどは、件数を減らす機能としての個別の記載が無い、という意味です。
+- **？ 公式に記載なし**: その項目について、そのツールの公式の資料（日本語版の公式ドキュメントの各ページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめたものだけに使います。AAO の欄は、AAO の公式ドキュメント（docs）に、その項目を減らす機能の記載が無いことを確かめた、という意味です（changelog の記録は、減らす機能の記載ではありません）。この表では、たとえば、PhysBone・コンタクトの行の MA・TTT・MMS の列、lilAvatarUtils のトランスフォーム・コンタクト・最大パーティクル・パーティクルトレイル・パーティクルの衝突の欄、MA・TTT・MMS のパーティクル系の行、AAO の衝突チェックの欄が該当します（ほかの欄も、表の記号のとおりです）。AAO の Trace And Optimize の説明（「使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します」）は種類を限らない一般的な記述なので、コンストレイントやライトなどは、件数を減らす機能としての個別の記載が無い、という意味です。
 
 ### メッシュ・テクスチャ・マテリアル
 
@@ -205,7 +205,7 @@ Avatar Optimizer は、アバターを自動で軽くする非破壊改変ツー
 - **コライダーの数（lilAvatarUtils）**: PBコライダーのタブで一覧を確認できるのは、PhysBone 用のコライダーです。通常の Collider を含むかは、未確認です。
 - **コンタクトの数（AAO）**: AAO の「使われていないObjectを自動的に削除する」（英語名は Remove Unused Objects）は、1.7.0（2024 年 4 月 30 日）から、Animator Controller で使われていないパラメーターを持つ PhysBone と Contact Receiver を削除するようになりました（公式の [changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。条件つきで、自動で行われます。
 - **コンストレイントの数**: MA の [Convert Constraints](https://modular-avatar.nadena.dev/ja/docs/reference/convert-constraints) は、あらかじめ変換するとパフォーマンスが大幅に向上すると、公式が書いています。公式は性能向上のみを書いており、件数への効果は未確認です。AAO の changelog には、1.6.12（2024 年 4 月 9 日）の Removed に「Activeness Optimization for Constraint component」（理由は「The constraint component is too complex to optimize correctly and reliably」。複雑すぎて、正しく確実に最適化できない）があります。1.7.12 の changelog には、「VRCConstraints with Target might be removed unexpectedly」（Target を持つ VRCConstraints が意図せず削除される）という修正の記録もあります。件数を減らす機能としての記載ではありません。そのため、AAO の列は「？ 公式に記載なし」としています。
-- **パーティクルシステムの数（AAO）**: AAO の changelog には、件数を減らす機能としての記載はありません。使われていない Particle System の扱いについては、削除まわりの修正の記録があります。1.6.0（2023 年 11 月 27 日）の「Remove Unused Object may break ParticleSystem」と、1.8.10（2025 年 5 月 4 日）の「Fixed Particle Systems are not correctly removed」です。
+- **パーティクルシステムの数（AAO）**: AAO の公式ドキュメント（docs）と changelog には、件数を減らす機能としての記載はありません。changelog のパーティクル関連の項目（7 件）には、壊れることや、パーティクルシステムが正しく削除されない不具合の修正の記録があります。例えば、1.6.0（2023 年 11 月 27 日）の「Remove Unused Object may break ParticleSystem」と、1.8.10（2025 年 5 月 4 日）の「Fixed Particle Systems are not correctly removed」です。これらは、減らす機能の記載ではありません。
 - **アニメーターの数**: MA の Merge Animator は、「付属アニメーターを削除」をオンにすると、同じオブジェクト内の Animator が自動的に排除されると、公式は書いています（ランキングの件数への効果は、この記事では未確認です。詳しくは「アニメーターの数を減らす」）。AAO の「使われていないObjectを自動的に削除する」は、1.6.0（2023 年 11 月 27 日）から、Animator Controller のない Animator を、意味のないものとして削除するようになりました（公式の changelog）。
 - **ボーンの数**: MA の Merge Armature は、名前が一致するボーンを統合先にまとめます。名前が合わないと、新しいボーンが増えます。AAO は、使われていないObjectを削除します。
 - **ライトの数（lilAvatarUtils）**: ライティングのタブは、見え方を確かめる機能です。ライトを減らす機能は、未確認です。

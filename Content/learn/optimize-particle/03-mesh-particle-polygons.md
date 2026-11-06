@@ -59,11 +59,11 @@ VRChat 公式の勧めは、パーティクル全般のものです。Avatar Opt
 
 ### Meshia Mesh Simplification（MMS）
 
-公式に記載なし（確かめた範囲: README（英語・日本語）と、.docfx 配下の文書 19 件。パーティクルの語は見つかりませんでした）。簡略化の入力は Mesh と書かれているだけで、対象のレンダラーの種類の記載もありません。パーティクルのメッシュに使えるかは、未確認です。
+公式に記載なし（確かめた範囲: README（英語・日本語）と、`.docfx` にあるドキュメント 11 件（目次を含めると 19 件）。公開サイト（ramtype0.github.io）は未確認）。パーティクルの語は見つかりませんでした。簡略化の入力は Mesh と書かれているだけで、対象のレンダラーの種類の記載もありません。パーティクルのメッシュに使えるかは、未確認です。
 
 ### Avatar Optimizer（AAO）
 
-公式に記載なし（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページと CHANGELOG）。CHANGELOG のパーティクル関連の項目は、どれも「壊れる」の修正の記録で、三角ポリゴンを減らす効果の記載ではありません。例えば 1.9.19 には、次の原文があります（原文のまま。誤字を含みます。[公式の changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
+公式に記載なし（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページと CHANGELOG）。CHANGELOG のパーティクル関連の項目は 7 件あり、そのうち 6 件は「壊れる」ことの修正、1 件（1.8.10）は、パーティクルシステムが正しく削除されない不具合の修正です。いずれも、三角ポリゴンを減らす効果の記載ではありません。例えば 1.9.19 には、次の原文があります（原文のまま。誤字を含みます。[公式の changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
 
 > "Particle Systems with the Shape of vertices of Skinnd Mesh Renderers only with no-triangle submeshesas would be borken"
 
@@ -72,12 +72,12 @@ VRChat 公式の勧めは、パーティクル全般のものです。Avatar Opt
 1. SDK の「パフォーマンスの内訳」で、「メッシュパーティクルの三角ポリゴン数」の今の値と上限（PC の Poor が 5,000、Android の Poor が 400）を確かめます。
 2. 作業の前に、プロジェクトのバックアップを取り、対象のパーティクルの見た目と動きを記録します（この記事の助言）。
 3. 作業するときは、Mesh Read/Write を無効にしないでください（下の注意）。
-4. パーティクルの設定を変えたあとは、Play モードに入って見た目と動きが変わっていないかを確かめ、パフォーマンスの内訳をもう一度見て、数が変わったかを確かめます（この記事の助言）。
+4. 対象のパーティクルシステムの設定を変えたあとは、Play モードに入って見た目と動きが変わっていないかを確かめ、パフォーマンスの内訳をもう一度見て、数が変わったかを確かめます（この記事の助言）。
 
 ## 注意・うまくいかないとき
 
 ::: warning
-- **Mesh Read/Write**: 公式の記述によると、アバターのいずれかの mesh（パーティクルシステムのメッシュを含む）で Mesh Read/Write を無効にすると、三角ポリゴンの項目は「Mesh Read/Write Disabled」と表示され、ランクは即座に Very Poor になります。原文は "regardless of the actual triangle count on the avatar"（アバターの実際の三角ポリゴン数にかかわらず）です（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+- **Mesh Read/Write**: 公式の記述によると、アバターのいずれかの mesh（パーティクルシステムのメッシュを含む）で Mesh Read/Write を無効にすると、アバターの Triangles（三角ポリゴン数）の行が「Mesh Read/Write Disabled」と表示され、ランクは即座に Very Poor になります。原文は "regardless of the actual triangle count on the avatar"（アバターの実際の三角ポリゴン数にかかわらず）です（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 - **MMS と AAO**: 上のツールの節のとおり、この項目を減らす効果が資料で確かめられたツールはありません。MMS をパーティクルのメッシュに使えるかは未確認です。使う前に、確かめてください。
 :::
 
