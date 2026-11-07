@@ -14,7 +14,7 @@ updated: 2026-11-07
 
 コンストレイントの数は、アバターにあるコンストレイント（ある物の位置・回転・スケールを、別の物に紐づける部品）の総数を数える項目です。VRChat 公式の定義は "The total number of VRChat constraints and Unity constraints on the avatar." で、VRChat のコンストレイントと Unity のコンストレイントを合わせた数です。上限は PC の Poor が 350、Android の Poor が 150 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
-上限を超えると、公式では次のランク（Very Poor）になると書かれています。Android では、ハード上限（150）を超えると、「Show Avatar」を選んでも回避できず、制限の対象のコンポーネントがすべて取り除かれると公式は書いています。PC では、既定の表示の下限は Very Poor で、ほとんどのアバターは見えると書かれています。ただし、極端に最適化されていないアバターは、使えなくなる場合があると書かれています（英語の原文の要約です）。
+上限を超えると、公式では次のランク（Very Poor）になると書かれています。Android では、硬い上限（150）を超えると、「Show Avatar」を選んでも回避できず、制限の対象のコンポーネントがすべて取り除かれると公式は書いています。PC では、既定の表示の下限は Very Poor で、ほとんどのアバターは見えると書かれています。ただし、極端に最適化されていないアバターは、使えなくなる場合があると書かれています（英語の原文の要約です）。
 
 ::: tip
 この記事で使う言葉は、次のとおりです。
@@ -81,7 +81,7 @@ VRChat 公式の勧めは、次の 2 点です（[Avatar Optimization Tips（VRC
 
 - 「使われていないObjectを自動的に削除する」の原文は「アニメーションなどを走査して、使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します。」です。コンストレイントがこの対象に入るかは、**公式に記載なし**{.lbl .lbl-none}です。
 - CHANGELOG の 1.6.12 では、`Removed` に「Activeness Optimization for Constraint component」があります。理由は「The constraint component is too complex to optimize correctly and reliably」（訳: コンストレイントは、正しく確実に最適化するには複雑すぎる）と書かれています。
-- CHANGELOG の 1.7.12 には、「VRConstraints with Target might be removed unexpectedly」（意図せず削除される）の修正があります。これは不具合の修正の記録で、削除の対象だと示すものではありません。
+- CHANGELOG の 1.7.12 には、「VRCConstraints with Target might be removed unexpectedly」（意図せず削除される）の修正があります。これは不具合の修正の記録で、削除の対象だと示すものではありません。
 
 ## 手順
 
