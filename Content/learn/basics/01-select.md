@@ -9,8 +9,8 @@ shortcuts: [A, Alt+A, Ctrl+I, B, C, Shift+A, X, Shift+D, Alt+D, Ctrl+J, H, Alt+H
 
 ::: point
 - 複数選択すると、最後に選んだものがアクティブオブジェクトになり、プロパティや親子付けの親になる
-- <kbd>Delete</kbd> キーで消すと確認なしで削除される。<kbd>X</kbd> なら「削除」を選ぶ形になる
-- 複製は <kbd>Shift</kbd>+<kbd>D</kbd> と <kbd>Alt</kbd>+<kbd>D</kbd> で違う。<kbd>Alt</kbd>+<kbd>D</kbd> はメッシュデータを共有し、片方を編集すると両方変わる
+- <kbd>Delete</kbd> キーは確認なしで削除し、<kbd>X</kbd> は「削除」を選んでから消す
+- <kbd>Alt</kbd>+<kbd>D</kbd> のリンク複製はメッシュデータを共有するので、片方を編集すると両方変わる
 :::
 
 ## 選択する

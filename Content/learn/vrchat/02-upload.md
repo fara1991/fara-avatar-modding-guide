@@ -7,9 +7,9 @@ updated: 2026-11-07
 ---
 
 ::: point
-- Build & Test は自分の PC だけで試すもので、アップロードはされない。アップロードは Build & Publish で行う
+- Build & Test は自分の PC だけで試すもので、アップロードは Build & Publish で行う
 - アップロードには VRChat のアカウントと、トラストランクが New User 以上であることが必要
-- 同じ Blueprint ID のまま Build & Publish すると前のアバターが上書きされ、別のアバターとして出すときは Detach で ID を外す
+- 同じ Blueprint ID のまま Build & Publish すると上書きされるので、別のアバターにするときは Detach で ID を外す
 :::
 
 ## アップロードできるアカウント

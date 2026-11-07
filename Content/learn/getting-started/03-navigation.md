@@ -8,7 +8,8 @@ shortcuts: [Shift+MMB, Ctrl+MMB, Numpad 1, Numpad 3, Numpad 7, Numpad 5, Numpad 
 ---
 
 ::: point
-- 視点はホイールボタンのドラッグで回す（ホイールボタンがなければ「3 ボタンマウスを再現」をオンにし、<kbd>Alt</kbd>+左ドラッグで回す）
+- 視点はホイールボタンのドラッグで回す
+- ホイールボタンがなければ、「3 ボタンマウスを再現」をオンにして <kbd>Alt</kbd>+左ドラッグで回す
 - テンキーの <kbd>Numpad 1</kbd> / <kbd>3</kbd> / <kbd>7</kbd> で、前・右・上から見る
 - 選択したものが見えなくなったら、<kbd>Numpad .</kbd> で選択物を中心に表示する
 :::

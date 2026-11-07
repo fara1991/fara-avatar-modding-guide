@@ -9,7 +9,7 @@ updated: 2026-11-07
 ::: point
 - 服の Rig は Humanoid にせず Generic にし、Modular Avatar のボーン名による統合に任せる
 - Setup Outfit で服をアバターに統合し、元の服は削除せず非アクティブにして Tag を EditorOnly にする
-- アップロード前に Build & Test で動きを確かめ、パフォーマンスランクを見直す
+- アップロード前にパフォーマンスランクを確かめ、Build & Test で動きを確かめる
 :::
 
 ## 使うもの

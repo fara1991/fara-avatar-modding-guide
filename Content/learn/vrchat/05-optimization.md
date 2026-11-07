@@ -9,7 +9,8 @@ updated: 2026-11-07
 ::: point
 - 効果の大きい順に、着替えの衣装を減らし、見えない部分を消し、テクスチャを小さくする
 - 使わないものは、無効にするだけでなく EditorOnly にするか削除する
-- Avatar Optimizer の AAO Trace And Optimize を付けると、アップロードのときに自動で軽くできる。付けたあとは Build & Test で見た目と動きを確かめる
+- AAO Trace And Optimize を付けると、アップロードのときに自動で軽くできる
+- 付けたあとは Build & Test で見た目と動きを確かめる
 :::
 
 ## 進め方

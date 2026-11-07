@@ -7,9 +7,9 @@ updated: 2026-11-07
 ---
 
 ::: point
-- PhysBone は、ボーンを点として扱うので、子のないボーン 1 本では揺れない。末端に点（リーフボーン）を置くか、Endpoint Position で仮想の点を足す
-- Root Transform に指定したボーンより下が揺れる。指定したボーン自体は動かない
-- PhysBone・コライダー・Contact の数は、パフォーマンスランクに入る。Local Only にした Contact は入らない
+- 子のないボーン 1 本では揺れないので、末端にリーフボーンを置くか、Endpoint Position で仮想の点を足す
+- Root Transform に指定したボーンは動かず、その下のボーンが揺れる
+- PhysBone・コライダー・Contact の数はパフォーマンスランクに入るが、Local Only の Contact は入らない
 :::
 
 ## PhysBone とは
