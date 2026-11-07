@@ -1079,6 +1079,24 @@ def _():
     select([body])
 
 
+@shot("modding", "pose-apply-menu", menu="VIEW3D_MT_pose_apply")
+def _():
+    body, arm = build_mannequin()
+    select([arm])
+    mode("POSE")
+    set_view(rot=(80, 0, 15), dist=3.4, loc=(0.2, 0, 1.2))
+    return {"crop": (435, 370, 722, 506)}
+
+
+@shot("modding", "weight-transfer-menu", menu="VIEW3D_MT_paint_weight")
+def _():
+    body, arm = build_mannequin()
+    select([body])
+    mode("WEIGHT_PAINT")
+    set_view(rot=(80, 0, 15), dist=3.4, loc=(0.2, 0, 1.2))
+    return {"crop": (470, 370, 712, 816)}
+
+
 @shot("rigging", "shape-keys-modding-propagate", menu="VIEW3D_MT_edit_mesh_vertices")
 def _():
     body, arm = build_mannequin()

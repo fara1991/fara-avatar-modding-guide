@@ -12,6 +12,10 @@ const JOBS = [
   ['apl-structure.html', 'Content/learn/vrchat-features/images/avatar-pose-library-structure.png'],
   ['aao-two-ways.html', 'Content/learn/optimize-aao/images/avatar-optimizer-two-ways.png'],
   ['aao-where.html', 'Content/learn/optimize-aao/images/avatar-optimizer-where-to-attach.png'],
+  ['modding-roadmap.html', 'Content/learn/modding/images/roadmap-steps.png'],
+  ['modding-unsupported-flow.html', 'Content/learn/modding/images/unsupported-outfit-flow.png'],
+  ['modding-head-swap.html', 'Content/learn/modding/images/head-swap-overview.png'],
+  ['modding-vrm-flow.html', 'Content/learn/modding/images/vrm-export-flow.png'],
 ];
 
 const browser = await chromium.launch({ channel: 'msedge' });
