@@ -1,7 +1,7 @@
 ---
 title: PhysBone 衝突チェックの数を減らす
 reading: ふぃじっくぼーんのしょうとつちぇっくのかずをへらす
-description: VRChat のパフォーマンス表の「PhysBone 衝突チェックの数」が何を数えるか、上限、公式に書かれている減らし方と注意、ツールごとに公式に書かれていることを整理します。
+description: VRChat のパフォーマンス表の「PhysBone 衝突チェックの数」が何を数えるか、上限、減らし方と注意、ツールごとの挙動をまとめます。
 difficulty: 中級
 updated: 2026-11-07
 ---
@@ -18,16 +18,16 @@ PhysBone 衝突チェックの数は、アバターの PhysBone コライダー�
 |---|---|---|
 | PhysBone 衝突チェックの数 | 32 / 128 / 256 / 512 | 0 / 16 / 32 / 64 |
 
-上限は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値です。超えると、公式の表では、表示ランクの下限（Minimum Displayed Performance Rank）を下回るアバターについて「All PhysBone, PhysBone Collider, and Contact components removed」（PhysBone・PhysBone コライダー・コンタクトのコンポーネントがすべて取り除かれる）と書かれています。Android では、ハード上限を超えると、「Show Avatar」を選んでも制限対象のコンポーネントがすべて取り除かれます（注意の節を見てください）。
+上限は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値です。超えると、表示ランクの下限（Minimum Displayed Performance Rank）を下回るアバターでは、PhysBone・PhysBone コライダー・コンタクトのコンポーネントがすべて取り除かれます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。Android では、硬い上限を超えると、「Show Avatar」を選んでも制限対象のコンポーネントがすべて取り除かれます（注意の節を見てください）。
 
-VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は原文に訳を添えています。版が上がると挙動が変わることがあります。
+版が上がると挙動が変わることがあります。
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「PHYSBONE 衝突チェックの数」で、今の値と上限を見ます。
-- **lilAvatarUtils の PhysBone タブ**: PhysBone ごとに「コリジョン数」を見られます。lilAvatarUtils の公式の説明は、「衝突判定の計算回数です。ボーン数やコライダー数に応じてこの数字は増えていき、数字が増えるほど負荷も増えます。」です（[PhysBones（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。この記事では、lilAvatarUtils の「コリジョン数」を、SDK の「PHYSBONE 衝突チェックの数」とは別の値として扱います。
-- **同じタブの「ボーン数」と「コライダー数」**: 公式の説明では、ボーン数は「揺れが計算されるボーン数」、コライダー数は「このPhysBoneとの当たり判定を計算するコライダー数」です（同じページ）。
-- **Play モードのランク**: AAO の公式ドキュメント（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）は、非破壊改変ツールを使う改変では、VRCSDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています。Play モードのランクの確かめ方は、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」を見てください。
+- **lilAvatarUtils の PhysBone タブ**: PhysBone ごとに「コリジョン数」を見られます。「コリジョン数」は衝突判定の計算回数で、ボーン数やコライダー数に応じて増えていき、数字が増えるほど負荷も増えます（[PhysBones（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。この記事では、lilAvatarUtils の「コリジョン数」を、SDK の「PHYSBONE 衝突チェックの数」とは別の値として扱います。
+- **同じタブの「ボーン数」と「コライダー数」**: 「ボーン数」は、揺れが計算されるボーン数です。「コライダー数」は、この PhysBone との当たり判定を計算するコライダー数です（[PhysBones（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
+- **Play モードのランク**: 非破壊改変ツールを使うと、VRCSDK の Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードのランクの確かめ方は、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」を見てください。
 
 ## 減らし方の考え方
 
@@ -40,12 +40,12 @@ VRChat の公式ドキュメントは英語の原文だけなので、ここで�
 ### lilAvatarUtils {.tool .tool-lil}
 
 - **何をするか**: PhysBone タブで、アバターの PhysBone の一覧を確認できます。PBコライダー タブでは、コライダーの一覧と「参照数」（このコライダーを参照している PhysBone の数）を確認できます（[PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)・[PBコライダー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBoneCollidersGUI)）。
-- **どう使うか**: 「コリジョン数」が大きい PhysBone を見つける候補にします。公式の説明では、PhysBone タブは「パフォーマンスランクへの影響が大きいPhysBoneコンポーネントの特定」に役立ちます。PBコライダー タブは、「どこからも参照されない無駄なコライダーの削減」に役立つと書かれています。
+- **どう使うか**: 「コリジョン数」が大きい PhysBone を見つける候補にします。PhysBone タブは、パフォーマンスランクへの影響が大きい PhysBone コンポーネントの特定に役立ちます。PBコライダー タブは、どこからも参照されない無駄なコライダーの削減に役立ちます（[PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)・[PBコライダー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBoneCollidersGUI)）。
 - **注意**: 「コリジョン数」は lilAvatarUtils の項目名で、SDK の「PHYSBONE 衝突チェックの数」とは別の値として扱います。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-- **何をするか**: Trace And Optimize の「PhysBone を最適化する」（英語版の名前は Optimize PhysBone Settings）は、全く同じ設定の PhysBone コライダーを 1 つに統合します。公式の原文は「全く同じ設定のPhysBone Colliderを1つに統合します。」です（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。
+- **何をするか**: Trace And Optimize の「PhysBone を最適化する」（Optimize PhysBone Settings）は、全く同じ設定の PhysBone コライダーを 1 つに統合します（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。
 - **どう使うか**: 「PhysBone を最適化する」は、Trace And Optimize のチェックボックスで選びます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) を見てください）。AAO Merge PhysBone の「オーバーライド」でコライダーを Merge にすると、統合対象のコライダーの一覧をまとめられます（[Merge PhysBone（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-physbone/)）。
 - **注意**: 統合の条件は「全く同じ設定」です。
 
@@ -61,24 +61,18 @@ VRChat の公式ドキュメントは英語の原文だけなので、ここで�
 ## 注意・うまくいかないとき
 
 ::: warning
-- **無効のものも数えられます**: 公式の Performance Ranks には、「All GameObjects and Components, **including those that are currently disabled**, count towards the Avatar Performance Rank.」（無効化されているものも含めて数える）と書かれています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
-- **Allow Collision**: 公式の [PhysBones](https://creators.vrchat.com/common-components/physbones) のページには、「If set to **False**, this PhysBone will only collide with the colliders that are listed in the `Colliders` list.」（False にすると、この PhysBone は Colliders のリストに入ったコライダーとだけ衝突します）と書かれています。衝突の対象が変わるので、動きも変わります。Play モードで確かめてください。
-- **Global Collision は 4 つまで（アバター）**: 公式の [PhysBones](https://creators.vrchat.com/common-components/physbones) のページには、アバターでは Global Collision を有効にした PhysBone コライダーが最大 4 つまでと書かれています。ワールドには上限がありません。
-- **Global Collision は Sphere と Capsule だけ**: 公式の [PhysBones](https://creators.vrchat.com/common-components/physbones) のページには、Global Collision は Sphere と Capsule のコライダーでのみサポートされると書かれています。
-- **標準コライダーは性能ランクに影響しない**: 公式の [PhysBones](https://creators.vrchat.com/common-components/physbones) のページには、標準コライダー（Standard Colliders）は性能ランクに影響しないと書かれています。
-- **Android の上限**: モバイルの PhysBone 衝突チェックのハード上限は 64 です。公式の [Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) には、モバイルでハード上限を超えると、「Show Avatar」を選んでも、制限対象のコンポーネントがすべて取り除かれると書かれています。Android の表示の既定値は Medium で、Poor のアバターは表示されません（公式の [Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) の「Mobile Default Performance Rank Blocking」の節に、モバイルの既定は Medium で、Poor と Very Poor のアバターは見えないと書かれています）。
-- **AAO の版による修正**: CHANGELOG には、PhysBone コライダーの統合・削除に関する修正が何度かあります。1.9.12 では「MergePhysBone Collider may merge differently toggled PhysBoneColliders when colliders are targeting external bones」（外部のボーンを対象にするコライダーの統合で、切り替えの状態が違うものを統合することがある）、1.9.20 では「PhysBone Colliders can be removed incorrectly when there are other disabled PhysBone Colliders with same transform」（同じトランスフォームを持つ無効なコライダーがあると、正しくなく削除されることがある）が修正されています（[AAO の CHANGELOG](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
+- **無効にしたものも、ランクの数に入ります**: 無効化されているものも含めて、すべての GameObject とコンポーネントが、Avatar Performance Rank に数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+- **Allow Collision**: Allow Collision を False にすると、この PhysBone は Colliders のリストに入ったコライダーとだけ衝突します（[PhysBones（VRChat 公式）](https://creators.vrchat.com/common-components/physbones)）。衝突の対象が変わるので、動きも変わります。Play モードで確かめてください。
+- **Global Collision は 4 つまで（アバター）**: アバターでは、Global Collision を有効にした PhysBone コライダーは最大 4 つまでです。ワールドには上限がありません（[PhysBones（VRChat 公式）](https://creators.vrchat.com/common-components/physbones)）。
+- **Global Collision は Sphere と Capsule だけ**: Global Collision は、Sphere と Capsule のコライダーでのみ対応します（[PhysBones（VRChat 公式）](https://creators.vrchat.com/common-components/physbones)）。
+- **標準コライダーは性能ランクに影響しない**: 標準コライダー（Standard Colliders）は、性能ランクに影響しません（[PhysBones（VRChat 公式）](https://creators.vrchat.com/common-components/physbones)）。
+- **Android の上限**: モバイルの PhysBone 衝突チェックの硬い上限は 64 です。硬い上限を超えると、「Show Avatar」を選んでも、制限対象のコンポーネントがすべて取り除かれます。Android の表示の既定値は Medium で、Poor と Very Poor のアバターは表示されません（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) の「Mobile Default Performance Rank Blocking」の節）。
+- **AAO の版による修正**: PhysBone コライダーの統合・削除に関する修正が、何度かあります。AAO 1.9.12 では、外部のボーンを対象にするコライダーの統合で、切り替えの状態が違うものを統合することがある問題が修正されました。AAO 1.9.20 では、同じトランスフォームを持つ無効な PhysBone コライダーがほかにあると、コライダーが正しくなく削除されることがある問題が修正されました（[AAO の CHANGELOG](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
 - **Merge PhysBone の注意**: 統合すると、掴めるのは 1 か所だけになります。また、Merge PhysBone を 1 つ使うごとに、PhysBone トランスフォームの数が 1 増えます（ルートの GameObject も数えるため）（[Merge PhysBone（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-physbone/)）。
 :::
 
 ::: warning
-**OSC で使う PhysBone・Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。公式の FAQ には、次のように書かれています。
-
-- 「技術的な理由から、`AAO Trace and Optimize`コンポーネントはPhysBoneやContact ReceiverコンポーネントがOSCギミックで使用されているかどうかを判別することができません。」
-- そのため、使われていないものと仮定して、ほかの用途で使われていなければ削除するよう設計されています。
-- この仮定は正しいとは限らないため、Animator や Expression Menu を使わずに OSC ギミックで使う場合は、Asset Description ファイルを作成し、「Parameters Read By External Tools」を設定してください。
-
-PhysBone が効かないときは、この設定を確かめてください（[よくある質問（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)、[Asset Description（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/developers/asset-description/)）。
+**OSC で使う PhysBone・Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。そのため、使われていないものと仮定して、ほかの用途で使われていなければ削除するように設計されています。この仮定は正しいとは限らないため、Animator や Expression Menu を使わずに OSC ギミックで使う場合は、Asset Description ファイルを作成し、「Parameters Read By External Tools」を設定するとよいです（[よくある質問（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)、[Asset Description（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/developers/asset-description/)）。PhysBone が効かないときは、この設定を確かめてください。
 :::
 
 ## 関連ページ

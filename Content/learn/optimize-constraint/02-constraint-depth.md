@@ -1,7 +1,7 @@
 ---
 title: コンストレイントの深さを減らす
 reading: こんすとれいんとのふかさをへらす
-description: コンストレイントの深さ（依存関係のいちばん長いつながり）の上限と確かめ方、VRChat 公式の考え方（最も長いつながりを短くする、Unity のコンストレイントを VRChat のものに変える）を、公式の資料に書かれた範囲でまとめます。
+description: コンストレイントの深さ（依存関係のいちばん長いつながり）の上限と確かめ方、減らし方の考え方（いちばん長いつながりを短くする、Unity のコンストレイントを VRChat のものに変える）をまとめます。
 difficulty: 中級
 updated: 2026-11-07
 ---
@@ -9,30 +9,28 @@ updated: 2026-11-07
 ::: point
 - コンストレイントの深さの上限は、PC の Poor が 100、Android の Poor が 50
 - 深さは合計ではなく、アバター全体でいちばん長い依存のつながりで決まる
-- 公式は、いちばん長いつながりを短くすると深さが下がると書いている
+- いちばん長いつながりを短くすると、深さが下がる
 :::
 
-コンストレイントの深さは、アバターにあるコンストレイントの依存関係（あるコンストレイントが、別のコンストレイントの結果に依存しているつながり）のうち、いちばん長いつながりの段数です。VRChat 公式の定義は "The avatar's overall constraint depth rating is the longest chain of dependencies across the entire avatar." で、アバター全体で最も長い依存のつながりです。公式は、"If the chain has 3 constraints along it, then that means the chain has a constraint depth of 3."（訳: つながりに 3 つのコンストレイントがあれば、そのつながりの深さは 3 です）と例を挙げています。上限は PC の Poor が 100、Android の Poor が 50 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
+コンストレイントの深さは、アバターにあるコンストレイントの依存関係（あるコンストレイントが、別のコンストレイントの結果に依存しているつながり）のうち、いちばん長いつながりの段数です。例えば、つながりに 3 つのコンストレイントがあれば、そのつながりの深さは 3 です。上限は PC の Poor が 100、Android の Poor が 50 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
 上限を超えたときの扱いは、コンストレイントの数と同じです。Android では、硬い上限（50）を超えると、「Show Avatar」を選んでも回避できず、制限の対象のコンポーネントが取り除かれます。詳しくは [コンストレイントの数を減らす](/learn/optimize-constraint/constraint-count) を見てください。
 
-「依存のつながり」は、公式の dependencies のことです。この記事では、「あるコンストレイントが、別のコンストレイントの結果に依存しているつながり」と言い換えています。
-
-VRChat の公式ドキュメントは英語の原文だけなので、引用は英語の原文に日本語の訳を添えています。
+「依存のつながり」は、英語の dependencies にあたる言葉です。この記事では、「あるコンストレイントが、別のコンストレイントの結果に依存しているつながり」と言い換えています。
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「コンストレイントの深さ」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、34（上限 100）と表示されていました。
-- **深さは合計ではなく、いちばん長いつながりです。** 公式は、いくつかの腕があって、それぞれの深さが 3 でも、ほかに長いつながりがなければ、アバター全体の深さは 3 のままだと例を挙げています（原文: "if your avatar has several arms that all have a depth of 3, the overall score for the avatar would still be 3"）。
+- **深さは合計ではなく、いちばん長いつながりです。** いくつかの腕があって、それぞれの深さが 3 でも、ほかに長いつながりがなければ、アバター全体の深さは 3 のままです。
 
 ## 減らし方の考え方
 
-公式は、次の 2 つの考え方を書いています（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)。訳は、この記事で添えたものです）。
+減らすには、次の 2 つの考え方がおすすめです（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
 
-- **いちばん長いつながりを短くする。** 原文は "Constraint depth can be lowered by reducing the length of the longest chain of constraints." です。訳は、コンストレイントの深さは、いちばん長いつながりの長さを減らすと下がる、という意味です。
-- **依存を減らして、同時に動けるようにする。** 原文は "By organizing constraints to minimize the dependencies between them, many of them will be able to run at the same time, which results in better performance compared to situations where the constraints must run one after another." です。訳は、コンストレイントどうしの依存を減らすように並べると、多くを同時に動かせるため、順番に動かさなければならない場合より性能が良くなる、という意味です。
+- **いちばん長いつながりを短くする。** コンストレイントの深さは、いちばん長いつながりの長さを減らすと下がります。
+- **依存を減らして、同時に動けるようにする。** コンストレイントどうしの依存を減らすように並べると、多くのコンストレイントを同時に動かせます。順番に動かさなければならない場合より、性能が良くなります。
 
-公式はさらに、深さを正しく計算できるのは、VRChat のコンストレイントだけを使っているときだけだと書いています（原文: "The constraint depth of an avatar can only be accurately calculated when it uses VRChat constraints exclusively."）。
+深さを正しく計算できるのは、VRChat のコンストレイントだけを使っているときです。
 
 この記事の整理として、次の 3 段階で考えます。
 
@@ -50,32 +48,31 @@ VRChat の公式ドキュメントは英語の原文だけなので、引用は�
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-CHANGELOG には、ネストしたコンストレイントが Trace And Optimize で壊れる不具合の修正があります（1.6.5 の「Nested Constraint can be broken with Trace and Optimize」、1.7.0 の「Re-fix Nested Constraint can be broken with Trace and Optimize」）。AAO を使うときは、深さが変わっていないかを確かめてください。
+AAO 1.6.5 以降は、ネストしたコンストレイントが Trace And Optimize で壊れる不具合が修正されています。1.7.0 以降は、その修正がやり直されています。AAO を使うときは、深さが変わっていないかを確かめてください。
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「コンストレイントの深さ」を確かめます（上限は PC の Poor が 100、Android の Poor が 50）。
 2. 変換の前に、プロジェクトのバックアップを取り、確かめたい動き（対象のアニメーションとコンストレイントの追従）を記録しておきます（**この記事の助言**{.lbl .lbl-adv}です）。
-3. Unity のコンストレイントが含まれているなら、VRChat のコンストレイントに変えます。公式は、次のように書いています（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
-   - 原文: "You can convert all the Unity constraints on your avatar into equivalent VRChat constraints by using the relevant Auto Fix option in the control panel in the SDK."（訳: アバターの Unity のコンストレイントは、SDK の Control Panel にある該当する Auto Fix の項目を使うと、同等の VRChat のコンストレイントに変換できます。）
-   - 公式は、Unity のコンストレイントがあると、深さが過大に見積もられることがあると書いています。
+3. Unity のコンストレイントが含まれているなら、VRChat のコンストレイントに変えます。SDK の Control Panel にある該当する Auto Fix の項目を使うと、アバターの Unity のコンストレイントを、同等の VRChat のコンストレイントに変換できます（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
+   - Unity のコンストレイントがあると、深さが過大に見積もられることがあります（下の注意を見てください）。
 4. 変換したあとは、Play モードに入り、対象のアニメーションとコンストレイントの追従が、変換の前と同じかを確かめます。
 5. いちばん長いつながりを探します。コンストレイントの設定（どの物をどの物に合わせているか）を確かめて、つながりを追います（この記事の整理）。
-6. 途中の依存を減らし、多くのコンストレイントが同時に動けるように並べ替えます（公式の考え方）。
+6. 途中の依存を減らし、多くのコンストレイントが同時に動けるように並べ替えます（上の「減らし方の考え方」）。
 7. 変更のあと、SDK の「パフォーマンスの内訳」で、深さの数字が変わったかを確かめます。
 
 ## 注意・うまくいかないとき
 
 ::: warning
 
-- **Android の硬い上限**: Android の硬い上限は、依存の深さ 50 です（公式の Mobile Avatar Component Limits）。公式は、「You cannot bypass the limits above by using "Show Avatar".」（訳: 上の上限は、「Show Avatar」を使っても回避できません）と書いています。
-- **並べ替え**: 公式は、依存を減らすように並べると多くが同時に動けると書いています。並べ替えは、コンストレイントの設定を確かめて、つながりを追ってから決めてください。
-- **Unity のコンストレイントと深さ**: 公式は、次のように書いています。
-  - VRChat Constraints の文書: "If your avatar contains any Unity constraints, the constraint depth is likely to be over-estimated, as the category assumes that Unity constraints can only run one at a time."（訳: アバターに Unity のコンストレイントがあると、この項目は、Unity のコンストレイントは一度に 1 つしか動かないと仮定するため、深さが過大に見積もられることがあります。）
-  - Optimization Tips: "VRChat will automatically convert Unity constraints to VRChat constraints at runtime."（訳: VRChat は、実行時に Unity のコンストレイントを VRChat のコンストレイントに自動で変換します）。
-  - Android Content Limitations: "Unity constraints are disabled completely for avatars on Android and Quest due to complex performance issues. Use VRChat Constraints instead."（訳: Android と Quest では、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使ってください。）
-- **数値は変わることがあります**: 公式は、推奨の数値や上限は、いつでも変わる可能性があると書いています（原文: "Any recommended numbers or limits in this document are subject to change at any time."）。
-- **AAO の不具合の修正の記録**: CHANGELOG には、自動の MergeBone で、コンストレイントが壊れる不具合の修正もあります（1.5.5 の「Constraints and Animations can be broken with Automatic MergeBone」、1.8.13 の「VRCConstraints solve in local space can be broken with automatic merge bone」）。AAO を使ったあとは、コンストレイントの動きを確かめてください。
+- **Android の硬い上限**: Android の硬い上限は、依存の深さ 50 です（Mobile Avatar Component Limits）。「Show Avatar」を使っても、上の上限は回避できません。
+- **並べ替え**: 依存を減らすように並べると、多くのコンストレイントが同時に動けます。並べ替えは、コンストレイントの設定を確かめて、つながりを追ってから決めてください。
+- **Unity のコンストレイントと深さ**:
+  - Unity のコンストレイントがあると、この項目は、Unity のコンストレイントは一度に 1 つしか動かないと仮定するため、深さが過大に見積もられることがあります（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
+  - Android・Quest 以外では、VRChat は、実行時に Unity のコンストレイントを VRChat のコンストレイントに自動で変換します（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
+  - Android と Quest では、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使うのがおすすめです（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。
+- **数値は変わることがあります**: Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があります。
+- **AAO の不具合の修正の記録**: AAO 1.5.5 以降は、自動の MergeBone で、コンストレイントとアニメーションが壊れる不具合が修正されています。1.8.13 以降は、ローカル空間で解く VRCConstraints が、自動の merge bone で壊れる不具合が修正されています。AAO を使ったあとは、コンストレイントの動きを確かめてください。
 
 :::
 

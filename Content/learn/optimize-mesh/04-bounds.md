@@ -8,13 +8,13 @@ updated: 2026-11-07
 
 ::: point
 - 範囲（BOUNDS）の上限は、PC・Android とも 5 × 6 × 5 m
-- 範囲が大きいと、常時は見えない大きなアニメーションがある可能性があると公式の補足が書いている
+- 範囲が大きいときは、常時は見えない大きなアニメーションがある可能性があります
 - AAO Merge Skinned Mesh は統合のときに範囲（BOUNDS）を設定する
 :::
 
 範囲（BOUNDS）は、アバター全体の大きさを表す箱（3 方向の寸法）です。パフォーマンスの内訳では、この大きさが Poor の上限を超えると、ランクを下げる項目になります。上限は PC・Android とも 5 × 6 × 5 m です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
-公式の補足には、範囲が大きいと、常時は見えない大きなアニメーションがある可能性がある、と書かれています。一方で、公式の注記には、範囲（BOUNDS）は、アバターの表示が制限される理由にはなりません、とも書かれています。
+範囲が大きいと、常時は見えない大きなアニメーションがある可能性があります。一方で、範囲（BOUNDS）は、アバターの表示が制限される理由にはなりません。
 
 ## 減らす前に確かめること
 
@@ -24,7 +24,7 @@ updated: 2026-11-07
 
 ## 範囲が大きいときの考え方
 
-- この記事の整理として、まず範囲が大きくなっている原因を探します。公式の補足にあるとおり、常時は見えない大きなアニメーションがないかを確かめます。
+- まず範囲が大きくなっている原因を探します。常時は見えない大きなアニメーションがないかを確かめます。
 - ツールは、範囲の値を決める機能や、統合のときに範囲を設定する機能です。設定したあとは、SDK の内訳で値を確かめてください。
 
 ## ツール別の方法
@@ -32,22 +32,22 @@ updated: 2026-11-07
 ### Modular Avatar（MA） {.tool .tool-ma}
 
 - **何をするか**: MA Mesh Settings は、指定した GameObject の配下にあるメッシュに、アンカーオーバーライドと範囲（BOUNDS）を設定します。範囲は、Root Bone として指定したトランスフォームを基準に決まります。
-- **どう使う**: アバターの最上位（ルート）に置くと、アバター内のすべてのメッシュに、範囲とライトプローブアンカーが一貫して設定されると書かれています。設定モードは 4 つあります（「継承」「設定」「設定しない」「親で指定されているときは継承、それ以外では設定」）。
-- **注意**: 範囲は SkinnedMeshRenderer だけに影響します。配布用のアセットに範囲を設定するときは、注意が必要だと書かれています。
+- **どう使う**: アバターの最上位（ルート）に置くと、アバター内のすべてのメッシュに、範囲とライトプローブアンカーが一貫して設定されます。設定モードは 4 つあります（「継承」「設定」「設定しない」「親で指定されているときは継承、それ以外では設定」）。
+- **注意**: 範囲は SkinnedMeshRenderer だけに影響します。配布用のアセットに範囲を設定するときは、注意が必要です。
 - 出典: [Mesh Settings（Modular Avatar 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/mesh-settings)
 
 ### lilAvatarUtils {.tool .tool-lil}
 
 - **何をするか**: レンダラーのタブで、Bounds と ルートボーン（Root Bone）を確認できます。Bounds は、メッシュが画面やライトの範囲外にあるかどうかを判定するときの境界です。ルートボーンは、メッシュの原点となるボーンまたは Transform で、Bounds はこの Transform に追従して動きます。
 - **どう使う**: Update When Offscreen をオンにすると、画面の外にあるメッシュでも Bounds を計算します。既定ではオフです。
-- **注意**: 公式には、メッシュがこの範囲に収まっていないと、画面内にあるはずのメッシュが突然消えたり、ライトが突然暗くなったりするため、適切に設定する必要があると書かれています。
+- **注意**: メッシュがこの範囲に収まっていないと、画面内にあるはずのメッシュが突然消えたり、ライトが突然暗くなったりします。そのため、範囲は適切に設定してください。
 - 出典: [レンダラー（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/RenderersGUI.html)
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-- **何をするか**: AAO Merge Skinned Mesh は、統合のときに、メッシュ・マテリアル・BlendShape と範囲（Bounds）を設定すると、公式に書かれています。そのほかの設定は変わりません。
-- **Trace And Optimize の範囲**: CHANGELOG の 1.7.1 の項目 "Relax Bounds condition for Automatic Merge Skinned Mesh" には、自動の統合の判定に範囲を使い、"Since this version, AAO will merge meshes if bounds are the same with precision to the last 6 digits of decimal point."（この版から、範囲が小数点以下 6 桁まで同じなら統合する）と書かれています。
-- 統合先の SkinnedMeshRenderer の Root Bone と Anchor Override は、自動では設定されません。手動で設定します（公式 FAQ）。
+- **何をするか**: AAO Merge Skinned Mesh は、統合のときに、メッシュ・マテリアル・BlendShape と範囲（Bounds）を設定します。そのほかの設定は変わりません。
+- **Trace And Optimize の範囲**: AAO 1.7.1 では、自動の統合の判定に使う範囲の条件を緩和しました。範囲が小数点以下 6 桁まで同じなら、統合します。
+- 統合先の SkinnedMeshRenderer の Root Bone と Anchor Override は、自動では設定されません。手動で設定します（[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。
 - 出典: [Merge Skinned Mesh（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-skinned-mesh/)
 
 ## 手順
@@ -57,16 +57,16 @@ updated: 2026-11-07
 3. lilAvatarUtils のレンダラーのタブで、Bounds と ルートボーンを確認します。
 4. Modular Avatar を使うなら、アバターのルートに MA Mesh Settings を追加して、Root Bone を指定します。
 5. AAO の Merge Skinned Mesh で統合したなら、統合先の SkinnedMeshRenderer で Root Bone と Anchor Override を手動で設定します。
-6. Build & Test で、メッシュが消えないか、暗くならないかを確かめます。AAO を使ったあとは、Control Panel の値はあてにならないと公式に書かれています。範囲の値は、Play モードでの確かめ方（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」）で見てください。
+6. Build & Test で、メッシュが消えないか、暗くならないかを確かめます。AAO を使ったあとは、Control Panel の値はあてになりません。範囲の値は、Play モードでの確かめ方（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」）で見てください。
 
 ## 注意・うまくいかないとき
 
-- **統合後にメッシュが見えない**: AAO の FAQ によると、多くの場合は、統合先の Root Bone を指定し忘れていることが原因です。
-- **統合後に明るさが違う**: FAQ によると、多くの場合は、統合先の Anchor Override を指定し忘れていることが原因です。詳しくは [Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」を見てください。
-- **メッシュ未設定の SkinnedMeshRenderer**: CHANGELOG の 1.6.7 に、メッシュが設定されていない SkinnedMeshRenderer は、ポリゴンの無いメッシュになり、VRChat のパフォーマンスランクの範囲（Bounds）に影響するかもしれない、と書かれています。
-- **頂点の削除**: CHANGELOG の 1.9.0 に、範囲を決めるために使われている可能性がある頂点（ポリゴンに属さない頂点）は、残すようになったと書かれています。
-- **Update When Offscreen**: CHANGELOG の 1.6.11 には、Update When Offscreen をオンにすると範囲が壊れることがあった、という修正の記録があります。
-- **無限大の BlendShape**: CHANGELOG の 1.9.0 には、無限大の delta を持つ BlendShape を固定すると範囲が NaN や Infinity になり、メッシュが消えることがあった、という修正の記録があります。
+- **統合後にメッシュが見えない**: 多くの場合は、統合先の Root Bone を指定し忘れていることが原因です（[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。
+- **統合後に明るさが違う**: 多くの場合は、統合先の Anchor Override を指定し忘れていることが原因です。詳しくは [Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」を見てください。
+- **メッシュ未設定の SkinnedMeshRenderer**: AAO 1.6.7 では、メッシュが設定されていない SkinnedMeshRenderer は、ポリゴンの無いメッシュになります。これは、VRChat のパフォーマンスランクの範囲（Bounds）に影響するかもしれません。
+- **頂点の削除**: AAO 1.9.0 では、範囲を決めるために使われている可能性がある頂点（ポリゴンに属さない頂点）を、残すようになりました。
+- **Update When Offscreen**: CHANGELOG の 1.6.11 では、Update When Offscreen をオンにすると範囲が壊れることがある問題を修正しました。
+- **無限大の BlendShape**: CHANGELOG の 1.9.0 では、無限大の delta を持つ BlendShape を固定すると範囲が NaN や Infinity になり、メッシュが消えることがある問題を修正しました。
 - **MA Mesh Settings**: 配布用のアセットに範囲を設定するときは、注意が必要です（「ツール別の方法」の Modular Avatar の項を見てください）。
 
 ## 関連ページ
