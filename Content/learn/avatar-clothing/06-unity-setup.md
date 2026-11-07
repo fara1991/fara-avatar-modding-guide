@@ -65,7 +65,7 @@ FBX のマテリアルは、既定では FBX の中に埋め込まれたもの�
 これだけです。服のアーマチュアに **MA Merge Armature** コンポーネントが付き、ボーン名を照合してアバターのアーマチュアに対応付けられます。服のいちばん上には **MA Outfit Root** と **MA Mesh Settings**（ライトの基準と表示範囲をアバターに合わせる）も付きます。
 
 [![Unity の Inspector に表示された MA Merge Armature と MA Mesh Settings のコンポーネント。統合先、接頭辞、接尾辞、位置追従モードなどの項目が並ぶ](images/unity-merge-armature.png)](/learn/avatar-clothing/images/unity-merge-armature.png)
-*MA Merge Armature（上）と MA Mesh Settings（下）の表示（日本語表示）。ここでは設定前で、統合先は空。Setup Outfit を使うと、このコンポーネントが付いてアバターのアーマチュアと対応付けられる*
+*MA Merge Armature（上）と MA Mesh Settings（下）の表示（日本語表示）。統合先がまだ空の状態の表示。Setup Outfit を使うと、このコンポーネントが服のアーマチュアに付き、アバターのアーマチュアと対応付けられる*
 
 - 再生ボタンを押して **Play Mode** に入ると、実際に統合された状態になる。アバターを動かす（`Hierarchy` でアバターのボーンを回す）と服がついてくるか確認する
 - Play Mode を抜けると元の状態に戻る。アップロード時に自動で統合されるので、**自分でボーンを付け替える必要はない**

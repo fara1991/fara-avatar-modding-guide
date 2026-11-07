@@ -48,7 +48,6 @@ $proc.Id | Out-File "$Project\unity.pid" -Encoding ascii
 
 $hwnd = [IntPtr]::Zero
 $deadline = (Get-Date).AddMinutes(12)
-$tags = $Tags
 $done = @{}
 while ((Get-Date) -lt $deadline -and -not $proc.HasExited) {
   $proc.Refresh()

@@ -16,6 +16,9 @@ JOBS = [
     ("blendshape-sync-window.png", "unity-blendshape-sync.png", (1431, 81, 1912, 425)),
 ]
 for name, dest, box in JOBS:
-    img = Image.open(src / name).convert("RGB").crop(box)
+    full = Image.open(src / name).convert("RGB")
+    if full.size != (1920, 1032):
+        raise SystemExit(f"{name}: ウィンドウの大きさが {full.size} で、切り出しの座標（1920 x 1032 の前提）と合わない")
+    img = full.crop(box)
     img.save(out / dest, optimize=True)
     print(dest, img.size)
