@@ -3,8 +3,14 @@ title: コンタクトの数を減らす
 reading: こんたくとのかずをへらす
 description: VRChat のパフォーマンス表の「コンタクトの数」が何を数えるか、上限、Local Only の扱い、公式に書かれている減らし方と注意、ツールごとに公式に書かれていることを整理します。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- コンタクトの上限は、PC の Poor が 32、Android の Poor が 16
+- Filtering が "Local Only" に設定された receiver は、数えないと公式の定義に書かれている
+- AAO の機能として Contact の数を減らすことは、公式に記載なし
+:::
 
 コンタクトは、アバターに付けた Contact（触れたときに反応する仕組み）の数を数える項目です。公式の定義は「アバター上の Contact の数。フィルタリングが "Local Only" に設定された receiver は数えない」（英語の原文の訳）です（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) の定義）。上限は、PC の Poor が 32、Android の Poor が 16 です。
 

@@ -3,8 +3,14 @@ title: レイキャストの数を減らす
 reading: れいきゃすとのかずをへらす
 description: レイキャスト（VRCRaycast）の数の上限と、1 アバターあたり 80 個の固定の上限、確かめ方、各ツールで公式に記載があるかを、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 上限は PC が Excellent 1・Good 4・Medium 8・Poor 15、Android が同じ順で 1・2・4・8
+- どのプラットフォームでも 1 アバターあたり 80 個の固定の上限があり、FinalIK と共有される
+- 80 個を超えたときの扱いは公式に書かれておらず、未確認
+:::
 
 レイキャスト（VRCRaycast）は、アバターからシーンに光線を飛ばし、ワールドのコライダーやほかのプレイヤーに当たったかを調べる部品です。VRChat 公式の定義は "The number of VRCRaycast components on the avatar." で、訳は「アバターにある VRCRaycast コンポーネントの数」です。上限は PC が Excellent 1・Good 4・Medium 8・Poor 15、Android が 1・2・4・8 です（この段階の値は [VRChat の公式の表（GitHub の原本の avatar-performance-ranking-system.md）](https://raw.githubusercontent.com/vrchat-community/creator-docs/main/Docs/docs/avatars/avatar-performance-ranking-system.md) の値で、PC の Poor と Android の Poor は [パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表とも同じ値）。どのプラットフォームでも 1 アバターあたり 80 個の固定の上限があります。
 

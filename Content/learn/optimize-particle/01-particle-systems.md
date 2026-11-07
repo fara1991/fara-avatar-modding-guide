@@ -3,8 +3,14 @@ title: パーティクルシステムの数を減らす
 reading: ぱーてぃくるしすてむのかずをへらす
 description: パーティクルシステムの数の上限と確かめ方、VRChat 公式の勧め（使うパーティクルシステムの数を制限する）、各ツールで公式に書かれていることを、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- アバターにある Particle System の数の上限は、PC の Poor が 16、Android の Poor が 2
+- 公式は無効にしたものも数えると書いており、使わないものは削除するのがこの記事の助言
+- 公式の勧めは、使っているパーティクルシステムの数を制限すること
+:::
 
 パーティクルシステムの数は、アバターにある Particle System コンポーネント（パーティクルを出す部品）の数を数える項目です。VRChat 公式の定義は "The number of Particle System components on the avatar." です（訳: アバターにある Particle System コンポーネントの数）。上限は PC の Poor が 16、Android の Poor が 2 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 

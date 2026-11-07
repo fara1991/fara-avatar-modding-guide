@@ -3,8 +3,14 @@ title: Cloth の数を減らす
 reading: くろーすのかずをへらす
 description: Cloth コンポーネントの数の上限と確かめ方、VRChat 公式の勧め（Cloth の使用を強く控える）、各ツールで確かめた範囲を、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 上限は PC の Poor が 1 で、Android（モバイル）では無効
+- 公式は、無効にしたものも数えると書いている
+- 使っているかを確かめる方法は未確認のため、取り除く操作は勧めない
+:::
 
 Cloth の数は、アバターにある Cloth コンポーネント（布の動きを物理で計算する部品）の数を数える項目です。VRChat 公式の定義は "The total number of Cloth components on the avatar." で、訳は「アバターにある Cloth コンポーネントの総数」です。SDK の「パフォーマンスの内訳」では「CLOTH メッシュの数」と表示されますが、公式の定義は Cloth コンポーネントの数なので、この記事もその定義に合わせて書きます。上限は PC の Poor が 1 で、Android（モバイル）では無効です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 

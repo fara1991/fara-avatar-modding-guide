@@ -3,8 +3,14 @@ title: Cloth の最大頂点の確かめ方
 reading: くろーすのさいだいちょうてんのたしかめかた
 description: Cloth の最大頂点（Total Cloth Vertices）の上限と確かめ方、VRChat 公式の勧め（200 頂点程度より多いメッシュには Cloth を使わない）、各ツールの公式の資料で確かめた範囲をまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 上限は PC の Poor が 200 で、Android（モバイル）では無効
+- 公式の勧め（目安）は、200 頂点程度より多いメッシュには Cloth を使わないこと
+- 「最大」の意味と、残す Cloth の頂点数を減らす方法は未確認
+:::
 
 Cloth の最大頂点は、SDK の「パフォーマンスの内訳」で「CLOTH の最大頂点の数」と表示される項目です。公式の項目名は Total Cloth Vertices です。ただし、公式の統計表（Avatar Performance Ranking Stats）には、この項目の定義の行を確認できませんでした。そのため、何を数えるか（「最大」の意味を含む）は、この記事では**未確認**{.lbl .lbl-unk}です。上限は PC の Poor が 200 で、Android（モバイル）では無効です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。PC の Excellent は 0、Good は 50、Medium は 100 で、これらは [VRChat の公式の表（GitHub の原本の avatar-performance-ranking-system.md）](https://raw.githubusercontent.com/vrchat-community/creator-docs/main/Docs/docs/avatars/avatar-performance-ranking-system.md) の値です。
 

@@ -3,8 +3,14 @@ title: トレイルレンダラーの数を減らす
 reading: とれいるれんだらーのかずをへらす
 description: トレイルレンダラー（Trail Renderer）の数の上限、超えたときの処理、範囲（BOUNDS）との関係、ツールごとに公式に記載があるかを、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- トレイルレンダラーの数の上限は、PC の Poor が 8、Android の Poor が 1
+- 範囲（BOUNDS）の計算には、トレイルとラインのレンダラーは入らない
+- 無効にしても数は減らないため、必要ないものはコンポーネントを削除する
+:::
 
 トレイルレンダラー（Trail Renderer）は、動いた軌跡に尾を引く線を描く部品です。VRChat 公式の定義は "The number of Trail Renderers on the avatar."（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）で、訳は「アバターにあるトレイルレンダラーの数」です。パーティクルシステムのトレイル（パーティクルトレイル）とは別の項目として数えられます。
 

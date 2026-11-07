@@ -3,8 +3,15 @@ title: 範囲（BOUNDS）の確かめ方と注意
 reading: はんいばうんずのたしかめかたとちゅうい
 description: 範囲（BOUNDS）が何を表すか、上限と確かめ方、Modular Avatar・lilAvatarUtils・Avatar Optimizer の範囲に関わる機能と注意点を、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 範囲（BOUNDS）の上限は、PC・Android とも 5 × 6 × 5 m
+- 範囲が大きいと、常時は見えない大きなアニメーションがある可能性があると公式の補足が書いている
+- 範囲を小さくする公式の勧めは、パフォーマンスの内訳の表では未確認
+- AAO Merge Skinned Mesh は範囲を設定するが、減らす効果は未確認
+:::
 
 範囲（BOUNDS）は、アバター全体の大きさを表す箱（3 方向の寸法）です。パフォーマンスの内訳では、この大きさが Poor の上限を超えると、ランクを下げる項目になります。上限は PC・Android とも 5 × 6 × 5 m です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 

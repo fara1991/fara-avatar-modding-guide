@@ -3,8 +3,14 @@ title: コンストレイントの数を減らす
 reading: こんすとれいんとのかずをへらす
 description: コンストレイントの数の上限と確かめ方、VRChat 公式の勧め（Unity のコンストレイントを使わず VRChat のコンストレイントを使う）、Modular Avatar の Convert Constraints などのツールの機能を、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- コンストレイントの数の上限は、PC の Poor が 350、Android の Poor が 150
+- 数えるのは、VRChat のコンストレイントと Unity のコンストレイントを合わせた数
+- 公式は、Unity のコンストレイントを使わず、VRChat のコンストレイントを使うよう勧めている
+:::
 
 コンストレイントの数は、アバターにあるコンストレイント（ある物の位置・回転・スケールを、別の物に紐づける部品）の総数を数える項目です。VRChat 公式の定義は "The total number of VRChat constraints and Unity constraints on the avatar." で、VRChat のコンストレイントと Unity のコンストレイントを合わせた数です。上限は PC の Poor が 350、Android の Poor が 150 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 

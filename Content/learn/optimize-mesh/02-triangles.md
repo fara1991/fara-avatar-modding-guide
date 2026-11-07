@@ -3,8 +3,14 @@ title: 三角ポリゴンを減らす方法
 reading: さんかくぽりごんをへらすほうほう
 description: VRChat のアバターの三角ポリゴンを減らす方法を、Meshia Mesh Simplification（MMS）と Avatar Optimizer（AAO）の削除の機能を中心に整理します。見た目が変わる条件と、公式に記載がない点も書いています。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 公式の勧めは、法線マップの焼き込みと、decimation（間引き）・retopology（作り直し）の検討
+- 服で隠れて見えない部分を消すと、見た目に影響させずに負荷を減らせると AAO の公式が書いている
+- 見える部分を消すと見た目が変わるため、減らす前と後を Build & Test で比べる
+:::
 
 三角ポリゴンは、アバターのモデルが持つ三角形の数です。公式の項目名は Triangles で、SDK の「パフォーマンスの内訳」では「三角ポリゴンの数」と表示されます。上限は PC の Poor が 70,000、Android の Poor が 20,000 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。
 

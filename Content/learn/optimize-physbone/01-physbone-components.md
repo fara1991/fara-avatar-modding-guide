@@ -3,8 +3,14 @@ title: PhysBone コンポーネントの数を減らす
 reading: ふぃじっくぼーんこんぽーねんとのかずをへらす
 description: PhysBone コンポーネントの数の上限と確かめ方、Avatar Optimizer（AAO）の Merge PhysBone と Trace And Optimize で減らす方法と注意点を、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- PhysBone コンポーネントの上限は、PC の Poor が 32、Android の Poor が 8
+- 無効にしたものも数えられるので、無効にするだけでは数は減らない
+- AAO の Merge PhysBone で 1 つにまとめると、掴めるのは 1 か所だけになる
+:::
 
 PhysBone コンポーネントの数は、アバターにある PhysBone コンポーネントの数を数える項目です（VRChat 公式の定義は "The number of PhysBone components on the avatar." です）。上限は PC の Poor が 32、Android の Poor が 8 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
