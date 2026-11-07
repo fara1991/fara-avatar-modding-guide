@@ -8,7 +8,7 @@ updated: 2026-11-07
 
 ::: point
 - 法線マップの焼き込みと、decimation（間引き）・retopology（作り直し）の検討がおすすめです
-- 服で隠れて見えない部分を消すと、見た目に影響させずに負荷を減らせます
+- 服で隠れて見えない部分を消すと、見た目に影響させずに負荷を減らせます（[Remove Mesh By BlendShape](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-blendshape/)）
 - 見える部分を消すと見た目が変わるため、減らす前と後を Build & Test で比べる
 :::
 
@@ -25,7 +25,7 @@ updated: 2026-11-07
 ## 減らし方の考え方
 
 - 法線マップ（凹凸の陰影を画像にしたもの）の焼き込み、decimation（間引き）や retopology（作り直し）によるメッシュの簡略化を検討するのがおすすめです（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) にも同じ内容があります）。
-- 服で隠れて見えない部分を消すと、見た目に影響させずに、描画の負荷や BlendShape の処理の負荷を減らせます。ただし、見える部分を消すと見た目が変わります。
+- 服で隠れて見えない部分を消すと、見た目に影響させずに、描画の負荷や BlendShape の処理の負荷を減らせます（[Remove Mesh By BlendShape](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-blendshape/)）。ただし、見える部分を消すと見た目が変わります。
 - 減らす前と後で、Build & Test を使って見た目と動きを比べてください。
 
 ## ツール別の方法
@@ -68,7 +68,7 @@ MMS には 2 種類のコンポーネントがあります。
 
 **注意**:
 
-- **Preserve Border Edges（メッシュの端の辺を保持）**: 指先に穴が空いたりする場合は、有効化してみるのがおすすめです。他の面に接していない辺（穴や切れ目の縁など）を削除しないようにする設定です（パッケージのソース）。
+- **Preserve Border Edges（メッシュの端の辺を保持）**: 指先に穴が空いたりする場合は、有効化してみるのがおすすめです。他の面に接していない辺（穴や切れ目の縁など）を削除しないようにする設定です（パッケージのソース。[Meshia Cascading Avatar Mesh Simplifier の使い方](https://github.com/RamType0/Meshia.MeshSimplification/blob/main/.docfx/docs/ja/vrchat/meshia-cascading-avatar-mesh-simplifier.md)）。
 - Cascading では、既定で左右の手と指のボーンが保持の対象になります（パッケージのソースの既定値）。
 - MMS を使うときは、バックアップを取ってから使うのが安全です。
 

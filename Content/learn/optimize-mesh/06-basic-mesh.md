@@ -25,7 +25,7 @@ updated: 2026-11-07
 
 - メッシュを統合するのがおすすめです（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表にも同じ内容があり、出典は [Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。静的（Static）メッシュは 3 つまでにするのがおすすめです。この数は、ランクの上限とは別の推奨値です。
 - AAO の Merge Skinned Mesh は、統合対象に MeshRenderer を入れられます。統合する静的メッシュの移動・回転・変形は、ボーンで再現されます。
-- AAO の Remove Mesh 系では、服で隠れていて見えない部分のメッシュを削除すると、見た目に影響させずに描画の負荷を減らせます。MeshRenderer に使えるのは、1.9.0 以降の Remove Mesh By Box・Remove Mesh By Mask・Remove Mesh By UV Tile です。
+- AAO の Remove Mesh 系では、服で隠れていて見えない部分のメッシュを削除すると、見た目に影響させずに描画の負荷を減らせます（[Remove Mesh By BlendShape](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-blendshape/)）。MeshRenderer に使えるのは、1.9.0 以降の Remove Mesh By Box・Remove Mesh By Mask・Remove Mesh By UV Tile です。
 - 統合すると、個々のメッシュをアニメーションでオン・オフできなくなります（[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の注意）。
 
 ## ツール別の方法
@@ -58,7 +58,7 @@ updated: 2026-11-07
 
 - **統合後にメッシュが見えない**: 多くの場合は、統合先の SkinnedMeshRenderer の Root Bone を指定し忘れていることが原因です（[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。AAO Merge Skinned Mesh は Root Bone を自動で設定しません。
 - **統合後に明るさが違う**: 多くの場合は、統合先の SkinnedMeshRenderer の Anchor Override を指定し忘れていることが原因です。
-- **マテリアルのアニメーションが競合する**: 統合前のアニメーションがそのまま機能する場合と、競合する場合があります。詳しくは、[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の「注意・うまくいかないとき」を見てください。
+- **マテリアルのアニメーションが競合する**: Merge Skinned Mesh のリファレンスの備考は『マテリアルに関するアニメーションは統合前のものがそのまま機能します』と説明していますが、FAQ は『現時点では競合してしまう仕様です』と説明していて、食い違っています。統合したあとで、実際に動くかを確かめてください。詳しくは、[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の「注意・うまくいかないとき」を見てください。
 - **Trace And Optimize が自動で統合しないメッシュ**: 自動では統合しないメッシュがあるときは、手動の AAO Merge Skinned Mesh を使うのがおすすめです。
 
 ## 関連ページ

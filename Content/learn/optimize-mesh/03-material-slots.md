@@ -65,7 +65,7 @@ updated: 2026-11-07
 - AAO Merge Material で作ったマテリアルを使うマテリアルスロットは、AAO Merge Skinned Mesh では統合されません。
 - 統合すると、個々のメッシュをアニメーションでオンとオフにできなくなります。統合先の Root Bone と Anchor Override は、自動では設定されないため、手動で設定します。
 - 統合対象で同じマテリアルのスロットは、既定で統合されます。アニメーションで別のマテリアルに置き換えている場合は、Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにするのがおすすめです（[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。
-- マテリアルプロパティのアニメーションについては、統合前のものがそのまま機能する場合と、競合する場合があります。FAQ の書き方（現時点では競合する仕様）を前提にして、統合したあとにマテリアルのアニメーションが動くかを、実際に確かめてください。
+- マテリアルプロパティのアニメーションについて、[Merge Skinned Mesh](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-skinned-mesh/) のリファレンスの備考は『マテリアルに関するアニメーションは統合前のものがそのまま機能します』と説明していますが、[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/) は『現時点では競合してしまう仕様です』と説明していて、食い違っています。統合したあとで、実際に動くかを確かめてください。
 - マテリアルスロットの前後関係を変える設定（Allow Shuffling Material Slots）は、1.9.0 から既定でオンです。Avatar Optimizer の作者が知る限り、マテリアルスロットの前後関係は特に意味を持ちません。画面で、オンとオフの状態を確かめてください。
 
 ## 手順

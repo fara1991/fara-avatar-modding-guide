@@ -20,7 +20,7 @@ updated: 2026-11-07
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「メッシュパーティクルの三角ポリゴン数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、4,000,000（上限 5,000）と表示されていました。
-- **Control Panel の数字**: 非破壊改変ツールを使った改変では、SDK の Control Panel のパフォーマンスランクは実際の値とずれます。実際の値は、Play モードの Actual Performance Window で確かめます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
+- **Control Panel の数字**: 非破壊改変ツールを使った改変では、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードの Actual Performance Window で確かめます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 - **数え方の式**: 定義は、有効な Particle System が出すメッシュパーティクルの三角形（triangles）の合計数です。言い換えると、maxEmission × meshParticleVerts です。
 
 ## 減らし方

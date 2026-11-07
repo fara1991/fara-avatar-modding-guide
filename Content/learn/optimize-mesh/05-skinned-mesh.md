@@ -80,7 +80,7 @@ updated: 2026-11-07
 - **統合後にメッシュが見えない**: 多くの場合は、統合先の SkinnedMeshRenderer の Root Bone を指定し忘れていることが原因です（[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。AAO Merge Skinned Mesh は Root Bone を自動で設定しません。Root Bone か Anchor Override が設定されていないときは、警告が出ます（CHANGELOG の 1.7.0）。
 - **統合後に明るさが違う**: 多くの場合は、統合先の SkinnedMeshRenderer の Anchor Override を指定し忘れていることが原因です。
 - **統合後に個別のオン・オフができない**: 「有効無効状態に関するアニメーションをコピーする」は、コピーできるのは 1 種類だけです。複数の GameObject がアニメーションされていると、エラーになり、ビルドが止まります（CHANGELOG の 1.8.0）。統合先の SkinnedMeshRenderer の enabled は、この機能を使うときにアニメーションしてはいけません。
-- **マテリアルのプロパティのアニメーションが競合する**: 統合前のアニメーションがそのまま機能する場合と、競合する場合があります。競合は既知のバグで、現時点では競合してしまう仕様です（[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)。issue は [#340](https://github.com/anatawa12/AvatarOptimizer/issues/340)）。競合するときは警告が表示されます。この記事では、FAQ の書き方を前提にして、統合のあとにマテリアルのアニメーションが動くかを実際に確かめてください。
+- **マテリアルのプロパティのアニメーションが競合する**: Merge Skinned Mesh のリファレンスの備考は『マテリアルに関するアニメーションは統合前のものがそのまま機能します』と説明していますが、FAQ は『現時点では競合してしまう仕様です』と説明していて、食い違っています。統合したあとで、実際に動くかを確かめてください（[Merge Skinned Mesh](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-skinned-mesh/)、[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。競合の issue は [#340](https://github.com/anatawa12/AvatarOptimizer/issues/340) です。競合するときは警告が表示されます。
 - **マテリアルスロットのアニメーションが競合する**: 「マテリアルの統合」の「統合する」をオフにするのがおすすめです（[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。
 - **PhysBone・Contact が効かない（OSC ギミック）**: 注意と対応（FAQ の Asset Description の方法）は、[ボーンの数を減らす](/learn/optimize-mesh/bones) の「注意・うまくいかないとき」にまとめています。
 - **自動で統合されないメッシュ**: 統合されなかったメッシュは、手動の AAO Merge Skinned Mesh を使います。

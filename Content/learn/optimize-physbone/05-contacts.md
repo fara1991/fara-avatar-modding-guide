@@ -26,7 +26,7 @@ updated: 2026-11-07
 
 - **SDK の「パフォーマンスの内訳」**: 「コンタクトの数」で、今の値と上限を見ます。
 - **数え方**: 数えないのは Local Only の receiver です。sender は、Contacts のページの Filtering の記述（性能ランクを下げない）に従います（[Contacts（VRChat 公式）](https://creators.vrchat.com/common-components/contacts)）。
-- **Play モードのランク**: 非破壊改変ツールを使うと、VRCSDK の Control Panel のパフォーマンスランクは実際の値とずれます（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードのランクの確かめ方は、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」を見てください。
+- **Play モードのランク**: 非破壊改変ツールを使うと、VRCSDK の Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードのランクの確かめ方は、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」を見てください。
 
 ## 減らし方の考え方
 

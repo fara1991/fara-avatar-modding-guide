@@ -22,7 +22,7 @@ updated: 2026-11-07
 
 - **SDK の「パフォーマンスの内訳」**: 「コンストレイントの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、199（上限 350）と表示されていました。
 - **無効にしたものも数えられます。** 無効化されている GameObject とコンポーネントも、パフォーマンスランクに数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。VRChat のコンストレイントも、無効化されたものを含めて数えます（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。使わないコンストレイントは、無効にするだけでは数は減りません。
-- **AAO を使うときの確かめ方**: 非破壊のツールを使うと、SDK の Control Panel のランクは実際の値とずれます。実際の値は、Play モードに入ったときの Actual Performance Window で確かめます（[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
+- **AAO を使うときの確かめ方**: 非破壊のツールを使うと、SDK の Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。実際の値は、Play モードに入ったときの Actual Performance Window で確かめます（[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 
 ## 減らし方の考え方
 
@@ -51,7 +51,7 @@ updated: 2026-11-07
 - 逆に、コンストレイントを増やす機能もあります。Mesh Cutter は、時々非アクティブになる場合に、Constraint を生成することがあります。その場合、パフォーマンスランクの増加に寄与する可能性があるので、注意してください。
 - Merge Armature は、必要に応じて ParentConstraint を生成します。
 - World Fixed Object は、複数の World Fixed Object コンポーネントを使っても、Constraint は 1 つだけです。
-- **未リリース**: MA Reactive Move は、CHANGELOG の [Unreleased]（正式版には入っていません）にある機能です。VRChat では、いくつかの VRC Constraint を生成して、この動作を実現します。
+- **未リリース**: MA の Reactive Move は、CHANGELOG の [Unreleased]（正式版には入っていません）にある機能で、いくつかの VRC Constraint を生成して、この動作を実現します（[MA の変更履歴](https://github.com/bdunderscore/modular-avatar/blob/main/CHANGELOG-jp.md)）。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
@@ -68,7 +68,7 @@ updated: 2026-11-07
    - Unity のコンストレイントと深さの関係は、[コンストレイントの深さを減らす](/learn/optimize-constraint/constraint-depth) の注意を見てください。
 4. 変換したあとは、Play モードに入り、対象のアニメーションとコンストレイントの追従が、変換の前と同じかを確かめます。
 5. MA を使っているなら、アバターのルートに Convert Constraints を付けます。付けたあと、SDK の「パフォーマンスの内訳」で、数が変わったかを確かめます。
-6. 使っていないと確かめたコンストレイントは、取り除きます。無効にするだけでは数に残るためです。
+6. 使っていないと確かめたコンストレイントは、取り除きます。無効にするだけでは数に残るためです（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 7. 変更のあと、もう一度 SDK の「パフォーマンスの内訳」で確かめます。
 
 ## 注意・うまくいかないとき
@@ -76,7 +76,8 @@ updated: 2026-11-07
 ::: warning
 
 - **Android の上限**: 「Show Avatar」を使っても、上の上限は回避できません。Android の上限を超えると、制限の対象のコンポーネントが、「Show Avatar」を選んでも取り除かれます。コンストレイントの硬い上限は、150 です。
-- **Unity のコンストレイント（Android）**: Android と Quest では、性能の問題が複雑なため、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使うのがおすすめです（Android Content Limitations）。Unity のコンストレイントは、アバターがゲーム内で読み込まれるときや、実行時に、VRChat のコンストレイントに自動で変換されます（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)、[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
+- **Unity のコンストレイント（Android）**: Android と Quest では、性能の問題が複雑なため、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使うのがおすすめです（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。
+- **Unity のコンストレイントの自動変換**: 全プラットフォームで、Unity のコンストレイントは、アバターがゲーム内で読み込まれるときや、実行時に、VRChat のコンストレイントに自動で変換されます（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)、[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
 - **PC の既定**: PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。既定では、性能を理由にコンポーネントや表示が影響を受けるアバターはありません。ただし、極端に最適化されていないアバターは、使えなくなる場合があります。表示される最低のランクの設定を変えた場合は、「Constraint Count or Depth」の行（All Constraint components removed）の制限が働きます。
 - **数値は変わることがあります**: Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があります。
 

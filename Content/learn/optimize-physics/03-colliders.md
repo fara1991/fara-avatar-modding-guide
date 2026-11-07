@@ -25,7 +25,7 @@ VRChat のドキュメントは英語のみのため、項目名は英語のま�
 - **SDK の「パフォーマンスの内訳」**: 「コライダーの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、1（上限 8）と表示されていました。
 - **無効にしたものも数えます。** 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 - **PhysBone のコライダーと混同しないこと。** 統計表の「PhysBones Colliders」は、アバターにある PhysBone のコライダーのスクリプトの数で、別の項目です。
-- **AAO を使うとき**: 非破壊のツールを使うと、Control Panel のランクは実際の値とずれます。実際の値は、Play モードに入ったときの Actual Performance Window で確かめられます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
+- **AAO を使うとき**: 非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードに入ったときの Actual Performance Window で確かめられます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 
 ## 減らし方の考え方
 
@@ -38,11 +38,11 @@ VRChat のドキュメントは英語のみのため、項目名は英語のま�
 
 **何をするか**: Trace And Optimize の「PhysBone を最適化する」は、全く同じ設定の PhysBone Collider を 1 つに統合します（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。これは PhysBone のコライダーの統合です（[PhysBone コライダーの数を減らす](/learn/optimize-physbone/physbone-colliders) を参照）。
 
-AAO では、Unity の Collider に関係する修正が 3 件あります。いずれも Fixed（不具合の修正）です。
+[AAO の CHANGELOG](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/) では、Unity の Collider に関係する修正が 3 件あります。いずれも Fixed（不具合の修正）です。
 
 | 版・日付 | 修正の内容 |
 |---|---|
-| 1.5.2（2023-10-10） | コライダーが削除されることがあった不具合を修正 |
+| 1.5.2（2023-10-10） | Avatar Standard Colliders が削除されることがあった不具合を修正 |
 | 1.6.0（2023-11-27） | Collider のインスタンスではなく Transform を指定したときに、Trigger Collider が消えることがあった不具合を修正 |
 | 1.8.0（2024-11-30） | VRCStation が作る BoxCollider のアニメーションのバインドが消されていた不具合を修正 |
 

@@ -22,11 +22,11 @@ VRChat のドキュメントは英語のみのため、項目名は英語のま�
 
 - **SDK の「パフォーマンスの内訳」**: 「レイキャストの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、0（上限 15）と表示されていました。
 - **無効にしたものも数えられます。** 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。使わない VRCRaycast は、無効にするだけでは数が減りません。
-- **AAO を使うときの確かめ方**: 非破壊のツールを使うと、Control Panel のランクは実際の値とずれます。実際の値は、Play モードに入ったときの Actual Performance Window で確かめられます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
+- **AAO を使うときの確かめ方**: 非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードに入ったときの Actual Performance Window で確かめられます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 
 ## 減らし方の考え方
 
-80 個の上限は、FinalIK のコンポーネントと共有されます。FinalIK は、VRCRaycast で足りる場面では、一般に使わないほうがよいです（VRChat のドキュメントの VRCRaycast のページ）。
+80 個の上限は、FinalIK のコンポーネントと共有されます。FinalIK は、VRCRaycast で足りる場面では、一般に使わないほうがよいです（[VRCRaycast（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-components/raycast/)）。
 
 ## 手順
 

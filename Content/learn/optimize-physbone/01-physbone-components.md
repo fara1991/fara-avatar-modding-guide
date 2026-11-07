@@ -23,7 +23,7 @@ PhysBone コンポーネントの数は、アバターにある PhysBone コン�
 - **SDK の「パフォーマンスの内訳」** の「PHYSBONE コンポーネントの数」で、今の値と上限を見ます。例の画面では、170（上限 32）と表示されていました。
 - **無効にしたものも、ランクの数に入ります。** 現在無効になっているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[パフォーマンスランク（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。そのため、使わない PhysBone は、無効にするだけでは数が減りません。
 - **lilAvatarUtils の PhysBone タブ**: パフォーマンスランクへの影響が大きい PhysBone コンポーネントを特定したり、ルートボーンや設定がほぼ共通で統合できそうな PhysBone を見つけたりするのに役立ちます（[PhysBones（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
-- **AAO を使うときのランク**: 非破壊改変ツールを使うと、VRCSDK の Control Panel のパフォーマンスランクは実際の値とずれます（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。実際の値は、Play モードの Actual Performance Window で確かめます（[AAO の結果の確認](/learn/optimize-aao/avatar-optimizer) の節を見てください）。
+- **AAO を使うときのランク**: 非破壊改変ツールを使うと、VRCSDK の Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。実際の値は、Play モードの Actual Performance Window で確かめます（[AAO の結果の確認](/learn/optimize-aao/avatar-optimizer) の節を見てください）。
 
 ## 減らし方の考え方
 
@@ -83,7 +83,7 @@ AAO の PhysBone の機能は、次の 3 つに分かれます。ほかに、コ
 ::: warning
 - **OSC で使う PhysBone や Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。そのため、ほかで使われていなければ削除するように設計されています。ただし、この仮定は正しいとは限りません（[よくある質問（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。Animator や Expression Menu を使わずに、OSC のギミックで PhysBone や Contact Receiver を使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools に設定するとよいです（[Asset Description（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/developers/asset-description/)）。OSC を使うアバターでは、自動の最適化のあとに、PhysBone と Contact が動くかを確かめてください（**この記事の助言**{.lbl .lbl-adv}）。
 - **統合後は掴めるのが 1 か所だけ**: 統合前は、それぞれの PhysBone のボーンを同時に掴めますが、統合後は 1 つのボーンしか掴めません（[Merge PhysBone（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-physbone/)）。
-- **PhysBone トランスフォームの数が 1 つ増える**: Merge PhysBone を 1 つ使うごとに、ルートの GameObject も PhysBone トランスフォームに数えられるため、数が 1 増えます。これは VRChat のパフォーマンスランクの仕組みのバグである可能性があります。減らす目的のときは、この増え方を考えてください（[PhysBone トランスフォームの数を減らす](/learn/optimize-physbone/physbone-transforms)）。
+- **PhysBone トランスフォームの数が 1 つ増える**: Merge PhysBone を 1 つ使うごとに、ルートの GameObject も PhysBone トランスフォームに数えられるため、数が 1 増えます。これは VRChat のパフォーマンスランクの仕組みのバグである可能性があります（[Merge PhysBone（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-physbone/)）。減らす目的のときは、この増え方を考えてください（[PhysBone トランスフォームの数を減らす](/learn/optimize-physbone/physbone-transforms)）。
 - **Merge PhysBone の条件**: AAO 1.7.0 以降、統合元が 1 つだけのときはエラーになります。チェーンの長さがそろっていないと、警告が出ます。
 - **修正の記録**: AAO 1.9.11 では、親の PhysBone があるときに、自動の Merge PhysBone が動きを変えることがある問題が修正されました。AAO 1.9.13 では、別のコンポーネントでアニメーションされる親の Transform がある場合に、統合で動きが壊れることがある問題が修正されました。AAO のバージョンを確かめて使ってください。
 :::

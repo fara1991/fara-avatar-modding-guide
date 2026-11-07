@@ -8,7 +8,7 @@ updated: 2026-11-07
 
 ::: point
 - Unity のインポート設定で Max Size を下げることと、高解像度のテクスチャを何枚も使わないことがおすすめです
-- クランチ圧縮を使っても、VRAM のサイズは変わりません
+- DXT・ETC 形式のクランチ圧縮では、VRAM のサイズは変わりません（[lilAvatarUtils のテクスチャのタブ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)）
 - AAO を使うと Control Panel のランクはあてにならないため、Play モードで確かめます
 :::
 
@@ -28,7 +28,7 @@ updated: 2026-11-07
 
 - Unity のインポート設定で Max Size を下げることと、高解像度のテクスチャを何枚も使わないことがおすすめです（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) にも同じ内容があります）。
 - 解像度が小さいほど VRAM のサイズを抑えられます。見た目の劣化が目立たない範囲で小さくするのがおすすめです（[lilAvatarUtils のテクスチャのタブ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)）。
-- クランチ圧縮を使っても、VRAM のサイズは変わりません。
+- DXT・ETC 形式のクランチ圧縮では、VRAM のサイズは変わりません（[lilAvatarUtils のテクスチャのタブ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)）。
 - 解像度を下げても、元の画像ファイルの解像度は変わらないため、小さな値を設定しても元に戻せます（[lilAvatarUtils のテクスチャのタブ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)）。
 
 ## ツール別の方法
@@ -92,11 +92,11 @@ updated: 2026-11-07
 
 ::: warning
 - TTT のテクスチャの圧縮は、NDMF のプレビューには反映されません。NDMF の Apply On Play か Manual Bake で確かめてください（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
-- TTT のコンポーネントは、ビルドのときに有効（Active）でないと動きません。アバター改変には NDMF が必要です。
+- TTT のコンポーネントは、基本的に、ビルドのときに有効（Active）でないと動きません（[TTT の FAQ](https://github.com/ReinaS-64892/TTT-Docs/blob/main/docs/FAQ/index.md)）。アバター改変には NDMF が必要です。
 - TextureSize を元の設定より大きくすると、無意味に拡大されます。
 - MipMap の設定は、よく分からないときは触らないでください。
 - Format Quality の「None」は、シェーダーについて完全に理解している人でなければ選ばないでください。
-- TTT には、一部の GPU と DirectX 11 で動かない既知の不具合があります。古い TTT で作られたアセットが動かないときは、バックアップを取ったうえで Migrator を実行するのがおすすめです。
+- TTT v0.9.x〜v0.10.x では、DirectX 11 と AMD Radeon の組み合わせで、TTT PSD Importer などが正常に動かないことがあります（[TTT の FAQ](https://github.com/ReinaS-64892/TTT-Docs/blob/main/docs/FAQ/index.md)）。古い TTT で作られたアセットが動かないときは、バックアップを取ったうえで Migrator を実行するのがおすすめです（[TTT の FAQ](https://github.com/ReinaS-64892/TTT-Docs/blob/main/docs/FAQ/index.md)）。
 - AAO の Max Texture Size は、テクスチャに Mipmap が有効になっている必要があります（[公式: Max Texture Size](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/max-texture-size/)）。Mipmap のないテクスチャは、スキップされて警告が出ます。Crunch 圧縮を使用しているテクスチャは、リサイズできません。
 - AAO の Merge Material は、同じシェーダーのマテリアルが対象です。マテリアルを置き換えるアニメーションには対応していません。Parallax や UV スクロールのような、使用時にテクスチャの参照される位置が変化するシェーダー機能も、サポートされていません。
 - AAO の処理の結果は、Control Panel の数字ではなく、Play モードに入ったときのランクか、NDM Framework の「Manual bake avatar」で作った複製で確かめてください。

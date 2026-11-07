@@ -32,7 +32,7 @@ Modular Avatar は、衣装などを本体に組み立てるためのツール�
 - **入れ方**:
   - ALCOM: 「パッケージ管理」から「VPMリポジトリを追加」を選び、リポジトリ `https://vpm.nadena.dev/vpm.json` を追加します。プロジェクトの「管理」で Modular Avatar の「+」を押して、「適用」します。
   - VCC: ページのリンクからリポジトリを追加し、manage project で「+」を押します。
-  - テスト版は、ALCOM から入れることをおすすめします。VCC では依存関係の解決にバグがあります。
+  - テスト版は、ALCOM から入れることをおすすめします。VCC では、MA のリポジトリを追加するときに、VCC のバグの影響でエラーが出ることがあります。
 - **ライセンス**: MIT License（リポジトリの `COPYING.md`）。ただし `Editor/Images` の画像は MIT の対象外で、公式パッケージの一部としてのみ再配布できます。
 - **対応**: Unity 2022.3（[VPM メタデータ](https://vpm.nadena.dev/vpm.json) の 1.18.7 の unity の値）。1.18.4（2026 年 8 月 29 日）で、Unity 6.1〜6.7 に対する実験的な対応が入りました。NDMF（ビルド時の処理を動かす仕組み）が必要です。
 - **公式ページ**: https://modular-avatar.nadena.dev/ja （GitHub: https://github.com/bdunderscore/modular-avatar ）
@@ -119,12 +119,11 @@ Trace And Optimize を使って振る舞いや見た目が変わったら、他�
 - **減らせる主な項目**: テクスチャメモリー、三角ポリゴンの数（隠れた部分）、スキンドメッシュの数、マテリアルスロットの数、PHYSBONE のコンポーネント・トランスフォーム・コライダーの数、ボーンの数（自動と手動の両方で減らせます）
 - **注意**:
   - Trace And Optimize は、アバターのルートに付けます（[基本的な使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。
-  - Merge Skinned Mesh で統合すると、メッシュを個別にアニメーションでオン・オフできなくなります。マテリアルのアニメーションについて、資料の書き方は次のように食い違っています。
-    - [Merge Skinned Mesh](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-skinned-mesh/) の備考: マテリアルに関するアニメーションは、統合前のものがそのまま機能します。
-    - [FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/) の「マテリアルプロパティに対するアニメーションが競合する」: この問題は既知のバグで、現時点では競合する仕様です。issue は [issue 340](https://github.com/anatawa12/AvatarOptimizer/issues/340) です。競合するときは警告が表示されます。詳しくは [Avatar Optimizer の記事](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」を見てください。
+  - Merge Skinned Mesh で統合すると、メッシュを個別にアニメーションでオン・オフできなくなります。マテリアルのアニメーションについて、次の点に注意してください。
+    - [Merge Skinned Mesh](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-skinned-mesh/) のリファレンスの備考は『マテリアルに関するアニメーションは統合前のものがそのまま機能します』と説明していますが、[FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/) は『現時点では競合してしまう仕様です』と説明していて、食い違っています。統合したあとで、実際に動くかを確かめてください。
+    - FAQ の「マテリアルプロパティに対するアニメーションが競合する」: この問題は既知のバグです。issue は [issue 340](https://github.com/anatawa12/AvatarOptimizer/issues/340) です。競合するときは警告が表示されます。詳しくは [Avatar Optimizer の記事](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」を見てください。
     - 同じ FAQ の「マテリアルスロットに対するアニメーションが競合する」: アニメーションでそれぞれのマテリアルを別のものに置き換える場合は、Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにします。
-    - 資料の書き方は食い違っています。この記事では FAQ の書き方（競合する）を前提にして、統合したあとは、マテリアルのアニメーションが動くかを、実際に確かめてください。
-  - 非破壊改変ツールを使うと、VRChat SDK の Control Panel のパフォーマンスランクは実際の値とずれます。Play モードに入ったときのランクは、anatawa12 さんの Gist Pack（Unity 用の補助ツールの集まり。複数の gist で構成され、その一つが Actual Performance Window）で確認できます（[基本的な使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/) の「UploadせずにPerformance Rankを見る方法」）。
+  - 非破壊のツールを使うと、VRChat SDK の Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードに入ったときの Actual Performance Window で確かめます（anatawa12 さんの Gist Pack の一つ。[基本的な使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/) の「UploadせずにPerformance Rankを見る方法」）。
   - 「使われていないObjectを自動的に削除する」は、アニメーションなどを走査して、使われていない GameObject・コンポーネント・テクスチャなどを自動で削除する機能です（[Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。版によって削除の対象が増えています（下の表の注を見てください）。
 
 ## 項目 × ツールの早見表
@@ -180,7 +179,7 @@ Trace And Optimize を使って振る舞いや見た目が変わったら、他�
 
 - ツールで減らせない項目は、Unity の標準の操作で減らせることがあります。たとえば、使わないコンポーネントを取り除く、使わないオブジェクトを消す、といった方法です。
 - まず、今どの項目が重いのかを見ることが大事です。VRChat SDK の Control Panel でランクを確かめ、いちばん悪い項目から減らします（[パフォーマンスランク](/learn/vrchat/performance-rank)）。
-- 非破壊改変ツールを使うと、Control Panel のパフォーマンスランクは実際の値とずれます。Play モードに入ったときのランクは、anatawa12 さんの Gist Pack の Actual Performance Window で確かめられます。AAO を使ったあとのランクは、この方法で確かめてください。
+- 非破壊のツールを使うと、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードの Actual Performance Window で確かめます。AAO を使ったあとのランクは、この方法で確かめてください。
 - 減らす手順の例は、[アバターを軽くする](/learn/vrchat/optimization) にまとめています。
 - ツールを入れたあとは、Build & Test で見た目と動きが変わっていないかを確かめてください。
 - 複数のツールを併用するときは、想定どおりに動くか、実際に確かめてください（MA と AAO など）。

@@ -24,7 +24,7 @@ VRChat のドキュメントは英語のみのため、項目名は英語のま�
 - **SDK の「パフォーマンスの内訳」**: 「CLOTH メッシュの数」の行で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、0（上限 1）と表示されていました。
 - **表から読めること（この記事の読み方）**: PC の表では、Excellent の上限が 0 です。そのため、Cloth コンポーネントの数が 0 を超えると Excellent にはなりません。Good・Medium・Poor の上限は、いずれも 1 です。2 つ以上あると Poor の上限を超えるため、次のランク（Very Poor）になります。
 - **無効にしたものも数えられます。** 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。使わない Cloth は、無効にするだけでは数が減りません。
-- **AAO を使うときの確かめ方**: 非破壊のツールを使うと、Control Panel のランクは実際の値とずれます。実際の値は、Play モードに入ったときの Actual Performance Window で確かめます（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。
+- **AAO を使うときの確かめ方**: 非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードに入ったときの Actual Performance Window で確かめます（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。
 
 ## 減らし方の考え方
 
@@ -36,7 +36,7 @@ Cloth の使用は、強く控えるのがおすすめです。Cloth は Unity �
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-AAO 1.7.0（2024 年 4 月 30 日、Changed（仕様の変更））以降、Cloth のある SkinnedMeshRenderer（ボーンで変形するメッシュの部品）は、Merge Skinned Mesh（複数のメッシュを 1 つにまとめる機能）の統合元にできません（エラーになります）。
+AAO 1.7.0（2024 年 4 月 30 日、Changed（仕様の変更））以降、Cloth のある SkinnedMeshRenderer（ボーンで変形するメッシュの部品）は、Merge Skinned Mesh（複数のメッシュを 1 つにまとめる機能）の統合元にできません（エラーになります。[AAO の CHANGELOG](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
 
 ## 手順
 

@@ -22,7 +22,7 @@ VRChat のドキュメントは英語のみのため、項目名は英語のま�
 
 - **SDK の「パフォーマンスの内訳」**: 「CLOTH の最大頂点の数」の行で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、0（上限 200）と表示されていました。
 - **表から読めること（この記事の読み方）**: VRChat のランクの表（PC の値）では、Excellent の上限が 0 です。そのため、値が 0 を超えると Excellent にはなりません。Good の上限は 50、Medium は 100、Poor は 200 です。200 を超えると Poor の上限を超えるため、次のランク（Very Poor）になります。
-- **AAO を使うときの確かめ方**: 非破壊のツールを使うと、Control Panel のランクは実際の値とずれます。実際の値は、Play モードに入ったときの Actual Performance Window で確かめます（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。
+- **AAO を使うときの確かめ方**: 非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードに入ったときの Actual Performance Window で確かめます（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。
 
 ## 勧めの読み方
 

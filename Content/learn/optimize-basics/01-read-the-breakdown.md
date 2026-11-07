@@ -33,7 +33,7 @@ updated: 2026-11-07
 
 ### 色の意味
 
-画面には凡例（色の説明）が出ていません。文字の色は、その項目がランクを引き下げる先のランクに一致します。
+画面には凡例（色の説明）が出ていません。文字の色は、その項目がランクを引き下げる先のランクに一致します（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 
 色と上限の対応は、[パフォーマンスランク](/learn/vrchat/performance-rank) の表と見比べてください。
 
@@ -87,7 +87,7 @@ Android と iOS の欄には、「使用不可」（灰色）と出ます。
 | マテリアルスロットの数 | マテリアルを割り当てる枠の数。補足: パーティクルシステムは 1 枠、トレイル付きのパーティクルシステムは 2 枠、Line Renderer は 1 枠を使う | 32 / 4 | マテリアルが 10 を超えるなら、テクスチャアトラス（Texture Atlasing。複数のテクスチャを 1 枚にまとめたもの）を検討するのがおすすめです |
 
 - 範囲（BOUNDS）の上限（5 × 6 × 5 m）の単位は m です。画面の値（200.00, 169.42, 225.89）には、単位が表示されていません。
-- Android の欄について: PhysBone（ボーンを物理やほかのプレイヤーの影響で動かす仕組み（髪や服の揺れなどに使われる））・コンタクト（Contact。触れたときに反応する仕組み）・VRChat のコンストレイント（Constraint。別のオブジェクトに合わせて、位置・回転・大きさを動かす部品）は、モバイル（Android・iOS）で Very Poor の値（Poor の上限を超えた値）になると、Show Avatar の状態にかかわらず、すべて取り除かれます。別の条件として、Mobile Avatar Component Limits があります。PhysBone の数 8、PhysBones の影響を受けるトランスフォーム 64、コライダー 16、衝突チェック 64、コンタクト 16、コンストレイント 150、コンストレイントの依存の深さ 50 を超えると、制限の対象の部品がすべて取り除かれ、「Show Avatar」を選んでも回避できません。
+- Android の欄について: PhysBone（ボーンを物理やほかのプレイヤーの影響で動かす仕組み（髪や服の揺れなどに使われる））・コンタクト（Contact。触れたときに反応する仕組み）・VRChat のコンストレイント（Constraint。別のオブジェクトに合わせて、位置・回転・大きさを動かす部品）は、モバイル（Android・iOS）で Very Poor の値（Poor の上限を超えた値）になると、Show Avatar の状態にかかわらず、すべて取り除かれます。別の条件として、Mobile Avatar Component Limits があります（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。PhysBone の数 8、PhysBones の影響を受けるトランスフォーム 64、コライダー 16、衝突チェック 64、コンタクト 16、コンストレイント 150、コンストレイントの依存の深さ 50 を超えると、制限の対象の部品がすべて取り除かれ、「Show Avatar」を選んでも回避できません。
 - 描画の呼び出し（ドローコール）は、メッシュごとに 1 回ずつ必要になるのが基本で、減らすと描画の時間が短くなります（Unity マニュアル）。
 
 ### この画面の読み方

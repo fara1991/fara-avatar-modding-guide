@@ -23,13 +23,13 @@ VRChat のドキュメントは英語のみのため、項目名は英語のま�
 
 - **SDK の「パフォーマンスの内訳」**: 「リジッドボディの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、2（上限 8）と表示されていました。
 - **無効にしたものも数えられます。** 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。使わないリジッドボディは、無効にするだけでは数に残ります。
-- **AAO を使うとき**: 非破壊のツールを使うと、Control Panel のランクは実際の値とずれます。実際の値は、Play モードに入ったときの Actual Performance Window で確かめられます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
+- **AAO を使うとき**: 非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードに入ったときの Actual Performance Window で確かめられます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 
 ## ツール別の方法
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-AAO では、Rigidbody に関係する修正が 1 件あります。Joint（関節。Rigidbody どうしをつなぐ Unity の部品）が壊れる不具合の修正です。
+[AAO の CHANGELOG](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/) では、Rigidbody に関係する修正が 1 件あります。Joint（関節。Rigidbody どうしをつなぐ Unity の部品）が壊れる不具合の修正です。
 
 | 版・日付 | 節 | 修正の内容 |
 |---|---|---|

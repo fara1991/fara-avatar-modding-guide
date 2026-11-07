@@ -48,7 +48,7 @@ updated: 2026-11-07
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-AAO 1.6.5 では、ネストしたコンストレイントが Trace And Optimize で壊れる不具合を修正しました。1.7.0 では、その修正をやり直しました。AAO を使うときは、深さが変わっていないかを確かめてください。
+AAO 1.6.5 以降は、ネストしたコンストレイントが Trace And Optimize で壊れる不具合が修正されています。1.7.0 以降は、その修正がやり直されています。AAO を使うときは、深さが変わっていないかを確かめてください。
 
 ## 手順
 
@@ -70,9 +70,9 @@ AAO 1.6.5 では、ネストしたコンストレイントが Trace And Optimize
 - **Unity のコンストレイントと深さ**:
   - Unity のコンストレイントがあると、この項目は、Unity のコンストレイントは一度に 1 つしか動かないと仮定するため、深さが過大に見積もられることがあります（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
   - VRChat は、実行時に Unity のコンストレイントを VRChat のコンストレイントに自動で変換します（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
-  - Android と Quest では、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使うのがおすすめです（Android Content Limitations）。
+  - Android と Quest では、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使うのがおすすめです（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。
 - **数値は変わることがあります**: Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があります。
-- **AAO の不具合の修正の記録**: AAO 1.5.5 では、自動の MergeBone で、コンストレイントとアニメーションが壊れる不具合を修正しました。1.8.13 では、ローカル空間で解く VRCConstraints が、自動の merge bone で壊れる不具合を修正しました。AAO を使ったあとは、コンストレイントの動きを確かめてください。
+- **AAO の不具合の修正の記録**: AAO 1.5.5 以降は、自動の MergeBone で、コンストレイントとアニメーションが壊れる不具合が修正されています。1.8.13 以降は、ローカル空間で解く VRCConstraints が、自動の merge bone で壊れる不具合が修正されています。AAO を使ったあとは、コンストレイントの動きを確かめてください。
 
 :::
 

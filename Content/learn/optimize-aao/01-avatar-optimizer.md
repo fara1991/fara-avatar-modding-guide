@@ -9,7 +9,7 @@ updated: 2026-11-07
 ::: point
 - AAO は非破壊で、プレハブを展開せずにコンポーネントを追加するだけで使える
 - まず Trace And Optimize を付け、足りないときに手動のコンポーネントを足す（この記事の助言）
-- 非破壊のツールを使うと、Control Panel のランクは実際の値とずれます
+- 非破壊のツールを使うと、Control Panel のパフォーマンスランクはあてにならなくなります
 - Play モードのランクは Actual Performance Window で、複製は見た目と動きの確認に使う
 :::
 
@@ -131,7 +131,7 @@ Trace And Optimize は、見た目に影響を与えないことを前提に、�
 
 **使われていないObjectを自動的に削除する**（Remove unused Objects）について、補足します。
 
-- 「切り替えるもの」は、切り替えられるオブジェクトだけで使われている PhysBone を指します。たとえば、服を Simple Toggle で切り替えると、PhysBone も自動で切り替わります（changelog の 1.6.0）。
+- 「切り替えるもの」は、英語版では「切り替えられるオブジェクトだけで使われている PhysBone」を指します（changelog の 1.6.0 の例は、服を Simple Toggle で切り替えると PhysBone も自動で切り替わる、というものです）。
 - AAO 1.6.0 では、Mesh の無い Renderer と、Animator Controller の無い Animator を、意味がないものとして削除します。
 - AAO 1.7.0 では、パラメーターが定義されていても Animator Controller で使われていない PhysBone と Contact Receiver を削除します。
 
@@ -223,7 +223,7 @@ Trace And Optimize の自動の処理では足りないときや、消す範囲�
 Remove Mesh 系のコンポーネントは、削除する範囲を間違えると、見える部分が消えたり、隠れる部分が残ったりします。
 :::
 
-- **AAO Remove Mesh By Mask**: マスクテクスチャで指定した範囲のポリゴンを削除します。服で隠れて見えない部分などを消すと、見た目に影響させずに描画負荷や BlendShape の処理負荷を減らせます。
+- **AAO Remove Mesh By Mask**: マスクテクスチャで指定した範囲のポリゴンを削除します。服で隠れて見えない部分などを消すと、見た目に影響させずに描画負荷や BlendShape の処理負荷を減らせます（[Remove Mesh By BlendShape](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-blendshape/)）。
   - 追加する場所: SkinnedMeshRenderer か MeshRenderer のある GameObject です。
   - 設定: マテリアルスロットの一覧（対象を選びます）、マスクテクスチャ（削除する範囲を色で指定する画像）、削除モード（`Remove Black` か `Remove White`）です。
   - 注意: マスクテクスチャは、物（アイテム）ごとに色が異なります。削除モードを間違えると、別の部分が消えます。アルファマスク（透明度で範囲を指定する画像）や、gatosyocora さんの MeshDeleterWithTexture 用のマスクも使えます。
@@ -284,11 +284,11 @@ Remove Mesh 系のコンポーネントは、削除する範囲を間違える�
 AAO の処理は、VRChat SDK の Control Panel では確かめにくいものです。次の方法で確かめます。
 
 ::: tip
-非破壊のツールを使うと、Control Panel のパフォーマンスランクは実際の値とずれます。そのため、Control Panel の数字はそのままでは信頼しないでください。
+非破壊のツールを使うと、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードの Actual Performance Window で確かめます。
 :::
 
 1. **Play モードで確かめる**: Play モードに入ったときのパフォーマンスランクは、anatawa12 さんの Gist Pack の Actual Performance Window で確かめられます（[基本的な使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。
-2. **複製で処理後の姿を見る**: アバターの GameObject を右クリックして、`NDM Framework` > `Manual bake avatar` を選びます。AAO などの処理を適用した複製ができ、元のアバターは変わりません。見た目と動きを比べてください。VRChat 向けのアバターを VRM 形式で出力したい場合などに、この方法を使えます。
+2. **複製で処理後の姿を見る**: アバターの GameObject を右クリックして、`NDM Framework` > `Manual bake avatar` を選びます（基本的な使い方で紹介）。AAO などの処理を適用した複製ができ、元のアバターは変わりません。処理後の姿を見て、結果を確かめてください。
 
 ランクの見方は、[パフォーマンスランク](/learn/vrchat/performance-rank) にまとめています。
 
@@ -301,7 +301,7 @@ AAO の処理は、VRChat SDK の Control Panel では確かめにくいもの�
 | 見た目や動きが変わった | Trace And Optimize で見た目や動きが変わった場合は、AAO の不具合の可能性があります。ただし、ほかの AAO コンポーネントのバグの挙動に頼っている場合は除きます。報告してください。報告先は、[GitHub Issues](https://github.com/anatawa12/AvatarOptimizer/issues) や NDMF の Discord などです。報告用の Bug Report Helper のページもあります。 |
 | メッシュが見えない | 多くの場合、統合先のメッシュ（AAO Merge Skinned Mesh と一緒に付いている SkinnedMeshRenderer）の Root Bone を指定し忘れていることが原因です（[FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。AAO Merge Skinned Mesh は Root Bone を自動で設定しないため、手動で設定します。Modular Avatar を使っている場合は、アバターのルートに MA Mesh Settings を追加すると、アバター全体の Root Bone と範囲（BOUNDS）を設定できます。 |
 | 統合したメッシュの明るさが違う | 多くの場合、統合先のメッシュの Anchor Override を指定し忘れていることが原因です。AAO Merge Skinned Mesh は Anchor Override を自動で設定しないため、手動で設定します。Modular Avatar を使っている場合は、アバターのルートに MA Mesh Settings を追加すると、アバター全体の Anchor Override を設定できます。 |
-| 統合後に、マテリアルプロパティのアニメーションが競合する | 既知の不具合で、現時点では競合します。統合したあとは、マテリアルのアニメーションが動くかを確かめてください。資料の書き方は食い違っています（詳しくは [軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。解決を求める issue は、[#340](https://github.com/anatawa12/AvatarOptimizer/issues/340)（マテリアルのアニメーションパラメータの競合の解決。open）です。マテリアルプロパティに対してアニメーションされるメッシュを統合するときは、競合しないよう注意してください。競合するときは警告が表示されます。 |
+| 統合後に、マテリアルプロパティのアニメーションが競合する | Merge Skinned Mesh のリファレンスの備考は『マテリアルに関するアニメーションは統合前のものがそのまま機能します』と説明していますが、FAQ は『現時点では競合してしまう仕様です』と説明していて、食い違っています。統合したあとで、実際に動くかを確かめてください（詳しくは [軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。解決を求める issue は、[#340](https://github.com/anatawa12/AvatarOptimizer/issues/340)（マテリアルのアニメーションパラメータの競合の解決。open）です。マテリアルプロパティに対してアニメーションされるメッシュを統合するときは、競合しないよう注意してください。競合するときは警告が表示されます。 |
 | 統合後に、マテリアルスロットのアニメーションが競合する | マテリアルを別のものに置き換えるアニメーションがあるときは、AAO Merge Skinned Mesh の「マテリアルの統合」の「統合する」をオフにします（FAQ の方法）。 |
 | OSC（ゲームや外部ツールと値をやりとりする通信の仕組み）のギミックで、PhysBone や Contact Receiver が効かない | AAO の Trace And Optimize は、OSC で使われているかを判別できないため、使われていないように見えるものを削除することがあります。FAQ には、Asset Description ファイルを作成し、Parameters Read By External Tools に設定する方法があります。 |
 | VRChat SDK のハードリミットを超えて、アップロードできない | VRChat SDK 3.8.1 以降は、シーン上のアバターがハードリミット（アバターの上限値）を超えていても、ビルドとアップロードを開始できます。VRChat SDK を最新版に更新することをおすすめします。 |

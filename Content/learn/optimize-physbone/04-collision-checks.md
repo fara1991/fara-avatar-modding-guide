@@ -27,7 +27,7 @@ PhysBone 衝突チェックの数は、アバターの PhysBone コライダー�
 - **SDK の「パフォーマンスの内訳」**: 「PHYSBONE 衝突チェックの数」で、今の値と上限を見ます。
 - **lilAvatarUtils の PhysBone タブ**: PhysBone ごとに「コリジョン数」を見られます。「コリジョン数」は衝突判定の計算回数で、ボーン数やコライダー数に応じて増えていき、数字が増えるほど負荷も増えます（[PhysBones（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。この記事では、lilAvatarUtils の「コリジョン数」を、SDK の「PHYSBONE 衝突チェックの数」とは別の値として扱います。
 - **同じタブの「ボーン数」と「コライダー数」**: 「ボーン数」は、揺れが計算されるボーン数です。「コライダー数」は、この PhysBone との当たり判定を計算するコライダー数です（[PhysBones（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
-- **Play モードのランク**: 非破壊改変ツールを使うと、VRCSDK の Control Panel のパフォーマンスランクは実際の値とずれます（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードのランクの確かめ方は、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」を見てください。
+- **Play モードのランク**: 非破壊改変ツールを使うと、VRCSDK の Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードのランクの確かめ方は、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」を見てください。
 
 ## 減らし方の考え方
 
