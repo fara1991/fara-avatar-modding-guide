@@ -23,7 +23,7 @@ updated: 2026-11-07
 
 ランクの決まりは [パフォーマンスランク](/learn/vrchat/performance-rank)、減らし方の手順は [アバターを軽くする](/learn/vrchat/optimization) にまとめています。
 
-この記事の「公式」は、VRChat の公式ドキュメント（creators.vrchat.com と docs.vrchat.com）を指します。
+この記事の「公式」は、VRChat の公式ドキュメント（creators.vrchat.com と docs.vrchat.com）を指します。「**この記事の助言**{.lbl .lbl-adv}」は、公式の説明ではない、この記事の助言です。
 
 ## 画面の読み方の決まり
 
@@ -58,7 +58,7 @@ Android と iOS の欄には、「使用不可」（灰色）と出ます。
 
 この 2 項目は、数字ではなく「FALSE/あり」と出ます。左は、このアバターの値です。公式では、パーティクルシステムの 1 つにでも Particle Trails（トレイル。尾を引く表示）や Particle Collision（衝突）が有効になっていると True になります。
 
-「あり」の上限は、公式の表では、PC は Medium と Poor の列、Android は Poor の列が True です（Excellent と Good は False）。
+「あり」は、公式の表で True になる段階です。PC は Medium と Poor で True、Android は Poor で True です（Excellent と Good は False）。
 
 ### 表の読み方
 
