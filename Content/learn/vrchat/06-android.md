@@ -7,7 +7,7 @@ updated: 2026-11-07
 ---
 
 ::: point
-- Android 向けにビルドし、PC 版と同じ Blueprint ID でアップロードすると、1 つのアバターとして両方に対応する
+- 頭・手・足までのボーンの並びが PC 版と同じなら、Android 向けにビルドして PC 版と同じ Blueprint ID でアップロードすると、1 つのアバターとして両方に対応する
 - Android では VRChat/Mobile/ のシェーダーだけが使えるので、PC 版のマテリアルは複製して Android 用のシェーダーに変える
 - Android 版は、Very Poor だと表示されないので、Medium に収める目安（三角ポリゴン 15,000 など）まで軽くする
 :::
