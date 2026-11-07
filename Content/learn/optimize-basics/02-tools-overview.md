@@ -76,7 +76,7 @@ lilAvatarUtils は、アバターの改変を助けるツールです。公式�
   - 不要なテクスチャの割り当てが残っていると、使われないテクスチャがアバターに含まれて容量が大きくなることがあります。マテリアルのクリーンアップは、その整理にも使えます（[公式: ツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。
   - 各タブの「適用」ボタンで、変更したプロパティがまとめて反映されます。テクスチャのタブの「置き換え」は、アバターに存在する全マテリアルの該当テクスチャを一括で置き換えます（[公式: テクスチャ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)、[公式: マテリアル](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/MaterialsGUI.html)）。
   - 半透明マテリアルのレンダーキューを 2450 以下などに下げすぎると、ほかのマテリアルが消えやすくなると書かれています（公式のマテリアルのタブの説明）。
-  
+
 ## 4. Meshia Mesh Simplification（MMS）
 
 Meshia Mesh Simplification は、メッシュの三角ポリゴンの数を減らす（簡略化する）ツールです。アバター向けの手順では「Meshia Cascading Avatar Mesh Simplifier」を使い、目標の三角ポリゴン数を複数のメッシュに配分できます。公式ドキュメントでは、まず「目標とするパフォーマンスランク」を選びます。NDMF 統合の項では「MeshiaMeshSimplifier」を使います。パッケージのソースでは、ランク名のついたプリセットから三角ポリゴン数を選ぶ形になっています（下の注を見てください）。
