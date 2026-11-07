@@ -3,9 +3,15 @@ title: インストールと日本語化
 reading: いんすとーるとにほんごか
 description: Blender 4.5 LTS を入れて、表示を日本語にし、最初に見直しておきたい設定をまとめます。
 difficulty: 初級
-updated: 2026-10-10
+updated: 2026-11-07
 shortcuts: [F3]
 ---
+
+::: point
+- Blender は 4.5 LTS を入れる（5.x は画面や機能の場所が変わるので、慣れてから移る）
+- 表示の言語は、プリファレンスの Interface > Translation > Language で日本語にする
+- 「新規データ」にはチェックを入れない（オブジェクトやマテリアルの名前が日本語になるのを防ぐ）
+:::
 
 ## どのバージョンを入れるか
 

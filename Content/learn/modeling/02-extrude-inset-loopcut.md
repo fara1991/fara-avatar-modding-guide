@@ -3,9 +3,15 @@ title: 押し出し・差し込み・ループカット
 reading: おしだしさしこみるーぷかっと
 description: 面を伸ばす、面の中に面を作る、辺を足す。形を作るときにいちばん使う 3 つの操作です。
 difficulty: 初級
-updated: 2026-10-10
+updated: 2026-11-07
 shortcuts: [E, I, Ctrl+R, F9, Alt+クリック]
 ---
+
+::: point
+- 形を作る基本は、押し出し（<kbd>E</kbd>）・差し込み（<kbd>I</kbd>）・ループカット（<kbd>Ctrl</kbd>+<kbd>R</kbd>）の 3 つ
+- 押し出した直後に右クリックでキャンセルすると面が重なるので、<kbd>Ctrl</kbd>+<kbd>Z</kbd> で戻す
+- ループカットは四角形の面がつながっているところにしか入らない
+:::
 
 ## 押し出し（Extrude）
 

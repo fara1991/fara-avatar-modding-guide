@@ -3,8 +3,15 @@ title: VRM に書き出す
 reading: ぶいあーるえむにかきだす
 description: 着せ替えたアバターを、配信や VRM 対応のゲームで使う VRM にする流れです。正規化、表情（BlendShape）、揺れもの（SpringBone）、一人称の設定、MToon への置き換え、容量の減らし方。
 difficulty: 上級
-updated: 2026-10-11
+updated: 2026-11-07
 ---
+
+::: point
+- VRM は VRChat では使わない形式で、配信用のアプリや VRM を読み込めるゲームで使うときに書き出す
+- 正規化（Pose Freeze）のあとでモデルを直すのは難しいので、着せ替えは先に済ませる
+- 正規化のあとに表情（BlendShape Proxy）・揺れもの（SpringBone）・一人称を設定し、もう一度書き出して完成させる
+- 規約で VRM への変換や VRChat 以外での利用が認められているかを確かめる
+:::
 
 ## VRM とは
 

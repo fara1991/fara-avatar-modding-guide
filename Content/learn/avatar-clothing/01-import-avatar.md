@@ -3,9 +3,15 @@ title: 準備：アバターを Blender に読み込む
 reading: じゅんびあばたーをぶれんだーによみこむ
 description: 衣装を作る土台として、アバターの FBX を Blender に読み込み、作業しやすい状態に整えます。
 difficulty: 初級
-updated: 2026-10-10
+updated: 2026-11-07
 shortcuts: [Ctrl+A, Shift+S, H, Alt+H]
 ---
+
+::: point
+- 購入したアバターの利用規約を先に確認し、作った衣装を配布してよいかを見極める
+- FBX の読み込み設定はほぼ既定のままでよく、Automatic Bone Orientation はオフのままにする
+- 服を合わせやすくするため、アーマチュアと体のメッシュに全トランスフォームを適用し、適用前のアーマチュアの回転とスケールはメモしておく
+:::
 
 ## この章で作るもの
 
