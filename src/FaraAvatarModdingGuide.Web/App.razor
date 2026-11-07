@@ -1,0 +1,12 @@
+@* ルーティング。WebAssembly で動くページ（Pages/）だけが Router に載る。フェーズ 3 で、全ページ（記事・一覧・練習の 3 ページなど）が載った。
+   載っていない URL への移動は、MainLayout が再読み込みに切り替える（404.html を出す）。見つからない URL は 404.html から来るので、NotFoundView を出す。404.html の head に noindex がある(Build)ので、NotFoundView の HeadContent(NoIndex="false")は使わない(robots の meta が 2 つになる)。 *@
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <NotFoundView HomeHref="/" NoIndex="false" />
+        </LayoutView>
+    </NotFound>
+</Router>

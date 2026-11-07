@@ -1,0 +1,27 @@
+{
+ "count": "16 / 23",
+ "bubble": "16\n3 を押して面選択モードにしてください（上の「面」ボタンでも切り替えられます）。",
+ "keys": "3",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "4 個の頂点を削除",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [
+  "face"
+ ],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "vert"
+ ],
+ "progress": "65.2174%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

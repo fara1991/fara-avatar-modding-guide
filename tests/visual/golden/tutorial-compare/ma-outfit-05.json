@@ -1,0 +1,25 @@
+{
+ "count": "6 / 12",
+ "bubble": "6\n無効にしただけでは、アップロードに含まれて重さ（ランク）にも数えられます。Tag を EditorOnly にして、アップロードから外してください。",
+ "keys": "Tag を選ぶ",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "41.6667%",
+ "ueStatus": "Shirt_Default を無効にしました",
+ "ueInfo": "Shirt_Default · Move Tool",
+ "ueLabel": "EditorOnly を選ぶ",
+ "ueTools": [
+  "move"
+ ]
+}

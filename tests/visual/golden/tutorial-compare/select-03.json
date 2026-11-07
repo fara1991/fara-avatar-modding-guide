@@ -1,0 +1,23 @@
+{
+ "count": "4 / 14",
+ "bubble": "4\nA を押して、すべてを選択してください。",
+ "keys": "A",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "選択解除",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "21.4286%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

@@ -1,0 +1,25 @@
+{
+ "count": "17 / 23",
+ "bubble": "17\nもう一度、上の面をクリックして選んでください。",
+ "keys": "左クリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "面選択モード",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "クリック",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "69.5652%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

@@ -1,0 +1,46 @@
+@* 作成者の画面の、部屋のパスワード。既定は伏せ字（画面共有・配信に映らないように）。表示は、押したときだけ（切り替え式。保存しない）。
+   伏せ字の間は、本物の文字を DOM に置かない（コピーは、押した時点で Pass を渡す）。部屋が替わると、伏せ字に戻る。 *@
+<p class="form-label small mb-1" id="room-pass-label">この部屋のパスワード（作成者の画面だけに出ます）</p>
+<div class="input-group input-group-sm mb-2 room-pass-group">
+    @if (shown)
+    {
+        <span class="form-control room-pass-value" id="room-pass" aria-labelledby="room-pass-label">@Pass</span>
+    }
+    else
+    {
+        <span class="form-control room-pass-value is-masked" id="room-pass" role="img" aria-label="伏せ字（パスワードは隠れています。表示するには「パスワードを表示」を押してください）">@Mask</span>
+    }
+    <button type="button" class="btn btn-outline-secondary room-pass-btn" id="room-pass-toggle" aria-pressed="@(shown ? "true" : "false")" aria-controls="room-pass" @onclick="Toggle">パスワードを表示</button>
+    <button type="button" class="btn btn-outline-primary room-pass-btn" id="room-copy" @onclick="CopyAsync">@(Copied ? "コピーしました" : "コピー")</button>
+</div>
+
+@code {
+    /// <summary>部屋の ID。替わったら、表示は伏せ字に戻す（ほかの部屋へ移った・再読み込みと同じ扱い）。</summary>
+    [Parameter, EditorRequired] public string RoomId { get; set; } = "";
+
+    /// <summary>部屋のパスワード（作成者だけ。作成者でなければ、この部品は出さない）。</summary>
+    [Parameter] public string? Pass { get; set; }
+
+    /// <summary>コピーしたあとの表示（1.5 秒のあいだ「コピーしました」）。</summary>
+    [Parameter] public bool Copied { get; set; }
+
+    /// <summary>コピーを押した。引数は、画面が持っている本物のパスワード（伏せ字のままでも、これをコピーする）。</summary>
+    [Parameter] public EventCallback<string> OnCopy { get; set; }
+
+    private bool shown;
+    private string? seenRoom;
+
+    /// <summary>伏せ字（長さだけ分かる。本物の文字は出さない）。</summary>
+    private string Mask => new('●', Pass?.Length ?? 0);
+
+    protected override void OnParametersSet()
+    {
+        if (seenRoom == RoomId) return;
+        seenRoom = RoomId;
+        shown = false;
+    }
+
+    private void Toggle() => shown = !shown;
+
+    private Task CopyAsync() => OnCopy.InvokeAsync(Pass ?? "");
+}

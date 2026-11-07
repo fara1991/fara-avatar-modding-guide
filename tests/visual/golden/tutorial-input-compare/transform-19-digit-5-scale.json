@@ -1,0 +1,26 @@
+{
+ "texts": {
+  "count": "14 / 16",
+  "bubble": "14\nEnter で確定してください（左クリックでも確定できます）。",
+  "keys": "Enter",
+  "msg": null,
+  "mode": "オブジェクトモード",
+  "view": "ユーザー・透視投影",
+  "status": "スケール : X 0.500 Y 0.500 Z 0.500　（X / Y / Z で軸固定）",
+  "numeric": "入力: 0.5",
+  "stats": null,
+  "complete": null,
+  "overlayHidden": true,
+  "marker": "Cube",
+  "highlightedTools": [],
+  "viewHighlight": false,
+  "focused": true,
+  "toolsOn": [],
+  "progress": "81.25%",
+  "ueStatus": null,
+  "ueInfo": null,
+  "ueLabel": null,
+  "ueTools": []
+ },
+ "state": null
+}

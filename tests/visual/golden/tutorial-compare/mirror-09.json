@@ -1,0 +1,26 @@
+{
+ "count": "10 / 13",
+ "bubble": "10\nX で削除のメニューを出してください。",
+ "keys": "X",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "前・平行投影",
+ "status": "透過表示: オン（裏側も選択できる）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face",
+  "xray"
+ ],
+ "progress": "69.2308%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

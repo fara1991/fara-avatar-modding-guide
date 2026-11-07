@@ -1,0 +1,26 @@
+{
+ "count": "11 / 13",
+ "bubble": "11\n「面」をクリックして、左半分を削除してください。",
+ "keys": "メニューをクリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "前・平行投影",
+ "status": "透過表示: オン（裏側も選択できる）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face",
+  "xray"
+ ],
+ "progress": "76.9231%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

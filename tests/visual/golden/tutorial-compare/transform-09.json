@@ -1,0 +1,23 @@
+{
+ "count": "10 / 16",
+ "bubble": "10\n数字で 45 と入力してください。回転の量がちょうど 45° になります。",
+ "keys": "4\n5",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "回転 Z: 0.00°",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "Cube",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "56.25%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

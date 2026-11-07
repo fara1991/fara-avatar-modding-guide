@@ -1,0 +1,25 @@
+{
+ "count": "7 / 13",
+ "bubble": "7\nHierarchy で「Avatar」をクリックして選んでください。",
+ "keys": "左クリック",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "46.1538%",
+ "ueStatus": "Body を表示（Frame Selected）",
+ "ueInfo": "Body · Move Tool",
+ "ueLabel": "クリック",
+ "ueTools": [
+  "move"
+ ]
+}

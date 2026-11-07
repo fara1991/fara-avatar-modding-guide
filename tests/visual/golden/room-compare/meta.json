@@ -1,0 +1,107 @@
+{
+ "semantic": [
+  "{\"t\":\"hello\",\"name\":\"Alice\"}",
+  "{\"t\":\"select\",\"ids\":[]}",
+  "{\"t\":\"select\",\"ids\":[\"cube0\"]}",
+  "{\"t\":\"lock\",\"ids\":[\"cube0\"]}",
+  "{\"t\":\"ops\",\"upsert\":[{\"id\":\"cube0\",\"kind\":\"cube\",\"name\":\"Cube\",\"p\":[0,0,0],\"r\":[0,0,0],\"s\":[1,1,1]}],\"delete\":[]}",
+  "{\"t\":\"unlock\"}",
+  "{\"t\":\"select\",\"ids\":[\"cube0\"]}",
+  "{\"t\":\"lock\",\"ids\":[\"cube0\"]}",
+  "{\"t\":\"ops\",\"upsert\":[{\"id\":\"cube0\",\"kind\":\"cube\",\"name\":\"Cube\",\"p\":[0.821,-1.5309,-0.9851],\"r\":[0,0,0],\"s\":[1,1,1]}],\"delete\":[]}",
+  "{\"t\":\"unlock\"}",
+  "{\"t\":\"name\",\"name\":\"Alicia\"}"
+ ],
+ "counts": {
+  "hello": 1,
+  "select": 3,
+  "view": 2,
+  "cursor": 7,
+  "lock": 2,
+  "preview": 5,
+  "ops": 2,
+  "unlock": 2,
+  "name": 1,
+  "ping": 1
+ },
+ "errors": [],
+ "shots": [
+  {
+   "name": "remote-select",
+   "dom": {
+    "status": "接続しました",
+    "peers": "Alice（あなた） | Carol視点に合わせる",
+    "follow": "視点に合わせる"
+   }
+  },
+  {
+   "name": "remote-locked",
+   "dom": {
+    "status": "接続しました",
+    "peers": "Alice（あなた） | Carol視点に合わせる",
+    "follow": "視点に合わせる"
+   }
+  },
+  {
+   "name": "minus-dot",
+   "dom": {
+    "status": "接続しました",
+    "peers": "Alice（あなた） | Carol視点に合わせる",
+    "follow": "視点に合わせる"
+   }
+  },
+  {
+   "name": "remote-cursor",
+   "dom": {
+    "status": "接続しました",
+    "peers": "Alice（あなた） | Carol視点に合わせる",
+    "follow": "視点に合わせる"
+   }
+  },
+  {
+   "name": "remote-add",
+   "dom": {
+    "status": "接続しました",
+    "peers": "Alice（あなた） | Carol視点に合わせる",
+    "follow": "視点に合わせる"
+   }
+  },
+  {
+   "name": "moving",
+   "dom": {
+    "status": "接続しました",
+    "peers": "Alice（あなた） | Carol視点に合わせる",
+    "follow": "視点に合わせる"
+   }
+  },
+  {
+   "name": "confirmed",
+   "dom": {
+    "status": "接続しました",
+    "peers": "Alice（あなた） | Carol視点に合わせる",
+    "follow": "視点に合わせる"
+   }
+  },
+  {
+   "name": "follow",
+   "dom": {
+    "status": "接続しました",
+    "peers": "Alicia（あなた） | Carol合わせるのをやめる",
+    "follow": "合わせるのをやめる"
+   }
+  },
+  {
+   "name": "peer-left",
+   "dom": {
+    "status": "接続しました",
+    "peers": "Alicia（あなた）",
+    "follow": ""
+   }
+  }
+ ],
+ "source": {
+  "commit": "32b19c8",
+  "note": "develop（fd6a94a = S6 の取り込み）と S7 前半の統合。room.js・viewport.js・editmesh.js がまだあった。GOLDEN_MODE=capture の配信は wrangler dev --env dev --local（dist は Build の develop 出力）で作った",
+  "captured": "2026-10-25"
+ }
+}

@@ -1,0 +1,5 @@
+{
+  "_comment": "練習の操作の結果の基準。Phase 5 で SSR 版を消す前に、現行の SSR(develop)と移行版で同じ操作をして、結果が一致したときの値を固定した。practice.mjs が、同じ操作の結果をこの値と比べる。お題・シーンの仕様を変えたときは、意図した変更だけ書き換える。",
+  "practice": {"objects":[{"kind":"cube","p":[0,0,2],"r":[0,0,0.79],"s":[2,2,2]},{"kind":"sphere","p":[0,0,0],"r":[0,0,0],"s":[1,1,1]}],"mode":"object","ortho":false,"view":"前","done":6,"current":"立方体を選んで Shift+D で複製し、Y 方向に 3 m 離す","tasks":18},
+  "unity": {"nodes":["Main Camera","Directional Light","Avatar","Armature","Body","Shirt_Default","Hoodie"],"tasksDone":1,"tasks":7,"hoodie":true}
+}

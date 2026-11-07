@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    練習ページの 3D の「描画の中身」(計画書 Phase 3b の S2。docs/phase3b-design.md の §3・§11)。
+    FaraAvatarModdingGuide.Practice(操作ロジック)の状態を読んで、WebGL に渡す「描画の命令」(頂点のバッファと、描く順の一覧)に変える純粋な部分。
+    現行の viewport.js(three.js)がシーンに置くもの(方眼・軸線・オブジェクト・輪郭・ミラー・3D カーソル・編集モードの点/線/面・軸固定の線・ループカットの線)を、
+    同じ頂点・同じ色・同じ描く順で作る。WebGL の呼び出し(JavaScript の gl.js)も Blazor にも依存しない: JS との一致テスト(Node で本物の three.js のシーンと比べる)が書けるように、
+    描画の呼び出しと分けてある。S2 の段階では Web から参照しない(配信物は変わらない)。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FaraAvatarModdingGuide.Render</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FaraAvatarModdingGuide.Practice\FaraAvatarModdingGuide.Practice.csproj" />
+  </ItemGroup>
+
+</Project>

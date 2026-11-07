@@ -1,0 +1,25 @@
+{
+ "count": "5 / 12",
+ "bubble": "5\nInspector の左上のチェックを外して、Shirt_Default を無効にしてください。Scene から消えます。",
+ "keys": "チェックを外す",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "33.3333%",
+ "ueStatus": "Setup Outfit: Hoodie/Armature に MA Merge Armature を追加しました",
+ "ueInfo": "Shirt_Default · Move Tool",
+ "ueLabel": "チェックを外す",
+ "ueTools": [
+  "move"
+ ]
+}

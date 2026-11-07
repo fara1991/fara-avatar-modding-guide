@@ -1,0 +1,25 @@
+{
+ "count": "4 / 23",
+ "bubble": "4\n上の面の 手前の辺 をクリックして、その辺だけを選んでください。",
+ "keys": "左クリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "辺選択モード",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "クリック",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge"
+ ],
+ "progress": "13.0435%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

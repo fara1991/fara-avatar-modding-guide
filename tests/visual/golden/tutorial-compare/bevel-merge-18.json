@@ -1,0 +1,25 @@
+{
+ "count": "19 / 23",
+ "bubble": "19\n「面」をクリックして、上の面を削除してください。穴が開きます。",
+ "keys": "メニューをクリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "面選択モード",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "78.2609%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

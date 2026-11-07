@@ -1,0 +1,25 @@
+{
+ "count": "2 / 11",
+ "bubble": "2\n上の「統計」ボタンを押して、頂点・辺・面・三角形の数を表示してください（Blender ではオーバーレイ > 統計）。",
+ "keys": "上の「統計」をクリック",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "案内にしたがって操作してください",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [
+  "stats"
+ ],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "9.09091%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

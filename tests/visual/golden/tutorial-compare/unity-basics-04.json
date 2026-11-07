@@ -1,0 +1,25 @@
+{
+ "count": "5 / 13",
+ "bubble": "5\nホイールを回して、近づいたり離れたりしてください。",
+ "keys": "ホイールを回す",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "30.7692%",
+ "ueStatus": "Body を表示（Frame Selected）",
+ "ueInfo": "Body · Move Tool",
+ "ueLabel": null,
+ "ueTools": [
+  "move"
+ ]
+}

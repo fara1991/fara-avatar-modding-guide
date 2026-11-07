@@ -1,0 +1,67 @@
+@implements IDisposable
+@inject NavigationManager Nav
+@inject ContentStore Store
+@* 左のサイドバーの項目（kit の SiteLayout の DrawerContent に入れる）。項目は Shared の SideNav（静的 HTML の StaticFrame.Sidebar と同じ元・同じ構造・同じ class）。
+   「いまのページ」には aria-current="page" を付ける（画面を移るたびに付け直す。知らない URL＝404 の表示では、どれにも付けない）。
+   区切り（Blender・Unity・VRChat…）は、ブラウザ標準の details で開閉する（MudNavGroup は入れ子の nav を出すので使わない）。
+   いまのページが入っている区切りは、開いた状態で出す。カテゴリと区切りの右には、読んだ記事の数（3/5）を出す。
+   PC でサイドバーを細くしている間（Mini）は、アイコンだけにする（ラベル・数・開閉の中身は app.css が隠す）。
+   スマホでメニューを閉じるのは、SiteLayout が画面の移動で行う。 *@
+<nav class="av-side" aria-label="サイトメニュー">
+    @foreach (var group in Groups)
+    {
+        <div class="av-side-group">
+            @if (!string.IsNullOrEmpty(group.Title))
+            {
+                <div class="av-side-title">@group.Title</div>
+            }
+            @foreach (var item in group.Items)
+            {
+                @if (item.IsFold)
+                {
+                    <details class="av-side-fold" open="@(SideNav.ContainsActive(item, Path) ? true : null)">
+                        <summary class="av-side-link av-side-summary" title="@item.Label">
+                            <AvIcon Name="@item.Icon" Class="av-side-icon" />
+                            <span class="av-side-label">@item.Label</span>
+                            @if (item.ProgressIds is { Count: > 0 })
+                            {
+                                <CategoryProgress Ids="@item.ProgressIds" Class="av-side-progress" />
+                            }
+                            <AvIcon Name="ExpandMore" Class="av-side-chev" />
+                        </summary>
+                        <div class="av-side-sub">
+                            @foreach (var child in item.Children!)
+                            {
+                                <SideLink Item="child" Path="@Path" Sub="true" />
+                            }
+                        </div>
+                    </details>
+                }
+                else
+                {
+                    <SideLink Item="item" Path="@Path" />
+                }
+            }
+        </div>
+    }
+</nav>
+
+@code {
+    private IReadOnlyList<SideGroup> Groups => SideNav.Build(Store.Content);
+
+    /// <summary>見ているページのパス。知らない URL（404 の表示）では null（どれも「いまのページ」にしない）。</summary>
+    private string? Path
+    {
+        get
+        {
+            var path = new Uri(Nav.Uri).AbsolutePath;
+            return PageRoutes.IsWasmPage(path, Store.Content) ? path : null;
+        }
+    }
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

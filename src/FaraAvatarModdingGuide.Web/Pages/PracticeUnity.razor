@@ -1,0 +1,159 @@
+@page "/practice/unity"
+@implements IAsyncDisposable
+@inject SiteSettings Settings
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@inject IServiceProvider Services
+
+<PageTitle>@PageTitles.Compose("Unity の練習", Settings.Title)</PageTitle>
+
+<Breadcrumb Items="Crumbs" />
+
+<h1>Unity の練習</h1>
+<TouchPracticeGuide Items="TouchItems" />
+<div class="practice-pc-only">
+<p class="lead">Unity エディターに似た画面で、アバターに衣装を着せる流れ（Modular Avatar）を試せます。下のお題を順にこなしてください。</p>
+<p class="text-body-secondary small">本物の Unity ではなく、ブラウザで動く練習用の画面です。人形は練習用に作った簡単なもので、VRChat SDK の画面や数値も目安のシミュレーションです。手順を 1 つずつ案内付きで試すなら <a href="/learn/unity/modular-avatar-outfit">Modular Avatar で衣装を着せる</a> へ。</p>
+</div>
+
+@* Unity 風の画面（Phase 3b S5・S7）は C#（UnityEditorView・Services/UnityCsEngine.cs）。three.js は使わない。静的 HTML（Build の PageBodies.PracticeUnity）と同じ構造にする（Web.Tests が突き合わせる） *@
+<div class="row g-4 practice-pc-only">
+    <div class="col-xl-9">
+        @if (cs is not null)
+        {
+            @* unity.js が root.innerHTML に作っていた構造・クラス名と同じ(UnityEditorView) *@
+            <UnityEditorView Engine="cs" RootId="unity-practice" RootClass="unity-practice-host unity-editor" SceneViewId="unity-scene-view" GlHostId="unity-gl" />
+        }
+        else
+        {
+            <div id="unity-practice" class="unity-practice-host" tabindex="0" aria-label="Unity エディター（練習）">@(csFailed ? "画面を表示できません。WebGL が有効なブラウザで開いてください。" : "")</div>
+        }
+        <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" id="unity-reset" @onclick="OnReset">最初からやり直す</button>
+            <span class="small text-body-secondary ms-auto">Scene ビューをクリックしてからキーを押してください</span>
+        </div>
+    </div>
+    <div class="col-xl-3">
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">お題</div>
+            <div class="card-body">
+                @if (cs is not null)
+                {
+                    <ol class="practice-tasks mb-2" id="unity-tasks">
+                        @for (var i = 0; i < hud.TaskTexts.Count; i++)
+                        {
+                            <li class="@(i < hud.TaskIndex ? "done" : i == hud.TaskIndex ? "current" : null)">@hud.TaskTexts[i]</li>
+                        }
+                    </ol>
+                    <div id="unity-tasks-done" class="small text-body-secondary" hidden="@(hud.TaskIndex < hud.TaskTexts.Count)">すべてできました。あとは自由に試してください。</div>
+                }
+                else
+                {
+                    @* 3D（C#）が始まる前・タッチだけの端末は、静的 HTML（PageBodies.PracticeUnity）と同じ空の一覧 *@
+                    <ol class="practice-tasks mb-2" id="unity-tasks"></ol>
+                    <div id="unity-tasks-done" class="small text-body-secondary" hidden>すべてできました。あとは自由に試してください。</div>
+                }
+            </div>
+        </div>
+        <div class="card practice-keys">
+            <div class="card-header fw-semibold">使える操作</div>
+            <div class="card-body small">
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        <tr><td><kbd>Alt</kbd>+左ドラッグ</td><td>視点を回す</td></tr>
+                        <tr><td>ホイールボタンでドラッグ</td><td>視点を平行移動</td></tr>
+                        <tr><td>ホイール</td><td>ズーム</td></tr>
+                        <tr><td>右ドラッグ</td><td>その場で見回す</td></tr>
+                        <tr><td><kbd>F</kbd></td><td>選んだものを表示</td></tr>
+                        <tr><td><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd></td><td>手 / 移動 / 回転 / 拡大縮小</td></tr>
+                        <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>元に戻す</td></tr>
+                        <tr><td><kbd>Delete</kbd></td><td>選んだものを削除</td></tr>
+                        <tr><td>Hierarchy でドラッグ</td><td>親子を付け替える</td></tr>
+                        <tr><td>Hierarchy で右クリック</td><td>Modular Avatar ▸ Setup Outfit</td></tr>
+                        <tr><td>Project からドラッグ</td><td>Prefab を置く / マテリアルを設定</td></tr>
+                        <tr><td>VRChat SDK メニュー</td><td>Builder（ランク・Build &amp; Test）</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private PracticeHost? host;
+    private IUnityCs? cs;
+    private UnityHud hud = new();
+    private bool csFailed;
+    private bool disposed;
+
+    private static readonly IReadOnlyList<(string? Href, string Text)> Crumbs = [("/practice", "操作の練習"), (null, "Unity の練習")];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        host = new PracticeHost(JS);
+        // タッチだけの端末は、案内の画面（記事内チュートリアルの「画像で見る」）。PC は C# 版の Unity 風の画面
+        if (!await host.IsTouchOnlyAsync())
+        {
+            await StartCsAsync();
+            return;
+        }
+        await host.StartGuideAsync();
+    }
+
+    private async Task StartCsAsync()
+    {
+        IUnityCs? created = null;
+        try
+        {
+            // 操作のロジックと描画の命令（Practice・Render）は、PC の練習を始めるときに遅れて読み込む（通常のページの読み込みを増やさない）
+            await PracticeCsAssemblies.LoadAsync(Services);
+            if (disposed) return;                    // 読み込んでいるあいだにページを離れた
+            created = await UnityCsLoader.CreateAsync("unity-practice", "unity-scene-view", "unity-gl", false, ["Avatar"], Nav.Get("debug") == "1");
+            if (disposed) return;                    // finally で created を解放する
+            cs = created;
+            cs.Changed += OnCsChanged;
+            created = null;
+            cs.AttachPractice();
+            hud = cs.Hud;
+        }
+        catch (Exception e)
+        {
+            csFailed = true;
+            Console.Error.WriteLine($"[avatar] Unity の練習（C# 版）を始められません: {e.Message}");
+        }
+        finally
+        {
+            created?.Dispose();
+        }
+        if (!disposed) StateHasChanged();
+    }
+
+    private void OnCsChanged()
+    {
+        if (cs is null) return;
+        hud = cs.Hud;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnReset() => cs?.Reset();
+
+    public async ValueTask DisposeAsync()
+    {
+        disposed = true;
+        if (cs is not null)
+        {
+            cs.Changed -= OnCsChanged;
+            cs.Dispose();
+            cs = null;
+        }
+        if (host is not null) await host.DisposeAsync();
+    }
+
+    // スマートフォン用: 練習のお題に対応する記事内チュートリアル（画像で見る）
+    private static readonly IReadOnlyList<TouchPracticeGuide.Item> TouchItems =
+    [
+        new("ma-outfit", "Modular Avatar で衣装を着せる", "/learn/unity/modular-avatar-outfit"),
+        new("unity-basics", "Unity の画面を動かしてみる", "/learn/unity/editor-overview"),
+    ];
+}

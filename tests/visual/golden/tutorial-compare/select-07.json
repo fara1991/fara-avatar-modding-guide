@@ -1,0 +1,23 @@
+{
+ "count": "8 / 14",
+ "bubble": "8\nメニューから「UV球」をクリックしてください。新しいものは 3D カーソル（中央の白い輪）の位置に置かれます。",
+ "keys": "メニューをクリック",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "全選択",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "50%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

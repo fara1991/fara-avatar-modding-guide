@@ -1,0 +1,1343 @@
+// Cloudflare Worker。すべてのリクエストがまずここを通る（wrangler.toml の run_worker_first = true）。
+// - /api/rooms/<部屋ID>/ws は共同練習の部屋（Durable Object）へ
+// - /api/rooms は練習の部屋の一覧（RoomDirectory。Durable Object）。JSON。Worker の中で数秒だけ覚える（listCacheMs）
+// - /api/maintenance はメンテナンスの状態（{state, message}）。WebAssembly のアプリが起動時に読んで、お知らせの帯を出す（HTML には注入しない）
+// - それ以外は静的ファイル（wrangler の assets。dotnet publish の wwwroot に、Build が書き足したもの）。確認用の noindex は、Build が _headers に付ける
+//
+// 共同練習の部屋（/practice/room）: 部屋ごとに 1 つの Durable Object（Room）が WebSocket をまとめ、
+// オブジェクトモードのシーン（立方体などの種類・名前・位置・回転・スケール）を全員で共有する。
+// - 遅れて入った人には、Durable Object に保存したシーンを丸ごと送る
+// - 同じオブジェクトへの変更は、サーバーに届いた順（後勝ち）。操作中のオブジェクトはロックできる
+// - 受け取ったメッセージはすべてここで形式と値の範囲を確かめる（不正なものは捨てる）
+// - 部屋は常に一覧に出る。部屋の名前は Worker が決めるランダムな文字列。鍵（パスワード）は作成のときクライアントが作る英数字 32 字以上（平文は保存せず、ソルト付き SHA-256 のハッシュだけを残す）
+// - 作成は、最初の hello の create だけ（鍵・作成者の鍵）。作成後は変えられない。create の無い hello で部屋が無ければ、作らずに閉じる
+// - 部屋の作成は接続元ごとに数える（1 分に 1 部屋・JST の 1 日に 3 部屋まで。RoomDirectory に、秘密鍵つき HMAC のハッシュで持つ。超えたら 4005 で閉じる）。同時に存在する部屋は全体で 8 部屋まで（超えたら 4007 で閉じる）。既存の部屋に入るのは数えない
+// - 作成の処理は、部屋ごとに直列にする（同時の hello で、作成者や鍵が上書きされないように）
+// - 作成者の鍵が合う接続は、鍵を免除する。ほかの人は、鍵が合うまで部屋の中身（welcome・参加者・オブジェクト）を送らない（needpass・wrongpass・passlimit のあと 4003 で閉じる）
+// - 旧形式の部屋（鍵の保存形が v2 でない）は中身を読めないので、入ろうとしたら「期限切れ」として閉じる（expired・4004）
+// - 成功した操作（オブジェクトの変更・ロック・解除・移動の適用）が 30 分（ROOM_IDLE_SECONDS で変えられる）無ければ部屋を閉じる。2 分前に idlewarn で知らせる
+// - 作成者（作成者の鍵を持つ接続）だけが「部屋を閉じる」（close）できる。閉じた部屋の ID は 10 分、「閉じた」目印で拒否する
+// - ping は Durable Object を起こさずに自動で返す（WebSocket Hibernation）。応答の時刻で、切れた接続を見つけて外す
+import { DurableObject } from "cloudflare:workers";
+// 報告の受け口とメンテナンスの判定は、共通部品（fara-blazor-component）の同じファイルを使う（各サイトに同じコピーを持たない）
+import { handleReport } from "../external/fara-blazor-component/worker/report.js";
+import { getMaintenance, maintenanceResponse } from "../external/fara-blazor-component/worker/maintenance.js";
+import { errorSummary } from "../external/fara-blazor-component/worker/error-summary.js";
+// 報告の 1 日の送信回数の制限（送信元ごと 3 回まで）の Durable Object。バインディング REPORT_LIMITER（wrangler.toml）があるときだけ働く
+export { ReportRateLimiter } from "../external/fara-blazor-component/worker/report-rate-limit.js";
+// JST の暦日と次の 0 時（部屋の作成の 1 日の数え方と、RoomDirectory の掃除に使う。報告と同じ区切り）
+import { jstDay, nextJstMidnight } from "../external/fara-blazor-component/worker/report-rate-limit.js";
+
+// ---------------------------------------------------------------- 上限
+export const LIMITS = {
+  participants: 8,          // 1 部屋の最大人数
+  objects: 200,             // 1 部屋のオブジェクト数
+  messageBytes: 16 * 1024,  // 1 メッセージの大きさ
+  ratePerSec: 40,           // 1 人が 1 秒に送れるメッセージ数（平均）
+  rateBurst: 80,            // 一度に送れる数
+  nameLength: 20,           // 表示名の長さ
+  objectNameLength: 40,
+  coord: 1000,              // 位置の絶対値の上限（m）
+  scaleMin: 0.001,
+  scaleMax: 1000,
+  lockMs: 15000,            // ロックの有効時間（操作が終わらないまま放置されたとき用）
+  lockMaxMs: 2 * 60 * 1000, // 同じ人が同じオブジェクトを続けて持てる上限。超えたら解除して、ほかの人が取れるようにする（lockexpired）
+  lockWarnMs: 20 * 1000,    // 上限のこれだけ前から、持っている人に知らせる（lockwarn）
+  lockGapMs: 10 * 1000,     // 取り直しの間隔がこれ以内なら、同じ保持の続きとみなす（unlock → lock の繰り返しで上限を回避させない）
+  pendingMax: 3,            // 参加前（hello の前）の接続の上限。超えたら、いちばん古い参加前の接続を閉じる
+  pendingMs: 10 * 1000,     // 参加前のまま、これより長く経った接続は閉じる
+  idleMs: 60 * 1000,        // これだけ何も届かない接続は切れたものとみなす（クライアントは 20 秒ごとに ping）
+  sweepMs: 60 * 1000,       // 誰かがいるあいだ、切れた接続を確かめる間隔
+  invalidBeforeClose: 30,   // 不正なメッセージが、下の時間窓の中でこれだけ届いたら切断
+  invalidWindowMs: 60 * 1000, // 不正なメッセージを数える時間窓（長く開いた接続が、昔の分で切れないように）
+  lockIds: 50,              // 1 回のロックで押さえる数・プレビューの数
+  rotationMax: 100,         // 回転の絶対値の上限（度）
+  viewDistMax: 500,         // 視点の距離の上限
+  viewAngleMax: 1000,       // 視点の角度（theta）の絶対値の上限
+  viewPhiMax: 4,            // 視点の角度（phi）の絶対値の上限
+  viewNameLength: 8,        // 視点の先生役の名前の長さ
+  roomIdleMs: 30 * 60 * 1000, // 成功した操作（オブジェクトの変更・ロック・解除・移動）が無いまま、これだけたつと部屋を閉じる。ROOM_IDLE_SECONDS で変えられる
+  roomWarnMs: 2 * 60 * 1000,  // 閉じる前に、これだけ前から idlewarn で知らせる（部屋の時間が短いときは、その半分まで）
+  roomPersistMs: 10 * 1000,   // 最後の操作の時刻を storage に書く間隔（書き込みを減らす。再起動のとき、この分だけ早く閉じることがある）
+  closedMs: 10 * 60 * 1000,   // 閉じた部屋の ID を拒否する時間（閉じた直後に同じ ID で作り直されて混乱しないように）
+  listGraceMs: 60 * 1000,     // 作成直後は、参加者がまだいなくても一覧に出す時間
+  listTtlMs: 3 * 60 * 1000,   // 一覧の登録が、この時間のあいだ Room から更新されなければ消す（Room が消えたあとに残らないように）
+  listMax: 50,                // 一覧に返す件数
+  listStoreMax: 200,          // 一覧に登録できる件数（これを超えたら登録しない）
+  listCacheMs: 5 * 1000,      // 一覧を Worker の中で覚える時間（一覧は参考情報。古くても問題にならない）
+  passMin: 32,                // 鍵の長さ（文字）。クライアントが作るのは 40 字。これより短い鍵は、作成では受け付けない
+  passMax: 64,                // 鍵の長さの上限（文字）
+  createPerMinute: 1,         // 部屋の作成（接続元ごと）。createWindowMs のあいだに作れる数。ROOM_CREATE_PER_MINUTE で 1〜60 に変えられる
+  createWindowMs: 60 * 1000,
+  createPerDay: 3,            // 部屋の作成（接続元ごと）。JST の 1 日に作れる数。ROOM_CREATE_PER_DAY で 1〜1000 に変えられる
+  roomMaxTotal: 8,            // 同時に存在する部屋の上限（全体）。ROOM_MAX_TOTAL で 1〜50 に変えられる。存在 = 作成されて、閉じられていない（k: の行が TTL の中にある）
+  passFailMax: 5,            // 鍵の間違い（接続元ごと・部屋ごと）。これだけ続けると拒否する
+  passFailWindowMs: 10 * 60 * 1000, // 間違いを数える時間窓
+  passBlockMs: 10 * 60 * 1000,      // 拒否する時間
+  previewErrMs: 5 * 1000,           // 途中経過の保存の失敗を本人に知らせる間隔（連続の失敗で、エラーを連打しない）
+  rpcTimeoutMs: 3 * 1000,           // 別の DO（作成の回数の予約）の呼び出しの上限。超えたら作成を見送る（fail-closed。直列の鎖を長く止めない）
+};
+
+/** 別の DO の呼び出しに時間の上限を付ける（止まっても、ほかの人の待ちを長く止めない。超えたら例外） */
+function withTimeout(promise, ms) {
+  let timer;
+  const limit = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("timeout")), ms); });
+  return Promise.race([promise, limit]).finally(() => clearTimeout(timer));
+}
+
+const KINDS = new Set(["plane", "cube", "sphere", "cylinder", "cone", "torus"]);
+const COLORS = ["#f97316", "#22c55e", "#3b82f6", "#e879f9", "#facc15", "#14b8a6", "#ef4444", "#a78bfa"];
+// 部屋の ID は 10〜32 字（作成 UI の乱数は 10 字）。手で付けた短い ID（推測しやすい・ほかの人と重なりやすい）は受け付けない
+const ROOM_ID = /^[a-z0-9]{10,32}$/;
+const OBJ_ID = /^[a-z0-9]{1,24}$/;
+// 作成者の鍵（クライアントが作る 128 ビットの乱数。16 進 32 字）
+const OWNER_KEY = /^[0-9a-f]{32}$/;
+// 鍵（作成のとき）: 英数字の passMin〜passMax 字
+const PASS_PATTERN = new RegExp(`^[A-Za-z0-9]{${LIMITS.passMin},${LIMITS.passMax}}$`);
+// 鍵の保存形のバージョン（2 = ソルト付き SHA-256。これ以外の保存形の部屋は、期限切れとして閉じる）
+const PASS_VERSION = 2;
+// 部屋の名前（Worker が作る）: 紛らわしい文字（i・l・o・u）を除いた 32 字。byte & 31 で選ぶので偏らない
+const ROOM_NAME_CHARS = "0123456789abcdefghjkmnpqrstvwxyz";
+const ROOM_NAME_LENGTH = 8;
+// 部屋の作成の回数を数える接続元の識別子（秘密鍵つきの HMAC。用途ラベルで鍵を分ける）
+const CREATE_LIMIT_LABEL = "fara-avatar-modding-guide/room-create-limit/v1";
+const CREATE_HASH = /^[0-9a-f]{32}$/;
+// 鍵の間違いを数える接続元の識別子（作成の制限とは別の用途ラベル）
+const FAIL_LIMIT_LABEL = "fara-avatar-modding-guide/room-fail-limit/v1";
+const DIRECTORY_NAME = "main";
+// 保存できなかったときに、送った本人へ返す（ほかの人には何も送らない）
+const SAVE_FAILED_MSG = "保存に失敗しました。もう一度操作してください";
+// 一覧の覚え（Worker の isolate ごと。env.ROOM_DIRECTORY の束縛をキーにする）
+const listCache = new WeakMap();
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    // メンテナンス（Worker の変数 MAINTENANCE_MODE。external/fara-blazor-component/worker/maintenance.js）。true の間は、すべて 503 のメンテナンス画面
+    const maintenance = getMaintenance(env);
+    if (maintenance.state === "on") return maintenanceResponse(request, maintenance, "Avatar Modding Guide");
+    // メンテナンスの状態。アプリ（WebAssembly）が起動時に 1 回読む。キャッシュさせない（MAINTENANCE_MODE を変えたら、すぐ反映するため）
+    if (url.pathname === "/api/maintenance") {
+      return new Response(JSON.stringify({ state: maintenance.state, message: maintenance.message }), {
+        headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+      });
+    }
+    const m = url.pathname.match(/^\/api\/rooms\/([^/]+)\/ws$/);
+    if (m) {
+      if (!ROOM_ID.test(m[1])) return new Response("bad room id", { status: 400 });
+      if (request.headers.get("Upgrade") !== "websocket") return new Response("expected websocket", { status: 426 });
+      // 別のサイトのページから部屋につながれないように、同じホストからの接続だけ受け付ける
+      const origin = request.headers.get("Origin");
+      if (origin && originHost(origin) !== url.host) return new Response("forbidden", { status: 403 });
+      const stub = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
+      // 部屋の ID を Durable Object に渡す（一覧への登録・取り消しに使う）
+      const forwarded = new Request(request);
+      forwarded.headers.set("X-Room-Id", m[1]);
+      return stub.fetch(forwarded);
+    }
+    // 練習の部屋の一覧（JSON。公開の情報だけ）。同じホストからの GET だけ
+    if (url.pathname === "/api/rooms") {
+      if (request.method !== "GET") return new Response("method not allowed", { status: 405, headers: { Allow: "GET" } });
+      const origin = request.headers.get("Origin");
+      if (origin && originHost(origin) !== url.host) return new Response("forbidden", { status: 403 });
+      const rooms = await roomList(env);
+      return new Response(JSON.stringify({ rooms, limit: LIMITS.listMax }), {
+        headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+      });
+    }
+    // 作者への報告の受け口（external/fara-blazor-component/worker/report.js）
+    if (url.pathname === "/api/report" || url.pathname === "/api/report/config") {
+      try {
+        return await handleReport(request, env, "Avatar Modding Guide");
+      } catch {
+        return new Response("internal error", { status: 500 });
+      }
+    }
+    if (url.pathname.startsWith("/api/")) return new Response("not found", { status: 404 });
+    // 静的ファイル。お知らせ（MAINTENANCE_MODE=notice）の帯は、アプリ側が /api/maintenance を読んで出す（HTML の書き換えはしない）
+    return env.ASSETS.fetch(request);
+  },
+};
+
+/** 一覧（RoomDirectory）。LIMITS.listCacheMs のあいだは覚えたものを返す（DO への負荷を抑える）。束縛が無ければ空。 */
+async function roomList(env) {
+  const dir = env.ROOM_DIRECTORY;
+  if (!dir) return [];
+  const hit = listCache.get(dir);
+  if (hit && Date.now() - hit.at < LIMITS.listCacheMs) return hit.rooms;
+  const rooms = await dir.get(dir.idFromName(DIRECTORY_NAME)).list();
+  listCache.set(dir, { at: Date.now(), rooms });
+  return rooms;
+}
+
+/** Origin ヘッダーのホスト。"null" など URL として読めないものは null（どのホストとも一致しない） */
+function originHost(origin) {
+  try { return new URL(origin).host; } catch { return null; }
+}
+
+/**
+ * 理由を付けて閉じる接続（満員・閉じた部屋など）。いったん受け付けてから閉じる（ブラウザでは理由が分かるように）。
+ * message があれば、閉じる前に送る（閉じた理由などを、close の理由より詳しく伝える）
+ */
+function refuse(code, reason, message) {
+  const pair = new WebSocketPair();
+  pair[1].accept();
+  if (message) { try { pair[1].send(JSON.stringify(message)); } catch { /* 送れなくても閉じる */ } }
+  pair[1].close(code, reason);
+  return new Response(null, { status: 101, webSocket: pair[0] });
+}
+
+const encoder = new TextEncoder();
+
+// ---------------------------------------------------------------- 値の確認
+const isNum = (v, lim) => typeof v === "number" && Number.isFinite(v) && Math.abs(v) <= lim;
+const vec3 = (v, check) => Array.isArray(v) && v.length === 3 && v.every(check);
+
+/**
+ * 表示名・オブジェクト名・部屋名: 制御文字と HTML の特殊文字（< > & " '）を除き、前後の空白を取り、長さを切る。
+ * クライアントは textContent で表示するので HTML としては使わないが、念のためここでも取り除いておく
+ */
+export function cleanName(v, max = LIMITS.nameLength) {
+  if (typeof v !== "string") return "";
+  return [...v.replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff<>&"']/g, "").trim()].slice(0, max).join("");
+}
+
+/** オブジェクト 1 つ。不正なら null */
+export function cleanObject(o) {
+  if (!o || typeof o !== "object") return null;
+  if (typeof o.id !== "string" || !OBJ_ID.test(o.id)) return null;
+  if (!KINDS.has(o.kind)) return null;
+  const p = o.p, r = o.r, s = o.s;
+  if (!vec3(p, x => isNum(x, LIMITS.coord))) return null;
+  if (!vec3(r, x => isNum(x, LIMITS.rotationMax))) return null;
+  if (!vec3(s, x => isNum(x, LIMITS.scaleMax) && Math.abs(x) >= LIMITS.scaleMin)) return null;
+  const name = cleanName(o.name, LIMITS.objectNameLength) || o.kind;
+  return { id: o.id, kind: o.kind, name, p, r, s };
+}
+
+/** 変形だけ（操作中のプレビュー）。不正なら null */
+function cleanTransform(o) {
+  if (!o || typeof o.id !== "string" || !OBJ_ID.test(o.id)) return null;
+  if (!vec3(o.p, x => isNum(x, LIMITS.coord)) || !vec3(o.r, x => isNum(x, LIMITS.rotationMax)) || !vec3(o.s, x => isNum(x, LIMITS.scaleMax) && Math.abs(x) >= LIMITS.scaleMin)) return null;
+  return { id: o.id, p: o.p, r: o.r, s: o.s };
+}
+
+function cleanIds(ids, max = LIMITS.objects) {
+  if (!Array.isArray(ids) || ids.length > max) return null;
+  return ids.every(id => typeof id === "string" && OBJ_ID.test(id)) ? [...new Set(ids)] : null;
+}
+
+/** 視点（先生役の視点に合わせる用） */
+function cleanView(v) {
+  if (!v || typeof v !== "object") return null;
+  if (!vec3(v.target, x => isNum(x, LIMITS.coord)) || !isNum(v.dist, LIMITS.viewDistMax) || v.dist <= 0) return null;
+  if (!isNum(v.theta, LIMITS.viewAngleMax) || !isNum(v.phi, LIMITS.viewPhiMax) || typeof v.ortho !== "boolean") return null;
+  return { target: v.target, dist: v.dist, theta: v.theta, phi: v.phi, ortho: v.ortho, name: cleanName(v.name, LIMITS.viewNameLength) };
+}
+
+/**
+ * 作成の指定（最初の hello の create）。不正なら null。
+ * owner（作成者の鍵）は hello の owner で渡し、ここでは形だけ確かめる。鍵（pass）は必須で、英数字 passMin〜passMax 字。
+ * 部屋の名前は Worker が作る（クライアントの名前は受け取らない。一覧に出る名前を、クライアントに決めさせないため）。
+ */
+export function parseCreate(c, owner) {
+  if (!c || typeof c !== "object") return null;
+  if (typeof owner !== "string" || !OWNER_KEY.test(owner)) return null;
+  if (typeof c.pass !== "string" || !PASS_PATTERN.test(c.pass)) return null;
+  return { pass: c.pass, owner };
+}
+
+/**
+ * 古い版のクライアントの作成か（鍵が無い・鍵が短い）。前の版は鍵を送らなかったので、再読み込みで直る。
+ * 形の不正（型の違いなど）とは別に扱い、理由 outdated で閉じる。
+ */
+export function isOutdatedCreate(c) {
+  return Boolean(c) && typeof c === "object" && (typeof c.pass !== "string" || [...c.pass].length < LIMITS.passMin);
+}
+
+export const perMinuteOf = env => limitOf(env, "ROOM_CREATE_PER_MINUTE", LIMITS.createPerMinute, 1, 60);
+export const perDayOf = env => limitOf(env, "ROOM_CREATE_PER_DAY", LIMITS.createPerDay, 1, 1000);
+export const maxTotalOf = env => limitOf(env, "ROOM_MAX_TOTAL", LIMITS.roomMaxTotal, 1, 50);
+
+/** 数の上限の値（env の数。整数で範囲内なら採用し、それ以外は既定の値） */
+export function limitOf(env, name, def, min, max) {
+  const n = Number(env?.[name]);
+  return Number.isInteger(n) && n >= min && n <= max ? n : def;
+}
+
+/** 部屋の名前（ランダム。ROOM_NAME_CHARS の 8 字。byte & 31 で選ぶので偏らない） */
+export function randomRoomName() {
+  const bytes = crypto.getRandomValues(new Uint8Array(ROOM_NAME_LENGTH));
+  return [...bytes].map(b => ROOM_NAME_CHARS[b & 31]).join("");
+}
+
+// ---------------------------------------------------------------- 暗号（Web Crypto）
+const hex = bytes => [...bytes].map(b => b.toString(16).padStart(2, "0")).join("");
+const unhex = s => Uint8Array.from(s.match(/../g).map(h => parseInt(h, 16)));
+
+async function sha256Hex(text) {
+  return hex(new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(text))));
+}
+
+/** SHA-256(salt || 鍵) の 16 進。鍵は 32 字以上のランダムな値なので、遅いハッシュ（PBKDF2）は使わない。 */
+async function passDigest(saltBytes, pass) {
+  const body = encoder.encode(pass);
+  const data = new Uint8Array(saltBytes.length + body.length);
+  data.set(saltBytes, 0);
+  data.set(body, saltBytes.length);
+  return hex(new Uint8Array(await crypto.subtle.digest("SHA-256", data)));
+}
+
+/** 鍵の保存形 { v, salt, hash }。ソルトは 16 バイトの乱数。平文は残さない。 */
+async function hashPass(pass) {
+  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+  return { v: PASS_VERSION, salt: hex(saltBytes), hash: await passDigest(saltBytes, pass) };
+}
+
+/** 鍵が合うか（保存形と同じ条件で作り、定数時間で比べる） */
+async function verifyPass(pass, stored) {
+  return sameText(await passDigest(unhex(stored.salt), pass), stored.hash);
+}
+
+/** 旧形式の部屋か（鍵の保存形が v2 でない。PBKDF2 の時代の部屋・鍵なしの部屋）。読めないので、期限切れとして閉じる。 */
+export function isLegacyRoom(meta) {
+  return Boolean(meta) && meta.pass?.v !== PASS_VERSION;
+}
+
+/** 秘密鍵つきの HMAC（用途ラベルで鍵を導く）。16 進の文字。 */
+async function derivedHmacHex(secret, label, text) {
+  const master = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const derived = await crypto.subtle.sign("HMAC", master, encoder.encode(label));
+  const key = await crypto.subtle.importKey("raw", derived, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return hex(new Uint8Array(await crypto.subtle.sign("HMAC", key, encoder.encode(text))));
+}
+
+/**
+ * 部屋の作成を数える接続元の識別子（32 字の 16 進）。netKey(IP) を秘密鍵つき HMAC にかけたもの。IP そのものは残さない。
+ * 秘密鍵（TURNSTILE_SECRET）か接続元（CF-Connecting-IP）が無いときは null（数えない）。
+ */
+export async function roomCreateKeyOf(request, env) {
+  const secret = env?.TURNSTILE_SECRET;
+  const ip = request?.headers?.get?.("CF-Connecting-IP");
+  if (!secret || !ip) return null;
+  return (await derivedHmacHex(secret, CREATE_LIMIT_LABEL, netKey(ip))).slice(0, 32);
+}
+
+/** 16 進の文字の比較（長さが違えば false。途中で打ち切らない） */
+function sameText(a, b) {
+  if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/**
+ * 接続元の単位。IPv4 はそのまま。IPv6 は先頭 64 ビット（/64）にまとめる（同じ回線の中で下の 64 ビットを替えて、試行の数を増やせないように）。
+ * 形の違うもの（"::1"・省略した形）も、先頭の 4 つの段に展開してから数える。
+ */
+export function netKey(ip) {
+  if (!ip.includes(":")) return ip;
+  const [head, tail] = ip.includes("::") ? ip.split("::") : [ip, null];
+  const hs = head ? head.split(":") : [];
+  const ts = tail ? tail.split(":") : [];
+  const groups = tail === null ? hs : [...hs, ...Array(Math.max(0, 8 - hs.length - ts.length)).fill("0"), ...ts];
+  return groups.slice(0, 4).map(g => g.toLowerCase().padStart(4, "0")).join(":") + "::/64";
+}
+
+/**
+ * 鍵の間違いを数える接続元の鍵（秘密鍵つき HMAC・用途ラベルは作成の制限と別）。IP そのものは残さない。
+ * 秘密鍵が無いときは null（数えない・fail-open）。理由: 鍵は 40 字の乱数なので総当たりは現実的でなく、
+ * 部屋単位の共通の箱にすると、誰でも 10 分ごとに部屋の入室を止められてしまうため。
+ * 接続元（CF-Connecting-IP）が無いが秘密鍵はあるとき（本番では起きない）は "-"（まとめて数える）。
+ */
+export async function ipKeyOf(request, env) {
+  const secret = env?.TURNSTILE_SECRET;
+  if (!secret) return null;
+  const ip = request?.headers?.get?.("CF-Connecting-IP");
+  return ip ? (await derivedHmacHex(secret, FAIL_LIMIT_LABEL, netKey(ip))).slice(0, 32) : "-";
+}
+
+// ---------------------------------------------------------------- 部屋
+export class Room extends DurableObject {
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.objects = null; // Map<id, obj>（保存してあるシーン。読み込みが済んだら入る）
+    this.locks = new Map(); // id → { peer, until }
+    this.holds = new Map(); // id → { peer, since, last }。同じ人が続けて持っている時間（上限 lockMaxMs の判定）。解除しても、lockGapMs の間は続きとみなす
+    this.rate = new Map(); // WebSocket → { tokens, at, invalid }
+    this.seen = new Map(); // WebSocket → 最後にメッセージが届いた時刻
+    this.helloing = new Set(); // hello の処理の途中の接続（同じ接続の二重の hello を、待たずに捨てる）
+    this.chain = Promise.resolve(); // 部屋の作成・鍵の確認を直列にする（同時の hello で、作成者や鍵が上書きされないように）
+    this.loading = null;   // 読み込みの途中（同時に 2 回読まない）
+    this.inited = false;   // 部屋を作った（作成の指定を受けた hello のあと）
+    this.meta = null;      // { name, createdAt, pass: {v, salt, hash}, ownerHash } 作成のときに決まる
+    this.opAt = 0;         // 最後の成功した操作（オブジェクトの変更・ロック・解除・移動の適用）の時刻
+    this.opPersisted = 0;  // storage に書いた opAt
+    this.warnFor = null;   // idlewarn を出したときの opAt。opAt と同じなら、その操作の区間では警告を出し済み
+    this.roomId = null;    // 部屋の ID（X-Room-Id。一覧への登録に使う）
+    this.gone = false;     // この部屋は閉じた（以後は何もしない）
+    this.goneReason = null; // 閉じた理由（閉じたあとに届いた文字への返事に使う）
+    this.previewErrAt = 0;  // 途中経過（preview）の保存の失敗を最後に知らせた時刻（連打を防ぐ）
+    // {"t":"ping"} には、Durable Object を起こさずに {"t":"pong"} を返す
+    ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair('{"t":"ping"}', '{"t":"pong"}'));
+  }
+
+  /** 直列に実行する（前の処理が終わってから。失敗しても次の処理は進める） */
+  serial(fn) {
+    const run = this.chain.then(fn);
+    this.chain = run.catch(() => {});
+    return run;
+  }
+
+  async load() {
+    if (this.objects) return;
+    this.loading ??= this.readStorage().finally(() => { this.loading = null; });
+    return this.loading;
+  }
+
+  async readStorage() {
+    const stored = await this.ctx.storage.list({ prefix: "o:" });
+    const objects = new Map([...stored.values()].map(o => [o.id, o]));
+    const inited = Boolean(await this.ctx.storage.get("init"));
+    const meta = (await this.ctx.storage.get("meta")) ?? null;
+    let opAt = await this.ctx.storage.get("opAt");
+    if (inited && (opAt === null || opAt === undefined)) {
+      // デプロイ前に作られた部屋（opAt が無い）は、旧版の最後の変更（changed）から数える。無ければ今から。0 にすると、すぐ閉じてしまう
+      opAt = (await this.ctx.storage.get("changed")) ?? Date.now();
+      await this.ctx.storage.put("opAt", opAt);
+    }
+    this.opAt = opAt ?? 0;
+    this.opPersisted = this.opAt;
+    this.warnFor = (await this.ctx.storage.get("warnFor")) ?? null;
+    this.roomId = this.roomId ?? (await this.ctx.storage.get("roomId")) ?? null;
+    this.meta = meta;
+    this.inited = inited;
+    this.objects = objects;   // 最後に入れる（これが入るまでは読み込み済みとみなさない）
+  }
+
+  /** 部屋の寿命（ROOM_IDLE_SECONDS で短くできる。確認用の動作確認に使う。60 秒から 30 分の間だけ受け付ける） */
+  idleMs() {
+    const s = Number(this.env?.ROOM_IDLE_SECONDS);
+    return Number.isFinite(s) && s >= 60 && s <= 1800 ? s * 1000 : LIMITS.roomIdleMs;
+  }
+
+  /** 警告を出すまでの時間（閉じる前の 2 分。部屋の寿命が短いときは、その半分） */
+  warnLead() {
+    return Math.min(LIMITS.roomWarnMs, Math.floor(this.idleMs() / 2));
+  }
+
+  /** 閉じた部屋の目印（期限内なら返す。期限が切れていれば、ここで部屋の中身を消して null）。書き込みを伴う。 */
+  async closedRecord() {
+    const c = await this.ctx.storage.get("closed");
+    if (!c) return null;
+    if (Date.now() - c.at < LIMITS.closedMs) return c;
+    await this.deleteAllStorage();
+    this.reset();
+    return null;
+  }
+
+  /** 閉じた目印の読み取りだけ（書かない。接続の受け付けに使う） */
+  async closedNow() {
+    const c = await this.ctx.storage.get("closed");
+    return c && Date.now() - c.at < LIMITS.closedMs ? c : null;
+  }
+
+  /** 閉じたあとの掃除（期限が切れた目印を消したあと、新しい部屋として使える状態に戻す） */
+  reset() {
+    this.objects = null;
+    this.locks.clear();
+    this.holds.clear();
+    this.inited = false;
+    this.meta = null;
+    this.opAt = 0;
+    this.opPersisted = 0;
+    this.warnFor = null;
+    this.gone = false;
+  }
+
+  /** 保存を削除する（一度に 128 件まで。DO の上限）。 */
+  async deleteAllStorage() {
+    await this.ctx.storage.deleteAll();
+  }
+
+  /** 保存を書く（一度に 128 件まで。大きい束は分けて書く） */
+  async putChunked(obj) {
+    const entries = Object.entries(obj);
+    for (let i = 0; i < entries.length; i += 128) await this.ctx.storage.put(Object.fromEntries(entries.slice(i, i + 128)));
+  }
+
+  async deleteChunked(keys) {
+    for (let i = 0; i < keys.length; i += 128) await this.ctx.storage.delete(keys.slice(i, i + 128));
+  }
+
+  /** 鍵の試行の行（fail:*）のうち、期限の切れたものを消す（行が増え続けないように。間違いのときだけ調べる） */
+  async sweepFails(now) {
+    const rows = await this.ctx.storage.list({ prefix: "fail:" });
+    const stale = [...rows].filter(([, r]) => (r.until ?? 0) <= now && now - r.first >= LIMITS.passFailWindowMs).map(([k]) => k);
+    if (stale.length) await this.deleteChunked(stale);
+  }
+
+  /**
+   * 部屋を作る（作成の指定を受けた最初の hello のとき。serial の中で呼ぶ）。立方体を 1 つ置き、作成の指定（meta）を保存する。
+   * 部屋の名前は Worker が決める。作成者の鍵は SHA-256 のハッシュだけ、鍵は（ソルト付き SHA-256 の）ハッシュだけを残す。
+   */
+  async initRoom(create) {
+    const now = Date.now();
+    // Blender の初期状態と同じく立方体を 1 つ置く
+    const cube = { id: "cube0", kind: "cube", name: "Cube", p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] };
+    const pass = await hashPass(create.pass);
+    const ownerHash = await sha256Hex(create.owner);
+    const meta = { name: randomRoomName(), createdAt: now, pass, ownerHash };
+    // 保存が済んでから、メモリに入れる（書けなければ、何も変えずに例外。join が本人に返す）
+    await this.ctx.storage.put({ init: true, "o:cube0": cube, meta, opAt: now, roomId: this.roomId });
+    this.objects = new Map([[cube.id, cube]]);
+    this.meta = meta;
+    this.opAt = now;
+    this.opPersisted = now;
+    this.warnFor = null;
+    this.inited = true;
+    await this.schedule();
+  }
+
+  /**
+   * 次のアラームを決める（1 つしか持てないので、毎回ここで全部を計算し直す）。
+   * 誰かいるあいだは 1 分ごと（切れた接続の確認と一覧の更新）、警告・終了の時刻（操作のたびに延びる）、ロックの期限、閉じた目印の期限のうち、いちばん早いもの。
+   */
+  async schedule() {
+    const now = Date.now();
+    let at = Infinity;
+    const closed = await this.ctx.storage.get("closed");
+    if (closed) {
+      at = closed.at + LIMITS.closedMs;
+    } else if (this.inited) {
+      at = now + LIMITS.sweepMs;   // 存在する間は 1 分ごとに起きる（部屋の予約を更新し、切れた接続を確かめる）
+      const end = this.opAt + this.idleMs();
+      at = Math.min(at, end);
+      if (this.warnFor !== this.opAt) at = Math.min(at, end - this.warnLead());
+    }
+    for (const l of this.locks.values()) at = Math.min(at, l.until);
+    if (at !== Infinity) await this.ctx.storage.setAlarm(at);
+  }
+
+  async alarm() {
+    await this.load();
+    const now = Date.now();
+    const pruned = this.prune();
+    // 期限の切れたロックは、ほかの人にも知らせる（locksMessage は期限切れを除くので、送らないと古いロックが見え続ける）
+    if (this.pruneLocks()) this.broadcast(this.locksMessage());
+    const closed = await this.closedRecord();
+    if (closed) { await this.schedule(); return; }
+    if (!this.inited || this.gone) return;
+    await this.touchDirectory(now);
+    const end = this.opAt + this.idleMs();
+    if (now >= end) return this.serial(() => this.idleClose());
+    // 閉じる前の警告（その操作の区間で 1 回だけ。成功した操作があると、opAt が進んで、また出せるようになる）
+    if (this.warnFor !== this.opAt && now >= end - this.warnLead()) {
+      // 保存してから反映して知らせる。書いているあいだに操作があれば、知らせない（次のアラームで判断し直す）
+      const at = this.opAt;
+      await this.ctx.storage.put("warnFor", at);
+      if (!this.gone && this.opAt === at) {
+        this.warnFor = at;
+        this.broadcast({ t: "idlewarn", ms: end - now });
+      }
+    }
+    // 切れた接続を外したとき・誰かいるときは、一覧の登録を更新する（外したあとに空なら、一覧から消える）
+    if (pruned || this.peers().length) await this.syncDirectory();
+    await this.schedule();
+  }
+
+  /**
+   * 成功した操作（オブジェクトの変更・ロック・解除・移動の適用）の時刻（opAt）を、書く間隔（roomPersistMs）を過ぎていれば storage に書く。書いたら true。
+   * 書けなかったら例外。メモリは変えない（呼び出し側は、成功してから applyOp でメモリに反映する）。
+   */
+  async persistOpAt(now) {
+    if (now - this.opPersisted < LIMITS.roomPersistMs) return false;
+    await this.ctx.storage.put("opAt", now);
+    return true;
+  }
+
+  /**
+   * 保存のあと、成功した操作をメモリに反映する（時刻を進め、出ていた警告は取り消す。全員に ms: null）。persistOpAt のあとに呼ぶ。
+   * 拒否された操作・不正なメッセージ・ping は、ここを通らない。
+   */
+  applyOp(now, wrote) {
+    if (this.warnFor !== null && this.warnFor === this.opAt) this.broadcast({ t: "idlewarn", ms: null });
+    this.opAt = now;
+    if (wrote) this.opPersisted = now;
+  }
+
+  /** 保存に失敗した: メモリは変えていない。送った本人にだけ、エラーと（あれば）正しい状態を返す。ほかの人には何も送らない。 */
+  saveFailed(ws, e, resync = []) {
+    console.error("部屋の保存に失敗: " + errorSummary(e));
+    this.send(ws, { t: "error", msg: SAVE_FAILED_MSG });
+    for (const m of resync) this.send(ws, m);
+  }
+
+  /** 送った本人の画面を合わせる: ids の今の状態（ある物は upsert、無い物は delete）。保存に失敗したときに使う。 */
+  stateOf(ids) {
+    const upsert = [], del = [];
+    for (const id of new Set(ids)) {
+      const o = this.objects.get(id);
+      if (o) upsert.push(o); else del.push(id);
+    }
+    return { t: "ops", from: null, upsert, delete: del };
+  }
+
+  /**
+   * 直列の鎖で処理する（状態を変える処理の順番を守る）。閉じた部屋なら、閉じたことを伝えて切断する。
+   * 直列が効くのは、storage 以外の await（hashPass・verifyPass・crypto・別の DO の呼び出し）の間の割り込み。
+   * storage の待ちの間に他のイベントを入れない仕組み（input gate）の挙動は、確認した docs に記載が見つからなかったため要照合。
+   */
+  serialOp(ws, fn) {
+    return this.serial(() => {
+      if (this.gone) {
+        this.send(ws, { t: "closed", reason: this.goneReason ?? "closed" });
+        try { ws.close(4004, "closed"); } catch { /* 閉じ済み */ }
+        return;
+      }
+      return fn();
+    });
+  }
+
+  /** 無操作の終了（直列の中で、閉じる条件を確かめ直す。待つあいだに操作があれば閉じず、時刻を計算し直す） */
+  async idleClose() {
+    if (this.gone || !this.inited) return;
+    if (Date.now() < this.opAt + this.idleMs()) return this.schedule();
+    return this.closeRoom("idle");
+  }
+
+  /**
+   * 部屋を閉じる（作成者の close・成功した操作が 30 分無い）。
+   * 順序: 閉じた印を先に書く（書けなければ、何も変えずに例外）→ 接続に知らせて閉じる → 一覧から外す → 中身を消す → アラーム。
+   * 閉じた印（closed）だけは残し、LIMITS.closedMs のあいだ同じ ID を拒否する（アラームで消す）。
+   */
+  async closeRoom(reason) {
+    const now = Date.now();
+    const closed = { at: now, reason };
+    await this.ctx.storage.put("closed", closed);
+    this.gone = true;
+    this.goneReason = reason;
+    const msg = JSON.stringify({ t: "closed", reason });
+    for (const ws of this.ctx.getWebSockets()) {
+      try { ws.send(msg); } catch { /* 切断済み */ }
+      try { ws.close(4004, "closed"); } catch { /* 閉じ済み */ }
+    }
+    await this.unlist();
+    try { await this.env?.ROOM_DIRECTORY?.get(this.env.ROOM_DIRECTORY.idFromName(DIRECTORY_NAME)).releaseRoom(this.roomId); } catch { /* 枠は TTL で空く */ }
+    const keys = [...(await this.ctx.storage.list()).keys()].filter(k => k !== "closed");
+    await this.deleteChunked(keys);
+    this.locks.clear();
+    this.holds.clear();
+    this.objects = null;
+    this.inited = false;
+    this.meta = null;
+    this.warnFor = null;
+    await this.ctx.storage.setAlarm(now + LIMITS.closedMs);
+  }
+
+  /** 開いている接続 */
+  open() {
+    return this.ctx.getWebSockets().filter(ws => ws.readyState === WebSocket.OPEN);
+  }
+
+  lastSeen(ws) {
+    const auto = this.ctx.getWebSocketAutoResponseTimestamp(ws)?.getTime() ?? 0;
+    return Math.max(auto, this.seen.get(ws) ?? 0, ws.deserializeAttachment()?.at ?? 0);
+  }
+
+  /**
+   * しばらく何も届いていない接続（ブラウザが落ちた・回線が切れた）を外す。外した数を返す。
+   * 参加前のまま pendingMs たった接続も外す（ping は返るので lastSeen では延命できない。接続した時刻で決める）。
+   */
+  prune() {
+    const now = Date.now();
+    let n = 0;
+    for (const ws of this.open()) {
+      const a = ws.deserializeAttachment();
+      const stalePending = !a?.joined && now - (a?.at ?? 0) > LIMITS.pendingMs;
+      if (!stalePending && now - this.lastSeen(ws) <= LIMITS.idleMs) continue;
+      this.leave(ws);
+      n++;
+      try { ws.close(4000, "timeout"); } catch { /* 閉じ済み */ }
+    }
+    return n;
+  }
+
+  peers() {
+    return this.open().map(ws => ws.deserializeAttachment()).filter(a => a?.joined && !a.left);
+  }
+
+  /**
+   * 接続の受け付け。ここでは書き込みをしない（部屋の作成・保存・アラームは、作成の指定を受けた hello のあと）。
+   * 人数は hello 済みの人だけを数える。参加前の接続は別枠（pendingMax）で、超えたら、いちばん古いものを閉じる。
+   * 閉じた部屋の ID は、理由つきで閉じる（4004）。
+   */
+  async fetch(request) {
+    this.roomId = request?.headers?.get?.("X-Room-Id") ?? this.roomId;
+    const closed = await this.closedNow();
+    if (closed || this.gone) return refuse(4004, "closed", { t: "closed", reason: closed?.reason ?? "closed" });
+    this.prune();
+    if (this.peers().length >= LIMITS.participants) return refuse(4001, "full");
+    const pending = this.open().filter(ws => !ws.deserializeAttachment()?.joined);
+    while (pending.length >= LIMITS.pendingMax) {
+      try { pending.shift().close(4002, "too many pending"); } catch { /* 閉じ済み */ }
+    }
+    const pair = new WebSocketPair();
+    const id = crypto.randomUUID().replace(/-/g, "").slice(0, 10);
+    this.ctx.acceptWebSocket(pair[1]);
+    // 色は hello のときに決める（参加している人の色と重ならないように）。ipKey は接続元の数え方（鍵の間違い）に使う
+    pair[1].serializeAttachment({ id, color: null, name: "", joined: false, at: Date.now(), ipKey: await ipKeyOf(request, this.env), createKey: await roomCreateKeyOf(request, this.env) });
+    return new Response(null, { status: 101, webSocket: pair[0] });
+  }
+
+  send(ws, msg) {
+    try { ws.send(JSON.stringify(msg)); } catch { /* 切断済み */ }
+  }
+
+  broadcast(msg, except = null) {
+    const data = JSON.stringify(msg);
+    for (const ws of this.open()) {
+      const a = ws.deserializeAttachment();
+      if (ws === except || !a?.joined || a.left) continue;
+      try { ws.send(data); } catch { /* 切断済み */ }
+    }
+  }
+
+  /** 1 人あたりの送信の頻度を制限する（トークンバケツ）。超えたら false */
+  allow(ws) {
+    const now = Date.now();
+    const r = this.rate.get(ws) ?? { tokens: LIMITS.rateBurst, at: now };
+    r.tokens = Math.min(LIMITS.rateBurst, r.tokens + ((now - r.at) / 1000) * LIMITS.ratePerSec);
+    r.at = now;
+    this.rate.set(ws, r);
+    if (r.tokens < 1) return false;
+    r.tokens -= 1;
+    return true;
+  }
+
+  /** 不正なメッセージを返す。直近の時間窓の中で invalidBeforeClose 回になったら切断（古いものは数えない） */
+  invalid(ws, why) {
+    const now = Date.now();
+    const r = this.rate.get(ws) ?? { tokens: LIMITS.rateBurst, at: now };
+    r.invalidAt = (r.invalidAt ?? []).filter(t => now - t < LIMITS.invalidWindowMs);
+    r.invalidAt.push(now);
+    this.rate.set(ws, r);
+    this.send(ws, { t: "error", msg: why });
+    if (r.invalidAt.length >= LIMITS.invalidBeforeClose) ws.close(1008, "too many invalid messages");
+  }
+
+  /** ロックの確認。ほかの人が持っている ID の一覧 */
+  lockedByOthers(ids, peer) {
+    const now = Date.now();
+    return ids.filter(id => { const l = this.locks.get(id); return l && l.peer !== peer && l.until > now; });
+  }
+
+  locksMessage() {
+    const now = Date.now();
+    const out = {};
+    for (const [id, l] of this.locks) if (l.until > now) out[id] = l.peer;
+    return { t: "locks", locks: out };
+  }
+
+  /** 期限の切れたロックを外す。外したものがあれば true */
+  pruneLocks() {
+    const now = Date.now();
+    let removed = false;
+    for (const [id, l] of this.locks) if (l.until <= now) { this.locks.delete(id); removed = true; }
+    return removed;
+  }
+
+  releaseLocks(peer) {
+    let changed = false;
+    for (const [id, l] of this.locks) if (l.peer === peer) { this.locks.delete(id); changed = true; }
+    return changed;
+  }
+
+  async webSocketMessage(ws, data) {
+    // 閉じた部屋: 閉じたことを伝えて切断する（黙って捨てると、接続が開いたまま残る）
+    if (this.gone) {
+      this.send(ws, { t: "closed", reason: this.goneReason ?? "closed" });
+      try { ws.close(4004, "closed"); } catch { /* 閉じ済み */ }
+      return;
+    }
+    // バイナリは受け付けない。大きさは UTF-8 のバイト数で比べる（1 文字は最大 3 バイトなので、短いものはエンコードせずに通す）
+    if (typeof data !== "string") return this.invalid(ws, "binary not supported");
+    if (data.length > LIMITS.messageBytes || (data.length * 3 > LIMITS.messageBytes && encoder.encode(data).length > LIMITS.messageBytes)) return this.invalid(ws, "message too large");
+    this.seen.set(ws, Date.now());
+    if (!this.allow(ws)) return this.send(ws, { t: "error", msg: "rate limited" });
+    let msg;
+    try { msg = JSON.parse(data); } catch { return this.invalid(ws, "bad json"); }
+    if (!msg || typeof msg !== "object" || typeof msg.t !== "string") return this.invalid(ws, "bad message");
+    const me = ws.deserializeAttachment();
+    if (!me.joined) {
+      if (msg.t !== "hello") return this.invalid(ws, "say hello first");
+      if (this.helloing.has(ws)) return;   // 同じ接続の hello が処理中（二重に入らないように）
+      this.helloing.add(ws);
+      try {
+        await this.load();
+        return await this.join(ws, ws.deserializeAttachment(), msg);
+      } finally {
+        this.helloing.delete(ws);
+      }
+    }
+    await this.load();
+
+    switch (msg.t) {
+      case "hello":
+        // 二度目の hello は無視する（join を二重に知らせない）
+        return;
+      case "name": {
+        const name = cleanName(msg.name);
+        if (!name) return this.invalid(ws, "bad name");
+        me.name = name;
+        ws.serializeAttachment(me);
+        this.broadcast({ t: "peer", peer: { id: me.id, name, color: me.color } });
+        return;
+      }
+      case "cursor": {
+        // 3D ビュー上のマウスの位置（ワールド座標）。null で非表示。操作には数えない
+        if (msg.p !== null && !vec3(msg.p, x => isNum(x, LIMITS.coord))) return this.invalid(ws, "bad cursor");
+        this.broadcast({ t: "cursor", from: me.id, p: msg.p }, ws);
+        return;
+      }
+      case "select": {
+        const ids = cleanIds(msg.ids);
+        if (!ids) return this.invalid(ws, "bad selection");
+        this.broadcast({ t: "select", from: me.id, ids }, ws);
+        return;
+      }
+      case "view": {
+        const view = cleanView(msg.view);
+        if (!view) return this.invalid(ws, "bad view");
+        this.broadcast({ t: "view", from: me.id, view }, ws);
+        return;
+      }
+      case "lock":
+        return this.serialOp(ws, () => this.doLock(ws, me, msg));
+      case "unlock":
+        return this.serialOp(ws, () => this.doUnlock(ws, me));
+      case "preview":
+        return this.serialOp(ws, () => this.doPreview(ws, me, msg));
+      case "ops":
+        return this.serialOp(ws, () => this.doOps(ws, me, msg));
+      case "close":
+        return this.serialOp(ws, () => this.doClose(ws, me));
+      case "ping":
+        this.send(ws, { t: "pong" });
+        return;
+      default:
+        return this.invalid(ws, "unknown type");
+    }
+  }
+
+  /**
+   * ロック（直列に実行する）。取れるかを見てから、保存し、成功したら持つ。保存に失敗したら、持たないまま本人に返す。
+   * 上限（lockMaxMs）に達していれば、持っている全部を解除して知らせる（保存はしない。寿命は延ばさない）。
+   */
+  async doLock(ws, me, msg) {
+    const ids = cleanIds(msg.ids, LIMITS.lockIds);
+    if (!ids) return this.invalid(ws, "bad lock");
+    const busy = this.lockedByOthers(ids, me.id);
+    // ほかの人が持っているものは、取れない（拒否した操作は、寿命を延ばさない）
+    if (busy.length) { this.send(ws, { t: "lockdenied", ids: busy, seq: msg.seq ?? null }); return; }
+    const now = Date.now();
+    // 同じ人が同じものを続けて持っている時間（since）。取り直しの間隔が lockGapMs 以内なら、同じ保持の続きとみなす（読むだけ）
+    const held = ids.map(id => {
+      const h = this.holds.get(id);
+      return { id, since: h && h.peer === me.id && now - h.last <= LIMITS.lockGapMs ? h.since : now };
+    });
+    if (held.some(h => now - h.since >= LIMITS.lockMaxMs)) {
+      // 上限に達した: 持っている全部を解除して知らせる（この人の取り直しは、上の続きとして扱う）。寿命は延ばさない
+      this.setHolds(held, me.id, now);
+      if (this.releaseLocks(me.id)) this.broadcast(this.locksMessage());
+      this.send(ws, { t: "lockexpired", ids });
+      await this.schedule();
+      return;
+    }
+    let wrote;
+    try {
+      wrote = await this.persistOpAt(now);   // 成功したロック（取り直しを含む）は操作
+    } catch (e) {
+      // 取れなかった: 本人の操作を取り消させる（lockdenied。クライアントは CancelLockedMove で動かすのをやめる）
+      return this.saveFailed(ws, e, [{ t: "lockdenied", ids, seq: msg.seq ?? null }, this.locksMessage()]);
+    }
+    // 待つあいだに閉じた・離れた人の分は、持たない
+    if (this.gone || ws.deserializeAttachment()?.left) return;
+    this.setHolds(held, me.id, now);
+    this.releaseLocks(me.id);
+    for (const h of held) this.locks.set(h.id, { peer: me.id, until: Math.min(now + LIMITS.lockMs, h.since + LIMITS.lockMaxMs) });
+    this.applyOp(now, wrote);
+    this.broadcast(this.locksMessage());
+    await this.schedule();   // 期限が切れたときに起きて、ほかの人へ知らせる
+    // 上限が近いときは、持っている人に知らせる（操作が途中で外れないように、残りの時間を渡す）
+    const left = Math.min(...held.map(h => h.since + LIMITS.lockMaxMs - now));
+    if (left <= LIMITS.lockWarnMs) this.send(ws, { t: "lockwarn", ids, ms: left });
+  }
+
+  /** 保持の記録（同じ人が続けて持っている時間の判定に使う） */
+  setHolds(held, peer, now) {
+    for (const h of held) this.holds.set(h.id, { peer, since: h.since, last: now });
+  }
+
+  /** 解除（直列）。実際に持っていたものを外したときだけ操作に数える。保存に失敗したら、持ったままで本人に返す。 */
+  async doUnlock(ws, me) {
+    if (![...this.locks.values()].some(l => l.peer === me.id)) return;
+    const now = Date.now();
+    let wrote;
+    try {
+      wrote = await this.persistOpAt(now);
+    } catch (e) {
+      return this.saveFailed(ws, e, [this.locksMessage()]);
+    }
+    if (this.gone) return;
+    this.releaseLocks(me.id);
+    this.applyOp(now, wrote);
+    this.broadcast(this.locksMessage());
+  }
+
+  /** 操作中の変形（直列）。保存はしない（操作の時刻だけ）。ほかの人がロックしているものは送らない。適用されたものがあるときだけ操作に数える。 */
+  async doPreview(ws, me, msg) {
+    if (!Array.isArray(msg.objs) || msg.objs.length > LIMITS.lockIds) return this.invalid(ws, "bad preview");
+    const objs = msg.objs.map(cleanTransform);
+    if (objs.some(o => !o)) return this.invalid(ws, "bad preview");
+    const ok = objs.filter(o => this.objects.has(o.id) && !this.lockedByOthers([o.id], me.id).length);
+    if (!ok.length) return;
+    const now = Date.now();
+    let wrote;
+    try {
+      wrote = await this.persistOpAt(now);
+    } catch (e) {
+      // 途中経過は何度も届くので、保存の失敗が続くあいだは、本人へのエラーを間隔（previewErrMs）に 1 回にする
+      if (now - this.previewErrAt >= LIMITS.previewErrMs) { this.previewErrAt = now; this.saveFailed(ws, e); }
+      else console.error("部屋の保存に失敗（途中経過。エラーは間引く）");
+      return;
+    }
+    if (this.gone) return;
+    this.applyOp(now, wrote);
+    this.broadcast({ t: "preview", from: me.id, objs: ok }, ws);
+  }
+
+  /**
+   * オブジェクトの確定（直列）。写し（next）の上で結果を作り、保存してから、メモリを変えて知らせる。
+   * 保存に失敗したら、メモリは変えず、送った本人にだけエラーと今の状態を返す（本人の画面を戻す）。ほかの人には何も送らない。
+   */
+  async doOps(ws, me, msg) {
+    // 確定した変更: upsert（追加・変形）と delete。どちらも、無い・null は空。配列でなければ不正
+    const upsert = msg.upsert ?? [];
+    const del = cleanIds(msg.delete ?? []);
+    if (!Array.isArray(upsert) || upsert.length > LIMITS.objects || !del) return this.invalid(ws, "bad ops");
+    const objs = upsert.map(cleanObject);
+    if (objs.some(o => !o)) return this.invalid(ws, "bad object");
+    const busy = this.lockedByOthers([...objs.map(o => o.id), ...del], me.id);
+    const next = new Map(this.objects);
+    const applied = { upsert: [], delete: [] };
+    let full = false;
+    for (const o of objs) {
+      if (busy.includes(o.id)) continue;
+      if (!next.has(o.id) && next.size >= LIMITS.objects) { full = true; continue; }
+      next.set(o.id, o);
+      applied.upsert.push(o);
+    }
+    for (const id of del) {
+      if (busy.includes(id) || !next.has(id)) continue;
+      next.delete(id);
+      applied.delete.push(id);
+    }
+    const unlocked = applied.delete.some(id => this.locks.has(id));   // 消したものを持っていた（ロックが外れる）
+    const changed = applied.upsert.length > 0 || applied.delete.length > 0;
+    const now = Date.now();
+    // 書き込み（オブジェクト・削除・操作の時刻）は 1 つの単位（ctx.storage.transaction）。途中で失敗したら、閉じ関数の中の書き込みをすべて取り消す（保存だけが変わらない）。
+    // この Room は SQLite 版（new_sqlite_classes）。SQLite 版では、閉じ関数の中で ctx.storage を直接使えば、その書き込みは transaction に入る（txn 引数は KV 版の作法）。
+    // 1 回の put・delete は 128 件まで（putChunked・deleteChunked で分ける）。await を挟まない連続の書き込みは、まとめて atomic に確定される。
+    const writeAt = changed && now - this.opPersisted >= LIMITS.roomPersistMs;   // 操作の時刻も、同じ単位で書く
+    try {
+      await this.ctx.storage.transaction(async () => {
+        const puts = Object.fromEntries(applied.upsert.map(o => [`o:${o.id}`, o]));
+        if (writeAt) puts.opAt = now;
+        if (Object.keys(puts).length) await this.putChunked(puts);
+        if (applied.delete.length) await this.deleteChunked(applied.delete.map(id => `o:${id}`));
+      });
+    } catch (e) {
+      // failed: 送った人の進行中の操作を取り消させる（保存の失敗で、画面と保存がずれたままにしない）
+      return this.saveFailed(ws, e, [{ ...this.stateOf([...objs.map(o => o.id), ...del]), failed: true }]);
+    }
+    const wrote = writeAt;
+    if (this.gone) return;
+    this.objects = next;
+    for (const id of applied.delete) this.locks.delete(id);
+    if (changed) {
+      this.applyOp(now, wrote);
+      this.broadcast({ t: "ops", from: me.id, ...applied }, ws);
+    }
+    // 消したオブジェクトのロックも外れたことを全員に知らせる
+    if (unlocked) this.broadcast(this.locksMessage());
+    if (full) this.send(ws, { t: "error", msg: "too many objects" });
+    // 反映できなかったもの（ロック中・上限）は、送った人に正しい状態を返す
+    const rejected = [...objs.filter(o => !applied.upsert.includes(o)).map(o => o.id), ...del.filter(id => !applied.delete.includes(id))];
+    if (rejected.length) this.send(ws, { ...this.stateOf(rejected), rejected: true });
+  }
+
+  /** 部屋を閉じる（直列。作成者だけ）。閉じた印が書けなかったときは、部屋は閉じたままで、作成者にエラーを返す。 */
+  async doClose(ws, me) {
+    if (!me.owner) return this.send(ws, { t: "error", msg: "not owner" });
+    try {
+      await this.closeRoom("owner");
+    } catch (e) {
+      // 閉じたあとの後始末の失敗は、外へ出す（部屋はもう閉じている）。印が書けなかっただけなら、本人にエラーを返す
+      if (this.gone) throw e;
+      this.saveFailed(ws, e);
+    }
+  }
+
+
+  /**
+   * 鍵の確認（鍵つきの部屋で、作成者でない人だけ）。合わなければ理由を送って 4003 で閉じ、false を返す。
+   * 直列に行う（同時の試行で、間違いの数を取りこぼさないように）。
+   */
+  async passOk(ws, me, msg) {
+    return this.serial(async () => {
+      // 直列の待ちの間に閉じられた（meta が無い）ときは、鍵の確認をせずに閉じる（meta の null を読まない）
+      if (this.gone || !this.meta?.pass) { this.send(ws, { t: "closed", reason: this.goneReason ?? "closed" }); try { ws.close(4004, "closed"); } catch { /* 閉じ済み */ } return false; }
+      const now = Date.now();
+      // 接続元の鍵が無い（秘密鍵が無い）ときは、間違いを数えない（fail-open。上の ipKeyOf のコメント）
+      const counting = me.ipKey !== null;   // undefined（接続の受け付けを通らない試験用の接続）は "-" として数える
+      const key = `fail:${me.ipKey ?? "-"}`;
+      const f = counting ? ((await this.ctx.storage.get(key)) ?? null) : null;
+      if (f && f.until > now) {
+        this.send(ws, { t: "passlimit", ms: f.until - now });
+        ws.close(4003, "pass limit");
+        return false;
+      }
+      if (typeof msg.pass !== "string") {
+        this.send(ws, { t: "needpass" });
+        ws.close(4003, "need pass");
+        return false;
+      }
+      const ok = [...msg.pass].length <= LIMITS.passMax && await verifyPass(msg.pass, this.meta.pass);
+      if (ok) {
+        if (f) await this.ctx.storage.delete(key);
+        return true;
+      }
+      if (!counting) { this.send(ws, { t: "wrongpass" }); ws.close(4003, "wrong pass"); return false; }
+      // 間違い: 時間窓の中で数える。passFailMax 回で拒否（passBlockMs のあいだ）
+      const cur = !f || now - f.first >= LIMITS.passFailWindowMs ? { n: 0, first: now, until: 0 } : f;
+      cur.n += 1;
+      if (cur.n >= LIMITS.passFailMax) { cur.until = now + LIMITS.passBlockMs; cur.n = 0; }
+      await this.ctx.storage.put(key, cur);
+      await this.sweepFails(now);
+      this.send(ws, { t: "wrongpass" });
+      ws.close(4003, "wrong pass");
+      return false;
+    });
+  }
+
+  /**
+   * 部屋を作ってよいか（接続元ごとの回数。RoomDirectory の hitCreate）。超えたら false。
+   * 秘密鍵・接続元・RoomDirectory が無いときは通す（fail-open）。数えられなかった（時間切れ・例外）ときは見送る（fail-closed。busy）。ログには要約と秘密鍵の無い旨だけを出す（IP・ハッシュは出さない）。
+   */
+  async createAllowed(ws) {
+    if (!this.env?.TURNSTILE_SECRET) console.error("部屋の作成の回数を数えられないため、接続元の制限は働かせずに通します（秘密鍵が無い）");
+    const key = this.env?.TURNSTILE_SECRET ? ws.deserializeAttachment()?.createKey ?? null : null;
+    const dir = this.env?.ROOM_DIRECTORY;
+    if (!dir) return "ok";
+    try {
+      const r = await withTimeout(dir.get(dir.idFromName(DIRECTORY_NAME)).reserveRoom(this.roomId, key, Date.now()), LIMITS.rpcTimeoutMs);
+      if (r?.allowed === true) return "ok";
+      return r?.reason === "full" ? "full" : "limit";
+    } catch (e) {
+      // 数えられない（時間切れ・例外）: 作成は見送る（fail-closed。数えずに通すと、接続元の回数の制限を外すことになる）。ログは要約だけ
+      console.error("部屋の作成の回数を数えられないため、作成を見送ります: " + errorSummary(e));
+      return "busy";
+    }
+  }
+
+  /** 存在する部屋の予約を更新する（閉じるまで。alarm で呼ぶ）。失敗しても部屋は動かす。 */
+  async touchDirectory(now) {
+    const dir = this.env?.ROOM_DIRECTORY;
+    if (!dir || !this.roomId) return;
+    try { await dir.get(dir.idFromName(DIRECTORY_NAME)).touchRoom(this.roomId, now); } catch { /* 失敗しても続ける */ }
+  }
+
+  /** この接続が作成者か（作成者の鍵の SHA-256 が、部屋の記録と一致するか） */
+  async isOwner(key) {
+    if (!this.meta?.ownerHash || typeof key !== "string" || !OWNER_KEY.test(key)) return false;
+    return sameText(await sha256Hex(key), this.meta.ownerHash);
+  }
+
+  /**
+   * 参加（hello）。閉じた部屋・作成・作成者（鍵の免除）・鍵・満員を確かめ、色を決めて、参加を知らせる。
+   * 作成の指定が無く、部屋も無いときは作らない（閉じた部屋の ID が消えた後に、古い URL から鍵なしの部屋が作られないように）。
+   */
+  async join(ws, me, msg) {
+    if (me.joined) return;
+    const closed = await this.closedRecord();
+    if (closed || this.gone) { this.send(ws, { t: "closed", reason: closed?.reason ?? "closed" }); ws.close(4004, "closed"); return; }
+    // 旧形式の部屋（PBKDF2 の時代・鍵なし）は中身を読めない。入ろうとした人には期限切れとして閉じる（部屋の中身は消す）
+    // 参加者がいる旧形式の部屋は、入ろうとした接続だけを閉じる（ほかの人の部屋は閉じない。部屋は 30 分の無操作で閉じる）。0 人なら、部屋の中身を消して閉じる
+    if (this.inited && isLegacyRoom(this.meta)) {
+      if (this.peers().length === 0) {
+        try { await this.serial(() => this.closeRoom("expired")); }
+        catch (e) {
+          // 閉じた印が書けなかった: 入ろうとした人にだけ理由を返す。閉じた後の後始末の失敗なら、閉じた旨を返す
+          if (this.gone) { this.send(ws, { t: "closed", reason: "expired" }); try { ws.close(4004, "closed"); } catch { /* 閉じ済み */ } }
+          else this.joinSaveFailed(ws, e);
+        }
+      } else { this.send(ws, { t: "closed", reason: "expired" }); ws.close(4004, "closed"); }
+      return;
+    }
+    // 作成・部屋の有無は、直列の中で決める（同時の hello で 2 回作らない）
+    const hasCreate = msg.create !== undefined && msg.create !== null;
+    const outcome = await this.serial(async () => {
+      if (this.gone) return "closed";   // 作成の hello の待ちの間に閉じられた部屋は、作り直さない（枠も消費しない）
+      if (this.inited) return "joined";
+      if (!hasCreate) return "missing";
+      const create = parseCreate(msg.create, msg.owner);
+      if (!create) return isOutdatedCreate(msg.create) ? "outdated" : "bad";
+      const verdict = await this.createAllowed(ws);
+      if (verdict !== "ok") return verdict;
+      await this.initRoom(create);
+      return "created";
+    }).catch(e => this.joinSaveFailed(ws, e));
+    if (outcome === undefined) return;   // 保存に失敗した（接続は閉じている）
+    if (outcome === "closed") { this.send(ws, { t: "closed", reason: this.goneReason ?? "closed" }); try { ws.close(4004, "closed"); } catch { /* 閉じ済み */ } return; }
+    if (outcome === "missing") { this.send(ws, { t: "closed", reason: "missing" }); ws.close(4004, "closed"); return; }
+    if (outcome === "bad") return this.invalid(ws, "bad create");
+    if (outcome === "outdated") { this.send(ws, { t: "closed", reason: "outdated" }); ws.close(4006, "outdated"); return; }
+    if (outcome === "full") { this.send(ws, { t: "closed", reason: "full" }); ws.close(4007, "full"); return; }
+    if (outcome === "limit") { this.send(ws, { t: "closed", reason: "limit" }); ws.close(4005, "rate limited"); return; }
+    if (outcome === "busy") { this.send(ws, { t: "closed", reason: "busy" }); ws.close(4008, "busy"); return; }
+    if (me.joined) return;
+    // 作成者は鍵を免除する（作成者の鍵が合う接続。作成したばかりの人も含む）
+    const owner = outcome === "created" || await this.isOwner(msg.owner);
+    if (!owner && this.meta?.pass) {
+      // 鍵が合わない・保存に失敗した（どちらも接続は閉じている）ときは、参加しない
+      const passed = await this.passOk(ws, me, msg).catch(e => this.joinSaveFailed(ws, e));
+      if (passed !== true) return;
+    }
+    // ここから同期の処理（await の後に人数を確かめ、joined を立てるまで await を挟まない。同時に来た hello で人数を超えないように）
+    if (me.joined) return;
+    // 待つあいだに閉じられていたら、入れない（閉じた部屋の中身は送らない）
+    if (this.gone || !this.objects) {
+      this.send(ws, { t: "closed", reason: this.goneReason ?? "closed" });
+      try { ws.close(4004, "closed"); } catch { /* 閉じ済み */ }
+      return;
+    }
+    if (this.peers().length >= LIMITS.participants) { ws.close(4001, "full"); return; }
+    me.name = cleanName(msg.name) || "ゲスト";
+    const used = new Set(this.peers().map(p => p.color));
+    me.color = COLORS.find(c => !used.has(c)) ?? COLORS[this.peers().length % COLORS.length];
+    me.owner = owner;
+    me.joined = true;
+    ws.serializeAttachment(me);
+    await this.schedule();
+    this.send(ws, {
+      t: "welcome", you: { id: me.id, name: me.name, color: me.color, owner: me.owner },
+      room: { name: this.meta?.name ?? "", locked: Boolean(this.meta?.pass) },
+      peers: this.peers().filter(p => p.id !== me.id).map(({ id, name, color }) => ({ id, name, color })),
+      objects: [...this.objects.values()], limits: { participants: LIMITS.participants, objects: LIMITS.objects },
+    });
+    this.send(ws, this.locksMessage());
+    // 警告の途中で入った人にも、残りの時間を知らせる
+    if (this.warnFor === this.opAt) this.send(ws, { t: "idlewarn", ms: Math.max(0, this.opAt + this.idleMs() - Date.now()) });
+    this.broadcast({ t: "join", peer: { id: me.id, name: me.name, color: me.color } }, ws);
+    await this.syncDirectory();
+  }
+
+  /** 参加の途中で保存に失敗した: 本人にエラーを返し、接続を閉じる（参加していない。待たせたままにしない）。 */
+  joinSaveFailed(ws, e) {
+    this.saveFailed(ws, e);
+    try { ws.close(1011, "save failed"); } catch { /* 閉じ済み */ }
+  }
+
+  // 切断も、直列の鎖で処理する（保存を待つ操作の途中で離れた人のロックを、後から残さないように）
+  async webSocketClose(ws, code) {
+    await this.load();
+    await this.serial(() => this.leave(ws));
+    await this.syncDirectory();
+    try { ws.close(code === 1005 ? 1000 : code, "bye"); } catch { /* 閉じ済み */ }
+  }
+
+  async webSocketError(ws) {
+    await this.load();
+    await this.serial(() => this.leave(ws));
+    await this.syncDirectory();
+  }
+
+  leave(ws) {
+    const me = ws.deserializeAttachment();
+    this.rate.delete(ws);
+    this.seen.delete(ws);
+    if (!me?.joined || me.left || this.gone) return;
+    me.left = true; // 二度知らせない
+    try { ws.serializeAttachment(me); } catch { /* 閉じ済み */ }
+    if (this.releaseLocks(me.id)) this.broadcast(this.locksMessage(), ws);
+    this.broadcast({ t: "leave", id: me.id }, ws);
+  }
+
+  // ---------------------------------------------------------------- 一覧（RoomDirectory）
+  /** 一覧に出す部屋は、人数が変わったときに登録を更新する。作成直後の猶予が過ぎて誰もいなければ外す。失敗しても部屋は続ける。 */
+  async syncDirectory() {
+    if (!this.env?.ROOM_DIRECTORY || !this.roomId || !this.meta || this.gone) return;
+    try {
+      const stub = this.env.ROOM_DIRECTORY.get(this.env.ROOM_DIRECTORY.idFromName(DIRECTORY_NAME));
+      const count = this.peers().length;
+      if (count === 0 && Date.now() - this.meta.createdAt >= LIMITS.listGraceMs) return this.unlist();
+      await stub.upsert({ id: this.roomId, name: this.meta.name, count, max: LIMITS.participants, locked: Boolean(this.meta.pass), createdAt: this.meta.createdAt });
+    } catch { /* 一覧が無くても部屋は動かす */ }
+  }
+
+  /** 一覧から外す（閉じたとき・誰もいなくなって猶予が過ぎたとき）。失敗は無視する。 */
+  async unlist() {
+    if (!this.env?.ROOM_DIRECTORY || !this.roomId || !this.meta) return;
+    try {
+      await this.env.ROOM_DIRECTORY.get(this.env.ROOM_DIRECTORY.idFromName(DIRECTORY_NAME)).remove(this.roomId);
+    } catch { /* 一覧が無くても部屋は動かす */ }
+  }
+}
+
+/**
+ * 練習の部屋の一覧（固定名の 1 つの Durable Object）。Room が、作成・参加者の変化・閉じたとき・定期の更新で登録を書き換える。
+ * 一覧に出すのは、参加者が 1 人以上いる部屋（作成直後の猶予を除く）。登録が listTtlMs のあいだ更新されなければ、一覧から消す。
+ * 部屋の作成の回数（接続元の識別子ごと。c:<hash> の行）も、ここで数える（hitCreate）。行は alarm（JST の 0 時）で掃除する。
+ */
+export class RoomDirectory extends DurableObject {
+  hitChain = Promise.resolve();   // 部屋の作成の回数を数える呼び出しの直列の鎖（hitCreate）
+  /**
+   * 部屋の作成の回数を数える。1 分（createWindowMs）に createPerMinute 部屋まで、JST の 1 日に createPerDay 部屋まで。
+   * 通せば { allowed: true }（数えた）。上限なら { allowed: false, reason }（数えない）。
+   */
+  /**
+   * 同時の呼び出しは、直列に処理する（読んでから書くまでに、ほかの呼び出しが割り込んで 6 部屋目が通らないように）。
+   * 注意: ここで枠を数えたあとに initRoom が失敗すると、その枠は消費されたままになる（作れなかった分も 1 つ数える。無理に戻さない）。
+   */
+  hitCreate(hash, now = Date.now()) {
+    const run = this.hitChain.then(() => this.hitCreateNow(hash, now));
+    this.hitChain = run.catch(() => {});
+    return run;
+  }
+
+  /**
+   * 部屋を 1 つ作る許可（全体の上限 → 接続元の制限 → 予約）。同じ直列の中で行い、同時の作成で上限を超えないようにする。
+   * 順序の理由: 全体の上限で弾かれたときは、接続元の枠を消費しない（満員のあとで空いたら、すぐ作り直せるように）。
+   * hash が null（秘密鍵が無い）のときは、接続元の制限は働かず、全体の上限だけを数える。
+   * 注意: 予約のあとに initRoom が失敗すると、その枠は TTL（listTtlMs）で空くまで残る。
+   */
+  reserveRoom(roomId, hash, now = Date.now()) {
+    const run = this.hitChain.then(() => this.reserveRoomNow(roomId, hash, now));
+    this.hitChain = run.catch(() => {});
+    return run;
+  }
+
+  async reserveRoomNow(roomId, hash, now) {
+    // 部屋の ID が無い（試験用の接続。本番の経路では必ず X-Room-Id が付く）ときは、数えずに通す
+    if (typeof roomId !== "string" || !ROOM_ID.test(roomId)) return { allowed: true, reason: "untracked" };
+    const rows = await this.ctx.storage.list({ prefix: "k:" });
+    const stale = [];
+    let live = 0;
+    for (const [k, r] of rows) {
+      if (now - r.at > LIMITS.listTtlMs) stale.push(k);
+      else if (k !== "k:" + roomId) live++;
+    }
+    for (let i = 0; i < stale.length; i += 128) await this.ctx.storage.delete(stale.slice(i, i + 128));
+    if (live >= maxTotalOf(this.env)) return { allowed: false, reason: "full" };
+    if (hash !== null) {
+      const r = await this.hitCreateNow(hash, now);
+      if (!r.allowed) return r;
+    }
+    await this.ctx.storage.put("k:" + roomId, { at: now });
+    return { allowed: true };
+  }
+
+  /** 存在する部屋の予約を更新する（Room が、閉じるまで定期的に呼ぶ）。行が無ければ（TTL で消えていれば）作り直さない。 */
+  async touchRoom(roomId, now = Date.now()) {
+    if (typeof roomId !== "string" || !ROOM_ID.test(roomId)) return;
+    if (await this.ctx.storage.get("k:" + roomId)) await this.ctx.storage.put("k:" + roomId, { at: now });
+  }
+
+  /** 部屋が閉じたら、予約の行を消す（枠を空ける） */
+  async releaseRoom(roomId) {
+    if (typeof roomId === "string" && ROOM_ID.test(roomId)) await this.ctx.storage.delete("k:" + roomId);
+  }
+
+  async hitCreateNow(hash, now) {
+    if (typeof hash !== "string" || !CREATE_HASH.test(hash)) return { allowed: false, reason: "invalid" };
+    const key = `c:${hash}`;
+    const row = (await this.ctx.storage.get(key)) ?? {};
+    const day = jstDay(new Date(now));
+    const recent = (Array.isArray(row.t) ? row.t : []).filter(t => now - t < LIMITS.createWindowMs);
+    const today = row.day === day && Number.isInteger(row.n) ? row.n : 0;
+    if (recent.length >= perMinuteOf(this.env)) return { allowed: false, reason: "minute" };
+    if (today >= perDayOf(this.env)) return { allowed: false, reason: "day" };
+    await this.ctx.storage.put(key, { t: [...recent, now], day, n: today + 1 });
+    if ((await this.ctx.storage.getAlarm()) === null) await this.ctx.storage.setAlarm(nextJstMidnight(new Date(now)).getTime());
+    return { allowed: true };
+  }
+
+  /** 掃除（JST の 0 時）。前の日の行と、1 分の窓の外の行を消す。行が残れば、次の 0 時に予約する。 */
+  async alarm() {
+    const now = Date.now();
+    const today = jstDay(new Date(now));
+    const rows = await this.ctx.storage.list({ prefix: "c:" });
+    const stale = [];
+    for (const [key, row] of rows) {
+      const recent = Array.isArray(row?.t) && row.t.some(t => now - t < LIMITS.createWindowMs);
+      if (row?.day !== today && !recent) stale.push(key);
+    }
+    for (let i = 0; i < stale.length; i += 128) await this.ctx.storage.delete(stale.slice(i, i + 128));   // 一度に 128 件まで
+    if (rows.size > stale.length) await this.ctx.storage.setAlarm(nextJstMidnight(new Date(now)).getTime());
+  }
+
+  /** 登録（作成・更新）。件数の上限を超えるときは登録しない（false） */
+  async upsert(entry, now = Date.now()) {
+    const e = cleanEntry(entry);
+    if (!e) return false;
+    const key = `r:${e.id}`;
+    if (!(await this.ctx.storage.get(key))) {
+      // 上限は、一覧に出る（出る可能性のある）行だけで数える。期限の切れた行は、ここで消す。
+      // 上限に達していて登録できないときは false。部屋は動き続けるが、一覧には出ない（作成者には知らせない）
+      const all = await this.ctx.storage.list({ prefix: "r:" });
+      const stale = [];
+      let live = 0;
+      for (const [k, r] of all) {
+        if (now - r.updatedAt > LIMITS.listTtlMs) stale.push(k);
+        else if (r.count >= 1 || now - r.createdAt < LIMITS.listGraceMs) live++;
+      }
+      for (let i = 0; i < stale.length; i += 128) await this.ctx.storage.delete(stale.slice(i, i + 128));
+      if (live >= LIMITS.listStoreMax) return false;
+    }
+    await this.ctx.storage.put(key, { ...e, updatedAt: now });
+    return true;
+  }
+
+  /** 一覧から外す */
+  async remove(id) {
+    if (typeof id === "string" && ROOM_ID.test(id)) await this.ctx.storage.delete(`r:${id}`);
+  }
+
+  /** 一覧（新しい順・listMax まで）。期限の切れた登録は、ここで消す。 */
+  async list(now = Date.now()) {
+    const all = await this.ctx.storage.list({ prefix: "r:" });
+    const stale = [];
+    const rooms = [];
+    for (const [key, e] of all) {
+      if (now - e.updatedAt > LIMITS.listTtlMs) { stale.push(key); continue; }
+      if (e.count >= 1 || now - e.createdAt < LIMITS.listGraceMs) {
+        rooms.push({ id: e.id, name: e.name, count: e.count, max: e.max, locked: e.locked, createdAt: e.createdAt });
+      }
+    }
+    if (stale.length) await this.ctx.storage.delete(stale);
+    rooms.sort((a, b) => b.createdAt - a.createdAt);
+    return rooms.slice(0, LIMITS.listMax);
+  }
+}
+
+/** 登録の形の確認。不正なら null */
+function cleanEntry(e) {
+  if (!e || typeof e !== "object") return null;
+  if (typeof e.id !== "string" || !ROOM_ID.test(e.id)) return null;
+  if (typeof e.name !== "string" || e.name.length > 200) return null;
+  if (!Number.isInteger(e.count) || e.count < 0 || e.count > LIMITS.participants) return null;
+  if (e.max !== LIMITS.participants || typeof e.locked !== "boolean") return null;
+  if (!Number.isFinite(e.createdAt)) return null;
+  return { id: e.id, name: e.name, count: e.count, max: e.max, locked: e.locked, createdAt: e.createdAt };
+}

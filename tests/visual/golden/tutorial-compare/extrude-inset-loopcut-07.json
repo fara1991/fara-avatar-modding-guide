@@ -1,0 +1,25 @@
+{
+ "count": "8 / 18",
+ "bubble": "8\n続けて I を押して、面の内側に面を差し込んでください。マウスを面の中心に近づけるほど幅が広がります。",
+ "keys": "I",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "確定",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "38.8889%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

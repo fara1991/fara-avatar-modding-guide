@@ -1,0 +1,708 @@
+{
+ "texts": {
+  "count": "2 / 12",
+  "bubble": "2\nHierarchy の「Hoodie」を 右クリック してください。",
+  "keys": "右クリック",
+  "msg": "メニューが閉じました。 この操作の最初からやり直しましょう。",
+  "mode": null,
+  "view": null,
+  "status": null,
+  "numeric": null,
+  "stats": null,
+  "complete": null,
+  "overlayHidden": true,
+  "marker": null,
+  "highlightedTools": [],
+  "viewHighlight": false,
+  "focused": true,
+  "toolsOn": [],
+  "progress": "8.33333%",
+  "ueStatus": "案内にしたがって操作してください",
+  "ueInfo": "Hoodie · Move Tool",
+  "ueLabel": "右クリック",
+  "ueTools": [
+   "move"
+  ]
+ },
+ "state": {
+  "view": {
+   "target": [
+    0,
+    0.95,
+    0
+   ],
+   "dist": 3.2,
+   "yaw": 0.45,
+   "pitch": 0.18
+  },
+  "camera": [
+   1.3694019114097613,
+   1.5228946349626373,
+   2.834877447484868
+  ],
+  "selected": "Avatar/Hoodie",
+  "tool": "move",
+  "nodes": [
+   {
+    "path": "Main Camera",
+    "p": [
+     0,
+     1,
+     -10
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Directional Light",
+    "p": [
+     0,
+     3,
+     0
+    ],
+    "r": [
+     50,
+     -30,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips",
+    "p": [
+     0,
+     0.95,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine",
+    "p": [
+     0,
+     0.1,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest",
+    "p": [
+     0,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/Neck",
+    "p": [
+     0,
+     0.2,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/Neck/Head",
+    "p": [
+     0,
+     0.08,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/LeftUpperArm",
+    "p": [
+     0.18,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/LeftUpperArm/LeftLowerArm",
+    "p": [
+     0.26,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/LeftUpperArm/LeftLowerArm/LeftHand",
+    "p": [
+     0.24,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/RightUpperArm",
+    "p": [
+     -0.18,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/RightUpperArm/RightLowerArm",
+    "p": [
+     -0.26,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/Spine/Chest/RightUpperArm/RightLowerArm/RightHand",
+    "p": [
+     -0.24,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/LeftUpperLeg",
+    "p": [
+     0.09,
+     -0.05,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/LeftUpperLeg/LeftLowerLeg",
+    "p": [
+     0,
+     -0.42,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/LeftUpperLeg/LeftLowerLeg/LeftFoot",
+    "p": [
+     0,
+     -0.4,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/RightUpperLeg",
+    "p": [
+     -0.09,
+     -0.05,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/RightUpperLeg/RightLowerLeg",
+    "p": [
+     0,
+     -0.42,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Armature/Hips/RightUpperLeg/RightLowerLeg/RightFoot",
+    "p": [
+     0,
+     -0.4,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Body",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Shirt_Default",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips",
+    "p": [
+     0,
+     0.95,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine",
+    "p": [
+     0,
+     0.1,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine/Chest",
+    "p": [
+     0,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine/Chest/LeftUpperArm",
+    "p": [
+     0.18,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine/Chest/LeftUpperArm/LeftLowerArm",
+    "p": [
+     0.26,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine/Chest/RightUpperArm",
+    "p": [
+     -0.18,
+     0.15,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Armature/Hips/Spine/Chest/RightUpperArm/RightLowerArm",
+    "p": [
+     -0.26,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   },
+   {
+    "path": "Avatar/Hoodie/Hoodie_Mesh",
+    "p": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ],
+    "active": true,
+    "tag": "Untagged"
+   }
+  ]
+ }
+}

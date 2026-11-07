@@ -1,0 +1,143 @@
+# Cloudflare Workers の設定（Blazor WebAssembly の静的ファイル + 共同練習の部屋 + 報告・メンテナンスの API）。
+#
+#   本番:     master  ブランチ → avatar.fara-labs.com      （Worker fara-avatar。npx wrangler deploy --env production）
+#   develop:  develop ブランチ → avatar-dev.fara-labs.com  （Worker fara-avatar-dev。npx wrangler deploy --env dev）
+#   本番へは master への push だけが届く（.github/workflows/deploy.yml。master へのマージはユーザーが行う）。
+#   ここの name はダッシュボードの Worker 名と一致させる（違うと別の Worker が新しく作られる）。
+#
+# 静的ファイル（assets の ./dist）は、dotnet publish の出力（src/FaraAvatarModdingGuide.Web の wwwroot）に、
+# Build（src/FaraAvatarModdingGuide.Build。本文入りの静的 HTML・データ・robots・sitemap・_headers）が書き足したもの。
+# 本番用（--env production）と確認用（--env develop）で内容が違う（sitemap・noindex・canonical）ので、公開するときは、
+# 公開先の環境のビルドだけを ./dist に置く（deploy.yml が置き、verify-site.mjs が取り違えを確かめる）。手元の手順は README の「ビルドと公開」。
+#
+# すべてのリクエストが worker/index.js を通る（run_worker_first = true。メンテナンス表示・報告の受け口・/api/maintenance のため）。
+# /api/rooms/<ID>/ws は共同練習の部屋（部屋ごとに Durable Object）、それ以外は env.ASSETS で ./dist の静的ファイルを返す。
+# Durable Object は SQLite 版（new_sqlite_classes）なので Workers の無料プランでも使える。
+# 本番の Worker は初回の公開（master への最初の push）で作られ、Room の Durable Object は [[env.production.migrations]] で作られる
+# （[[migrations]] は wrangler 4.149.0 では [env.*] に引き継がれるが、初回の公開で確実に作られるよう、本番には明示する）。
+# 確認用の noindex（X-Robots-Tag）と本番の sitemap は、Build が環境ごとに出す（deploy.yml で追記することはしない）。
+
+name = "fara-avatar"
+main = "worker/index.js"
+compatibility_date = "2026-10-01"
+# ダッシュボードで足した変数（MAINTENANCE_MODE・MAINTENANCE_MESSAGE など）を、公開（wrangler deploy）のたびに消さない
+keep_vars = true
+# workers.dev と preview の URL は使わない（WAF のメンテナンス画面や、確認用の Cloudflare Access をすり抜けないように）
+workers_dev = false
+preview_urls = false
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+# /learn/basics → learn/basics.html、/learn/basics/ → /learn/basics へリダイレクト
+html_handling = "auto-trailing-slash"
+# 存在しないパスは 404.html を 404 ステータスで返す
+not_found_handling = "404-page"
+# すべて worker/index.js を先に通す（/api・報告・メンテナンス表示のため）
+run_worker_first = true
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[[durable_objects.bindings]]
+name = "REPORT_LIMITER"
+class_name = "ReportRateLimiter"
+
+[[durable_objects.bindings]]
+name = "ROOM_DIRECTORY"
+class_name = "RoomDirectory"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["ReportRateLimiter"]
+
+# 練習の部屋の一覧（RoomDirectory）。v1・v2 は変えない
+[[migrations]]
+tag = "v3"
+new_sqlite_classes = ["RoomDirectory"]
+
+[env.production]
+name = "fara-avatar"
+workers_dev = false
+preview_urls = false
+routes = [
+  { pattern = "avatar.fara-labs.com", custom_domain = true },
+]
+
+[env.production.assets]
+directory = "./dist"
+binding = "ASSETS"
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"
+run_worker_first = true
+
+[[env.production.durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[[env.production.durable_objects.bindings]]
+name = "REPORT_LIMITER"
+class_name = "ReportRateLimiter"
+
+[[env.production.durable_objects.bindings]]
+name = "ROOM_DIRECTORY"
+class_name = "RoomDirectory"
+
+[[env.production.migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
+
+[[env.production.migrations]]
+tag = "v2"
+new_sqlite_classes = ["ReportRateLimiter"]
+
+[[env.production.migrations]]
+tag = "v3"
+new_sqlite_classes = ["RoomDirectory"]
+
+[env.dev]
+name = "fara-avatar-dev"
+workers_dev = false
+preview_urls = false
+routes = [
+  { pattern = "avatar-dev.fara-labs.com", custom_domain = true },
+]
+
+# 確認用の noindex（X-Robots-Tag）は、Build（--env develop）が dist/_headers に出す
+
+[env.dev.assets]
+directory = "./dist"
+binding = "ASSETS"
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"
+run_worker_first = true
+
+[[env.dev.durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[[env.dev.durable_objects.bindings]]
+name = "REPORT_LIMITER"
+class_name = "ReportRateLimiter"
+
+[[env.dev.durable_objects.bindings]]
+name = "ROOM_DIRECTORY"
+class_name = "RoomDirectory"
+
+# 確認用は、Room の v1 を含めて明示する（env.* の migrations の引き継ぎに頼らない。適用済みのタグは再実行されない）
+[[env.dev.migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
+
+[[env.dev.migrations]]
+tag = "v2"
+new_sqlite_classes = ["ReportRateLimiter"]
+
+[[env.dev.migrations]]
+tag = "v3"
+new_sqlite_classes = ["RoomDirectory"]

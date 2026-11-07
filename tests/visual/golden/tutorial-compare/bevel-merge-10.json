@@ -1,0 +1,25 @@
+{
+ "count": "11 / 23",
+ "bubble": "11\nすぐに Esc でキャンセルしてください。見た目は戻りますが、押し出した面は同じ位置に 重なって残って います。",
+ "keys": "Esc",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "押し出し 法線: 0.000 m",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "43.4783%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

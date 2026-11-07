@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!--
+    本番の画面（Blazor WebAssembly + MudBlazor。docs/wasm-migration-plan.md の 3.1）。
+    記事・データは Content を参照せず、Build が書いた data/*.json と静的 HTML を読む。
+    レイアウト・テーマ・フッター・報告フォームなどの共通部品は fara-blazor-component（external/fara-blazor-component）。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FaraAvatarModdingGuide.Web</RootNamespace>
+    <!--
+      .br / .gz の事前圧縮ファイルは作らない。Cloudflare（静的アセット）は配信時に圧縮するので使われず、
+      Build が書き換えた index.html などの古い .br / .gz が残って紛らわしいため。
+    -->
+    <CompressionEnabled>false</CompressionEnabled>
+    <!-- ICU（文化依存の比較・書式）を載せない（約 240 KiB を配らずに済む）。このプロジェクトに文化依存の処理は無い（日本語の並びは Build が済ませる） -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- [JSImport](練習の 3D の C# 版 = Services/PracticeCs.cs)の生成コードに要る -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" PrivateAssets="all" />
+    <PackageReference Include="MudBlazor" Version="9.11.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FaraAvatarModdingGuide.Shared\FaraAvatarModdingGuide.Shared.csproj" />
+    <!-- 練習の 3D の C# 版(?engine=cs で試す。docs/phase3b-design.md の S3)。起動のときには読み込まず、?engine=cs で開いたときだけ読む(下の BlazorWebAssemblyLazyLoad) -->
+    <ProjectReference Include="..\FaraAvatarModdingGuide.Practice\FaraAvatarModdingGuide.Practice.csproj" />
+    <ProjectReference Include="..\FaraAvatarModdingGuide.Render\FaraAvatarModdingGuide.Render.csproj" />
+    <!-- 共通部品（Core: SiteLinks・MaintenanceInfo・ReportForm・SiteOptions。Razor: レイアウト・フッター・報告フォームなど） -->
+    <ProjectReference Include="..\..\external\fara-blazor-component\src\FaraBlazorComponent.Core\FaraBlazorComponent.Core.csproj" />
+    <ProjectReference Include="..\..\external\fara-blazor-component\src\FaraBlazorComponent.Razor\FaraBlazorComponent.Razor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <BlazorWebAssemblyLazyLoad Include="FaraAvatarModdingGuide.Practice.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="FaraAvatarModdingGuide.Render.wasm" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="FaraAvatarModdingGuide.Web.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,23 @@
+{
+ "count": "13 / 14",
+ "bubble": "13\nマウスを動かして置き場所を決め、左クリックで確定してください（Esc だと元の位置に重なって置かれます）。",
+ "keys": "動かして左クリック",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "複製。マウスで位置を決めてクリック",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "85.7143%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

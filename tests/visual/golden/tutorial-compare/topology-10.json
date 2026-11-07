@@ -1,0 +1,26 @@
+{
+ "count": "11 / 11",
+ "bubble": "11\nTab でオブジェクトモードに戻ってください。",
+ "keys": "Tab",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "辺を溶解",
+ "numeric": "",
+ "stats": "Cube\n頂点 0/8\n辺 0/12\n面 0/6\n三角形 12",
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge",
+  "stats"
+ ],
+ "progress": "90.9091%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

@@ -1,0 +1,26 @@
+{
+ "texts": {
+  "count": "6 / 16",
+  "bubble": "6\n数字で 2 と入力してください。移動の量がちょうど 2 m になります。",
+  "keys": "2",
+  "msg": null,
+  "mode": "オブジェクトモード",
+  "view": "ユーザー・透視投影",
+  "status": "移動 Z: X 0.000 m Y 0.000 m Z 0.000 m",
+  "numeric": "",
+  "stats": null,
+  "complete": null,
+  "overlayHidden": true,
+  "marker": "Cube",
+  "highlightedTools": [],
+  "viewHighlight": false,
+  "focused": true,
+  "toolsOn": [],
+  "progress": "31.25%",
+  "ueStatus": null,
+  "ueInfo": null,
+  "ueLabel": null,
+  "ueTools": []
+ },
+ "state": null
+}

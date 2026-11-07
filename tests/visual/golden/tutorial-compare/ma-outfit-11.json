@@ -1,0 +1,25 @@
+{
+ "count": "12 / 12",
+ "bubble": "12\nBuild & Test を押して、自分の PC の VRChat だけで試します（練習なので実際には送信しません）。腕を振ったとき、衣装がついてくれば成功です。",
+ "keys": "クリック",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "91.6667%",
+ "ueStatus": "VRChat SDK > Show Control Panel",
+ "ueInfo": "Hoodie_Mesh · Move Tool",
+ "ueLabel": "クリック",
+ "ueTools": [
+  "move"
+ ]
+}

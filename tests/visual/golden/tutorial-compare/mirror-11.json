@@ -1,0 +1,26 @@
+{
+ "count": "12 / 13",
+ "bubble": "12\nTab でオブジェクトモードに戻ってください。",
+ "keys": "Tab",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "前・平行投影",
+ "status": "面を削除",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face",
+  "xray"
+ ],
+ "progress": "84.6154%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

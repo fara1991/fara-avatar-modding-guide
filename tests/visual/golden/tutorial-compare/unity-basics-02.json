@@ -1,0 +1,25 @@
+{
+ "count": "3 / 13",
+ "bubble": "3\nScene ビューにマウスを置いて F を押すと、選んだものが画面の中心に大きく表示されます（Frame Selected）。",
+ "keys": "F",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "15.3846%",
+ "ueStatus": "案内にしたがって操作してください",
+ "ueInfo": "Body · Move Tool",
+ "ueLabel": "ここにマウスを置いて F",
+ "ueTools": [
+  "move"
+ ]
+}

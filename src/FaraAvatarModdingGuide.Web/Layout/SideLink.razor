@@ -1,0 +1,24 @@
+@* サイドバーの 1 つのリンク。「いまのページ」なら aria-current="page" を付ける（強調の見た目は CSS が aria-current から作る）。
+   静的 HTML（Build の StaticFrame.SideLink）と同じ構造。読んだ記事の数（ProgressIds があるとき）は右に出す *@
+<a class="@ClassName" href="@Item.Href" aria-current="@(Active ? "page" : null)" title="@Item.Label">
+    <AvIcon Name="@Item.Icon" Class="av-side-icon" />
+    <span class="av-side-label">@Item.Label</span>
+    @if (Item.ProgressIds is { Count: > 0 })
+    {
+        <CategoryProgress Ids="@Item.ProgressIds" Class="av-side-progress" />
+    }
+</a>
+
+@code {
+    [Parameter, EditorRequired] public required SideItem Item { get; set; }
+
+    /// <summary>見ているページのパス（null は、どれも強調しない）。</summary>
+    [Parameter] public string? Path { get; set; }
+
+    /// <summary>開閉の中（カテゴリ）の項目か。</summary>
+    [Parameter] public bool Sub { get; set; }
+
+    private bool Active => SideNav.IsActive(Item, Path);
+
+    private string ClassName => Sub ? "av-side-link av-side-sublink" : "av-side-link";
+}

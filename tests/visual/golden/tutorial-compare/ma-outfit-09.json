@@ -1,0 +1,25 @@
+{
+ "count": "10 / 12",
+ "bubble": "10\n上のメニューの VRChat SDK を開いてください。",
+ "keys": "メニューをクリック",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "75%",
+ "ueStatus": "Hoodie_Mesh に MA Blendshape Sync を追加しました",
+ "ueInfo": "Hoodie_Mesh · Move Tool",
+ "ueLabel": "クリック",
+ "ueTools": [
+  "move"
+ ]
+}

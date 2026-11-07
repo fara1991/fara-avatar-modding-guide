@@ -1,0 +1,23 @@
+{
+ "count": "2 / 14",
+ "bubble": "2\nShift を押しながら右の立方体をクリックして、選択に追加してください。最後に選んだものが明るい枠の「アクティブ」になります。",
+ "keys": "Shift\n 左クリック",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "案内にしたがって操作してください",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "Shift+クリック",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "7.14286%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

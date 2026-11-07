@@ -1,0 +1,10 @@
+@* 「詳しく」（折りたたみ）。本文は Build が HTML にしたもの。Open は、#id で飛んできた項目を開く。静的 HTML（Build の Fragments.Body）と同じ構造 *@
+@if (!string.IsNullOrWhiteSpace(Html))
+{
+    <details class="tip-body mb-2" open="@Open"><summary>詳しく</summary><div class="tip-body-content">@((MarkupString)Html)</div></details>
+}
+
+@code {
+    [Parameter] public string? Html { get; set; }
+    [Parameter] public bool Open { get; set; }
+}

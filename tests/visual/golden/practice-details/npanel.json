@@ -1,0 +1,39 @@
+{
+ "under": [
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  },
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  },
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  },
+  {
+   "cls": "INPUT",
+   "cursor": "text"
+  }
+ ],
+ "active": "root",
+ "rootClasses": "practice-viewport",
+ "rootOutline": "solid 2px rgb(196, 181, 253) 2px",
+ "rootShadow": "none",
+ "rootBorder": "1px rgba(200, 170, 255, 0.14)",
+ "tabindex": "0",
+ "box": null,
+ "menu": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "Cube を選択",
+ "numeric": "",
+ "stats": null,
+ "marker": null,
+ "toolsOn": "",
+ "toolsHl": "",
+ "toolsDisabled": "",
+ "npanel": "",
+ "npanelVisible": false
+}

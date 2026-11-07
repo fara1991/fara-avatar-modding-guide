@@ -1,0 +1,7 @@
+@* 「読んだ」の印（記事の見出しの横・記事カードの右上）。完了のときに is-done を付けると、CSS が見せる。静的 HTML（Build の Fragments.DoneBadge）と同じ構造 *@
+<span class="@("done-mark badge-done" + (Done ? " is-done" : ""))"><AvIcon Name="CheckCircle" /> 読んだ</span>
+
+@code {
+    /// <summary>完了しているか。</summary>
+    [Parameter] public bool Done { get; set; }
+}

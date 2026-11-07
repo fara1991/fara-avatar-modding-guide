@@ -1,0 +1,23 @@
+{
+ "count": "12 / 16",
+ "bubble": "12\nS を押してスケールを始めてください。軸を固定しなければ、全体が同じ比率で変わります。",
+ "keys": "S",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "確定",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "Cube",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "68.75%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

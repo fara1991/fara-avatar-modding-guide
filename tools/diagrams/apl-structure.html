@@ -1,0 +1,45 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><link rel="stylesheet" href="common.css">
+<style>
+.lv { border-radius: 12px; padding: 14px 18px; margin-top: 14px; }
+.lv .h { font-size: 20px; font-weight: 700; }
+.lv .tag { display: inline-block; font-size: 14px; font-weight: 700; padding: 1px 9px; border-radius: 6px; margin-right: 8px; vertical-align: 2px; color: #fff; }
+.lv .d { font-size: 17px; color: #334155; margin-top: 6px; line-height: 1.55; }
+.a { background: #f1f5f9; border: 2px solid #64748b; margin-top: 0; }
+.a .tag { background: #475569; }
+.b { background: #f0fdfa; border: 2px solid #14b8a6; margin-left: 28px; }
+.b .tag { background: #0f766e; }
+.c { background: #ede9fe; border: 2px solid #7c3aed; margin-left: 56px; }
+.c .tag { background: #6d28d9; }
+.d3 { background: #fff7ed; border: 2px solid #ea580c; margin-left: 84px; }
+.d3 .tag { background: #c2410c; }
+.items { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.items span { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 3px 10px; font-size: 16px; font-family: "Cascadia Mono", "Consolas", monospace; }
+</style><style id="narrow">
+.card { width: 480px !important; padding: 22px 20px 20px !important; }
+h1 { font-size: 22px !important; }
+.sub { font-size: 15px !important; margin-bottom: 16px !important; }
+.note { font-size: 16.5px !important; padding: 12px 14px !important; margin-top: 16px !important; }
+.pill { font-size: 14.5px !important; }
+
+.lv { padding: 11px 12px !important; margin-top: 11px !important; }
+.lv .h { font-size: 18px !important; }
+.lv .d { font-size: 16px !important; }
+.lv .tag { font-size: 13px !important; }
+.b { margin-left: 14px !important; } .c { margin-left: 28px !important; } .d3 { margin-left: 42px !important; }
+.items span { font-size: 14px !important; padding: 2px 8px !important; }
+</style></head><body><div class="card">
+<h1>APL の設定の入れ子（階層）</h1>
+<div class="sub">Unity-Manual の説明を、上から順に入れ子にして並べたものです（項目名は、公式の表記のままです）。</div>
+<div class="lv a"><div class="h"><span class="tag">アバター</span>アバターの Prefab</div></div>
+<div class="lv b"><div class="h"><span class="tag">GameObject</span>アバターの直下に作った、空の GameObject</div>
+  <div class="d">「Avatar Pose Library」コンポーネントを付けます。</div></div>
+<div class="lv c"><div class="h"><span class="tag">コンポーネント</span>Avatar Pose Library</div>
+  <div class="d">Library Name は、VRChat のメニューに出る名前です。同じ名前のコンポーネントは、アップロード時に統合されます。</div>
+  <div class="items"><span>Library Name</span><span>Mode Settings</span></div>
+  <div class="d" style="margin-top:8px">Mode Settings の 4 つ: Enable Height ／ Enable Speed ／ Enable Mirror ／ Enable Trackings</div></div>
+<div class="lv d3"><div class="h"><span class="tag">カテゴリー</span>＋ で追加するカテゴリー</div>
+  <div class="items"><span>Category Name</span><span>Category Icon</span></div>
+  <div class="h" style="margin-top:12px; font-size:18px"><span class="tag" style="background:#9a3412">ポーズ</span>カテゴリーの中に並べるポーズ</div>
+  <div class="items"><span>Pose Name</span><span>Animation Clip</span><span>Pose Icon</span><span>Auto Thumbnail</span><span>Tracking Settings</span><span>Is Loop</span><span>Motion Speed</span></div></div>
+<div class="note info"><b>Drop Area</b>: Animation Clip をまとめてドラッグ＆ドロップすると、ポーズを一括で生成します（置かれる階層は、wiki の表では説明されていません）。</div>
+</div></body></html>
