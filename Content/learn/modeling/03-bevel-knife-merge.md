@@ -3,9 +3,15 @@ title: ベベル・ナイフ・マージ・分離
 reading: べべるないふまーじぶんり
 description: 角を丸める、自由な線で切る、頂点をくっつける・切り離す。形を仕上げるときの操作です。
 difficulty: 初級
-updated: 2026-10-10
+updated: 2026-11-07
 shortcuts: [Ctrl+B, K, M, F, X, P, Alt+M, Ctrl+J]
 ---
+
+::: point
+- 角の面取りはベベル（<kbd>Ctrl</kbd>+<kbd>B</kbd>）、自由な線で切るのはナイフ（<kbd>K</kbd>）
+- 重複した頂点は、<kbd>M</kbd> > **距離で** を実行して掃除する
+- ベベルは頂点数が増えるので、袖口や襟など目立つ角だけに使う
+:::
 
 ## ベベル（Bevel）
 

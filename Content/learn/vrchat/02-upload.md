@@ -3,8 +3,14 @@ title: アバターをアップロードする
 reading: あばたーをあっぷろーどする
 description: VRChat SDK のコントロールパネルでログインし、Builder タブで名前・公開範囲・サムネイルを決めて、Build & Test で確かめてから Build & Publish でアップロードするまでです。
 difficulty: 初級
-updated: 2026-10-11
+updated: 2026-11-07
 ---
+
+::: point
+- Build & Test は自分の PC だけで試すもので、アップロードはされない。アップロードは Build & Publish で行う
+- アップロードには VRChat のアカウントと、トラストランクが New User 以上であることが必要
+- 同じ Blueprint ID のまま Build & Publish すると前のアバターが上書きされ、別のアバターとして出すときは Detach で ID を外す
+:::
 
 ## アップロードできるアカウント
 

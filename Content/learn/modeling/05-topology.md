@@ -3,9 +3,15 @@ title: トポロジーの整理
 reading: とぽろじーのせいり
 description: 四角形で作る理由、頂点数の確認、法線や重複の掃除など「あとで困らないメッシュ」の作り方です。
 difficulty: 中級
-updated: 2026-10-10
+updated: 2026-11-07
 shortcuts: [M, Shift+N, X, Ctrl+L]
 ---
+
+::: point
+- 面は四角形（クアッド）でそろえ、五角形以上の N ゴンは最終的になくす
+- VRChat のアバターは三角形（Tris）の数で評価され、服 1 着にかけられるのはその一部
+- 書き出す前に、全選択してから <kbd>M</kbd> > **距離で** と <kbd>Shift</kbd>+<kbd>N</kbd> で掃除する
+:::
 
 ## トポロジーとは
 

@@ -3,9 +3,15 @@ title: 編集モードの基本
 reading: へんしゅうもーどのきほん
 description: 頂点・辺・面の選び方と、編集モードならではの選択テクニックを覚えます。
 difficulty: 初級
-updated: 2026-10-10
+updated: 2026-11-07
 shortcuts: [Tab, "1", "2", "3", Alt+クリック, L, Ctrl+L, Alt+Z, Ctrl+Numpad +, Ctrl+Numpad -, G, R, S]
 ---
+
+::: point
+- 編集モードは <kbd>Tab</kbd> で出入りし、<kbd>G</kbd> / <kbd>R</kbd> / <kbd>S</kbd> は選んだ頂点・辺・面だけを動かす
+- 選択モードは <kbd>1</kbd>（頂点）・<kbd>2</kbd>（辺）・<kbd>3</kbd>（面）で切り替える
+- ボックス選択で裏側まで選びたいときは、透過表示（<kbd>Alt</kbd>+<kbd>Z</kbd>）をオンにする
+:::
 
 ## 編集モードに入る
 

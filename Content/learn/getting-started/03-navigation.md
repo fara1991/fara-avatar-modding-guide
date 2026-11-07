@@ -3,9 +3,15 @@ title: 視点の操作
 reading: してんのそうさ
 description: マウスとテンキーで 3D ビューポートの視点を回す・寄る・正面から見る方法を覚えます。
 difficulty: 初級
-updated: 2026-10-10
+updated: 2026-11-07
 shortcuts: [Shift+MMB, Ctrl+MMB, Numpad 1, Numpad 3, Numpad 7, Numpad 5, Numpad ., Home, Alt+Z, Z]
 ---
+
+::: point
+- 視点はホイールボタンのドラッグで回す（ホイールボタンがなければ「3 ボタンマウスを再現」をオンにし、<kbd>Alt</kbd>+左ドラッグで回す）
+- テンキーの <kbd>Numpad 1</kbd> / <kbd>3</kbd> / <kbd>7</kbd> で、前・右・上から見る
+- 選択したものが見えなくなったら、<kbd>Numpad .</kbd> で選択物を中心に表示する
+:::
 
 ## マウスでの基本操作
 

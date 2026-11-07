@@ -6,6 +6,12 @@ difficulty: 中級
 updated: 2026-11-07
 ---
 
+::: point
+- APL は、既存の AnimationClip を登録して VRChat のメニューから呼び出すツールで、ポーズそのものは別の方法で作った AnimationClip を用意する
+- 公式の資料では、依存パッケージの版やパラメーター数の削減の数字が食い違っていて、確かめられていない項目がある
+- Resources/ のファイルは、公式パッケージの一部としてだけ再配布できるので、ポーズのデータを配布する前に LICENSE を読む
+:::
+
 [AvatarPoseLibrary（APL）](https://github.com/HhotateA/AvatarPoseLibrary) は、Unity 上で VRChat 向けのアバター用のポーズを管理・適用するためのツールです（[README](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/README.md) の説明）。この記事では、APL の入れ方と、ポーズを登録する手順、VRChat での使い方を説明します。パラメーター（Expression Parameters）への影響と、注意点もまとめます。
 
 ::: tip

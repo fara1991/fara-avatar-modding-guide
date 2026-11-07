@@ -3,8 +3,14 @@ title: PhysBone と Contact
 reading: ふぃじっくぼーんとこんたくと
 description: 髪やスカートを揺らす PhysBone の考え方（ボーンは点、Root Transform、Endpoint Position、Multi Child Type）、揺れ方の調整、コライダー、掴めないときの確認と、触れたことを検知する Contact の基本です。
 difficulty: 中級
-updated: 2026-10-11
+updated: 2026-11-07
 ---
+
+::: point
+- PhysBone は、ボーンを点として扱うので、子のないボーン 1 本では揺れない。末端に点（リーフボーン）を置くか、Endpoint Position で仮想の点を足す
+- Root Transform に指定したボーンより下が揺れる。指定したボーン自体は動かない
+- PhysBone・コライダー・Contact の数は、パフォーマンスランクに入る。Local Only にした Contact は入らない
+:::
 
 ## PhysBone とは
 

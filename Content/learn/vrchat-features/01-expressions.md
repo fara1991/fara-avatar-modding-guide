@@ -3,8 +3,14 @@ title: Expression メニューとパラメーター
 reading: えくすぷれっしょんめにゅーとぱらめーたー
 description: VRChat の中で開くメニュー（Expression Menu）と、その状態を持つパラメーター（Expression Parameters）の基本と、Modular Avatar で衣装や小物の ON/OFF を作る方法です。
 difficulty: 初級
-updated: 2026-10-11
+updated: 2026-11-07
 ---
+
+::: point
+- Modular Avatar の Create Toggle を使えば、アニメーションもパラメーターも書かずに、メニューから ON / OFF できる項目を作れる
+- 同期するパラメーターの合計は 256 ビットまでで、超えるとアップロードできない
+- 同期しないパラメーターと、VRChat が最初から用意している値は、合計に入らない
+:::
 
 ## 3 つの部品
 

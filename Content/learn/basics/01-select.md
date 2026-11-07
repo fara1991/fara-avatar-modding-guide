@@ -3,9 +3,15 @@ title: 選択・追加・削除
 reading: せんたくついかさくじょ
 description: オブジェクトを選ぶ、新しく置く、消す。すべての作業の出発点になる操作です。
 difficulty: 初級
-updated: 2026-10-10
+updated: 2026-11-07
 shortcuts: [A, Alt+A, Ctrl+I, B, C, Shift+A, X, Shift+D, Alt+D, Ctrl+J, H, Alt+H, Shift+H]
 ---
+
+::: point
+- 複数選択すると、最後に選んだものがアクティブオブジェクトになり、プロパティや親子付けの親になる
+- <kbd>Delete</kbd> キーで消すと確認なしで削除される。<kbd>X</kbd> なら「削除」を選ぶ形になる
+- 複製は <kbd>Shift</kbd>+<kbd>D</kbd> と <kbd>Alt</kbd>+<kbd>D</kbd> で違う。<kbd>Alt</kbd>+<kbd>D</kbd> はメッシュデータを共有し、片方を編集すると両方変わる
+:::
 
 ## 選択する
 
