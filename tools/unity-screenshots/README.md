@@ -13,5 +13,17 @@
 
 - 撮影の間（数十秒）、Unity のウィンドウが画面の上に出る（最前面・フォーカスは奪わない）。見えていないウィンドウは、Unity が描画しないため。PC を使っているときは、あらかじめ伝える。
 - Unity の起動時に、組み込みのシェーダーのコンパイルが失敗して、画面が全面マゼンタになることが、まれにある。`capture-unity.ps1` は、マゼンタなら撮り直す。直らないときは、もう一度実行する。
-- スクリプトは ASCII のみで書く（Windows PowerShell 5.1 は、文字コードの指定がないファイルを ANSI で読み、日本語のコメントが構文エラーの原因になる）。
+- PowerShell のスクリプト（.ps1）は ASCII のみで書く（Windows PowerShell 5.1 は、文字コードの指定がないファイルを ANSI で読み、日本語のコメントが構文エラーの原因になる）。
 - Unity 内の表示は、OS の言語に合わせて日本語になる。記事は、画面の表示（日本語）と、公式の名前（英語）の対応を、パッケージの表示名の資源（`Resources/InspectorContext_*.asset` など）で確かめて書く。
+
+## 衣装の記事（avatar-clothing/06）の画面
+
+`ShotRunnerClothing.cs` が、仮の服の FBX（`make-shirt-fbx.py` で Blender から書き出す）の Rig タブと、MA Merge Armature・MA Blendshape Sync の Inspector を撮る。
+
+1. `make-project.ps1 -Project <新しい場所> -Runner ShotRunnerClothing.cs`
+2. `blender -b --factory-startup --python make-shirt-fbx.py -- <出力先>\Shirt.fbx` で FBX を作り、プロジェクトの `Assets/Clothing/Shirt/Shirt.fbx` に置く
+3. `capture-unity.ps1 -Project <新しい場所> -Tags model-rig,merge-armature,blendshape-sync`
+4. `python crop-clothing.py <新しい場所>\ShotsOut` で Inspector を切り出す（Pillow が要る）
+
+- Rig タブへの切り替えは、`AssetImporterTabbedEditor` の `activeTab`（非公開）をリフレクションで設定している。Unity のバージョンが変わると動かないことがある
+- 画面の警告（「アバター内に配置する必要があります」）が写らないよう、仮のアバターに `VRCAvatarDescriptor` を付けている

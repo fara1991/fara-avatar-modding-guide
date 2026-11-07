@@ -35,6 +35,9 @@ Modular Avatar は、服のアーマチュアをアバターのアーマチュ�
 2. `Project` ウィンドウの `Assets` の下に `Clothing/Shirt` フォルダを作り、`Shirt.fbx` と `Textures` フォルダをドラッグして入れる
 3. `Shirt.fbx` を選んで `Inspector` の **Rig** タブを開き、**Animation Type** を **Humanoid** ではなく **Generic** にして **Apply**
 
+[![Unity の Inspector で FBX の Rig タブを開いた画面。Animation Type が Generic になっている](images/unity-import-rig.png)](/learn/avatar-clothing/images/unity-import-rig.png)
+*FBX を選んで Inspector の Rig タブを開いたところ（Unity 2022.3、仮の FBX で撮影）。Animation Type は Generic。画像を押すと、元の大きさで開く*
+
 ::: tip
 服は Humanoid にしません。Humanoid にすると Unity がボーンを人型として解釈し、アバター側の設定と干渉することがあります。Modular Avatar はボーン名で統合するので Generic で十分です。
 :::
@@ -61,11 +64,14 @@ FBX のマテリアルは、既定では FBX の中に埋め込まれたもの�
 
 これだけです。服のアーマチュアに **MA Merge Armature** コンポーネントが付き、ボーン名を照合してアバターのアーマチュアに対応付けられます。服のいちばん上には **MA Outfit Root** と **MA Mesh Settings**（ライトの基準と表示範囲をアバターに合わせる）も付きます。
 
+[![Unity の Inspector に表示された MA Merge Armature と MA Mesh Settings のコンポーネント。統合先、接頭辞、接尾辞、位置追従モードなどの項目が並ぶ](images/unity-merge-armature.png)](/learn/avatar-clothing/images/unity-merge-armature.png)
+*MA Merge Armature（上）と MA Mesh Settings（下）の表示（日本語表示）。統合先がまだ空の状態の表示。Setup Outfit を使うと、このコンポーネントが服のアーマチュアに付き、アバターのアーマチュアと対応付けられる*
+
 - 再生ボタンを押して **Play Mode** に入ると、実際に統合された状態になる。アバターを動かす（`Hierarchy` でアバターのボーンを回す）と服がついてくるか確認する
 - Play Mode を抜けると元の状態に戻る。アップロード時に自動で統合されるので、**自分でボーンを付け替える必要はない**
 
 ::: warning
-Setup Outfit が「衣装の Hips ボーンを発見できませんでした」と言う場合は、服のアーマチュアの中に、アバターの Hips に対応するボーンが見つかっていません。Blender でアバターのアーマチュアを一緒に書き出していれば見つかるはずなので、ボーン名と階層を確かめて FBX を書き出し直してください。ボーンの名前の前後に余計な文字が付いているだけなら、MA Merge Armature の **前置詞 / 後置詞**（Prefix / Suffix）で照合できます（統合先を設定すると自動で入ります）。
+Setup Outfit が「衣装の Hips ボーンを発見できませんでした」と言う場合は、服のアーマチュアの中に、アバターの Hips に対応するボーンが見つかっていません。Blender でアバターのアーマチュアを一緒に書き出していれば見つかるはずなので、ボーン名と階層を確かめて FBX を書き出し直してください。ボーンの名前の前後に余計な文字が付いているだけなら、MA Merge Armature の **接頭辞 / 接尾辞**（Prefix / Suffix）で照合できます（統合先を設定すると自動で入ります）。
 :::
 
 ## 5. 体形シェイプキーを同期する
@@ -75,6 +81,9 @@ Setup Outfit が「衣装の Hips ボーンを発見できませんでした」�
 1. `Shirt` のメッシュオブジェクトを選び、`Inspector` の **Add Component > Modular Avatar > MA Blendshape Sync**
 2. **+** を押し、一覧からアバターのメッシュとシェイプキーをダブルクリックして追加
 3. 服側の名前が同じなら、右の欄は空のままでよい
+
+[![Unity の Inspector に表示された MA Blendshape Sync。メッシュ、元メッシュのブレンドシェイプ、このメッシュのブレンドシェイプの列があり、一覧は空](images/unity-blendshape-sync.png)](/learn/avatar-clothing/images/unity-blendshape-sync.png)
+*MA Blendshape Sync の表示（日本語表示）。右下の + で行を足す。ここでは何も足していない状態*
 
 ## 6. 元の服を消す
 

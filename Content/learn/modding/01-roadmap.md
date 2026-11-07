@@ -26,6 +26,9 @@ updated: 2026-11-07
 | 6 | 重さ（パフォーマンスランク）を確かめて軽くする | VRChat SDK・Avatar Optimizer | [パフォーマンスランク](/learn/vrchat/performance-rank)、[アバターを軽くする](/learn/vrchat/optimization) |
 | 7 | 非対応衣装を着せる・体形を直す | Blender | [非対応衣装を Blender で着せる](/learn/modding/unsupported-outfit) |
 
+[![改変の進め方。1 から 6 は Unity（と画像編集ソフト）でできる段階（画面に慣れる、そのままアップロード、色を変える、対応衣装を着せる、メニューで ON/OFF、重さを確かめる）で、7 の非対応衣装・体形の直しだけ Blender を使う](images/roadmap-steps.png)](/learn/modding/images/roadmap-steps.png)
+*改変の進め方を図にしたもの（上の表と同じ 7 段階）。青が Unity（と画像編集ソフト）でできる段階、橙が Blender を使う段階。画像を押すと、元の大きさで開く*
+
 1 つ進むごとに **Build & Test** で VRChat に入って確かめると、どこで壊れたかがすぐわかります。
 
 ## 1. Unity の基本の言葉

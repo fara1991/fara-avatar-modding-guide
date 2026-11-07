@@ -1,7 +1,8 @@
 param(
   [string]$Project = 'E:\Projects\fara\Temp\shots-unity\vrc-demo',
   [string]$Unity = 'C:\Program Files\Unity\Hub\Editor\2022.3.22f1\Editor\Unity.exe',
-  [int]$W = 2200, [int]$H = 1300
+  [int]$W = 2200, [int]$H = 1300,
+  [string[]]$Tags = @('overview', 'aao-trace', 'aao-merge', 'apl', 'apl-open')   # clothing: model-rig, merge-armature, blendshape-sync
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @'
@@ -47,7 +48,6 @@ $proc.Id | Out-File "$Project\unity.pid" -Encoding ascii
 
 $hwnd = [IntPtr]::Zero
 $deadline = (Get-Date).AddMinutes(12)
-$tags = @('overview', 'aao-trace', 'aao-merge', 'apl', 'apl-open')
 $done = @{}
 while ((Get-Date) -lt $deadline -and -not $proc.HasExited) {
   $proc.Refresh()
