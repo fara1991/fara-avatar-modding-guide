@@ -1,7 +1,7 @@
 ---
 title: 三角ポリゴンを減らす方法
 reading: さんかくぽりごんをへらすほうほう
-description: VRChat のアバターの三角ポリゴンを減らす方法を、Meshia Mesh Simplification（MMS）と Avatar Optimizer（AAO）の削除の機能を中心に整理します。見た目が変わる条件と、公式に記載がない点も書いています。
+description: VRChat のアバターの三角ポリゴンを減らす方法を、Meshia Mesh Simplification（MMS）と Avatar Optimizer（AAO）の削除の機能を中心に整理します。見た目が変わる条件も書いています。
 difficulty: 中級
 updated: 2026-11-07
 ---
@@ -15,12 +15,6 @@ updated: 2026-11-07
 三角ポリゴンは、アバターのモデルが持つ三角形の数です。公式の項目名は Triangles で、SDK の「パフォーマンスの内訳」では「三角ポリゴンの数」と表示されます。上限は PC の Poor が 70,000、Android の Poor が 20,000 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。
 
 上限を超えると、公式では次のランクになると書かれています（[パフォーマンスランク](/learn/vrchat/performance-rank)）。この記事では、三角ポリゴンを減らすツールの機能を、見た目が変わる条件と一緒に整理します。
-
-::: tip
-この記事では、次の言葉を使います。
-
-- **公式に記載なし**{.lbl .lbl-none}: 各ツールの公式の資料（日本語版のページや更新履歴）を検索して、書かれていないことを確かめた、という意味です。できない・減らせないという意味ではありません。
-:::
 
 ## 減らす前に確かめること
 
@@ -49,17 +43,9 @@ MA には、三角ポリゴンを減らせる条件つきの機能がありま�
 
 - 公式ページには、「場合によっては、Constraint を生成する必要があり、パフォーマンスランクの増加に寄与する可能性がありますのでご注意ください。」と書かれています。Mesh Cutter が時々非アクティブになる場合に当たる注意です。
 
-### TexTransTool（TTT） {.tool .tool-ttt}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: TTT の公式サイトのリファレンス（コンポーネント一覧）、チュートリアル、FAQ、TextureFineTuning の説明）。TTT は、テクスチャとマテリアルを扱うツールとして説明されていて、三角ポリゴンを減らす機能の説明は見つかりませんでした。
-
-### lilAvatarUtils {.tool .tool-lil}
-
-レンダラーのタブで、メッシュごとのポリゴン数を表示します。ポリゴン数を減らす機能の説明は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: レンダラーのタブとツールのタブの説明）。確認に使うツールとして読んでください。
-
 ### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-**何をするか**: MMS は、メッシュの三角ポリゴンを減らす（簡略化する）ツールです。公式は「Unity、VRChat 向けのメッシュ軽量化ツール」と説明しています。確認した版は 3.3.1（2026 年 11 月 4 日の公開）です。
+**何をするか**: MMS は、メッシュの三角ポリゴンを減らす（簡略化する）ツールです。公式は「Unity、VRChat 向けのメッシュ軽量化ツール」と説明しています。
 
 MMS には 2 種類のコンポーネントがあります。
 
@@ -70,7 +56,7 @@ MMS には 2 種類のコンポーネントがあります。
 
 - Cascading の公式の手順は、(1) 対象のアバターの直下に GameObject を作る、(2) 「目標とするパフォーマンスランク」を選ぶ、(3) 見た目を確かめながら、ポリゴン数の配分やオプションを調整する、の 3 つです。
 - メニューは「GameObject > Meshia Mesh Simplification > Meshia Cascading Avatar Mesh Simplifier」です（パッケージのソースの MenuItem。公式ドキュメントは、アバターの直下にこの GameObject を作る手順を案内しています）。
-- 目標のプリセットは、パッケージのソースに次の値で入っています。公式ドキュメントの本文の値ではありません。
+- 目標のプリセットは、次の値です（パッケージのソースの値です）。
   - PC-Poor-Medium-Good: 70,000
   - PC-Excellent: 32,000
   - Mobile-Poor: 20,000
@@ -83,9 +69,8 @@ MMS には 2 種類のコンポーネントがあります。
 **注意**:
 
 - **Preserve Border Edges（メッシュの端の辺を保持）**: 公式ドキュメントには、「指先に穴が空いたりする場合、有効化してみてください。」と書かれています。ツールチップでは、穴や切れ目の縁など、他の面に接していない辺を削除しないようにする設定と説明されています（パッケージのソース）。
-- Cascading では、既定で左右の手と指のボーンが保持の対象になっています（パッケージのソースの既定値。公式ドキュメントの本文には記載なし）。
-- 処理の順序は、パッケージのソースでは、AAO より前に行われます（ソースからの読み取りで、公式の記述ではありません）。
-- MMS が「非破壊」かどうかは、**公式に記載なし**{.lbl .lbl-none}です。バックアップを取ってから使うのが安全です（この記事の整理）。
+- Cascading では、既定で左右の手と指のボーンが保持の対象になっています（パッケージのソースの既定値）。
+- MMS を使うときは、バックアップを取ってから使うのが安全です（この記事の整理）。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
@@ -106,9 +91,9 @@ MMS には 2 種類のコンポーネントがあります。
 
 **注意**:
 
-- **形で削る Remove Mesh 系（Mask・Box・UV Tile・BlendShape）は、Trace And Optimize の自動の対象に入りません。** 公式の [Trace And Optimize のページ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/) の自動の一覧に、これらの項目は入っていません。使うときは、手動のコンポーネントとして追加します。
+- **形で削る Remove Mesh 系（Mask・Box・UV Tile・BlendShape）は、手動のコンポーネントとして追加して使います。**
 - **面積がゼロのポリゴンの削除は、Trace And Optimize の高度な最適化「面積がゼロのポリゴンを自動的に削除する」で、自動で行えます**（[公式: Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。ただし既定ではオフです。公式の changelog（1.7.1）には「not enabled by default」と書かれています。公式は、一部のシェーダーやアニメーションを壊すおそれがあると書いています。
-- 面積がゼロのポリゴンを削除する Remove Zero Sized Polygon を手動で追加することは、公式は勧めていません。公式は、手動で追加するより Trace And Optimize を使うことを勧めています。統合対象の SkinnedMeshRenderer に追加しても、効果がないと書かれています。
+- 面積がゼロのポリゴンを削除する Remove Zero Sized Polygon を手動で追加することは、公式は勧めていません。公式は、手動で追加するより Trace And Optimize を使うことを勧めています。統合対象の SkinnedMeshRenderer に追加しても効果がないと、公式の [Remove Zero Sized Polygon のページ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-zero-sized-polygon/) に書かれています。
 - Remove Mesh By BlendShape の許容差の向きは、公式の定義（選んだ BlendShape が頂点を許容差より大きく動かしていたら、その頂点を削除する。通常モード）と比べて、公式の例文と Unity 内の説明では逆に書かれています。プレビューで確かめながら調整してください。
 
 ## 手順
@@ -126,7 +111,7 @@ MMS には 2 種類のコンポーネントがあります。
 - 削除の範囲を間違えると、見える部分が消えたり、隠れる部分が残ったりします（AAO の公式の注意）。
 - Mesh Read/Write を、いずれかの mesh（パーティクルを含む）で無効にすると、ランクは即座に Very Poor になると、公式に書かれています（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。
 - Android では、ランクが Very Poor のアバターは表示されないことがあると、公式に書かれています（三角ポリゴンの Android の Poor の上限は 20,000 です）。
-- MMS の「マージ候補に含める頂点同士の距離」（Vertex Link Distance）は、値を大きくすると処理時間が伸びる場合があります。また、4 万頂点以上のメッシュで大きな値を指定するとクラッシュする場合があると、パッケージのツールチップに書かれています（ソースの ja.po。公式ドキュメントの本文ではありません）。
+- MMS の「マージ候補に含める頂点同士の距離」（Vertex Link Distance）は、値を大きくすると処理時間が伸びる場合があります。また、4 万頂点以上のメッシュで大きな値を指定するとクラッシュする場合があると、パッケージのツールチップに書かれています（ソースの ja.po の記載です）。
 - MA の Shape Changer は、アニメーションされているポリゴンを減らさないため、数が減らないことがあります。
 - MMS と AAO を一緒に使うときは、MMS が先に処理されます（パッケージのソースからの読み取り）。
 :::

@@ -1,7 +1,7 @@
 ---
 title: ボーンの数を減らす
 reading: ぼーんのかずをへらす
-description: ボーン（骨組み）の数の上限と確かめ方、Modular Avatar・Avatar Optimizer でボーンをまとめる・消す機能と注意点を、公式の資料に書かれた範囲でまとめます。
+description: ボーン（骨組み）の数の上限と確かめ方、Modular Avatar・Avatar Optimizer でボーンをまとめる・消す機能と注意点をまとめます。
 difficulty: 中級
 updated: 2026-11-07
 ---
@@ -15,15 +15,6 @@ updated: 2026-11-07
 
 ボーンは、アバターのリグ（骨組み）の骨の数を数える項目です。パフォーマンスの内訳では、上限は PC が 400、Android が 150 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。Poor の上限を超えると、その項目がランクを下げる原因になります。
 
-::: tip
-この記事で使う言葉は、次のとおりです。
-
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版・英語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
-- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
-
-この記事は、AAO 1.9.21 と、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。版が上がると挙動が変わることがあります。
-:::
-
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」** の「ボーンの数」で、今の値と上限を見ます。
@@ -34,7 +25,7 @@ updated: 2026-11-07
 
 - 公式の勧め（Avatar Optimization Tips。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表）は、使わないボーンは、削除して親のボーンに統合することを検討する、というものです。
 
-次の 3 点は、この記事の整理です（公式の分類ではありません）。
+次の 3 点は、この記事の整理です。
 
 - 減らし方は、ツールによって対象が違います。衣装のボーンを本体のボーンにまとめる（Modular Avatar）、使われていない Object を自動で消す（AAO の Trace And Optimize）、個別の GameObject を親にまとめる（AAO Merge Bone）、の 3 つに分けられます。
 - まとめる操作でも、ボーンが増えることがあります。Modular Avatar の Merge Armature は、統合先にないボーンを名前を変えて配置したり、子にボーンを追加したりすることがあります。統合の前に名前を揃えておくと、一致するボーンがまとめられる対象になります。
@@ -46,27 +37,13 @@ updated: 2026-11-07
 
 - **何をするか**: Merge Armature は、GameObject のツリー（主に衣装のアーマチュア）を、アバターのアーマチュアに統合するコンポーネントです。衣装アセット専用で、追加されるボーンを最小限にする特殊な処理が入っていると書かれています。
 - **どう使う**: 統合先と名前が一致するボーンは、統合先にまとめられます。統合元にあって統合先にないボーンは、名前を変えて配置されます。連鎖的に統合することも、1.7.0 以降はできます。
-- **注意**: 該当するボーンが見つからない場合や、引用を書き換えられない場合は、子にボーンが追加されると、公式に書かれています。Transform 以外のコンポーネントが入っているボーンは残り、そのほかのボーンは原則として統合後に削除されます。MA の README には、既存のボーンを再利用して、作られるボーンを最小限にする、と書かれています。
-- **Bone Proxy**: プレハブ化したオブジェクトを、元のアバターのボーンの中に配置する機能です。衣装向けのものではないと書かれています。ボーンの数との関係は、**公式に記載なし**{.lbl .lbl-none}です（確かめた範囲: Bone Proxy のページ）。
+- **注意**: 該当するボーンがない場合や、統合元のボーンへの引用を統合先のボーンへ書き換えられない場合は、子にボーンが追加されると、公式に書かれています（公式の日本語の原文も「引用」）。Transform 以外のコンポーネントが入っているボーンは残り、そのほかのボーンは原則として統合後に削除されます。MA の README には、既存のボーンを再利用して、作られるボーンを最小限にする、と書かれています。
+- **Bone Proxy**: プレハブ化したオブジェクトを、元のアバターのボーンの中に配置する機能です。衣装向けのものではないと書かれています。
 - 出典: [Merge Armature（Modular Avatar 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature)、[Bone Proxy（Modular Avatar 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/bone-proxy)
-
-### TexTransTool（TTT） {.tool .tool-ttt}
-
-- **公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Reference のコンポーネント一覧、AtlasTexture のページ、FAQ）: ボーンの数に関する記載はありません。
-
-### lilAvatarUtils {.tool .tool-lil}
-
-- **Quality はボーンの数ではありません**: レンダラーのタブの Quality は、1 つの頂点を操作できるボーンの数です。数値が大きいほど計算量が増え、パフォーマンスが悪化する可能性があると書かれています。基本的には Auto に設定し、制限したいときは、モデルのインポート設定を変更することがすすめられています。
-- **ボーンの数を減らす機能**: **公式に記載なし**{.lbl .lbl-none}です（確かめた範囲: レンダラー・マテリアル・テクスチャ・ツールの各タブ）。
-- 出典: [レンダラー（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/RenderersGUI.html)
-
-### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
-
-- **公式に記載なし**{.lbl .lbl-none}（確かめた範囲: README（英語・日本語）、公式ドキュメントの日本語版のページ（はじめに・インストール・VRChat 向けのページ））: ボーンの数に関する記載はありません。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-- **Trace And Optimize の「使われていないObjectを自動的に削除する」**: アニメーションなどを走査して、使われていない GameObject・コンポーネント・テクスチャなどを自動で削除します。ボーンを自動で減らす方法の一つが、この機能です。対象の種類ごとの細かい条件は、**公式に記載なし**{.lbl .lbl-none}です。
+- **Trace And Optimize の「使われていないObjectを自動的に削除する」**: アニメーションなどを走査して、使われていない GameObject・コンポーネント・テクスチャなどを自動で削除します。ボーンを自動で減らす方法の一つが、この機能です。
   - この項目の中の「end ボーンを残す」（Preserve EndBone）: 親が削除されていない end ボーンを削除しないようにします。公式では、名前が end（大文字小文字の区別なし）で終わるボーンを end ボーンとして扱います（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。
 - **Trace And Optimize の「PhysBone を最適化する」**: Endpoint Position で問題なく表現できる場合に、end ボーン（PhysBone の末端のボーン）を削除して、Endpoint Position に置き換えます。公式の Replace End Bone With Endpoint Position のページは、この置き換えで PhysBone Affected Transforms の数を減らせると書いています。これは SDK の「ボーンの数」とは別の項目です（[PhysBone トランスフォームの数を減らす](/learn/optimize-physbone/physbone-transforms)）。
 - **AAO Merge Bone（手動）**: GameObject を親の GameObject に統合して、元の GameObject を取り除きます。統合対象に付いているほかのコンポーネントも、削除されます。「名前の競合を避ける」を使うと、子の GameObject の名前を変えて、アニメーションの破損を防げます。親にも Merge Bone があれば、さらに親に統合されます。Trace And Optimize が似た処理を自動で行うため、大抵の場合は使う必要はないと書かれています。

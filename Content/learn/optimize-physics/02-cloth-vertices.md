@@ -1,29 +1,22 @@
 ---
 title: Cloth の最大頂点の確かめ方
 reading: くろーすのさいだいちょうてんのたしかめかた
-description: Cloth の最大頂点（Total Cloth Vertices）の上限と確かめ方、VRChat 公式の勧め（200 頂点程度より多いメッシュには Cloth を使わない）、各ツールの公式の資料で確かめた範囲をまとめます。
+description: Cloth の最大頂点（Total Cloth Vertices）の上限と確かめ方、VRChat 公式の勧め（200 頂点程度より多いメッシュには Cloth を使わない）をまとめます。
 difficulty: 中級
 updated: 2026-11-07
 ---
 
 ::: point
 - 上限は PC の Poor が 200 で、モバイル（Android と iOS）では無効
+- PC の Excellent は 0、Good は 50、Medium は 100
 - 公式の勧め（目安）は、200 頂点程度より多いメッシュには Cloth を使わないこと
-- 公式の統計表には、この項目の定義はありません
 :::
 
-Cloth の最大頂点は、SDK の「パフォーマンスの内訳」で「CLOTH の最大頂点の数」と表示される項目です。公式の項目名は Total Cloth Vertices です。ただし、公式の統計表（Avatar Performance Ranking Stats）には、この項目の定義の行はありません。上限は PC の Poor が 200 で、モバイル（Android と iOS）では無効です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。PC の Excellent は 0、Good は 50、Medium は 100 で、これらは [VRChat の公式の表（GitHub の原本の avatar-performance-ranking-system.md）](https://raw.githubusercontent.com/vrchat-community/creator-docs/main/Docs/docs/avatars/avatar-performance-ranking-system.md) の値です。
+Cloth の最大頂点は、SDK の「パフォーマンスの内訳」で「CLOTH の最大頂点の数」と表示される項目です。公式の項目名は Total Cloth Vertices です。上限は PC の Poor が 200 で、モバイル（Android と iOS）では無効です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。PC の Excellent は 0、Good は 50、Medium は 100 で、これらは [VRChat の公式の表](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) の値です。
 
 上限を超えると、公式では次のランクになると書かれています。表示の下限（Minimum Displayed Performance Rank）より下のランクになると、公式の表では All Cloth components removed（Cloth コンポーネントがすべて取り除かれる）と書かれています。PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。ただし、極端に最適化されていないアバターは、使えなくなることがあります（英語の原文の要約です）。
 
-::: tip
-この記事で使う言葉は、次のとおりです。
-
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
-- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
-
-この記事は、AAO・Modular Avatar（GitHub の main）・TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を、2026 年 11 月 6 日に確かめて書きました。版は、GitHub の最新リリースで 2026 年 11 月 7 日に確かめました。AAO は 1.9.21（changelog の最新版）、TexTransTool は v1.0.2（2026-06-26）、lilAvatarUtils は 2.1.2（2025-08-11）、Meshia Mesh Simplification は 3.3.1（2026-11-04）です。TexTransTool と lilAvatarUtils は、サイトに版の表示がありません。Meshia Mesh Simplification の公開サイト（ramtype0.github.io）は、トップページを確かめました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。
-:::
+VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に、日本語の訳を添えています。
 
 ## 数の確かめ方
 
@@ -38,44 +31,15 @@ VRChat 公式の Tips（[Avatar Optimization Tips（VRChat 公式）](https://cr
 - 原文: "Cloth is a default Unity component that has a similar cost to Dynamic Bones and is more difficult to set up. Limit your use of Cloth heavily, and do not apply it to meshes that have greater than 200 or so vertices."
 - 訳: Cloth は Unity の標準のコンポーネントで、コストは Dynamic Bones と同程度で、設定も難しい。Cloth の使用は強く控えてください。また、200 頂点程度より多いメッシュには使わないでください。
 
-原文の対象は "meshes"（メッシュ）で、200 頂点程度より多いメッシュには使わない、と書かれています。
-
-この記事の整理として、減らす方法を次のように考えます（公式の分類ではありません）。
-
-1. 200 頂点程度より多いメッシュに付いている Cloth を、外すかを検討する。
-2. 残す Cloth について、頂点数を減らす方法は、5 つのツールの公式の資料には記載がありません（下の各節）。
-
-上の 1 の整理は、公式の勧めの読み方です。Cloth の数そのものを減らす話は、[Cloth の数を減らす](/learn/optimize-physics/cloth-count) で扱います。
-
-## ツール別の方法
-
-### Modular Avatar（MA） {.tool .tool-ma}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のドキュメント 136 ファイル（changelog のページを含む）、CHANGELOG 4 種、README）。Cloth の語は衣装の手順に出てきますが、頂点数や上限の記述はありません。
-
-### TexTransTool（TTT） {.tool .tool-ttt}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版の公式ドキュメント 81 ページ（sitemap の /docs 配下）。Cloth の語は 1 件もありませんでした）。
-
-### lilAvatarUtils {.tool .tool-lil}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版の公式ドキュメント 11 ページ（トップ・一覧・各タブ・ツール））。Cloth の語は見つかりませんでした。
-
-### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub の README（英語・日本語）、`.docfx` の日本語・英語のドキュメント。公開サイトは、トップページを確かめました）。Cloth の語は見つかりませんでした。
-
-### Avatar Optimizer（AAO） {.tool .tool-aao}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページと CHANGELOG）。Cloth の頂点数を減らす機能は書かれていません。CHANGELOG には頂点（vertices）に関する記録は多くありますが、Cloth の頂点数に関する記録は無いことを確かめました。AAO の Cloth の記録（2 件。どちらも 1.7.0 の Changed）は、[Cloth の数を減らす](/learn/optimize-physics/cloth-count) を見てください。
+この記事の整理として、200 頂点程度より多いメッシュに付いている Cloth は、外すかを検討します。Cloth の数そのものを減らす話は、[Cloth の数を減らす](/learn/optimize-physics/cloth-count) で扱います。
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「CLOTH の最大頂点の数」の値と上限を確かめます。PC の上限は Poor が 200 で、モバイル（Android と iOS）では無効です。
 2. アバターの中から、Cloth コンポーネントが付いているメッシュを探します。
-3. 上の「公式の勧めの読み方」の 1 に沿って、200 頂点程度より多いメッシュに付いている Cloth を、外すかを検討します。
+3. 上の「公式の勧めの読み方」に沿って、200 頂点程度より多いメッシュに付いている Cloth を、外すかを検討します。
 4. 変更の前に、プロジェクトのバックアップを取り、確かめたい布の動きを記録しておきます（**この記事の助言**{.lbl .lbl-adv}）。
-5. 外すと決めた Cloth は、無効にするのではなく取り除きます（**この記事の助言**{.lbl .lbl-adv}）。取り除いたあとに動きが変わったときは、バックアップから元に戻してください。
+5. 使っていないと確かめたものは、無効にするのではなく取り除きます（無効のままでも数に入るため）。判断できないものは残し、手順 4 で記録した動きと比べます（**この記事の助言**{.lbl .lbl-adv}）。
 6. Play モードに入って、残した Cloth の動きが、記録したものと同じかを確かめます。
 7. もう一度 SDK の「パフォーマンスの内訳」で値を確かめます。AAO を使っているときは、Play モードに入ったときのランクを Actual Performance Window で確かめます。
 
@@ -83,7 +47,7 @@ VRChat 公式の Tips（[Avatar Optimization Tips（VRChat 公式）](https://cr
 
 ::: warning
 - **Android と Quest では Cloth は使えません**: 公式の制限のページは、「Cloth | Completely disabled on Android and Quest.」（訳: Cloth は Android と Quest で完全に無効）と書いています（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。Mobile Removed Components の一覧には、Total Cloth Vertices も入っています（値は常にゼロ）。
-- **AAO の Cloth の記録（1.7.0）**: 1.7.0 から、Cloth のある SkinnedMeshRenderer を Merge Skinned Mesh の統合元にするとエラーにする、と CHANGELOG に記録されています。AAO 1.9.21 でも同じ扱いです（GitHub の v1.9.21 タグのソースで確かめました）。
+- **AAO の Cloth の記録（1.7.0）**: 1.7.0 から、Cloth のある SkinnedMeshRenderer を Merge Skinned Mesh の統合元にするとエラーにする、と CHANGELOG に記録されています。
 :::
 
 ## 関連ページ

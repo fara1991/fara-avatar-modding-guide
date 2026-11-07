@@ -1,7 +1,7 @@
 ---
 title: 最大パーティクルの数を減らす
 reading: さいだいぱーてぃくるのかずをへらす
-description: 最大パーティクルの数（公式の行名は Total Particles Active）の上限と確かめ方、VRChat 公式の勧め（同時に放出される粒子の数を制限する）、各ツールで公式に書かれていることを、公式の資料に書かれた範囲でまとめます。
+description: 最大パーティクルの数（公式の行名は Total Particles Active）の上限と確かめ方、VRChat 公式の勧め（同時に放出される粒子の数を制限する）、使わないパーティクルシステムを削除する手順をまとめます。
 difficulty: 中級
 updated: 2026-11-07
 ---
@@ -16,20 +16,13 @@ updated: 2026-11-07
 
 上限を超えると、ランクが次のランクに下がります。表示の下限（Minimum Displayed Performance Rank）に届かないと、公式の表示制限では All Particle Systems removed（パーティクルシステムがすべて取り除かれる）と書かれています（英語の原文の要約）。PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。ただし、極端に最適化されていないアバターは使えなくなることがあります（英語の原文の要約。原文: "the default Minimum Displayed Performance Rank level is "Very Poor". This means that users can see most avatars by default. … However, if your avatar is extremely unoptimized, VRChat may prevent you from using it."）。Android の既定の表示の下限は Medium で、Poor と Very Poor のアバターは既定では見えない、と書かれています（英語の原文の要約）。
 
-::: tip
-この記事で使う言葉は、次のとおりです。
-
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
-- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
-
-この記事は、AAO・Modular Avatar（GitHub の main）・TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を、2026 年 11 月 6 日に確かめて書きました。版は、GitHub の最新リリースで 2026 年 11 月 7 日に確かめました。AAO は 1.9.21（changelog の最新版）、TexTransTool は v1.0.2（2026-06-26）、lilAvatarUtils は 2.1.2（2025-08-11）、Meshia Mesh Simplification は 3.3.1（2026-11-04）です。TexTransTool と lilAvatarUtils は、サイトに版の表示がありません。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。
-:::
+VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は原文に訳を添えています。
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「最大パーティクルの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、622,022（上限 2,500）と表示されていました。
 - **合計の出し方**: 定義どおり、アバターの各 Particle System の maxParticles を足し合わせると、どれが大きいかを見つけられます（**この記事の助言**{.lbl .lbl-adv}）。
-- **行名の Active について**: 行名には Active とありますが、定義は「アバターのすべての Particle System」を対象にしていて、有効・無効の区別は書かれていません。また、公式は、現在無効化されているものを含めて、すべての GameObject とコンポーネントがパフォーマンスランクに数えられると書いています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+- **行名の Active について**: 行名には Active とありますが、定義は「アバターのすべての Particle System」を対象にしています。公式は、無効のものも含めて数えると書いています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 - **AAO を使うときのランク**: AAO の公式ドキュメントは、非破壊改変ツールを使う改変では、SDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています。Play モードに入ったときのランクは、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」の方法で確かめます。
 
 ## 減らし方の考え方
@@ -43,36 +36,12 @@ VRChat 公式の勧めは、次のとおりです（[Avatar Optimization Tips（
 - 原文: "Generally speaking, large transparent particles are worse than a lot of smaller, opaque ones. Unity's Particle System is actually quite optimized and runs quickly *if used well.*"
 - 訳: 一般には、大きな半透明の粒子は、小さく不透明な粒子を多く使うより負荷が大きくなります。Unity のパーティクルシステムは、うまく使えば十分に最適化されていて、速く動きます。
 
-公式の原文は maxParticles という語を使っていません。「同時に放出される粒子の最大数」は、この項目（maxParticles の合計）と近い考え方なので、この記事では減らす対象として扱います（この記事の整理）。
+公式の勧めの「同時に放出される粒子の最大数」は、この記事では maxParticles の合計を下げる手がかりとして扱います（この記事の整理）。
 
-この記事の整理として、減らす方法を次の 2 つに分けます（公式の分類ではありません）。
+この記事の整理として、減らす方法を次の 2 つに分けます。
 
 1. 同時に放出される粒子の最大数を制限する（公式の勧め）。
 2. 使っていないパーティクルシステムを削除する。合計から、その分の maxParticles が減ります（[パーティクルシステムの数を減らす](/learn/optimize-particle/particle-systems) の手順）。
-
-## ツール別の方法
-
-### Modular Avatar（MA） {.tool .tool-ma}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のドキュメント全件と CHANGELOG。「パーティクル」の語は、サンプル（Clap プレハブ）の説明に 1 件だけあり、仕様の記述ではありません）。
-
-### TexTransTool（TTT） {.tool .tool-ttt}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: ttt.rs64.net の /docs/ 配下 81 ページ）。
-
-### lilAvatarUtils {.tool .tool-lil}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版の公式ドキュメント 9 ページと、英語版のレンダラーのタブで、「パーティクル」の語を検索。見つかりませんでした）。
-
-### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にある日本語・英語のドキュメント 11 件（目次を含めると 19 件））。MMS は、ポリゴン数を減らすツールとして説明されています。
-
-### Avatar Optimizer（AAO） {.tool .tool-aao}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページ 72 件と CHANGELOG）。
-
-CHANGELOG のパーティクル関連の主項目は 7 件あり、そのうち 6 件は、パーティクルが壊れることの修正です（1.6.0 の "Remove Unused Object may break ParticleSystem" など）。残る 1 件（1.8.10）は、パーティクルシステムが正しく削除されない不具合の修正で、削除の処理がパーティクルシステムに及ぶことを示します。どちらも、パーティクルを減らす効果の記載ではありません。詳しくは [パーティクルシステムの数を減らす](/learn/optimize-particle/particle-systems) の AAO の項を見てください。
 
 ## 手順
 
@@ -87,8 +56,8 @@ CHANGELOG のパーティクル関連の主項目は 7 件あり、そのうち 
 ## 注意・うまくいかないとき
 
 ::: warning
-- **定義は、放出されている数ではありません。** 公式の定義は maxParticles の合計です。実際に画面に出ている粒子の数とは別の値です。
-- **Android の上限は 200 です。** 公式の Android の制限のページ（Quest Content Limitations）は、"Particles are limited heavily on avatars for Android and Quest, with settings mirroring the Avatar Particle System Limits on PC." と書いています（訳: Android と Quest のアバターでは、パーティクルは大きく制限されています。PC の Avatar Particle System Limits に合わせた設定です）。ただし、パフォーマンスランクの表では、モバイルの値（200）は PC の値（2,500）と違います。そのため、「Android の上限が PC と同じ」とは読めません。
+- **公式の定義は maxParticles の合計です。** 画面に出ている粒子の数や放出数とは別の値です。
+- **Android の上限は 200 です。** 公式の Android の制限のページ（Quest Content Limitations）は、"Particles are limited heavily on avatars for Android and Quest, with settings mirroring the Avatar Particle System Limits on PC." と書いています（訳: Android と Quest のアバターでは、パーティクルは大きく制限されています。PC の Avatar Particle System Limits に合わせた設定です）。ただし、パフォーマンスランクの表では、モバイルの値（200）は PC の値（2,500）と違います。
 - **表示制限では、パーティクルシステムの全部が取り除かれます。** 表示の下限に届かないときは、All Particle Systems removed と書かれています（英語の原文の要約）。
 - **メッシュパーティクルの三角ポリゴンは別の項目です。** 公式のランキングの表では Mesh Particle Active Polys という別の行で、この記事では扱いません。
 :::

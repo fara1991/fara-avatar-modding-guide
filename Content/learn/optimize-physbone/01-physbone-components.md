@@ -16,14 +16,7 @@ PhysBone コンポーネントの数は、アバターにある PhysBone コン�
 
 上限を超えると、公式の表では、表示される最低のランクを設定しているときに、その下限に届かないアバターの PhysBone・PhysBone コライダー・コンタクトが取り除かれると書かれています。Android では、ハード上限（8）を超えると、「Show Avatar」を選んでも回避できず、制限の対象のコンポーネントがすべて取り除かれると公式は書いています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) の英語の原文の要約）。
 
-::: tip
-この記事で使う言葉は、次のとおりです。
-
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
-- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
-
-この記事は、AAO 1.9.21、Modular Avatar（GitHub の main の資料）、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は日本語に訳した要約です。版が上がると挙動が変わることがあります。
-:::
+VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は日本語に訳した要約です。版が上がると挙動が変わることがあります。
 
 ## 減らす前に確かめること
 
@@ -41,32 +34,18 @@ VRChat 公式の PhysBones のページには、コンポーネントの使い�
 - 原文: "if you're just dealing with something on the order of 32 bones... don't worry about it." 訳: 約 32 ボーン程度を扱うだけなら、気にしなくてよい。
 - 公式は、これは厳密なルールではないとも明記しています（原文: "These aren't strict rules!"）。
 
-公式の勧めは、「少ないほうがよい」という方向です。コンポーネントを具体的にどう統合するかの手順は、この箇所には書かれていません。そのため、この記事の整理として、減らす方法を次の 2 つに分けます（この記事の整理。公式の分類ではありません）。
+公式の勧めは、「少ないほうがよい」という方向です。そのため、この記事の整理として、減らす方法を次の 2 つに分けます。
 
 - **手動でまとめる**: AAO Merge PhysBone で、複数の PhysBone を 1 つにまとめる。
 - **自動で整理する**: AAO Trace And Optimize の「PhysBone を最適化する」と「使われていないObjectを自動的に削除する」を使う。
 
 ## ツール別の方法
 
-### Modular Avatar（MA） {.tool .tool-ma}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版の reference 一式と CHANGELOG）。PhysBone の数を数える・減らすという記述は見つかりませんでした。Merge Armature は、PhysBone の「Target欄」を統合先のボーンに書き換えると書かれていますが、コンポーネントの数への効果は書かれていません。
-
-### TexTransTool（TTT） {.tool .tool-ttt}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版のページ 81 件。PhysBone・Contact などの語で検索しました）。
-
 ### lilAvatarUtils {.tool .tool-lil}
 
 **何をするか**: PhysBones タブで、アバターにあるすべての PhysBone を一覧できます。一部の項目は編集でき、変更したものは左上の適用ボタンで一括して反映されます（[PhysBones（lilAvatarUtils 公式）](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
 
 **どう使うか**: 「親オブジェクト」の項目について、公式は「親が同じ場合はコンポーネントを統一してコンポーネント数を削減できる場合があります。」と書いています。統合できそうなものを見つける手がかりとして使えます。
-
-**注意**: 一覧から統合を実行する機能は、確かめた範囲の資料には書かれていませんでした（**公式に記載なし**{.lbl .lbl-none}）。公式の説明は、一部のプロパティが編集できるとだけ書いていて、どの項目かの一覧はありません。
-
-### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 作者 RamType0 の GitHub リポジトリの README（英語・日本語）と、日本語のドキュメント）。PhysBone・Contact などの語を検索しましたが、該当する記述はありませんでした。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
@@ -81,8 +60,8 @@ AAO の PhysBone の機能は、次の 3 つに分かれます。ほかに、コ
 
 **Trace And Optimize の「PhysBone を最適化する」（Optimize PhysBone Settings）**: 公式の原文は、「掴めないものなど、統合しても動作が変化しない複数のPhysBoneを1つに統合します。」です（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。英語版も、"if they can be merged without behavioral change, e.g. if they are not grabbable" と、統合しても動作が変わらないことを条件にしています。
 
-- 公式の文言は、掴めない PhysBone などを対象にしています。「同じ設定の PhysBone」を統合するという記述は、日本語版にも英語版にもありません。「全く同じ設定」の統合が書かれているのは、コライダーについてだけです（[PhysBone コライダーの数を減らす](/learn/optimize-physbone/physbone-colliders) で説明）。
-- CHANGELOG の 1.9.0 には、掴める PhysBone が見つからないときに、PhysBone を自動で統合する（"Automatically merge PhysBone when no grabbing PhysBone is detected"）と書かれています（[CHANGELOG（AAO）](https://raw.githubusercontent.com/anatawa12/AvatarOptimizer/95c231830cefb62dde91e134642c70942f92ed2a/CHANGELOG.md)）。
+- 公式の文言は、掴めない PhysBone などを対象にしています。「全く同じ設定」の統合が書かれているのは、コライダーについてです（[PhysBone コライダーの数を減らす](/learn/optimize-physbone/physbone-colliders) で説明）。
+- CHANGELOG の 1.9.0 には、掴める PhysBone が見つからないときに、PhysBone を自動で統合する（"Automatically merge PhysBone when no grabbing PhysBone is detected"）と書かれています（[CHANGELOG（AAO）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
 - このオプションには、Is Animated の整理（不要なときにチェックを外す）と、Endpoint Position の置き換え（[PhysBone トランスフォームの数を減らす](/learn/optimize-physbone/physbone-transforms) で説明）も含まれます。
 
 **使われていないObjectを自動的に削除する**（Remove unused Objects）: 公式の原文は、「アニメーションなどを走査して、使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します。」です。PhysBone については、次の記述があります。
@@ -95,7 +74,7 @@ AAO の PhysBone の機能は、次の 3 つに分かれます。ほかに、コ
 1. SDK の「パフォーマンスの内訳」で、「PHYSBONE コンポーネントの数」を確かめます（上限は PC の Poor が 32、Android の Poor が 8）。
 2. lilAvatarUtils の PhysBones タブで、パフォーマンスランクへの影響が大きい PhysBone を見つけます。「ルートボーン」や設定が近いものも探します。
 3. OSC で使う PhysBone や Contact Receiver がある場合は、先に「注意・うまくいかないとき」の OSC の項目を読み、必要な Asset Description の設定を済ませます。そのうえで、アバターのルートに AAO Trace And Optimize を付け、「使われていないObjectを自動的に削除する」と「PhysBone を最適化する」が、チェックボックスでオンになっているかを確かめます。
-4. まだ残るものは、AAO Merge PhysBone を新規の GameObject に追加します（公式:「このコンポーネントは新規GameObjectに追加してください。」）。統合対象の PhysBone は、公式の「統合対象は同じGameObjectの子である必要があります。」の条件を満たすように置きます。代わりに「このGameObjectの子にする」を使うこともできます。
+4. まだ残るものは、AAO Merge PhysBone を新規の GameObject に追加します（公式:「このコンポーネントは新規GameObjectに追加してください。」）。統合対象の PhysBone は、上の「統合対象」の条件（同じ GameObject の子）を満たすように置きます。
 5. Merge PhysBone の各項目（Copy か Override）を確かめます。統合後は、掴める場所が 1 か所になることを、先に確かめておきます。
 6. Play モードに入って、パフォーマンスランクと、揺れ方や掴み方が変わっていないかを確かめます。
 

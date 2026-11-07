@@ -1,7 +1,7 @@
 ---
 title: レイキャストの数を減らす
 reading: れいきゃすとのかずをへらす
-description: レイキャスト（VRCRaycast）の数の上限と、1 アバターあたり 80 個の固定の上限、確かめ方、各ツールで公式に記載があるかを、公式の資料に書かれた範囲でまとめます。
+description: レイキャスト（VRCRaycast）の数の上限と、1 アバターあたり 80 個の固定の上限、確かめ方をまとめます。
 difficulty: 中級
 updated: 2026-11-07
 ---
@@ -9,23 +9,14 @@ updated: 2026-11-07
 ::: point
 - 上限は PC が Excellent 1・Good 4・Medium 8・Poor 15、Android が同じ順で 1・2・4・8
 - どのプラットフォームでも 1 アバターあたり 80 個の固定の上限があり、FinalIK と共有される
-- 80 個を超えたときの扱いは、公式に書かれていません
+- ほかのプレイヤーに当てるには、VRCRaycast のバージョン 1.1 以降が必要
 :::
 
-レイキャスト（VRCRaycast）は、アバターからシーンに光線を飛ばし、ワールドのコライダーやほかのプレイヤーに当たったかを調べる部品です。VRChat 公式の定義は "The number of VRCRaycast components on the avatar." で、訳は「アバターにある VRCRaycast コンポーネントの数」です。上限は PC が Excellent 1・Good 4・Medium 8・Poor 15、Android が 1・2・4・8 です（この段階の値は [VRChat の公式の表（GitHub の原本の avatar-performance-ranking-system.md）](https://raw.githubusercontent.com/vrchat-community/creator-docs/main/Docs/docs/avatars/avatar-performance-ranking-system.md) の値で、PC の Poor と Android の Poor は [パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表とも同じ値）。どのプラットフォームでも 1 アバターあたり 80 個の固定の上限があります。
+レイキャスト（VRCRaycast）は、アバターからシーンに光線を飛ばし、ワールドのコライダーやほかのプレイヤーに当たったかを調べる部品です。VRChat 公式の定義は "The number of VRCRaycast components on the avatar." で、訳は「アバターにある VRCRaycast コンポーネントの数」です。上限は PC が Excellent 1・Good 4・Medium 8・Poor 15、Android が 1・2・4・8 です。上限の値は、[VRChat の公式の表](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) と同じです。PC の Poor と Android の Poor は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表とも同じ値です。どのプラットフォームでも 1 アバターあたり 80 個の固定の上限があります。
 
-上限を超えると、公式では次のランクになると書かれています。表示の下限（Minimum Displayed Performance Rank）より下のランクになると、Raycasts がすべて取り除かれます（原文: "All Raycasts removed"）。80 個を超えたときに何が起きるかは、公式に書かれていません。
+上限を超えると、公式では次のランクになると書かれています。表示の下限（Minimum Displayed Performance Rank）より下のランクになると、Raycasts がすべて取り除かれます（原文: "All Raycasts removed"）。
 
-::: tip
-この記事で使う言葉は、次のとおりです。
-
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
-- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
-
-この記事は、AAO・Modular Avatar（GitHub の main）・TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を、2026 年 11 月 6 日に確かめて書きました。版は、GitHub の最新リリースで 2026 年 11 月 7 日に確かめました。AAO は 1.9.21（changelog の最新版）、TexTransTool は v1.0.2（2026-06-26）、lilAvatarUtils は 2.1.2（2025-08-11）、Meshia Mesh Simplification は 3.3.1（2026-11-04）です。TexTransTool と lilAvatarUtils は、サイトに版の表示がありません。Meshia Mesh Simplification の公開サイト（ramtype0.github.io）は、トップページを確かめました。版が上がると挙動が変わることがあります。
-
-VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に、日本語の訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。
-:::
+VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に、日本語の訳を添えています。ツールの版が上がると挙動が変わることがあります。
 
 ## 減らす前に確かめること
 
@@ -35,46 +26,14 @@ VRChat の公式ドキュメントは英語の原文だけなので、ここで�
 
 ## 減らし方の考え方
 
-VRChat 公式の [Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips) には、レイキャストの項目がありません。
-
-一方、[VRCRaycast のページ（VRChat 公式のドキュメントの原本）](https://raw.githubusercontent.com/vrchat-community/creator-docs/main/Docs/docs/avatars/avatar-components/raycast.md) には、80 個の上限は FinalIK のコンポーネントと共有されていると書かれています。そして、FinalIK は「VRCRaycast で足りる場面では、一般に使わないほうがよい」と書かれています（原文: "which should generally not be used in situations where VRCRaycast is enough to meet your needs."。英語の原文の要約）。
-
-[軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview) では、5 ツールとも、レイキャストの数は「**公式に記載なし**{.lbl .lbl-none}」です。
-
-## ツール別の方法
-
-### Modular Avatar（MA） {.tool .tool-ma}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版の docs 全件、CHANGELOG、README）。CHANGELOG には、MA Parameters が VRCRaycast に対応したと書かれています（1.17.0、2026-05-11。原文: "Added support for `VRCRaycast` components and parameters in `MA Parameters`"）。これは対応の記録で、VRCRaycast の数に関する記載はありません。
-
-### TexTransTool（TTT） {.tool .tool-ttt}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版の公式ドキュメント 81 ページ（sitemap の /docs 配下）と CHANGELOG）。TTT の CHANGELOG にある「レイキャスト」は、TTT 自身の処理の話で、VRChat の VRCRaycast とは別のものです（CHANGELOG の記載: 「IslandCulling のレイキャスト処理の高速化 (#172)」）。
-
-### lilAvatarUtils {.tool .tool-lil}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: ja_JP の公式ページ 11 件）。Raycast の語は、確かめた範囲に出ませんでした。
-
-### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、ja/en のドキュメント。公開サイトは、トップページを確かめました）。Raycast の語は、確かめた範囲に出ませんでした。
-
-### Avatar Optimizer（AAO） {.tool .tool-aao}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページで、「raycast」「レイキャスト」「RaycastCount」を検索）。CHANGELOG には VRCRaycast に関する記録が 3 件あります。いずれも対応の追加か不具合の修正で、数を減らす記録ではありません（[AAO の CHANGELOG](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
-
-- 1.9.9（2026-04-18、Added）: VRCSDK 3.10.3 で追加された `VRCRaycast` コンポーネントへの対応を追加しました。子の項目には、`RaycastCount` のパフォーマンスカテゴリへの対応も追加した、とあります。
-- 1.9.10（2026-04-18、Fixed）: VRCSDK 3.10.3 の安定化で `VRCRaycast` のプロパティが 1 つ削除され、AAO でエラーが出ていた不具合の修正です。
-- 1.9.21（2026-10-30、Added）: VRCSDK 3.10.6 の機能への対応の一つとして、VRC Raycast v1.1 への対応が追加された、と書かれています。
-
-AAO が VRCRaycast の数を減らすという記載は、公式のドキュメントにも CHANGELOG にもありません（**公式に記載なし**{.lbl .lbl-none}）。RaycastCount への対応も、数を減らす機能の記載ではありません。
+VRCRaycast のページ（VRChat の公式ドキュメント）には、80 個の上限は FinalIK のコンポーネントと共有されていると書かれています。そして、FinalIK は、VRCRaycast で足りる場面では、一般に使わないほうがよいと書かれています（原文: "which should generally not be used in situations where VRCRaycast is enough to meet your needs."。英語の原文の要約）。
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「レイキャストの数」を確かめます（上限は PC の Poor が 15、Android の Poor が 8）。
-2. 変更の前に、プロジェクトのバックアップを取り、各 VRCRaycast が何を調べているか（何に当てているか）を記録しておきます（公式の勧めではなく、**この記事の助言**{.lbl .lbl-adv}です）。
-3. アバターにある VRCRaycast を確かめます。
-4. 取り除く操作は勧めません。判断できない VRCRaycast は残し、手順 6 で当たり判定の動きを確かめてください（**この記事の助言**{.lbl .lbl-adv}）。
+2. 変更の前に、プロジェクトのバックアップを取り、各 VRCRaycast が何を調べているか（何に当てているか）を記録しておきます（**この記事の助言**{.lbl .lbl-adv}）。
+3. アバターにある VRCRaycast を一覧にし、それぞれが何を調べているかを確かめます。
+4. 使っていないと確かめたものは、無効にするのではなく取り除きます（無効のままでも数に入るため）。判断できないものは残し、手順 2 で記録した動きと比べます（**この記事の助言**{.lbl .lbl-adv}）。
 5. FinalIK を使っているなら、80 個の上限を FinalIK と分け合っている点を確かめます。VRCRaycast で足りる部分は VRCRaycast に寄せられるかを検討します（公式の注記に沿った、**この記事の助言**{.lbl .lbl-adv}です）。
 6. Play モードに入り、当たり判定の動きが変わっていないかを確かめます（**この記事の助言**{.lbl .lbl-adv}）。AAO を使っているときは、ランクを Actual Performance Window で確かめます。
 7. もう一度 SDK の「パフォーマンスの内訳」で、レイキャストの数を確かめます。
@@ -82,12 +41,10 @@ AAO が VRCRaycast の数を減らすという記載は、公式のドキュメ�
 ## 注意・うまくいかないとき
 
 ::: warning
-- **80 個の固定の上限**: 公式は、VRCRaycast のコンポーネントには、全プラットフォームで 1 アバターあたり 80 個の固定の上限があると書いています（原文: "VRCRaycast components have a hard upper limit of 80 components per avatar on all platforms."。訳: 全プラットフォームで 1 アバターあたり 80 個の固定の上限。[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) のランクの表の脚注）。80 個を超えたときの挙動は、公式に書かれていません。
-- **FinalIK と共有**: この上限は FinalIK のコンポーネントと共有されます（上の VRCRaycast のページの記載）。
-- **Android と Quest**: [Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations) には、Raycast の記述がありません（確かめた範囲: この 1 ページ）。
+- **80 個の固定の上限**: 公式は、VRCRaycast のコンポーネントには、全プラットフォームで 1 アバターあたり 80 個の固定の上限があると書いています（原文: "VRCRaycast components have a hard upper limit of 80 components per avatar on all platforms."。訳: 全プラットフォームで 1 アバターあたり 80 個の固定の上限。[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) のランクの表の脚注）。
+- **FinalIK と共有**: この上限は FinalIK のコンポーネントと共有されます（上の「減らし方の考え方」の記載）。
 - **FinalIK と Android・Quest**: 同じ公式の Quest Content Limitations は、FinalIK も "Custom FinalIK components are completely disabled for avatars on Android and Quest."（訳: FinalIK のカスタムのコンポーネントは、Android と Quest のアバターで完全に無効）と書いています。
-- **Player の層**: VRCRaycast のページ（VRChat 公式）は、Player の層（ほかのプレイヤーのコライダー）を含み、ほかの層も 1 つ以上含むレイヤーのマスクを使うと、光線が 1 つではなく 2 本の合成された光線として飛ばされると書いています（原文: "two combined rays are fired instead of one."。訳: 光線は 1 本ではなく、合成された 2 本として飛ばされる）。ほかのプレイヤーに当てるには、バージョン 1.1 以降が必要です（原文: "you must use version 1.1 or later."。訳: バージョン 1.1 以降を使う必要がある）。
-
+- **Player の層**: Player の層（ほかのプレイヤーのコライダー）と、ほかの層を 1 つ以上含むレイヤーのマスクを使うと、光線は 1 本ではなく、合成された 2 本として飛ばされます。ほかのプレイヤーに当てるには、VRCRaycast のバージョン 1.1 以降が必要です。
 :::
 
 ## 関連ページ

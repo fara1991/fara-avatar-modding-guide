@@ -9,7 +9,7 @@ updated: 2026-11-07
 ::: point
 - コンタクトの上限は、PC の Poor が 32、Android の Poor が 16
 - Filtering が "Local Only" に設定された receiver は、数えないと公式の定義に書かれている
-- AAO の機能として Contact の数を減らすことは、公式に記載なし
+- Local Only に設定した receiver は、アバターで最大 256 個まで使える
 :::
 
 コンタクトは、アバターに付けた Contact（触れたときに反応する仕組み）の数を数える項目です。公式の定義は「アバター上の Contact の数。フィルタリングが "Local Only" に設定された receiver は数えない」（英語の原文の訳）です（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) の定義）。上限は、PC の Poor が 32、Android の Poor が 16 です。
@@ -20,28 +20,18 @@ updated: 2026-11-07
 
 上限は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値です。超えると、公式の表では、表示ランクの下限（Minimum Displayed Performance Rank）を下回るアバターについて「All PhysBone, PhysBone Collider, and Contact components removed」（PhysBone・PhysBone コライダー・コンタクトのコンポーネントがすべて取り除かれる）と書かれています。Android では、ハード上限（16）を超えると、「Show Avatar」を選んでも制限対象のコンポーネントがすべて取り除かれます。
 
-::: tip
-この記事で使う言葉は、次のとおりです。
-
-- **公式に記載なし**{.lbl .lbl-none}: 公式の資料（日本語・英語のドキュメントの全ページと CHANGELOG）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
-- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
-
-VRChat の公式ドキュメント（Avatar Performance Ranking System・Contacts）は英語のみで、日本語版のページはありません。この記事の日本語は、英語の原文を訳したものです。原文は、公式サイトのソース（GitHub の creator-docs）で確かめました。ライブの公式サイトの表示と違うときは、ライブの表示が正です。
-
-この記事は、AAO 1.9.21、Modular Avatar（GitHub の main）、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。版が上がると挙動が変わることがあります。
-:::
+VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は原文に訳を添えています。版が上がると挙動が変わることがあります。
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「コンタクトの数」で、今の値と上限を見ます。
-- **Filtering の Local Only**: 公式の定義（ranking のページ）が数えないとしているのは、Local Only に設定された **receiver** だけです。Local Only の receiver は、アバターで最大 256 個まで使えます（後述の注意）。
-- **sender の Filtering**: Contacts のページの VRCContactSender の Filtering の節には、「If enabled, the contact doesn't reduce your avatar's performance rank.」（有効にすると、性能ランクを下げない）と書かれています（[Contacts（VRChat 公式）](https://creators.vrchat.com/common-components/contacts)）。ランクの定義文が数えないとしているのは receiver だけなので、sender の扱いは、この節の記述を根拠にしてください。
+- **Filtering の Local Only**: 公式の定義（ranking のページ）は、Filtering が Local Only に設定された **receiver** を数えないとしています。Local Only の receiver は、アバターで最大 256 個まで使えます（後述の注意）。
+- **数え方**: 公式の定義が数えないとしているのは Local Only の receiver で、sender は、Contacts のページの Filtering の記述（性能ランクを下げない）に従います（[Contacts（VRChat 公式）](https://creators.vrchat.com/common-components/contacts)）。
 - **Play モードのランク**: AAO の公式ドキュメント（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）は、非破壊改変ツールを使う改変では、VRCSDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています。Play モードのランクの確かめ方は、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」を見てください。
 
 ## 減らし方の考え方
 
 - 公式のコンタクトのページには、「When using contacts on an avatar, the amount of contacts you use will affect its performance rank.」（アバターでコンタクトを使うと、使う数が性能ランクに影響する）と書かれています（[Contacts（VRChat 公式）](https://creators.vrchat.com/common-components/contacts)）。
-- 公式は、Local Only を有効にすると性能ランクを下げないと説明しています（[Contacts（VRChat 公式）](https://creators.vrchat.com/common-components/contacts)）。減らす手段として勧めているとは書かれていません。原文は "If enabled, the contact doesn't reduce your avatar's performance rank." です。
 - Advanced Parameters は、公式の [Contacts](https://creators.vrchat.com/common-components/contacts) のページで、必要なものだけ有効にするよう勧められています。原文は「Advanced parameters can be expensive to calculate. Only enable the ones you need.」（計算のコストが高い。必要なものだけ有効にする）です。
 
 手順全体は、[アバターを軽くする](/learn/vrchat/optimization) を見てください。
@@ -51,31 +41,14 @@ VRChat の公式ドキュメント（Avatar Performance Ranking System・Contact
 ### Modular Avatar（MA） {.tool .tool-ma}
 
 - **何をするか**: MA Rename Collision Tags は、同じ GameObject の下にある Contacts のタグを、それに応じて名前を変えます（[Rename VRChat Collision Tags（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/rename-vrchat-collision-tags)）。
-- **どう使うか**: 公式の更新履歴（[CHANGELOG-jp.md](https://github.com/bdunderscore/modular-avatar/blob/main/CHANGELOG-jp.md)）の「Unreleased（未リリースの変更）」には、「`VRC Contact Receiver` の parameter は接頭辞設定の有無にかかわらずリネームされるように変更」と書かれています（[bdunderscore/modular-avatar の #2189](https://github.com/bdunderscore/modular-avatar/pull/2189)）。この変更は、正式版 1.18.7 の更新履歴（[CHANGELOG-jp.md](https://github.com/bdunderscore/modular-avatar/blob/1.18.7/CHANGELOG-jp.md)）には載っていません。[Merge Armature](https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature) は、PhysBone と Contact の Target 欄を、統合先のボーンに書き換えます。
+- **どう使うか**: 公式の更新履歴（[CHANGELOG-jp.md](https://github.com/bdunderscore/modular-avatar/blob/main/CHANGELOG-jp.md)）の「Unreleased（未リリースの変更）」には、「`VRC Contact Receiver` の parameter は接頭辞設定の有無にかかわらずリネームされるように変更」と書かれています（[bdunderscore/modular-avatar の #2189](https://github.com/bdunderscore/modular-avatar/pull/2189)）。この変更は、まだ正式版には入っていない変更です。
 - **注意**: `MA Rename Collision Tags` を Contacts の `Root Transform` の親 GameObject に置いても、その Contacts のタグは変更されないと、公式に書かれています。
-- コンタクトの数を減らす、または数えることについては、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Modular Avatar の日本語版のリファレンス一式と、更新履歴の日本語版）。
-
-### TexTransTool（TTT） {.tool .tool-ttt}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: [TexTransTool の日本語版のドキュメント](https://ttt.rs64.net/docs/) の 81 ページで、Contact・コンタクト・PhysBone・bone・フィジックスの語を検索し、ヒットなし）。
-
-### lilAvatarUtils {.tool .tool-lil}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: PhysBonesGUI・PhysBoneCollidersGUI の本文と、AvatarUtils・UtilsGUI のページ。Contact・コンタクトの語はなく、コンタクトの数を表示する項目はありません）。
-
-### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: [README](https://github.com/RamType0/Meshia.MeshSimplification) と、日本語版のドキュメント（はじめに・インストール・VRChat 向けのページ）。Contact・コンタクトの語で検索し、ヒットなし）。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-- **何をするか**: Trace And Optimize の「使われていないObjectを自動的に削除する」（英語版の名前は Remove Unused Objects）は、CHANGELOG の 1.7.0 で、「Remove Unused Objects now removes PhysBones and Contact Receivers with parameters defined but not used by Animator Controllers」と変更されました。Animator Controller で使われていないパラメーターが定義されている Contact Receiver は、削除されます（[AAO の CHANGELOG](https://raw.githubusercontent.com/anatawa12/AvatarOptimizer/95c231830cefb62dde91e134642c70942f92ed2a/CHANGELOG.md)）。
+- **何をするか**: Trace And Optimize の「使われていないObjectを自動的に削除する」（英語版の名前は Remove Unused Objects）は、CHANGELOG の 1.7.0 で、「Remove Unused Objects now removes PhysBones and Contact Receivers with parameters defined but not used by Animator Controllers」と変更されました。Animator Controller で使われていないパラメーターが定義されている Contact Receiver は、削除されます（[AAO の CHANGELOG](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
 - **どう使うか**: Trace And Optimize の「使われていないObjectを自動的に削除する」を選ぶと、この自動の処理が行われます（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。
-- **注意**:
-  - AAO の機能として Contact の数を減らすことは、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語・英語の公式ドキュメントの全ページと CHANGELOG。Trace And Optimize の日本語のページには、Contact の語がありません）。
-  - 上の CHANGELOG の 1.7.0 の記録は、条件つきで Contact Receiver を削除するものです。条件に当たらない Contact は、この機能の対象になりません。
-  - CHANGELOG の 1.9.19 の「Fixed」の節には、「Contacts for bHaptics are removed」（PR 1791）とあります（PR の題名は「fix: Contacts for bHaptics are removed」。修正の記録で、コンタクトを減らす機能ではありません）。
-  - CHANGELOG の 1.9.21 にある「Material Contacts Support」は、VRCSDK 3.10.6 の機能への対応です。コンタクトを減らす機能ではありません。
+- **注意**: 上の 1.7.0 の記録は、条件つきで Contact Receiver を削除するものです。
 
 ## 手順
 
