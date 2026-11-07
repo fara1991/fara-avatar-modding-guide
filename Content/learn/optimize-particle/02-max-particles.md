@@ -19,16 +19,16 @@ updated: 2026-11-07
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
+- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
 
-この記事は、AAO 1.9.21（changelog の最新版）、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、lilAvatarUtils・TexTransTool・Meshia Mesh Simplification（版番号は**未確認**{.lbl .lbl-unk}。取得時点の公開サイトまたは GitHub の main）の公式の資料を、2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。公開サイトの表示は、この記事では確かめていません。
+この記事は、AAO・Modular Avatar（GitHub の main）・TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を、2026 年 11 月 6 日に確かめて書きました。版は、GitHub の最新リリースで 2026 年 11 月 7 日に確かめました。AAO は 1.9.21（changelog の最新版）、TexTransTool は v1.0.2（2026-06-26）、lilAvatarUtils は 2.1.2（2025-08-11）、Meshia Mesh Simplification は 3.3.1（2026-11-04）です。TexTransTool と lilAvatarUtils は、サイトに版の表示がありません。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。
 :::
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「最大パーティクルの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、622,022（上限 2,500）と表示されていました。
-- **合計の出し方**: 定義どおり、アバターの各 Particle System の maxParticles を足し合わせると、どれが大きいかを見つけられます（**この記事の助言**{.lbl .lbl-adv}）。足した値が SDK の表示と一致するかは、この記事では**未確認**{.lbl .lbl-unk}です。
+- **合計の出し方**: 定義どおり、アバターの各 Particle System の maxParticles を足し合わせると、どれが大きいかを見つけられます（**この記事の助言**{.lbl .lbl-adv}）。
 - **行名の Active について**: 行名には Active とありますが、定義は「アバターのすべての Particle System」を対象にしていて、有効・無効の区別は書かれていません。また、公式は、現在無効化されているものを含めて、すべての GameObject とコンポーネントがパフォーマンスランクに数えられると書いています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 - **AAO を使うときのランク**: AAO の公式ドキュメントは、非破壊改変ツールを使う改変では、SDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています。Play モードに入ったときのランクは、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」の方法で確かめます。
 
@@ -58,7 +58,7 @@ VRChat 公式の勧めは、次のとおりです（[Avatar Optimization Tips（
 
 ### TexTransTool（TTT） {.tool .tool-ttt}
 
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: sitemap に載る公式サイトのドキュメント 81 ページ。目次のページは取得できなかったため、この 81 ページで確かめました）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: ttt.rs64.net の /docs/ 配下 81 ページ）。
 
 ### lilAvatarUtils {.tool .tool-lil}
 
@@ -66,13 +66,13 @@ VRChat 公式の勧めは、次のとおりです（[Avatar Optimization Tips（
 
 ### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にある日本語・英語のドキュメント 11 件（目次を含めると 19 件）。公開サイト（ramtype0.github.io）は**未確認**{.lbl .lbl-unk}）。MMS は、ポリゴン数を減らすツールとして説明されています。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にある日本語・英語のドキュメント 11 件（目次を含めると 19 件））。MMS は、ポリゴン数を減らすツールとして説明されています。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
 **公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページ 72 件と CHANGELOG）。
 
-CHANGELOG のパーティクル関連の項目は 7 件あり、そのうち 6 件は、パーティクルが壊れることの修正です（1.6.0 の "Remove Unused Object may break ParticleSystem" など）。残る 1 件（1.8.10）は、パーティクルシステムが正しく削除されない不具合の修正で、削除の処理がパーティクルシステムに及ぶことを示します。どちらも、パーティクルを減らす効果の記載ではありません。詳しくは [パーティクルシステムの数を減らす](/learn/optimize-particle/particle-systems) の AAO の項を見てください。
+CHANGELOG のパーティクル関連の主項目は 7 件あり、そのうち 6 件は、パーティクルが壊れることの修正です（1.6.0 の "Remove Unused Object may break ParticleSystem" など）。残る 1 件（1.8.10）は、パーティクルシステムが正しく削除されない不具合の修正で、削除の処理がパーティクルシステムに及ぶことを示します。どちらも、パーティクルを減らす効果の記載ではありません。詳しくは [パーティクルシステムの数を減らす](/learn/optimize-particle/particle-systems) の AAO の項を見てください。
 
 ## 手順
 

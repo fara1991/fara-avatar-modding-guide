@@ -18,8 +18,8 @@ updated: 2026-11-07
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版・英語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
+- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
 
 この記事は、AAO 1.9.21 と、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。版が上がると挙動が変わることがあります。
 :::
@@ -47,7 +47,7 @@ updated: 2026-11-07
 
 ### TexTransTool（TTT） {.tool .tool-ttt}
 
-- **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、AtlasTexture のマテリアルの結合では、マテリアルスロットは結合できないと明記しています（[公式: Quest 対応のアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
+- **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、AtlasTexture のマテリアルの結合では、マテリアルスロットは結合できないと明記しています（[公式: Quest対応のためのアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
 - **どう使うか**: そのチュートリアルの末尾には、マテリアルスロットも減らすには、AAO の Trace And Optimize や Merge Skinned Mesh との併用を強く推奨する、と書かれています。
 - **公式に記載なし**{.lbl .lbl-none}: スキンドメッシュの数を減らす機能は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Reference のコンポーネント一覧、AtlasTexture と TextureFineTuning のページ、チュートリアル、FAQ）。
 
@@ -115,7 +115,7 @@ updated: 2026-11-07
 - **マテリアルスロットのアニメーションが競合する**: FAQ の方法は、「マテリアルの統合」の「統合する」をオフにすることです。
 - **PhysBone・Contact が効かない（OSC ギミック）**: 注意と対応（FAQ の Asset Description の方法）は、[ボーンの数を減らす](/learn/optimize-mesh/bones) の「注意・うまくいかないとき」にまとめています。
 - **自動で統合されないメッシュ**: **公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Trace And Optimize と Merge Skinned Mesh の日本語版のページ。自動で統合されない条件の一覧は書かれていません）。統合されなかったメッシュは、手動の AAO Merge Skinned Mesh を使います。
-- **ほかのツールとの併用**: MA と AAO を併用するときの順序や衝突は、**未確認**{.lbl .lbl-unk}です（[軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。TTT の AtlasTexture と AAO を併用するときは、TTT の公式の推奨があります。
+- **ほかのツールとの併用**: TTT の AtlasTexture と AAO を併用するときは、TTT の公式チュートリアルが、AAO の Trace And Optimize や Merge Skinned Mesh との併用を強く推奨しています（[Quest対応のためのアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
 
 ## 関連ページ
 

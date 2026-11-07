@@ -19,10 +19,10 @@ updated: 2026-11-07
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
+- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
 
-この記事は、AAO 1.9.21（changelog の最新版）、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、lilAvatarUtils・TexTransTool・Meshia Mesh Simplification（版番号は**未確認**{.lbl .lbl-unk}。取得時点の公開サイトまたは GitHub の main）の公式の資料を、2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。公開サイトの表示は、この記事では確かめていません。
+この記事は、AAO・Modular Avatar（GitHub の main）・TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を、2026 年 11 月 6 日に確かめて書きました。版は、GitHub の最新リリースで 2026 年 11 月 7 日に確かめました。AAO は 1.9.21（changelog の最新版）、TexTransTool は v1.0.2（2026-06-26）、lilAvatarUtils は 2.1.2（2025-08-11）、Meshia Mesh Simplification は 3.3.1（2026-11-04）です。TexTransTool と lilAvatarUtils は、サイトに版の表示がありません。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。
 :::
 
 ## 減らす前に確かめること
@@ -52,17 +52,15 @@ VRChat 公式の勧めは、次のとおりです（[Avatar Optimization Tips（
 
 ### TexTransTool（TTT） {.tool .tool-ttt}
 
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: sitemap に載る公式サイトのドキュメント 81 ページ。目次のページは取得できなかったため、この 81 ページで確かめました）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: ttt.rs64.net の /docs/ 配下 81 ページ）。
 
 ### lilAvatarUtils {.tool .tool-lil}
 
-**未確認**{.lbl .lbl-unk}（確かめた範囲: 日本語版の公式ドキュメント 9 ページと、英語版のレンダラーのタブ。「パーティクル」の語は見つかりませんでした）。
-
-レンダラーのタブは「アバターに含まれる全てのレンダラーの一覧」と書かれていますが、パーティクルシステムの Renderer（ParticleSystemRenderer）が一覧に含まれるかは書かれていません。そのため、このツールでパーティクルシステムの数を確かめられるかは、**未確認**{.lbl .lbl-unk}です。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版の公式ドキュメント 9 ページと、英語版のレンダラーのタブで、「パーティクル」の語を検索。見つかりませんでした）。
 
 ### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にある日本語・英語のドキュメント 11 件（目次を含めると 19 件）。公開サイト（ramtype0.github.io）は**未確認**{.lbl .lbl-unk}）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にある日本語・英語のドキュメント 11 件（目次を含めると 19 件））。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
@@ -71,7 +69,7 @@ VRChat 公式の勧めは、次のとおりです（[Avatar Optimization Tips（
 「使われていないObjectを自動的に削除する」の原文は「アニメーションなどを走査して、使われていないObject(GameObjectやコンポーネント、テクスチャなど)を自動的に削除します。」です。この原文では、パーティクルシステムは名指しされていません。CHANGELOG からは、削除の処理がパーティクルシステムに及ぶことがあると分かりますが、どの機能がどこまで削除するかは、**公式に記載なし**{.lbl .lbl-none}です。
 
 ::: warning
-AAO の CHANGELOG（1.9.21 時点）には、パーティクル関連の項目が 7 件あります。そのうち 6 件（1.9.19・1.8.8・1.7.13・1.7.5・1.7.1・1.6.0）は、パーティクルが壊れることの修正です。残る 1 件（1.8.10）は、パーティクルシステムが正しく削除されない不具合の修正で、削除の処理がパーティクルシステムに及ぶことを示します。どちらも、パーティクルを減らす効果の記載ではありません。
+AAO の CHANGELOG（1.9.21 時点）には、パーティクル関連の主項目（箇条の先頭の項目）が 7 件あります。そのうち 6 件（1.9.19・1.8.8・1.7.13・1.7.5・1.7.1・1.6.0）は、パーティクルが壊れることの修正です。残る 1 件（1.8.10）は、パーティクルシステムが正しく削除されない不具合の修正で、削除の処理がパーティクルシステムに及ぶことを示します。どちらも、パーティクルを減らす効果の記載ではありません。
 
 - 1.8.10（2025 年 5 月 4 日）: "Fixed Particle Systems are not correctly removed"（訳: パーティクルシステムが正しく削除されない、の修正）
 - 1.6.0（2023 年 11 月 27 日）: "Remove Unused Object may break ParticleSystem"（訳: 未使用の Object の削除が ParticleSystem を壊すことがある、の修正）
@@ -91,7 +89,7 @@ AAO の CHANGELOG（1.9.21 時点）には、パーティクル関連の項目�
 
 ::: warning
 - **無効にしただけでは数は減りません。** 使わないものは削除してください（上の手順 4）。
-- **Android の上限は 2 です。** 公式の Android の制限のページ（Quest Content Limitations）は、"Particles are limited heavily on avatars for Android and Quest, with settings mirroring the Avatar Particle System Limits on PC." と書いています（訳: Android と Quest のアバターでは、パーティクルは大きく制限されています。PC の Avatar Particle System Limits に合わせた設定です）。ただし、パフォーマンスランクの表では、モバイルの値（2）は PC の値（16）と違います。そのため、「Android の上限が PC と同じ」とは読めません。PC の Avatar Particle System Limits のページは、この記事では確かめていません（**未確認**{.lbl .lbl-unk}）。
+- **Android の上限は 2 です。** 公式の Android の制限のページ（Quest Content Limitations）は、"Particles are limited heavily on avatars for Android and Quest, with settings mirroring the Avatar Particle System Limits on PC." と書いています（訳: Android と Quest のアバターでは、パーティクルは大きく制限されています。PC の Avatar Particle System Limits に合わせた設定です）。ただし、パフォーマンスランクの表では、モバイルの値（2）は PC の値（16）と違います。そのため、「Android の上限が PC と同じ」とは読めません。
 - **表示制限では、パーティクルシステムの全部が取り除かれます。** 表示の下限に届かないときは、All Particle Systems removed と書かれていて、取り除かれるのは一部ではなく、パーティクルシステムの全部です（英語の原文の要約）。
 - **マテリアルスロットの数の内訳。** 公式の補足では、パーティクルシステムは 1 枠、トレイル付きのパーティクルシステムは 2 枠のマテリアルスロットを使うと書かれています。数を減らすときは、マテリアルスロットの数も SDK の「パフォーマンスの内訳」で確かめてください（**この記事の助言**{.lbl .lbl-adv}。マテリアルスロットの減らし方は [マテリアルスロットを減らす方法](/learn/optimize-mesh/material-slots) を見てください）。
 - **Mesh Read/Write に注意してください。** 公式は、パーティクルシステムのメッシュを含め、アバターのいずれかの mesh で Mesh Read/Write を無効にすると、パフォーマンスランクが即座に Very Poor になると書いています（英語の原文の要約。原文: "including particle systems"）。

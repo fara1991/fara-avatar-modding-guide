@@ -2796,9 +2796,9 @@ html.fbc-sidebar-hidden .av-static .fbc-sidebar:not(:hover) .av-side-group + .av
 /* ページの端のゴム伸び・「引っ張って更新」には、overscroll-behavior を指定しない。iOS の Chrome で、引っ張って更新が無効になるため。
    ゴム伸びで見える領域は、html の単色の背景色でサイトの色にしている */
 
-/* ---------- 記事のラベル・ツール別の見出し（「公式に記載なし」「未確認」などを色で見分ける） ---------- */
+/* ---------- 記事のラベル・ツール別の見出し（「公式に記載なし」「この記事の助言」などを色で見分ける） ---------- */
 
-/* 本文中の短いラベル。Markdown では **未確認**{.lbl .lbl-unk} のように書く（strong に class が付く） */
+/* 本文中の短いラベル。Markdown では **△**{.lbl .lbl-unk} のように書く（strong に class が付く） */
 .article-body .lbl {
     display: inline-block;
     padding: 0.05em 0.55em;

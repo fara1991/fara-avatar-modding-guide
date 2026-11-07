@@ -10,7 +10,6 @@ updated: 2026-11-07
 - 衝突は数ではなく True か False で、1 つでも Particle Collision が有効なら True
 - 上限の表記は True / True（PC の Medium・Android の Poor は表からの読み取り）
 - 公式の勧めは、大量の粒子を性能を保って使う方法の一つとして、衝突を使わないこと
-- 衝突をオフにしたときの見た目への影響は、公式の資料に記載がなく未確認
 :::
 
 パーティクルの衝突は、パーティクルシステムの粒子が、ほかの物とぶつかるかどうかを計算する設定（Particle Collision）です。パフォーマンスランクでは数字ではなく、True（あり）か False（なし）で数えます。VRChat 公式の定義は "If any Particle Systems on the avatar have Particle Collision enabled, this will be True."（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）で、訳は「アバターのパーティクルシステムのどれか 1 つでも Particle Collision が有効なら、True になる」です。
@@ -23,17 +22,15 @@ updated: 2026-11-07
 この記事で使う言葉は、次のとおりです。
 
 - **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
 
-この記事は、AAO 1.9.21 と Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）を含む 5 つのツールの公式の資料を、2026 年 11 月 6 日に確かめて書きました。ほかのツールは版番号を**未確認**{.lbl .lbl-unk}のまま、取得日の時点の公式の資料を確かめました。MMS の公開ドキュメント（ramtype0.github.io）は、**未確認**{.lbl .lbl-unk}です。
-
-VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。公開サイトの表示は、この記事では確かめていません。VRChat の公式は英語の原文だけなので、ここでの引用は原文に訳を添えています。
+この記事は、AAO・Modular Avatar（GitHub の main）・TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を、2026 年 11 月 6 日に確かめて書きました。版は、GitHub の最新リリースで 2026 年 11 月 7 日に確かめました。AAO は 1.9.21（changelog の最新版）、TexTransTool は v1.0.2（2026-06-26）、lilAvatarUtils は 2.1.2（2025-08-11）、Meshia Mesh Simplification は 3.3.1（2026-11-04）です。TexTransTool と lilAvatarUtils は、サイトに版の表示がありません。
+VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。VRChat の公式は英語の原文だけなので、ここでの引用は原文に訳を添えています。
 :::
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「パーティクルの衝突」を見ます。この項目は「FALSE/あり」と表示されます。この記事の例の画面では、FALSE（緑）でした。読み方は [パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の「FALSE/あり」の節を見てください。
-- **衝突を使っているパーティクルシステム**: どのパーティクルシステムで衝突が有効になっているかを画面で探す方法は、この記事では**未確認**{.lbl .lbl-unk}です。
 - **AAO を使うとき**: 公式の基本的な使い方のページは、非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならないと書いています。Play モードに入ったときのランクは、Actual Performance Window で確かめられると案内されています（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 
 ## 減らし方の考え方
@@ -62,7 +59,7 @@ VRChat 公式の勧めは、Avatar Optimization Tips（[公式](https://creators
 
 ### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README と、`.docfx` にあるドキュメント 11 件（目次を含めると 19 件）で、パーティクルの語を検索。公開サイト（ramtype0.github.io）は**未確認**{.lbl .lbl-unk}）。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README と、`.docfx` にあるドキュメント 11 件（目次を含めると 19 件）で、パーティクルの語を検索）。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
@@ -71,17 +68,16 @@ VRChat 公式の勧めは、Avatar Optimization Tips（[公式](https://creators
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「パーティクルの衝突」が FALSE か「あり」かを確かめます。
-2. 衝突（Particle Collision）が有効なパーティクルシステムを探して、衝突が要るかを確かめます（探す方法は、下の注意を見てください）。
+2. 衝突（Particle Collision）が有効なパーティクルシステムを探して、衝突が要るかを確かめます。
 3. 変更の前に、プロジェクトのバックアップを取り、今の粒子の見た目と動きを記録します（公式の勧めではなく、**この記事の助言**{.lbl .lbl-adv}です）。
-4. 衝突が要らないパーティクルシステムの、衝突（Particle Collision）の設定をオフにします（設定の場所は、下の注意を見てください）。
+4. 衝突が要らないパーティクルシステムの、衝突（Particle Collision）の設定をオフにします。
 5. 変更のあと、粒子の見た目と動きを、手順 3 の記録と比べて確かめます。
 6. もう一度 SDK の「パフォーマンスの内訳」を開き、「パーティクルの衝突」が FALSE になったかを確かめます。
 
 ## 注意・うまくいかないとき
 
 ::: warning
-- **探す方法と設定の場所は未確認です。** 衝突が有効なパーティクルシステムを探す画面と、衝突の設定の場所は、この記事では確かめていません。
-- 衝突をオフにすると、粒子の動きや当たり方が変わります。衝突をオフにしたときの見た目への影響は、公式の資料に記載がなく、この記事では**未確認**{.lbl .lbl-unk}です。
+- 衝突をオフにすると、粒子の動きや当たり方が変わります。
 - 「パーティクルの衝突」は、PhysBone のコライダー（「PHYSBONE コライダーの数」）とは別の項目です。
 - 「**公式に記載なし**{.lbl .lbl-none}」の各ツールは、衝突を自動で減らす機能が書かれていないという意味です。ツールに任せず、必要かどうかを自分で判断してください。
 - 公式は、Avatar Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があると書いています（原文: "Any recommended numbers or limits in this document are subject to change at any time."）。

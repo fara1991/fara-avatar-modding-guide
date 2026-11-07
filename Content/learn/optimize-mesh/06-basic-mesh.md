@@ -9,8 +9,8 @@ updated: 2026-11-07
 ::: point
 - 基本メッシュの上限は、PC が 24、Android が 2
 - 描画の呼び出し（ドローコール）は、メッシュごとに 1 回ずつ必要になるのが基本（Unity マニュアルの説明）
-- AAO Merge Skinned Mesh の「メッシュレンダラー」に MeshRenderer を入れて統合できる（AAO 1.9.21 で確かめた）
-- Trace And Optimize が MeshRenderer を自動で統合するかは未確認
+- AAO Merge Skinned Mesh の「メッシュレンダラー」に MeshRenderer を入れて統合できる（AAO 1.9.21 の公式の資料）
+- Trace And Optimize の自動の統合について、公式の説明はスキンメッシュレンダラーだけを対象としている
 :::
 
 基本メッシュ（MeshRenderer。ボーンで動かないメッシュのことです）の数は、パフォーマンスランクの「基本メッシュの数」で数えられます。上限は PC が 24、Android が 2 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。上限を超えると次のランクになります。描画の呼び出し（ドローコール）は、メッシュごとに 1 回ずつ必要になるのが基本で、減らすと描画の時間が短くなると、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) に、Unity マニュアルの説明として書かれています。
@@ -18,8 +18,7 @@ updated: 2026-11-07
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版・英語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
 
 この記事は、AAO 1.9.21 と、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。版が上がると挙動が変わることがあります。
 :::
@@ -28,7 +27,7 @@ updated: 2026-11-07
 
 - 数は、VRChat SDK の Control Panel の「パフォーマンスの内訳」で確かめます。「基本メッシュの数」の左の値が、このアバターの数です。数えるのは、ボーンで動かない Mesh Renderer のコンポーネントの数です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。
 - AAO を使ったあとは、Control Panel のランクはあてになりません。Play モードに入ったときのランクや、Manual bake avatar の複製で確かめてください（[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」）。
-- lilAvatarUtils のレンダラーのタブでは、メッシュごとのポリゴン数・マテリアルスロット数などを一覧で確かめられます（確認のみ）。一覧に MeshRenderer がどう並ぶかは、この記事では**未確認**{.lbl .lbl-unk}です。
+- lilAvatarUtils のレンダラーのタブでは、メッシュごとのポリゴン数・マテリアルスロット数などを一覧で確かめられます（確認のみ）。
 
 ## 減らし方の考え方
 
@@ -47,7 +46,7 @@ updated: 2026-11-07
 
 ### TexTransTool（TTT） {.tool .tool-ttt}
 
-- **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、AtlasTexture のマテリアルの結合では、マテリアルスロットは結合できないと明記しています（[公式: Quest 対応のアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
+- **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、AtlasTexture のマテリアルの結合では、マテリアルスロットは結合できないと明記しています（[公式: Quest対応のためのアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
 - **公式に記載なし**{.lbl .lbl-none}: 基本メッシュの数を減らす機能は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Reference のコンポーネント一覧、チュートリアル、FAQ。一覧に、メッシュを統合するコンポーネントはありません）。
 
 ### lilAvatarUtils {.tool .tool-lil}
@@ -64,13 +63,12 @@ updated: 2026-11-07
 
 - **何をするか**:
   - **AAO Merge Skinned Mesh の「メッシュレンダラー（Basic Renderers）」**: 統合対象の MeshRenderer を入れる一覧です。公式は、静的メッシュの移動・回転・変形をボーンで再現すると書いています。
-  - **Trace And Optimize の自動の統合（スキンメッシュレンダラーを統合する）**: 公式の説明は、スキンメッシュレンダラーを対象としています。Trace And Optimize のページには、MeshRenderer を統合することについての記載はありません（**公式に記載なし**{.lbl .lbl-none}）。実際に MeshRenderer を自動で統合するかは、この記事では**未確認**{.lbl .lbl-unk}です。
+  - **Trace And Optimize の自動の統合（スキンメッシュレンダラーを統合する）**: 公式の説明は、スキンメッシュレンダラーを対象としています。Trace And Optimize のページには、MeshRenderer を統合することについての記載はありません（**公式に記載なし**{.lbl .lbl-none}）。
 - **どう使うか**: 付け方と設定は、[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の AAO の節と同じです。統合する MeshRenderer は、「メッシュレンダラー（Basic Renderers）」の一覧に入れます。
 - **注意**:
-  - 「空のレンダラーオブジェクトを削除する」の既定の記載は、SkinnedMeshRenderer が付いている GameObject についてのものです。MeshRenderer の GameObject の扱いは、この記事では**未確認**{.lbl .lbl-unk}です。
+  - 「空のレンダラーオブジェクトを削除する」の既定の記載は、SkinnedMeshRenderer が付いている GameObject についてのものです。MeshRenderer だけの GameObject については、**公式に記載なし**{.lbl .lbl-none}です（確かめた範囲: AAO Merge Skinned Mesh の日本語版・英語版のページと changelog。説明の対象は SkinnedMeshRenderer だけで、MeshRenderer についての記載はありません）。
   - 別々のメッシュのマテリアルもまとめたいときは、AAO Merge Material を同じ GameObject に追加します。公式のコンポーネントの一覧では、1.9.0 以降、Merge Material は MeshRenderer にも対応すると書かれています（[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の「Merge Material との関係」）。
-  - changelog の 1.7.5 に、MeshRenderer を形（Shape）に使うパーティクルシステムが壊れる問題の修正が記録されています。詳細は、この記事では**未確認**{.lbl .lbl-unk}です（[changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
-  - MeshRenderer を統合対象にできる最初の版は、資料では**未確認**{.lbl .lbl-unk}です。この記事は AAO 1.9.21 で確かめました。
+  - changelog の 1.7.5 に、MeshRenderer を形（Shape）に使うパーティクルシステムが壊れる問題の修正が記録されています（[changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
 
 ## 手順
 
@@ -92,7 +90,6 @@ updated: 2026-11-07
 - **統合後に明るさが違う**: FAQ によると、多くの場合は、統合先の SkinnedMeshRenderer の Anchor Override を指定し忘れていることが原因です。
 - **マテリアルのアニメーションが競合する**: 公式の書き方は食い違っています。詳しくは、[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の「注意・うまくいかないとき」を見てください。
 - **Trace And Optimize が自動で統合しないメッシュ**: **公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Trace And Optimize と Merge Skinned Mesh の日本語版のページ。自動で統合されない条件の一覧は書かれていません）。公式の案内は、自動では統合しないメッシュがあるときは、手動の AAO Merge Skinned Mesh を使う、というものです。
-- **ほかのツールとの併用**: MA と AAO を併用するときの順序や衝突は、**未確認**{.lbl .lbl-unk}です（[軽量化に使う 5 つのツールと早見表](/learn/optimize-basics/tools-overview)）。
 
 ## 関連ページ
 

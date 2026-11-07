@@ -23,12 +23,12 @@ updated: 2026-11-07
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**{.lbl .lbl-none}: 公式の資料（日本語・英語のドキュメントの全ページと CHANGELOG）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: 公式の資料（日本語・英語のドキュメントの全ページと CHANGELOG）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
+- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
 
 VRChat の公式ドキュメント（Avatar Performance Ranking System・Contacts）は英語のみで、日本語版のページはありません。この記事の日本語は、英語の原文を訳したものです。原文は、公式サイトのソース（GitHub の creator-docs）で確かめました。ライブの公式サイトの表示と違うときは、ライブの表示が正です。
 
-この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。版が上がると挙動が変わることがあります。
+この記事は、AAO 1.9.21、Modular Avatar（GitHub の main）、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。版が上がると挙動が変わることがあります。
 :::
 
 ## 減らす前に確かめること
@@ -50,8 +50,8 @@ VRChat の公式ドキュメント（Avatar Performance Ranking System・Contact
 
 ### Modular Avatar（MA） {.tool .tool-ma}
 
-- **何をするか**: MA Rename Collision Tags は、同じ GameObject の下にある Contacts のタグを、それに応じて名前を変えます（[Modular Avatar 公式（日本語）](https://modular-avatar.nadena.dev/ja)）。
-- **どう使うか**: 公式の更新履歴（[CHANGELOG-jp.md](https://github.com/bdunderscore/modular-avatar/blob/main/CHANGELOG-jp.md)）の「Unreleased（未リリースの変更）」には、「`VRC Contact Receiver` の parameter は接頭辞設定の有無にかかわらずリネームされるように変更」と書かれています（[bdunderscore/modular-avatar の #2189](https://github.com/bdunderscore/modular-avatar/pull/2189)）。この変更が正式版 1.18.7 に入っているかは、**未確認**{.lbl .lbl-unk}です。[Merge Armature](https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature) は、PhysBone と Contact の Target 欄を、統合先のボーンに書き換えます。
+- **何をするか**: MA Rename Collision Tags は、同じ GameObject の下にある Contacts のタグを、それに応じて名前を変えます（[Rename VRChat Collision Tags（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/rename-vrchat-collision-tags)）。
+- **どう使うか**: 公式の更新履歴（[CHANGELOG-jp.md](https://github.com/bdunderscore/modular-avatar/blob/main/CHANGELOG-jp.md)）の「Unreleased（未リリースの変更）」には、「`VRC Contact Receiver` の parameter は接頭辞設定の有無にかかわらずリネームされるように変更」と書かれています（[bdunderscore/modular-avatar の #2189](https://github.com/bdunderscore/modular-avatar/pull/2189)）。この変更は、正式版 1.18.7 の更新履歴（[CHANGELOG-jp.md](https://github.com/bdunderscore/modular-avatar/blob/1.18.7/CHANGELOG-jp.md)）には載っていません。[Merge Armature](https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature) は、PhysBone と Contact の Target 欄を、統合先のボーンに書き換えます。
 - **注意**: `MA Rename Collision Tags` を Contacts の `Root Transform` の親 GameObject に置いても、その Contacts のタグは変更されないと、公式に書かれています。
 - コンタクトの数を減らす、または数えることについては、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Modular Avatar の日本語版のリファレンス一式と、更新履歴の日本語版）。
 
@@ -74,7 +74,7 @@ VRChat の公式ドキュメント（Avatar Performance Ranking System・Contact
 - **注意**:
   - AAO の機能として Contact の数を減らすことは、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語・英語の公式ドキュメントの全ページと CHANGELOG。Trace And Optimize の日本語のページには、Contact の語がありません）。
   - 上の CHANGELOG の 1.7.0 の記録は、条件つきで Contact Receiver を削除するものです。条件に当たらない Contact は、この機能の対象になりません。
-  - CHANGELOG の 1.9.19 には「Contacts for bHaptics are removed」（PR 1791）とあります。1 行だけでは、削除が不具合だったのか、修正だったのかは確定しないため、**未確認**{.lbl .lbl-unk}です。
+  - CHANGELOG の 1.9.19 の「Fixed」の節には、「Contacts for bHaptics are removed」（PR 1791）とあります（PR の題名は「fix: Contacts for bHaptics are removed」。修正の記録で、コンタクトを減らす機能ではありません）。
   - CHANGELOG の 1.9.21 にある「Material Contacts Support」は、VRCSDK 3.10.6 の機能への対応です。コンタクトを減らす機能ではありません。
 
 ## 手順
@@ -93,7 +93,7 @@ VRChat の公式ドキュメント（Avatar Performance Ranking System・Contact
 - **Local Only の receiver は 256 個まで**: 公式の [Contacts](https://creators.vrchat.com/common-components/contacts) のページには、Local Only を有効にした receiver は、アバターで最大 256 個まで使えると書かれています。超えると、アバターをアップロードできません（原文: 「If you exceed this limit, you cannot upload the avatar.」）。
 - **Android の上限**: モバイルのハード上限は、コンタクトが 16 です。公式の [Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) には、ハード上限を超えると、「Show Avatar」を選んでも制限対象のコンポーネントがすべて取り除かれると書かれています。Android の表示の既定値は Medium で、Poor のアバターは表示されません（同じページの「Mobile Default Performance Rank Blocking」の節）。
 - **タグは 16 個まで**: 公式の [Contacts](https://creators.vrchat.com/common-components/contacts) のページには、Contact は最大 16 個のタグを持てると書かれています（「A Contact can have up to 16 tags.」）。
-- **標準コライダーは性能ランクに影響しない**: Contacts のページの Standard Colliders の節には、「These colliders do not affect the performance rating.」（標準コライダーは性能ランクに影響しない）と書かれています。ただし、この節がコンタクトの数にどう関わるかは、この記事では**未確認**{.lbl .lbl-unk}です。
+- **標準コライダーは性能ランクに影響しない**: Contacts のページの Standard Colliders の節には、「These colliders do not affect the performance rating.」（標準コライダーは性能ランクに影響しない）と書かれています。
 - **無効のものも数えられます**: 公式の [Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) には、無効化されているものも性能ランクに数えられると書かれています。
 :::
 

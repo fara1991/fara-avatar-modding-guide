@@ -19,12 +19,12 @@ updated: 2026-11-07
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
+- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
 
 「依存のつながり」は、公式の dependencies のことです。この記事では、「あるコンストレイントが、別のコンストレイントの結果に依存しているつながり」と言い換えています。
 
-版は、AAO 1.9.21、Modular Avatar（GitHub の main）、TexTransTool v1.0.2、lilAvatarUtils 2.1.2、Meshia Mesh Simplification（main）で、2026 年 11 月 6 日に確かめました。VRChat の公式ドキュメントは英語の原文だけなので、引用は英語の原文に日本語の訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。公開サイトの表示は、この記事では確かめていません。
+版は、AAO 1.9.21、Modular Avatar（GitHub の main）、TexTransTool v1.0.2、lilAvatarUtils 2.1.2、Meshia Mesh Simplification（main）で、2026 年 11 月 6 日に確かめました。VRChat の公式ドキュメントは英語の原文だけなので、引用は英語の原文に日本語の訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。
 :::
 
 ## 減らす前に確かめること
@@ -77,10 +77,10 @@ CHANGELOG には、ネストしたコンストレイントが Trace And Optimize
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「コンストレイントの深さ」を確かめます（上限は PC の Poor が 100、Android の Poor が 50）。
-2. 変換の前に、プロジェクトのバックアップを取り、確かめたい動き（対象のアニメーションとコンストレイントの追従）を記録しておきます（公式の勧めではなく、**この記事の助言**{.lbl .lbl-adv}です）。変換を元に戻せるかは、この記事では**未確認**{.lbl .lbl-unk}です。
+2. 変換の前に、プロジェクトのバックアップを取り、確かめたい動き（対象のアニメーションとコンストレイントの追従）を記録しておきます（公式の勧めではなく、**この記事の助言**{.lbl .lbl-adv}です）。
 3. Unity のコンストレイントが含まれているなら、VRChat のコンストレイントに変えます。公式は、次のように書いています（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
    - 原文: "You can convert all the Unity constraints on your avatar into equivalent VRChat constraints by using the relevant Auto Fix option in the control panel in the SDK."（訳: アバターの Unity のコンストレイントは、SDK の Control Panel にある該当する Auto Fix の項目を使うと、同等の VRChat のコンストレイントに変換できます。）
-   - 公式は、Unity のコンストレイントがあると、深さが過大に見積もられることがあると書いています。変換後の動きへの影響は、この記事では**未確認**{.lbl .lbl-unk}です。
+   - 公式は、Unity のコンストレイントがあると、深さが過大に見積もられることがあると書いています。
 4. 変換したあとは、Play モードに入り、対象のアニメーションとコンストレイントの追従が、変換の前と同じかを確かめます。
 5. いちばん長いつながりを探します。公式の資料には、その見つけ方が書かれていないため、コンストレイントの設定（どの物をどの物に合わせているか）を確かめて、つながりを追います（この記事の整理）。
 6. 途中の依存を減らし、多くのコンストレイントが同時に動けるように並べ替えます（公式の考え方）。
