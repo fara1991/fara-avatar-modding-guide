@@ -1,7 +1,8 @@
 param(
   [Parameter(Mandatory = $true)][string]$Project,   # e.g. E:\Projects\fara\Temp\shots-unity\vrc-demo
   [string]$VccTemplate = "$env:LOCALAPPDATA\Programs\VRChat Creator Companion\Templates\Avatar",
-  [string]$VccRepos = "$env:LOCALAPPDATA\VRChatCreatorCompanion\Repos"
+  [string]$VccRepos = "$env:LOCALAPPDATA\VRChatCreatorCompanion\Repos",
+  [string]$Runner = 'ShotRunner.cs'   # ShotRunner.cs (AAO/APL) or ShotRunnerClothing.cs (clothing article)
 )
 # ASCII only (Windows PowerShell 5.1 reads this file in the ANSI code page).
 # Creates a NEW VRChat avatar project from the VCC template, extracting the packages from VCC's local cache
@@ -32,5 +33,5 @@ $m | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $manifestPath
 
 # Capture script (runs inside Unity when go.flag exists)
 New-Item -ItemType Directory -Force -Path (Join-Path $Project 'Assets\Editor') | Out-Null
-Copy-Item (Join-Path $PSScriptRoot 'ShotRunner.cs') (Join-Path $Project 'Assets\Editor\ShotRunner.cs')
+Copy-Item (Join-Path $PSScriptRoot $Runner) (Join-Path $Project (Join-Path 'Assets\Editor' $Runner))
 "Created $Project"
