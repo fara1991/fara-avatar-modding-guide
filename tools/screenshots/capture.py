@@ -636,6 +636,27 @@ def _():
     view_axis("FRONT", dist=9)
 
 
+@shot("getting-started", "files-file-menu", menu="TOPBAR_MT_file")
+def _():
+    default_scene()
+    return {"crop": (470, 370, 935, 840)}
+
+
+@shot("getting-started", "files-external-data-menu", menu="TOPBAR_MT_file_external_data")
+def _():
+    default_scene()
+    return {"crop": (475, 370, 720, 625)}
+
+
+@shot("getting-started", "files-preferences-save-load", window="PREFS", fullscreen=True)
+def _():
+    with ctx():
+        bpy.ops.screen.userpref_show()
+    bpy.context.preferences.active_section = "SAVE_LOAD"
+    bpy.context.preferences.filepaths.use_auto_save_temporary_files = True  # 記事の「おすすめ」（自動保存オン）と同じ状態にする
+    return {"crop_fn": lambda w, h: (0, 0, min(w, 1660), min(h, 480))}
+
+
 # ================================================================ basics
 @shot("basics", "select-objects", area="VIEW_3D")
 def _():
@@ -1019,6 +1040,54 @@ def _():
         d.co = Vector((d.co.x * 0.8, d.co.y * 0.8, d.co.z))
     k.value = 0.5
     cube.active_shape_key_index = 1
+
+
+@shot("rigging", "weight-check-vertex-weights", area="VIEW_3D")
+def _():
+    body, arm = build_mannequin()
+    select([body])
+    mode("EDIT")
+    me = body.data
+    bm = bmesh.from_edit_mesh(me)
+    deform = bm.verts.layers.deform.verify()
+    target = None
+    for v in bm.verts:
+        if v.co.x > 0.28 and v.co.z > 1.45 and len(v[deform]) >= 2:
+            if target is None or v.co.x > target.co.x:
+                target = v
+    for v in bm.verts:
+        v.select = False
+    target.select = True
+    bm.select_history.clear()
+    bm.select_history.add(target)
+    bmesh.update_edit_mesh(me)
+    sidebar(True, "Item")
+    set_view(rot=(80, 0, 15), dist=1.8, loc=(0.55, 0, 1.45))
+
+
+@shot("rigging", "shape-keys-modding-panel", area="PROPERTIES", props="DATA")
+def _():
+    body, arm = build_mannequin()
+    body.shape_key_add(name="Basis")
+    for name, sx in (("NoClip", 0.85), ("Heel", 1.15)):
+        k = body.shape_key_add(name=name, from_mix=False)
+        for d in k.data:
+            if 0.6 < d.co.z < 1.2:
+                d.co.x *= sx
+    body.data.shape_keys.key_blocks["NoClip"].value = 1.0
+    body.active_shape_key_index = 1
+    select([body])
+
+
+@shot("rigging", "shape-keys-modding-propagate", menu="VIEW3D_MT_edit_mesh_vertices")
+def _():
+    body, arm = build_mannequin()
+    body.shape_key_add(name="Basis")
+    select([body])
+    body.active_shape_key_index = 0
+    mode("EDIT")
+    set_view(rot=(80, 0, 15), dist=3.4, loc=(0.2, 0, 1.2))
+    return {"crop": (440, 370, 720, 830)}
 
 
 # ================================================================ avatar-clothing

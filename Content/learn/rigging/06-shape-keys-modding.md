@@ -3,7 +3,7 @@ title: シェイプキーを改変に使う
 reading: しぇいぷきーをかいへんにつかう
 description: 既存のアバターを改変するときのシェイプキーの扱い方です。Basis を触るときの注意、シェイプに反映、ほかのメッシュへの転送、モディファイアーとの関係、貫通防止・ヒール用・体形のキーの作り方。
 difficulty: 中級
-updated: 2026-10-11
+updated: 2026-11-07
 shortcuts: [Tab, G, S, Alt+S, O]
 ---
 
@@ -33,9 +33,15 @@ Basis で頂点を動かすと、ほかのキー（たとえば「笑顔」）�
 
 これで、選んだ頂点の今の位置が、すべてのシェイプキーに反映されます。
 
+[![編集モードの「頂点」メニュー。下のほうに「シェイプキーからブレンド」と「シェイプに反映」が並んでいる](images/shape-keys-modding-propagate.png)](/learn/rigging/images/shape-keys-modding-propagate.png)
+*編集モードの「頂点」メニュー（日本語表示）。「シェイプに反映」が Propagate to Shapes*
+
 ### いちばん安全なのは、新しいキーで作ること
 
 首を少し伸ばす、肩を下げる、といった体形の変更は、Basis を直接触らずに **新しいシェイプキー** として作り、値を 1 にして使うのが安全です。気に入らなければ値を 0 に戻すだけで元に戻せます。
+
+[![オブジェクトデータプロパティのシェイプキー欄。Basis の下に NoClip（値 1.000）と Heel（値 0.000）が並んでいる](images/shape-keys-modding-panel.png)](/learn/rigging/images/shape-keys-modding-panel.png)
+*シェイプキー欄の例。Basis はそのままにして、貫通防止（NoClip）とヒール用（Heel）の新しいキーを足し、使うものだけ値を 1 にしている*
 
 ## 改変でよく作るシェイプキー
 
