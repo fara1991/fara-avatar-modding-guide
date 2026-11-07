@@ -3,7 +3,7 @@ title: Unity の画面の見方
 reading: ゆにてぃーのがめんのみかた
 description: アバターの作業で使う Unity のウィンドウ（Hierarchy・Inspector・Project・Scene）と、Scene ビューの視点の動かし方です。
 difficulty: 初級
-updated: 2026-10-11
+updated: 2026-11-07
 ---
 
 ::: point
@@ -25,6 +25,9 @@ Unity の画面はいくつものウィンドウに分かれています。ア�
 | **Console** | エラーや警告の一覧。赤いエラーが出ていたら、まずここを読む |
 
 **Game** ビューはゲームを実行したときの画面です。アバターの作業ではあまり使いません（確かめるのは VRChat SDK の Build & Test で行います）。
+
+[![Unity の画面。左上に Scene、その下に Console、中央左に Hierarchy、中央右に Project、右に Inspector が並んでいる](images/editor-overview-window.png)](/learn/unity/images/editor-overview-window.png)
+*新しく作った VRChat 用のプロジェクトを Unity 2022.3 で開いた画面。画面の番号は、1 Scene、2 Hierarchy、3 Project、4 Inspector、5 Console（上の表と同じ 5 つ）。画像を押すと、元の大きさで開く*
 
 下の練習用の画面で、ウィンドウの役割と視点の動かし方を試せます（本物の Unity ではなく、ブラウザで動く練習用の画面です）。
 

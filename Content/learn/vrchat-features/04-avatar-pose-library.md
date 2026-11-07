@@ -3,7 +3,7 @@ title: AvatarPoseLibrary（APL）でポーズを設定する
 reading: あばたーぽーずらいぶらりーでぽーずをせっていする
 description: AvatarPoseLibrary（APL）の入れ方、既存の AnimationClip をポーズとして登録する手順、VRChat のメニューでの使い方を、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
 
 [AvatarPoseLibrary（APL）](https://github.com/HhotateA/AvatarPoseLibrary) は、Unity 上で VRChat 向けのアバター用のポーズを管理・適用するためのツールです（[README](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/README.md) の説明）。この記事では、APL の入れ方と、ポーズを登録する手順、VRChat での使い方を説明します。パラメーター（Expression Parameters）への影響と、注意点もまとめます。
@@ -120,6 +120,25 @@ Mode Settings の 4 つの項目には、それぞれ次の説明があります
 
 [![APL の設定の入れ子。アバターの Prefab の下に空の GameObject、その中に Avatar Pose Library コンポーネント、その中にカテゴリー、カテゴリーの中にポーズ](images/avatar-pose-library-structure.png)](/learn/vrchat-features/images/avatar-pose-library-structure.png)
 *設定の入れ子（Unity-Manual の説明を、この記事で図にしたもの）*
+
+[![APL のコンポーネントの Inspector。メニュー名、高さ調整機能などのチェック、カテゴリーリスト、ポーズリスト、各ポーズのアニメーション・トラッキング系・ループ再生・再生速度](images/avatar-pose-library-inspector.png)](/learn/vrchat-features/images/avatar-pose-library-inspector.png)
+*新しく作った VRChat 用のプロジェクトに APL 1.2.44 を入れて、Unity 2022.3.22f1 で開いた Inspector（日本語の表示）。カテゴリー「Sit」に 2 つのポーズを登録し、ポーズを開いた状態。アニメーションは、空のクリップを仮に入れている*
+
+日本語の画面では、項目の名前が日本語で表示されます。画面の名前と、wiki の名前の対応は、パッケージの表示名の資源（1.2.44。日本語と英語の両方）で確かめました（**この記事の確認**{.lbl .lbl-adv}）。
+
+| 画面の表示（日本語） | wiki の名前（英語） |
+|---|---|
+| メニュー名 | Library Name |
+| カテゴリーリスト ／ カテゴリー名 | Category List ／ Category Name |
+| ポーズリスト ／ すべて開く ／ すべて閉じる | Pose List ／ Open All ／ Close All |
+| アニメーション | Animation Clip |
+| トラッキング系 | Tracking Settings |
+| ループ再生 ／ 再生速度 | Is Loop ／ Motion Speed |
+| サムネ自動撮影 | Auto Thumbnail（パッケージの英語の表示は「Auto」） |
+| ここにアニメーションをドロップ | Drop Area（パッケージの英語の表示は「Drop AnimationClips here to add Poses」） |
+| 高さ調整機能 ／ スピード調整機能 ／ ミラー機能 ／ トラッキング機能 | Enable Height ／ Enable Speed ／ Enable Mirror ／ Enable Trackings（パッケージの英語の表示は Enable Tracking） |
+
+撮った画面には、wiki の「Mode Settings」の一覧にない項目（「視点の追従の有効」「キャッシュを使用」など）も出ていました。wiki は 1.2.44 より前の更新なので、現在の版の項目と同じかは、**未確認**{.lbl .lbl-unk}です。
 
 ::: tip
 Q&A には、「Animation Clip を APL にドラッグ＆ドロップ → Generate を押す」だけで基本的な設定が完了すると書かれています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。ただし、wiki の Unity-Manual と Beginner-Tutorials の項目の一覧に、「Generate」という名前の項目はありません。パッケージの表示名（英語・日本語）にも、この名前のボタンは見当たりませんでした。画面にそのボタンがあるかは、**未確認**{.lbl .lbl-unk}です。Drop Area のツールチップ（英語版）には、"You can generate poses by dropping animation clips here in bulk." と書かれています。この記事では、Drop Area に入れる手順を書いています。

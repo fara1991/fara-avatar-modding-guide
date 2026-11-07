@@ -3,7 +3,7 @@ title: Avatar Optimizer（AAO）でできること・使い方
 reading: あばたーおぷてぃまいざーでできることつかいかた
 description: Avatar Optimizer（AAO）が自動で行うことと、手動で使うコンポーネント、入れ方、結果の確かめ方、うまくいかないときの対応です。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
 
 ## Avatar Optimizer（AAO）とは
@@ -119,6 +119,9 @@ AAO を使うときは、まず **AAO Trace And Optimize** を付けます。ア
 
 ### 自動で行われること
 
+[![AAO Trace And Optimize の Inspector。Features を開くと、BlendShape の最適化、使われていないObjectの削除、PhysBone の最適化、アニメーターの最適化、スキンメッシュレンダラーの統合、テクスチャの最適化のチェックが並ぶ。その下の高度な最適化には、面積がゼロのポリゴンを自動的に削除するチェックがある](images/avatar-optimizer-trace-and-optimize.png)](/learn/optimize-aao/images/avatar-optimizer-trace-and-optimize.png)
+*新しく作った VRChat 用のプロジェクトに AAO 1.9.21 を入れて、Unity 2022.3.22f1 で開いた Trace And Optimize の Inspector（日本語の表示。Features を開いた状態。下の表の 7 つ目の「面積がゼロのポリゴンを自動的に削除する」は、Features の外の「高度な最適化」の中にある）*
+
 | オプション | 自動で行うこと | 主に効く項目 |
 |---|---|---|
 | BlendShape を最適化する（Optimize BlendShape） | BlendShape を自動で固定・除去・統合し、数を減らします。 | この記事の表では対応づけていません |
@@ -129,7 +132,7 @@ AAO を使うときは、まず **AAO Trace And Optimize** を付けます。ア
 | テクスチャを最適化する（Optimize Texture） | 見た目に影響を与えずに、UV パッキング（UV の配置を詰めること）とテクスチャサイズの縮小を行います（対応シェーダーのマテリアルだけが対象です）。 | テクスチャメモリー |
 | 面積がゼロのポリゴンを自動的に削除する（Automatically Remove Zero Sized Polygons） | 面積がゼロのポリゴンを削除します。高度な最適化の一つです（既定ではオフ。1.7.1 以降は Advanced Optimizations。下の warning を参照）。 | 三角ポリゴンの数 |
 
-表のオプション名は、公式ドキュメントの日本語表記です。（ ）内は英語版ドキュメントの表記です。Unity 上の表示は、ソースで確認できます。例えば、英語表示は「Remove unused Objects Automatically」「Merge Skinned Mesh」、日本語表示は「アニメーターを最適化する」です（ドキュメントの「アニメーターの最適化」とは表記が違います）。
+表のオプション名は、公式ドキュメントの日本語表記です。（ ）内は英語版ドキュメントの表記です。Unity 上の表示は、ソースで確認できます。例えば、英語表示は「Remove unused Objects Automatically」「Merge Skinned Mesh」、日本語表示は「アニメーターを最適化する」です（ドキュメントの「アニメーターの最適化」とは表記が違います）。ほかにも、ドキュメントは「スキンドメッシュレンダラーを統合する」ですが、日本語の画面は「スキンメッシュレンダラーを統合する」です（上の画像）。「PhysBone を最適化する」などは、画面では PhysBone の後に空白がありません。
 
 **使われていないObjectを自動的に削除する**（Remove unused Objects）について、補足します。
 
@@ -197,6 +200,9 @@ Trace And Optimize の自動の処理では足りないときや、消す範囲�
 コンポーネント名は、公式ドキュメントの表記（`AAO` で始まる名前）で書いています。Unity 上の表示名（AddComponentMenu。GitHub の AAO のソース v1.9.21 で確認）は、次の点が表記と違います。`AAO Freeze BlendShapes`（ドキュメントは AAO Freeze BlendShape）、`AAO Merge Toon Lit Material`（ドキュメントは AAO Merge ToonLit Material。Toon と Lit の間に空白）。検索するときは、Unity 上の表示名で探してください。
 
 ### まとめる（統合する）
+
+[![AAO Merge Skinned Mesh の Inspector。スキンメッシュレンダラーとメッシュレンダラーの一覧、空のレンダラーオブジェクトを削除する、BlendShape モード、マテリアルの統合などの設定が並ぶ](images/avatar-optimizer-merge-skinned-mesh.png)](/learn/optimize-aao/images/avatar-optimizer-merge-skinned-mesh.png)
+*AAO Merge Skinned Mesh の Inspector（日本語の表示。下の設定の項目が、この順に並ぶ。統合するレンダラーは、まだ入れていない状態）*
 
 - **AAO Merge Skinned Mesh**: 1 つ以上の SkinnedMeshRenderer と MeshRenderer を、1 つの SkinnedMeshRenderer にまとめます。SkinnedMeshRenderer を統合すると、メッシュを変形させる処理の回数が減り、負荷が軽くなります。同じマテリアルを使うマテリアルスロットもまとめられるため、描画の負荷も減らせます。
   - 追加する場所: 新しい空の GameObject を作り、そこに SkinnedMeshRenderer（メッシュ未指定）と Merge Skinned Mesh を付けます（公式の原文は「メッシュを指定していない SkinnedMeshRenderer コンポーネントがある新規 GameObject」に追加）。種別は Source Edit Skinned Mesh Component です。
