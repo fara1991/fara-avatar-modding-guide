@@ -3,8 +3,14 @@ title: PhysBone トランスフォームの数を減らす
 reading: ふぃじっくぼーんとらんすふぉーむのかずをへらす
 description: PhysBone トランスフォーム（Affected Transforms）の数の上限と確かめ方、Avatar Optimizer（AAO）の Replace End Bone With Endpoint Position などで減らす方法を、公式の資料に効果が書かれている範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- PhysBone トランスフォームの上限は、PC の Poor が 256、Android の Poor が 64
+- 1 つのコンポーネントが 128 を超えるトランスフォームに影響するなら、チェーンを分けることを公式が勧めている
+- AAO の Replace End Bone With Endpoint Position は数を減らせるが、先端の揺れ方が変わることがある
+:::
 
 PhysBone トランスフォームの数は、PhysBone コンポーネントが影響するトランスフォーム（ボーン）の合計数を数える項目です（VRChat 公式の定義は "The total number of transforms affected by PhysBones components on the avatar." です）。上限は PC の Poor が 256、Android の Poor が 64 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 

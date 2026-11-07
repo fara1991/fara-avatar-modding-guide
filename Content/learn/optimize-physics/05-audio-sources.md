@@ -3,8 +3,14 @@ title: オーディオソースの数を減らす
 reading: おーでぃおそーすのかずをへらす
 description: オーディオソース（Audio Sources）の数の上限と確かめ方、公式の定義が見つからなかった点、Android・Quest で無効になること、各ツールで公式に記載があるかを、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 上限は PC の Poor が 8（Excellent 1、Good 4、Medium 8）で、Android では無効
+- 公式の統計表に定義の行がなく、定義は未確認
+- オーディオソースの数を減らす公式の勧めは見つかっていない（未確認）
+:::
 
 オーディオソース（Audio Sources）は、アバターにある音を鳴らす部品の数を数える項目です。項目名から、Unity の Audio Source の数を指すと読めます。ただし、VRChat 公式の統計表には、この項目の定義の行がなく、この記事では定義を確かめられませんでした（**未確認**{.lbl .lbl-unk}）。上限は PC の Poor が 8 で（段階ごとに、Excellent 1、Good 4、Medium 8。これらは [VRChat の公式の表（GitHub の原本の avatar-performance-ranking-system.md）](https://raw.githubusercontent.com/vrchat-community/creator-docs/main/Docs/docs/avatars/avatar-performance-ranking-system.md) の値です）、Android では無効です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 

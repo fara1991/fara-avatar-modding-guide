@@ -3,8 +3,15 @@ title: マテリアルスロットを減らす方法
 reading: まてりあるすろっとをへらすほうほう
 description: VRChat のアバターのマテリアルスロットを減らす方法を、TexTransTool・Avatar Optimizer（AAO）の統合の機能を中心に整理します。TexTransTool の AtlasTexture では、マテリアルスロットは結合されないと公式が明記しているため、その注意も書いています。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- マテリアルスロットの上限は、PC の Poor が 32、Android の Poor が 4
+- TTT の AtlasTexture では、マテリアルスロットは結合できないと公式が明言している
+- 同じマテリアルの枠は、AAO の Merge Skinned Mesh の「マテリアルの統合」で 1 つにまとめられる
+- 統合先の Root Bone と Anchor Override は自動では設定されないため、手動で設定する
+:::
 
 マテリアルスロットは、メッシュがマテリアルを割り当てる枠の数です。SDK の「パフォーマンスの内訳」では「マテリアルスロットの数」と表示され、上限は PC の Poor が 32、Android の Poor が 4 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。上限を超えると、公式では次のランクになると書かれています（[パフォーマンスランク](/learn/vrchat/performance-rank)）。
 

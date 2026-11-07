@@ -3,8 +3,15 @@ title: パーティクルの衝突を使わないようにする
 reading: ぱーてぃくるのしょうとつをつかわないようにする
 description: パーティクルの衝突（Particle Collision）が、VRChat のパフォーマンスランクでどう数えられるか（True / False の項目）、上限と確かめ方、VRChat 公式の勧め、各ツールで公式に記載があるかを、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 数ではなく True か False で、どれか 1 つでも Particle Collision が有効なら True
+- 上限の表記は True / True（PC の Medium・Android の Poor は表からの読み取り）
+- 公式の勧めは、大量の粒子を使うときに衝突（collision）を使わないこと
+- 衝突をオフにしたときの見た目への影響は、公式の資料に記載がなく未確認
+:::
 
 パーティクルの衝突は、パーティクルシステムの粒子が、ほかの物とぶつかるかどうかを計算する設定（Particle Collision）です。パフォーマンスランクでは数字ではなく、True（あり）か False（なし）で数えます。VRChat 公式の定義は "If any Particle Systems on the avatar have Particle Collision enabled, this will be True."（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）で、訳は「アバターのパーティクルシステムのどれか 1 つでも Particle Collision が有効なら、True になる」です。
 

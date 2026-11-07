@@ -3,8 +3,14 @@ title: PhysBone コライダーの数を減らす
 reading: ふぃじっくぼーんこらいだーのかずをへらす
 description: PhysBone コライダーの数の上限と確かめ方、Avatar Optimizer（AAO）で同じ設定のコライダーをまとめる方法と注意点を、公式の資料に書かれた範囲でまとめます。VRChat 公式の Global Collision の上限も書きます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- PhysBone コライダーの上限は、PC の Poor が 32、Android の Poor が 16
+- AAO の Trace And Optimize は、全く同じ設定の PhysBone コライダーを 1 つに統合する
+- アバターでは、Global Collision を有効にしたコライダーが最大 4 つだと公式が書いている
+:::
 
 PhysBone コライダーの数は、アバター上の PhysBone コライダー（スクリプト）の数を数える項目です（VRChat 公式の定義は "The number of PhysBone collider scripts on the avatar." です）。上限は PC の Poor が 32、Android の Poor が 16 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 

@@ -3,8 +3,15 @@ title: テクスチャメモリーを減らす方法
 reading: てくすちゃめもりーをへらすほうほう
 description: VRChat のアバターのテクスチャメモリーを減らす方法を、TexTransTool・lilAvatarUtils・Avatar Optimizer（AAO）の機能ごとに整理します。公式の記載がある点と、確かめていない点を分けて書いています。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 公式の勧めは、Unity のインポート設定で Max Size を下げることと、高解像度のテクスチャを何枚も使わないこと
+- クランチ圧縮を使っても VRAM のサイズは変わらないと、lilAvatarUtils の説明に書かれている
+- MA でアバター全体のテクスチャを減らす機能は、公式に記載なし
+- AAO を使うと Control Panel のランクはあてにならないため、Play モードのランクで確かめる
+:::
 
 テクスチャメモリーは、アバターで使うテクスチャが使うメモリーの推定値です。SDK の「パフォーマンスの内訳」に出る項目で、上限は PC の Poor が 150 MB、Android の Poor が 40 MB です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。公式では、どれか 1 項目でも上限を超えると次のランクになると書かれています（[パフォーマンスランク](/learn/vrchat/performance-rank)）。
 

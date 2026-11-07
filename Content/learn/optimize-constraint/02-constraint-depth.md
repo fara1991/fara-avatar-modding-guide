@@ -3,8 +3,14 @@ title: コンストレイントの深さを減らす
 reading: こんすとれいんとのふかさをへらす
 description: コンストレイントの深さ（依存関係のいちばん長いつながり）の上限と確かめ方、VRChat 公式の考え方（最も長いつながりを短くする、Unity のコンストレイントを VRChat のものに変える）を、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- コンストレイントの深さの上限は、PC の Poor が 100、Android の Poor が 50
+- 深さは合計ではなく、アバター全体でいちばん長い依存のつながりで決まる
+- 公式は、いちばん長いつながりを短くすると深さが下がると書いている
+:::
 
 コンストレイントの深さは、アバターにあるコンストレイントの依存関係（あるコンストレイントが、別のコンストレイントの結果に依存しているつながり）のうち、いちばん長いつながりの段数です。VRChat 公式の定義は "The avatar's overall constraint depth rating is the longest chain of dependencies across the entire avatar." で、アバター全体で最も長い依存のつながりです。公式は、"If the chain has 3 constraints along it, then that means the chain has a constraint depth of 3."（訳: つながりに 3 つのコンストレイントがあれば、そのつながりの深さは 3 です）と例を挙げています。上限は PC の Poor が 100、Android の Poor が 50 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 

@@ -3,8 +3,15 @@ title: リジッドボディの数を減らす
 reading: りじっどぼでぃのかずをへらす
 description: パフォーマンスランクの「リジッドボディの数（Physics Rigidbodies）」の上限と確かめ方、ツールごとに公式に書かれていることを、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 上限は PC の Excellent が 0、Good が 1、Medium と Poor が 8
+- 項目の定義の行は未確認で、Unity の Rigidbody の数という読みは推定
+- Rigidbody を減らす機能は、5 ツールとも公式に記載なし
+- Android と Quest では、Rigidbody は完全に無効と公式に書かれている
+:::
 
 リジッドボディの数（Physics Rigidbodies）は、アバターにある Unity の Rigidbody（物理演算で動く部品）の数を数える項目だと、項目名から読めます。ただし、VRChat 公式の統計表には、この項目の定義の行を確認できませんでした（**未確認**{.lbl .lbl-unk}）。Unity の Rigidbody の数だという読みは、この記事の推定です。
 

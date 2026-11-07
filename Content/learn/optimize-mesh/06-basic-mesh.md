@@ -3,8 +3,15 @@ title: 基本メッシュの数を減らす
 reading: きほんめっしゅのかずをへらす
 description: ボーンで動かないメッシュ（基本メッシュ）の数を減らす方法です。AAO の Merge Skinned Mesh に MeshRenderer を入れて統合する方法を中心に、ほかのツールで資料に書かれていること、注意を説明します。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 基本メッシュの上限は、PC が 24、Android が 2
+- 描画の呼び出し（ドローコール）は、メッシュごとに 1 回ずつ必要になるのが基本（Unity マニュアルの説明）
+- AAO Merge Skinned Mesh の「メッシュレンダラー」に、統合する MeshRenderer を入れられる
+- Trace And Optimize が MeshRenderer を自動で統合するかは未確認
+:::
 
 基本メッシュ（MeshRenderer。ボーンで動かないメッシュのことです）の数は、パフォーマンスランクの「基本メッシュの数」で数えられます。上限は PC が 24、Android が 2 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。上限を超えると次のランクになります。描画の呼び出し（ドローコール）は、メッシュごとに 1 回ずつ必要になるのが基本で、減らすと描画の時間が短くなると、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) に、Unity マニュアルの説明として書かれています。
 

@@ -3,8 +3,14 @@ title: コライダーの数を減らす
 reading: こらいだーのかずをへらす
 description: パフォーマンスランクの「コライダーの数（Physics Colliders）」の上限と確かめ方、ツールごとに公式に書かれていることを、公式の資料に書かれた範囲でまとめます。PhysBone のコライダーとは別の項目です。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 上限は PC の Excellent が 0、Good が 1、Medium と Poor が 8
+- 項目の定義の行は未確認で、Unity の Collider の数という読みは推定
+- Unity の Collider を減らす機能は、5 ツールとも公式に記載なし
+:::
 
 コライダーの数（Physics Colliders）は、アバターにある Unity の Collider（物理の衝突の形を決める部品。BoxCollider や SphereCollider など）の数を数える項目だと、項目名から読めます。ただし、VRChat 公式の統計表には、この項目の定義の行を確認できませんでした（**未確認**{.lbl .lbl-unk}）。Unity の Collider の数だという読みは、この記事の推定です。PhysBone のコライダー（[PhysBone コライダーの数を減らす](/learn/optimize-physbone/physbone-colliders)）とは、別の項目です。
 

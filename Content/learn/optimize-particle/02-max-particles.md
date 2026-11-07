@@ -3,8 +3,15 @@ title: 最大パーティクルの数を減らす
 reading: さいだいぱーてぃくるのかずをへらす
 description: 最大パーティクルの数（公式の行名は Total Particles Active）の上限と確かめ方、VRChat 公式の勧め（同時に放出される粒子の数を制限する）、各ツールで公式に書かれていることを、公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- 最大パーティクルの数は、各 Particle System の maxParticles の合計
+- 上限は、PC の Poor が 2,500、Android の Poor が 200
+- 公式の勧めは、同時に放出される粒子の最大数を制限すること
+- 定義は、放出されている数ではなく、画面に出ている粒子の数とは別の値
+:::
 
 最大パーティクルの数は、アバターのすべての Particle System の maxParticles（最大粒子数）の合計を数える項目です。VRChat 公式のランキングの表では、この項目の行名は Total Particles Active です。定義は "The sum of maxParticles across all particle systems on the avatar." で、訳は「アバターのすべてのパーティクルシステムの maxParticles の合計」です。上限は PC の Poor が 2,500、Android の Poor が 200 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 

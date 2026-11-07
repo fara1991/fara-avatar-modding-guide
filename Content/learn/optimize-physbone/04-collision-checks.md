@@ -3,8 +3,14 @@ title: PhysBone 衝突チェックの数を減らす
 reading: ふぃじっくぼーんのしょうとつちぇっくのかずをへらす
 description: VRChat のパフォーマンス表の「PhysBone 衝突チェックの数」が何を数えるか、上限、公式に書かれている減らし方と注意、ツールごとに公式に書かれていることを整理します。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- PhysBone 衝突チェックの上限は、PC の Poor が 512、Android の Poor が 64
+- 衝突チェックの数は、コライダーごとに影響しうる PhysBone トランスフォームの数を足し合わせた値
+- AAO の統合が衝突チェックの数に与える効果は、公式に記載なし
+:::
 
 PhysBone 衝突チェックの数は、アバターの PhysBone コライダーごとに、影響しうる PhysBone トランスフォームの数を足し合わせた値です（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system) の定義）。1 つのトランスフォームが複数のコライダーに影響されると、その分だけ重ねて数えられます。上限は、PC の Poor が 512、Android の Poor が 64 です。
 

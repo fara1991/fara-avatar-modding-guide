@@ -3,8 +3,14 @@ title: ライトの数を減らす
 reading: らいとのかずをへらす
 description: アバターにある Light コンポーネントの数の上限と、Android で無効になる点、公式が勧める減らし方を、各ツールの公式の資料に書かれた範囲でまとめます。
 difficulty: 中級
-updated: 2026-11-06
+updated: 2026-11-07
 ---
+
+::: point
+- ライトの数の上限は、PC の Poor が 1（Excellent・Good・Medium は 0）
+- Android と Quest では、ライトは完全に無効になると公式が書いている
+- 公式は、アバターでどの種類のライトも使わないことを勧めている
+:::
 
 ライトの数は、アバターにある Light コンポーネントの数を数える項目です（VRChat 公式の定義は "The number of Light components on the avatar." です）。上限は PC の Poor が 1 です（Excellent・Good・Medium は 0）（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。モバイル（Android・iOS。Quest を含む）では、ライトは無効になります。公式のランクの文書は、"The following components are disabled on mobile devices since they can never appear on avatars." と書いています。Android と Quest については、公式の Android Content Limitations に "Completely disabled for avatars on Android and Quest." と書かれています。
 
