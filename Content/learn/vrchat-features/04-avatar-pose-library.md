@@ -136,7 +136,7 @@ Mode Settings の 4 つの項目には、それぞれ次の説明があります
 | ループ再生 ／ 再生速度 | Is Loop ／ Motion Speed |
 | サムネ自動撮影 | Auto Thumbnail（パッケージの英語の表示は「Auto」） |
 | ここにアニメーションをドロップ | Drop Area（パッケージの英語の表示は「Drop AnimationClips here to add Poses」） |
-| 高さ調整機能 ／ スピード調整機能 ／ ミラー機能 ／ トラッキング機能 | Enable Height ／ Enable Speed ／ Enable Mirror ／ Enable Tracking（wiki の表記は Enable Trackings） |
+| 高さ調整機能 ／ スピード調整機能 ／ ミラー機能 ／ トラッキング機能 | Enable Height ／ Enable Speed ／ Enable Mirror ／ Enable Trackings（パッケージの英語の表示は Enable Tracking） |
 
 撮った画面には、wiki の「Mode Settings」の一覧にない項目（「視点の追従の有効」「キャッシュを使用」など）も出ていました。wiki は 1.2.44 より前の更新なので、現在の版の項目と同じかは、**未確認**{.lbl .lbl-unk}です。
 

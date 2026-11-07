@@ -119,8 +119,8 @@ AAO を使うときは、まず **AAO Trace And Optimize** を付けます。ア
 
 ### 自動で行われること
 
-[![AAO Trace And Optimize の Inspector。Features を開くと、BlendShape の最適化、使われていないObjectの削除、PhysBone の最適化、アニメーターの最適化、スキンメッシュレンダラーの統合、テクスチャの最適化のチェックが並ぶ。その下に、高度な最適化](images/avatar-optimizer-trace-and-optimize.png)](/learn/optimize-aao/images/avatar-optimizer-trace-and-optimize.png)
-*新しく作った VRChat 用のプロジェクトに AAO 1.9.21 を入れて、Unity 2022.3.22f1 で開いた Trace And Optimize の Inspector（日本語の表示。Features を開いた状態）*
+[![AAO Trace And Optimize の Inspector。Features を開くと、BlendShape の最適化、使われていないObjectの削除、PhysBone の最適化、アニメーターの最適化、スキンメッシュレンダラーの統合、テクスチャの最適化のチェックが並ぶ。その下の高度な最適化には、面積がゼロのポリゴンを自動的に削除するチェックがある](images/avatar-optimizer-trace-and-optimize.png)](/learn/optimize-aao/images/avatar-optimizer-trace-and-optimize.png)
+*新しく作った VRChat 用のプロジェクトに AAO 1.9.21 を入れて、Unity 2022.3.22f1 で開いた Trace And Optimize の Inspector（日本語の表示。Features を開いた状態。下の表の 7 つ目の「面積がゼロのポリゴンを自動的に削除する」は、Features の外の「高度な最適化」の中にある）*
 
 | オプション | 自動で行うこと | 主に効く項目 |
 |---|---|---|
@@ -132,7 +132,7 @@ AAO を使うときは、まず **AAO Trace And Optimize** を付けます。ア
 | テクスチャを最適化する（Optimize Texture） | 見た目に影響を与えずに、UV パッキング（UV の配置を詰めること）とテクスチャサイズの縮小を行います（対応シェーダーのマテリアルだけが対象です）。 | テクスチャメモリー |
 | 面積がゼロのポリゴンを自動的に削除する（Automatically Remove Zero Sized Polygons） | 面積がゼロのポリゴンを削除します。高度な最適化の一つです（既定ではオフ。1.7.1 以降は Advanced Optimizations。下の warning を参照）。 | 三角ポリゴンの数 |
 
-表のオプション名は、公式ドキュメントの日本語表記です。（ ）内は英語版ドキュメントの表記です。Unity 上の表示は、ソースで確認できます。例えば、英語表示は「Remove unused Objects Automatically」「Merge Skinned Mesh」、日本語表示は「アニメーターを最適化する」です（ドキュメントの「アニメーターの最適化」とは表記が違います）。
+表のオプション名は、公式ドキュメントの日本語表記です。（ ）内は英語版ドキュメントの表記です。Unity 上の表示は、ソースで確認できます。例えば、英語表示は「Remove unused Objects Automatically」「Merge Skinned Mesh」、日本語表示は「アニメーターを最適化する」です（ドキュメントの「アニメーターの最適化」とは表記が違います）。ほかにも、ドキュメントは「スキンドメッシュレンダラーを統合する」ですが、日本語の画面は「スキンメッシュレンダラーを統合する」です（上の画像）。「PhysBone を最適化する」などは、画面では PhysBone の後に空白がありません。
 
 **使われていないObjectを自動的に削除する**（Remove unused Objects）について、補足します。
 
