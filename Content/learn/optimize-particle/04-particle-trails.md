@@ -9,7 +9,7 @@ updated: 2026-11-07
 ::: point
 - パーティクルトレイルは数ではなく、True（あり）か False（なし）で表される
 - アバターのどれか 1 つでもトレイルが有効なら、True になる
-- 表で True になるのは PC が Medium と Poor、Android が Poor の列で、上限は PC が Medium、Android が Poor
+- 表から読むと、上限は PC が Medium、Android が Poor（公式の文ではなく表の読み方）
 - トレイルを減らす専用の勧めは、確かめた範囲（Avatar Optimization Tips など）で公式に記載なし
 :::
 
