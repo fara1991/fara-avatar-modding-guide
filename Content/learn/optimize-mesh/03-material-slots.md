@@ -9,7 +9,7 @@ updated: 2026-11-07
 ::: point
 - マテリアルスロットの上限は、PC の Poor が 32、Android の Poor が 4
 - TTT の AtlasTexture では、マテリアルスロットは結合できないと公式が明言している
-- 同じマテリアルの枠は、AAO の Merge Skinned Mesh の「マテリアルの統合」で 1 つにまとめられる
+- AAO の Merge Skinned Mesh で「マテリアルの統合」をオンにすると、同じマテリアルのスロットを 1 つにまとめられる
 - 統合先の Root Bone と Anchor Override は自動では設定されないため、手動で設定する
 :::
 

@@ -10,7 +10,7 @@ updated: 2026-11-07
 - AAO は非破壊で、プレハブを展開せずにコンポーネントを追加するだけで使える
 - まず Trace And Optimize を付け、足りないときに手動のコンポーネントを足す（この記事の助言）
 - 非破壊のツールを使うと、Control Panel のランクはあてにならないと公式ドキュメントが書いている
-- 確かめるときは、Play モードのランクか、Manual bake avatar で作った複製を使う
+- Play モードのランクは Actual Performance Window で、複製は見た目と動きの確認に使う
 :::
 
 ## Avatar Optimizer（AAO）とは

@@ -7,7 +7,7 @@ updated: 2026-11-07
 ---
 
 ::: point
-- 上限は PC が Excellent 1・Good 4・Medium 8・Poor 15、Android が 1・2・4・8
+- 上限は PC が 1・4・8・15、Android が 1・2・4・8（Excellent から Poor の順）
 - どのプラットフォームでも 1 アバターあたり 80 個の固定の上限があり、FinalIK と共有される
 - 80 個を超えたときの扱いは公式に書かれておらず、未確認
 :::

@@ -9,7 +9,7 @@ updated: 2026-11-07
 ::: point
 - アニメーターの数の上限は、PC の Poor が 32、Android の Poor が 2
 - 無効にしたものも数えられるので、Animator を無効にするだけでは数は減らない
-- Playable Layers のスロットで使えるのは Animation Controller だけだと公式が書いている
+- Playable Layers のスロットは Animation Controller だけだと公式が書いている
 :::
 
 アニメーターの数は、アバターにある Animator コンポーネントの数を数える項目です（VRChat 公式の定義は "The number of Animators on the avatar." です）。上限は PC の Poor が 32、Android の Poor が 2 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。

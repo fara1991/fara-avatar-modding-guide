@@ -9,7 +9,7 @@ updated: 2026-11-07
 ::: point
 - PhysBone コンポーネントの上限は、PC の Poor が 32、Android の Poor が 8
 - 無効にしたものも数えられるので、無効にするだけでは数は減らない
-- AAO の Merge PhysBone で複数の PhysBone を 1 つにまとめるが、統合後は掴めるのが 1 か所だけになる
+- AAO の Merge PhysBone で 1 つにまとめると、掴めるのは 1 か所だけになる
 :::
 
 PhysBone コンポーネントの数は、アバターにある PhysBone コンポーネントの数を数える項目です（VRChat 公式の定義は "The number of PhysBone components on the avatar." です）。上限は PC の Poor が 32、Android の Poor が 8 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
