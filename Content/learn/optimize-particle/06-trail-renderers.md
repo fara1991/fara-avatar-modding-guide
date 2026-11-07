@@ -1,7 +1,7 @@
 ---
 title: トレイルレンダラーの数を減らす
 reading: とれいるれんだらーのかずをへらす
-description: トレイルレンダラー（Trail Renderer）の数の上限、超えたときの処理、範囲（BOUNDS）との関係、ツールごとに公式に記載があるかを、公式の資料に書かれた範囲でまとめます。
+description: トレイルレンダラー（Trail Renderer）の数の上限、超えたときの処理、範囲（BOUNDS）との関係、減らす手順をまとめます。
 difficulty: 中級
 updated: 2026-11-07
 ---
@@ -25,15 +25,7 @@ updated: 2026-11-07
 
 上限を超えると、公式では次のランクになると書かれています。表示の制限（Minimum Displayed Performance Rank）の対象になると、トレイルレンダラーだけが取り除かれます（原文: "All Trail Renderers removed"）。公式の例は、最低表示ランクが Poor のとき、トレイルレンダラーが 9 個（Very Poor）のアバターは、トレイルレンダラーをすべて取り除いて表示される、というものです（英語の原文の要約）。PC では、既定の表示の下限は Very Poor で、ほとんどのアバターは見えると書かれています。ただし、極端に最適化されていないアバターは、使えなくなる場合があると書かれています（英語の原文の要約です）。
 
-::: tip
-この記事で使う言葉は、次のとおりです。
-
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
-- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
-
-この記事は、AAO・Modular Avatar（GitHub の main）・TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を、2026 年 11 月 6 日に確かめて書きました。版は、GitHub の最新リリースで 2026 年 11 月 7 日に確かめました。AAO は 1.9.21（changelog の最新版）、TexTransTool は v1.0.2（2026-06-26）、lilAvatarUtils は 2.1.2（2025-08-11）、Meshia Mesh Simplification は 3.3.1（2026-11-04）です。TexTransTool と lilAvatarUtils は、サイトに版の表示がありません。
-VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。VRChat の公式は英語の原文だけなので、ここでの引用は原文に訳を添えています。
-:::
+VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は原文に訳を添えています。
 
 ## 減らす前に確かめること
 
@@ -42,39 +34,11 @@ VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-c
 - **無効にしても数は減りません**: 公式は "All GameObjects and Components, including those that are currently disabled, count towards the Avatar Performance Rank."（訳: 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられる）と書いています。
 - **AAO を使うとき**: 公式の基本的な使い方のページは、非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならないと書いています。Play モードに入ったときのランクは、Actual Performance Window で確かめられると案内されています（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 
-## 減らし方の考え方
-
-VRChat 公式の資料に、トレイルレンダラーを減らす専用の勧めは見当たりませんでした（Avatar Optimization Tips と Android の制限の文書を確かめた範囲）。そのため、この記事では、減らす具体的な方法は書きません。パーティクルシステムの勧めは、パーティクルの項目で扱います。
-
-数の確かめ方は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) を見てください。
-
-## ツール別の方法
-
-### Modular Avatar（MA） {.tool .tool-ma}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のドキュメント、CHANGELOG、README で、Trail・トレイル・LineRenderer の語を検索）。
-
-### TexTransTool（TTT） {.tool .tool-ttt}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 公式サイトの `/docs/` 配下 81 ページで、Trail・トレイル・LineRenderer の語を検索）。
-
-### lilAvatarUtils {.tool .tool-lil}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版の公式ドキュメント 9 ページと、英語版のレンダラーのタブで、Trail・トレイルの語を検索。見つかりませんでした）。
-
-### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README と、`.docfx` にあるドキュメント 11 件（目次を含めると 19 件）で、Trail・トレイル・LineRenderer の語を検索）。
-
-### Avatar Optimizer（AAO） {.tool .tool-aao}
-
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語版と英語版の公式ドキュメントの全ページと CHANGELOG で、TrailRenderer・LineRenderer・Trail を検索）。
-
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「トレイルレンダラーの数」を確かめます（上限は PC の Poor が 8、Android の Poor が 1）。
 2. アバターの中で、Trail Renderer のコンポーネントが付いているオブジェクトを探して、数えます。
-3. 変更の前に、プロジェクトのバックアップを取り、今のトレイルの見た目を記録します（公式の勧めではなく、**この記事の助言**{.lbl .lbl-adv}です）。
+3. 変更の前に、プロジェクトのバックアップを取り、今のトレイルの見た目を記録します（**この記事の助言**{.lbl .lbl-adv}）。
 4. 必要のないトレイルレンダラーは、無効にするのではなく、コンポーネントを削除します。無効のままでも数に入るためです（公式の注記による）。
 5. 変更のあと、トレイルの見た目が想定どおりかを、手順 3 の記録と比べて確かめます。
 6. もう一度 SDK の「パフォーマンスの内訳」を開き、「トレイルレンダラーの数」が減ったかを確かめます。
@@ -83,7 +47,6 @@ VRChat 公式の資料に、トレイルレンダラーを減らす専用の勧�
 
 ::: warning
 - コンポーネントを削除すると、そのトレイルの線は表示されなくなります。見た目が変わるので、必要なものは残してください。
-- 無効にするだけでは、数は減りません（公式の注記による）。
 - Android では、トレイルレンダラーは 1 つまでが Poor の上限です。2 つ以上あると、Very Poor の値になります（公式の表による）。
 - 「パーティクルトレイル」（パーティクルシステムのトレイル）は、別の項目です。パーティクルシステムのトレイルについては、[パーティクルトレイルを使わないようにする](/learn/optimize-particle/particle-trails) を見てください。
 :::

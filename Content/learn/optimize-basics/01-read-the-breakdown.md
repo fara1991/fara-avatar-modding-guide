@@ -42,7 +42,7 @@ updated: 2026-11-07
 
 ### 数字の無い項目
 
-ダウンロードサイズと非圧縮サイズは、「/」の右の数字がなく、色の段階もありません。値だけが灰色で出ます。サイズの上限は、ランクの表とは別に、公式の [Avatar Size Limits](https://creators.vrchat.com/avatars/avatar-size-limits) にあります。PC は Download 200 MB・Uncompressed 500 MB、Android は Download 10 MB・Uncompressed 40 MB です（ページの最終更新は 2026 年 10 月 7 日）。この画面の値（Windows で 37.12 MB・138.38 MB）は、どちらも PC の上限より小さい値です。公式では、Build & Test を使う場合は、サイズの上限は適用されないと書かれています。
+ダウンロードサイズと非圧縮サイズは、「/」の右の数字がなく、色の段階もありません。値だけが灰色で出ます。サイズの上限は、ランクの表とは別に、公式の [Avatar Size Limits](https://creators.vrchat.com/avatars/avatar-size-limits) にあります。PC は Download 200 MB・Uncompressed 500 MB、Android は Download 10 MB・Uncompressed 40 MB です。この画面の値（Windows で 37.12 MB・138.38 MB）は、どちらも PC の上限より小さい値です。公式では、Build & Test を使う場合は、サイズの上限は適用されないと書かれています。
 
 テクスチャメモリーも、画面には上限（「/」の右の数字）が出ません（93.50 MB と値だけが出ます）。公式のランクごとの上限は、[パフォーマンスランク](/learn/vrchat/performance-rank) の表のとおりです。
 
@@ -62,9 +62,9 @@ Android と iOS の欄には、「使用不可」（灰色）と出ます。
 
 ### 表の読み方
 
-- 表の「公式の定義・補足」は、公式の統計表の説明（定義）と、公式の注記（補足）をまとめたものです。「補足: ―」は、この記事の表では補足を載せていない項目です（公式の統計表の説明に補足が見当たらない項目）。
+- 表の「公式の定義・補足」は、公式の統計表の説明（定義）と、公式の注記（補足）をまとめたものです。「補足: ―」は、この記事の表では補足を載せていない項目です。
 - 「上限（PC / Android）」は、左が PC、右が Android の Poor の上限です。「モバイル（Android・iOS）では無効」は、公式の Mobile Removed Components に挙げられた項目です。
-- 「減らし方（公式の勧め）」の列は、公式の減らし方の勧めを出典つきで書いています。出典は、Avatar Optimization Tips（公式の勧め）、Avatar Size Limits（サイズの減らし方）、Performance Ranks › Avatar Performance Ranking Stats › Face Tracking のいずれかです。公式は勧めを書いているだけで、効果の大きさは書かれていないため、この列には書きません。「―」は、公式の勧めを載せていない項目です。
+- 「減らし方（公式の勧め）」の列は、公式の減らし方の勧めを出典つきで書いています。出典は、Avatar Optimization Tips（公式の勧め）、Avatar Size Limits（サイズの減らし方）、Performance Ranks › Avatar Performance Ranking Stats › Face Tracking のいずれかです。「―」は、公式の勧めを載せていない項目です。
 
 ## 1. プラットフォーム欄とメッシュ系
 
@@ -83,7 +83,7 @@ Android と iOS の欄には、「使用不可」（灰色）と出ます。
 | ダウンロードサイズ | 圧縮後のアバターの大きさ（asset bundle を圧縮したサイズ）。補足: SDK は、ビルド時に上限を超えるとアップロードを止める | ランクの表の項目ではない（サイズの上限は上の節を参照） | サイズを減らす手順が公式にある（Avatar Size Limits。テクスチャの最大サイズ、音声の長さと品質、アニメーションのキーフレーム、ブレンドシェイプなど） |
 | テクスチャメモリー | テクスチャが使うメモリーの推定値。補足: テクスチャは、システム RAM と GPU のメモリーの両方を使う | 150 MB / 40 MB | 公式の勧め（Avatar Optimization Tips）: Unity のインポート設定で Max Size を下げる。高解像度のテクスチャを何枚も使わない |
 | 非圧縮サイズ | 展開（非圧縮）したあとの asset bundle の大きさ。補足: 個々のアセットは展開せず、bundle 全体で数える。テクスチャの圧縮を High Quality にすると、ダウンロードと非圧縮の両方が増える | ランクの表の項目ではない（サイズの上限は上の節を参照） | サイズを減らす手順は同上 |
-| 三角ポリゴンの数 | モデルの三角ポリゴンの数（公式の項目名は Triangles。以前は誤って「Polygons」と呼ばれていた）。補足: Mesh Read/Write を、いずれかの mesh（particle systems を含む）で無効にすると、この項目は「Mesh Read/Write Disabled」と表示され、ランクは即座に Very Poor になる（下の注意を参照） | 70,000 / 20,000 | 公式の勧め（Avatar Optimization Tips）: 法線マップの焼き込み、decimation（間引き）や retopology（作り直し）によるメッシュの簡略化を検討する |
+| 三角ポリゴンの数 | モデルの三角ポリゴンの数（公式の項目名は Triangles。以前は誤って「Polygons」と呼ばれていた）。補足: Mesh Read/Write を、いずれかの mesh（particle systems を含む）で無効にすると、この項目は「Mesh Read/Write Disabled」と表示され、ランクは即座に Very Poor になる（「赤い項目から、どう手をつけるか」の下の注意を見てください） | 70,000 / 20,000 | 公式の勧め（Avatar Optimization Tips）: 法線マップの焼き込み、decimation（間引き）や retopology（作り直し）によるメッシュの簡略化を検討する |
 | 範囲（BOUNDS） | アバター全体の大きさ（3 方向の寸法）。Trail Renderer と Line Renderer は計算に入らない。補足: 大きいと、常時は見えない大きなアニメーションがある可能性がある。範囲（BOUNDS）は、アバターの表示が制限される理由にはなりません（公式の注記） | 5 × 6 × 5 m / 5 × 6 × 5 m | ― |
 | スキンドメッシュの数 | Skinned Mesh Renderer（ボーンで動くメッシュ）のコンポーネントの数。補足: ― | 16 / 2 | 公式の勧め（Avatar Optimization Tips）: メッシュを統合する。Skinned Mesh Renderer は 1 つまで、静的（Static）メッシュは 3 つまでを推奨（ランクの上限とは別の推奨値） |
 | 基本メッシュの数 | ボーンで動かない Mesh Renderer のコンポーネントの数。補足: ― | 24 / 2 | 公式の勧め（Avatar Optimization Tips）: メッシュを統合する。静的（Static）メッシュは 3 つまでを推奨（ランクの上限とは別の推奨値） |
@@ -166,7 +166,7 @@ Android と iOS の欄には、「使用不可」（灰色）と出ます。
 - リジッドボディの数（2/8）は Medium の範囲で、画面では黄色です。
 - コライダーの数（1/8）とオーディオソースの数（2/8）は Good の範囲で、画面では濃い緑です。
 - CLOTH メッシュの数（0/1）、CLOTH の最大頂点の数（0/200）、レイキャストの数（0/15）、FORWARDED PARAMETERS（0/40）、FACE TRACKING OPERATIONS（0/16,000）は、値が 0 で、緑です。
-- パーティクルの衝突は「FALSE/あり」で、緑です。読み方は、前の節の「FALSE/あり」と同じです。
+- パーティクルの衝突は「FALSE/あり」で、緑です。読み方は、冒頭の「FALSE/あり」の説明と同じです。
 
 ## 赤い項目から、どう手をつけるか
 
@@ -210,4 +210,4 @@ PHYSBONE 衝突チェックの数（329/512）、ライトの数（1/1）、ト�
 - [Avatar Fallback System（VRChat 公式）](https://docs.vrchat.com/docs/avatar-fallback-system)。このページの冒頭には警告があります（要旨）。フォールバックは impostor に置き換えられつつあり、Web では選べるが VRChat の中では選べない、という内容です。
 - [Tags（Unity マニュアル）](https://docs.unity3d.com/Manual/Tags.html)・[FBX Importer（Unity マニュアル。Read/Write）](https://docs.unity3d.com/Manual/FBXImporter-Model.html)・[描画の呼び出しの最適化（Unity マニュアル）](https://docs.unity3d.com/Manual/optimizing-draw-calls.html)
 
-この記事は 2026 年 11 月 6 日に確認した公式ページを元にしています。公式の Avatar Performance Ranking System は、ページ末尾に 2026 年 10 月 21 日の最終更新の記載があり、Avatar Size Limits は 2026 年 10 月 7 日の最終更新の記載があり、Avatar Optimization Tips も 2026 年 10 月 7 日の最終更新の記載があります。上限の値は見直されることがあるので、最新の値は公式ページで確かめてください。
+上限の値は見直されることがあるので、最新の値は公式ページで確かめてください。

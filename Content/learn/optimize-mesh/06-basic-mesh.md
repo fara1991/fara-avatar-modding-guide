@@ -1,7 +1,7 @@
 ---
 title: 基本メッシュの数を減らす
 reading: きほんめっしゅのかずをへらす
-description: ボーンで動かないメッシュ（基本メッシュ）の数を減らす方法です。AAO の Merge Skinned Mesh に MeshRenderer を入れて統合する方法を中心に、ほかのツールで資料に書かれていること、注意を説明します。
+description: ボーンで動かないメッシュ（基本メッシュ）の数を減らす方法です。AAO の Merge Skinned Mesh に MeshRenderer を入れて統合する方法を中心に、ほかのツールの機能、注意を説明します。
 difficulty: 中級
 updated: 2026-11-07
 ---
@@ -10,24 +10,16 @@ updated: 2026-11-07
 - 基本メッシュの上限は、PC が 24、Android が 2
 - 描画の呼び出し（ドローコール）は、メッシュごとに 1 回ずつ必要になるのが基本（Unity マニュアルの説明）
 - AAO Merge Skinned Mesh の「メッシュレンダラー」に MeshRenderer を入れて統合できる（AAO 1.9.21 の公式の資料）
-- Trace And Optimize の自動の統合について、公式の説明はスキンメッシュレンダラーだけを対象としている
+- Trace And Optimize の自動の統合について、公式の説明は、自動の統合の対象としてスキンメッシュレンダラーを挙げている
 :::
 
 基本メッシュ（MeshRenderer。ボーンで動かないメッシュのことです）の数は、パフォーマンスランクの「基本メッシュの数」で数えられます。上限は PC が 24、Android が 2 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。上限を超えると次のランクになります。描画の呼び出し（ドローコール）は、メッシュごとに 1 回ずつ必要になるのが基本で、減らすと描画の時間が短くなると、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) に、Unity マニュアルの説明として書かれています。
-
-::: tip
-この記事で使う言葉は、次のとおりです。
-
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版・英語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
-
-この記事は、AAO 1.9.21 と、ほかのツールの公式の資料を 2026 年 11 月 6 日に確かめて書きました。版が上がると挙動が変わることがあります。
-:::
 
 ## 減らす前に確かめること
 
 - 数は、VRChat SDK の Control Panel の「パフォーマンスの内訳」で確かめます。「基本メッシュの数」の左の値が、このアバターの数です。数えるのは、ボーンで動かない Mesh Renderer のコンポーネントの数です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。
 - AAO を使ったあとは、Control Panel のランクはあてになりません。Play モードに入ったときのランクや、Manual bake avatar の複製で確かめてください（[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」）。
-- lilAvatarUtils のレンダラーのタブでは、メッシュごとのポリゴン数・マテリアルスロット数などを一覧で確かめられます（確認のみ）。
+- lilAvatarUtils のレンダラーのタブでは、メッシュごとのポリゴン数・マテリアルスロット数などを一覧で確かめられます。
 
 ## 減らし方の考え方
 
@@ -38,35 +30,13 @@ updated: 2026-11-07
 
 ## ツール別の方法
 
-### Modular Avatar（MA） {.tool .tool-ma}
-
-- **何をするか**: Mesh Settings は、配下のメッシュに Anchor Override と範囲（BOUNDS）を設定するコンポーネントです。範囲（BOUNDS）は SkinnedMeshRenderer だけに影響し、Anchor Override は Mesh Renderer などにも設定されると書かれています（[Mesh Settings](https://modular-avatar.nadena.dev/ja/docs/reference/mesh-settings)）。
-- **どう使うか**: 衣装を組み込む手順は、[Modular Avatar で衣装を着せる](/learn/unity/modular-avatar-outfit) を見てください。Merge Armature は衣装のアーマチュアを統合するもので、複数のメッシュを 1 つにまとめる機能ではありません。
-- **公式に記載なし**{.lbl .lbl-none}: 基本メッシュの数を減らす機能は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のリファレンス一覧、Merge Armature・Bone Proxy・Mesh Settings のページ）。
-
-### TexTransTool（TTT） {.tool .tool-ttt}
-
-- **何をするか**: AtlasTexture は、マテリアルを結合してテクスチャを 1 枚にまとめます。公式は、AtlasTexture のマテリアルの結合では、マテリアルスロットは結合できないと明記しています（[公式: Quest対応のためのアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
-- **公式に記載なし**{.lbl .lbl-none}: 基本メッシュの数を減らす機能は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Reference のコンポーネント一覧、チュートリアル、FAQ。一覧に、メッシュを統合するコンポーネントはありません）。
-
-### lilAvatarUtils {.tool .tool-lil}
-
-- **何をするか**: レンダラーのタブで、メッシュごとのポリゴン数・頂点数・マテリアルスロット数などを一覧で表示します。減らす操作ではなく、確認のための機能です（[公式: レンダラー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/RenderersGUI.html)）。
-- **公式に記載なし**{.lbl .lbl-none}: メッシュを結合する機能は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: レンダラー・マテリアル・テクスチャ・ツールの各タブの説明）。
-
-### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
-
-- **何をするか**: メッシュを簡略化するツールです。コンポーネントは、1 つの Renderer に付ける Meshia Mesh Simplifier と、アバター直下に 1 つ置く Meshia Cascading Avatar Mesh Simplifier の 2 種類です（[公式ドキュメント](https://ramtype0.github.io/Meshia.MeshSimplification/)）。
-- **公式に記載なし**{.lbl .lbl-none}: 基本メッシュの数を減らす機能は、**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: README、公式ドキュメント、この 2 種類のコンポーネントの説明。どちらも、メッシュを簡略化するものとして書かれています）。
-
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
 - **何をするか**:
   - **AAO Merge Skinned Mesh の「メッシュレンダラー（Basic Renderers）」**: 統合対象の MeshRenderer を入れる一覧です。公式は、静的メッシュの移動・回転・変形をボーンで再現すると書いています。
-  - **Trace And Optimize の自動の統合（スキンメッシュレンダラーを統合する）**: 公式の説明は、スキンメッシュレンダラーを対象としています。Trace And Optimize のページには、MeshRenderer を統合することについての記載はありません（**公式に記載なし**{.lbl .lbl-none}）。
-- **どう使うか**: 付け方と設定は、[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の AAO の節と同じです。統合する MeshRenderer は、「メッシュレンダラー（Basic Renderers）」の一覧に入れます。
+  - **どう使うか**: 付け方と設定は、[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の AAO の節と同じです。統合する MeshRenderer は、「メッシュレンダラー（Basic Renderers）」の一覧に入れます。
 - **注意**:
-  - 「空のレンダラーオブジェクトを削除する」の既定の記載は、SkinnedMeshRenderer が付いている GameObject についてのものです。MeshRenderer だけの GameObject については、**公式に記載なし**{.lbl .lbl-none}です（確かめた範囲: AAO Merge Skinned Mesh の日本語版・英語版のページと changelog。説明の対象は SkinnedMeshRenderer だけで、MeshRenderer についての記載はありません）。
+  - 「空のレンダラーオブジェクトを削除する」の既定の記載は、SkinnedMeshRenderer が付いている GameObject についてのものです。
   - 別々のメッシュのマテリアルもまとめたいときは、AAO Merge Material を同じ GameObject に追加します。公式のコンポーネントの一覧では、1.9.0 以降、Merge Material は MeshRenderer にも対応すると書かれています（[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の「Merge Material との関係」）。
   - changelog の 1.7.5 に、MeshRenderer を形（Shape）に使うパーティクルシステムが壊れる問題の修正が記録されています（[changelog](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/)）。
 
@@ -89,7 +59,7 @@ updated: 2026-11-07
 - **統合後にメッシュが見えない**: FAQ によると、多くの場合は、統合先の SkinnedMeshRenderer の Root Bone を指定し忘れていることが原因です。AAO Merge Skinned Mesh は Root Bone を自動で設定しません。
 - **統合後に明るさが違う**: FAQ によると、多くの場合は、統合先の SkinnedMeshRenderer の Anchor Override を指定し忘れていることが原因です。
 - **マテリアルのアニメーションが競合する**: 公式の書き方は食い違っています。詳しくは、[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の「注意・うまくいかないとき」を見てください。
-- **Trace And Optimize が自動で統合しないメッシュ**: **公式に記載なし**{.lbl .lbl-none}（確かめた範囲: Trace And Optimize と Merge Skinned Mesh の日本語版のページ。自動で統合されない条件の一覧は書かれていません）。公式の案内は、自動では統合しないメッシュがあるときは、手動の AAO Merge Skinned Mesh を使う、というものです。
+- **Trace And Optimize が自動で統合しないメッシュ**: 公式の案内は、自動では統合しないメッシュがあるときは、手動の AAO Merge Skinned Mesh を使う、というものです。
 
 ## 関連ページ
 
