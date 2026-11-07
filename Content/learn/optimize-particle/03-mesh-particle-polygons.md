@@ -1,7 +1,7 @@
 ---
 title: メッシュパーティクルの三角ポリゴン数の確かめ方と、減らす手がかり
 reading: めっしゅぱーてぃくるのさんかくぽりごんすうのたしかめかたとへらすてがかり
-description: メッシュパーティクルの三角ポリゴン数の上限と確かめ方、公式の定義の式の原文、減らす手がかり（放出数と頂点数）をまとめます。
+description: メッシュパーティクルの三角ポリゴン数の上限と確かめ方、定義の式、減らす手がかり（放出数と頂点数）をまとめます。
 difficulty: 中級
 updated: 2026-11-07
 ---
@@ -13,33 +13,24 @@ updated: 2026-11-07
 - 減らす手がかりは、式の maxEmission（放出数）と meshParticleVerts（頂点数）の 2 つ
 :::
 
-メッシュパーティクルの三角ポリゴン数は、有効（active）な Particle System（パーティクルシステム）が出すメッシュ状の粒子（メッシュパーティクル）の三角ポリゴンの数を数える項目です。SDK の「パフォーマンスの内訳」では「メッシュパーティクルの三角ポリゴン数」と表示され、公式の表の行名は Mesh Particle Active Polys です。上限は、PC の Poor が 5,000、Android の Poor が 400 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
+メッシュパーティクルの三角ポリゴン数は、有効（active）な Particle System（パーティクルシステム）が出すメッシュ状の粒子（メッシュパーティクル）の三角ポリゴンの数を数える項目です。SDK の「パフォーマンスの内訳」では「メッシュパーティクルの三角ポリゴン数」と表示され、ランキングの表の行名は Mesh Particle Active Polys です。上限は、PC の Poor が 5,000、Android の Poor が 400 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
-上限を超えると、公式では次のランクになると書かれています。表示の下限（Minimum Displayed Performance Rank）より下のランクになったときは、公式の表に「All Particle Systems removed」（すべての Particle System が取り除かれる）と書かれています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えると書かれています。ただし、英語の原文には、極端に最適化されていないアバターは使えなくなることがある、とも書かれています（英語の原文の要約です）。
-
-VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は原文に訳を添えています。
+上限を超えると、次のランクになります。表示の下限（Minimum Displayed Performance Rank）より下のランクになると、All Particle Systems removed（すべての Particle System が取り除かれる）になります（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。ただし、極端に最適化されていないアバターは、使えなくなることがあります。
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「メッシュパーティクルの三角ポリゴン数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、4,000,000（上限 5,000）と表示されていました。
-- **Control Panel の数字**: AAO の公式は、非破壊改変ツールを使った改変では、SDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています。Play モードに入ったときのランクは、Actual Performance Window で確かめられます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
-- **数え方の式**: 公式の定義は、次の原文です。
-  > "The total number of triangles of Mesh Particles emitted by Particle Systems that are active. In other words, maxEmission * meshParticleVerts."
+- **Control Panel の数字**: 非破壊改変ツールを使った改変では、SDK の Control Panel のパフォーマンスランクは実際の値とずれます。実際の値は、Play モードの Actual Performance Window で確かめます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
+- **数え方の式**: 定義は、有効な Particle System が出すメッシュパーティクルの三角形（triangles）の合計数です。言い換えると、maxEmission × meshParticleVerts です。
 
-  訳: 有効な Particle System が出すメッシュパーティクルの三角形（triangles）の合計数。言い換えると、maxEmission × meshParticleVerts。
+## 減らし方
 
-## 減らし方の考え方
-
-VRChat 公式の勧めは、パーティクル全般のものです。Avatar Optimization Tips には、次の原文があります（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
-
-> "Limit the number of particle systems that you're using, and limit the maximum amount of particles emitting at any one given moment."
-
-訳: 使う Particle System の数を制限し、同時に放出される粒子の最大数を制限する。
+パーティクル全般では、使う Particle System の数を制限し、同時に放出される粒子の最大数を制限するのがおすすめです（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「メッシュパーティクルの三角ポリゴン数」の今の値と上限（PC の Poor が 5,000、Android の Poor が 400）を確かめます。
-2. 公式の式（maxEmission × meshParticleVerts）から、減らせる変数は「放出数」（式の maxEmission）と「メッシュの頂点数」（式の meshParticleVerts）です（**この記事の助言**{.lbl .lbl-adv}）。
+2. この式（maxEmission × meshParticleVerts）から、減らせる変数は「放出数」（式の maxEmission）と「メッシュの頂点数」（式の meshParticleVerts）です（**この記事の助言**{.lbl .lbl-adv}）。
 3. 作業の前に、プロジェクトのバックアップを取り、対象のパーティクルの見た目と動きを記録します（**この記事の助言**{.lbl .lbl-adv}）。
 4. 作業するときは、Mesh Read/Write を無効にしないでください（下の注意）。
 5. 放出数（式の maxEmission）か、メッシュの頂点数（式の meshParticleVerts）を減らしたあとは、Play モードに入って見た目と動きが変わっていないかを確かめ、パフォーマンスの内訳をもう一度見て、数が変わったかを確かめます（**この記事の助言**{.lbl .lbl-adv}）。
@@ -47,7 +38,7 @@ VRChat 公式の勧めは、パーティクル全般のものです。Avatar Opt
 ## 注意・うまくいかないとき
 
 ::: warning
-- **Mesh Read/Write**: 公式の記述によると、アバターのいずれかの mesh（パーティクルシステムのメッシュを含む）で Mesh Read/Write を無効にすると、アバターの Triangles（三角ポリゴン数）の行が「Mesh Read/Write Disabled」と表示され、ランクは即座に Very Poor になります。原文は "regardless of the actual triangle count on the avatar"（アバターの実際の三角ポリゴン数にかかわらず）です（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+- **Mesh Read/Write**: アバターのいずれかの mesh（パーティクルシステムのメッシュを含む）で Mesh Read/Write を無効にすると、アバターの Triangles（三角ポリゴン数）の行は「Mesh Read/Write Disabled」と表示され、ランクは即座に Very Poor になります。アバターの実際の三角ポリゴン数にかかわらず、この扱いになります（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 :::
 
 ## 関連ページ

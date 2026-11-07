@@ -47,7 +47,7 @@ VRM には 0.x と 1.0 の 2 つの版があり、UniVRM はどちらも書き�
 
 ## 1. 正規化の前に確かめること
 
-- **着せ替えのボーンの入れ方** が正しい。Modular Avatar の Merge Armature はアップロード（ビルド）のときに統合する仕組みなので、そのままでは VRM の書き出しに反映されません。衣装のボーンをアバターのボーンの子に入れる、Blender で統合する、など VRM の書き出しで使える形にしておきます（[Q&A](/qa#vrm-normalize-pitfalls)）。アバターを右クリックして **Modular Avatar > Manual bake avatar** を実行すると、Modular Avatar の処理を済ませたアバターの複製が作られるので、それを元にする方法もあります（VRM 向けの使い方は公式には書かれていないので、結果を確かめてください）
+- **着せ替えのボーンの入れ方** が正しい。Modular Avatar の Merge Armature はアップロード（ビルド）のときに統合する仕組みなので、そのままでは VRM の書き出しに反映されません。衣装のボーンをアバターのボーンの子に入れる、Blender で統合する、など VRM の書き出しで使える形にしておきます（[Q&A](/qa#vrm-normalize-pitfalls)）。アバターを右クリックして **Modular Avatar > Manual bake avatar** を実行すると、Modular Avatar の処理を済ませたアバターの複製が作られるので、それを元にする方法もあります（VRM 向けの使い方は、この記事では確かめていません。結果を確かめてください）
 - **使わないボーン・オブジェクトは削除せず非表示**: Unity でボーンを削除すると「必要なボーンがない」エラーになることがあります。正規化の前は非表示にしておくと、正規化で消えます（[Q&A](/qa#remove-unused-bones-after-dressing)）
 - **ヒールのある靴**: 正規化後に Armature の高さを上げて、ヒールが床に付くようにします（[Q&A](/qa#heel-shoes-fitting)）
 

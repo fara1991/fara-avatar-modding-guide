@@ -1,23 +1,21 @@
 ---
 title: AvatarPoseLibrary（APL）でポーズを設定する
 reading: あばたーぽーずらいぶらりーでぽーずをせっていする
-description: AvatarPoseLibrary（APL）の入れ方、既存の AnimationClip をポーズとして登録する手順、VRChat のメニューでの使い方を、公式の資料に書かれた範囲でまとめます。
+description: AvatarPoseLibrary（APL）の入れ方、既存の AnimationClip をポーズとして登録する手順、VRChat のメニューでの使い方をまとめます。
 difficulty: 中級
 updated: 2026-11-07
 ---
 
 ::: point
 - APL は既存の AnimationClip を登録して呼び出すツールなので、ポーズ自体は別に作った AnimationClip を用意する
-- 公式の資料では、依存パッケージの版やパラメーター数への影響の数字が資料によって違う
+- 依存パッケージの版やパラメーター数への影響は、資料によって数字が違う
 - Resources/ のファイルは、公式パッケージの一部としてだけ再配布できるので、ポーズのデータを配布する前に LICENSE を読む
 :::
 
-[AvatarPoseLibrary（APL）](https://github.com/HhotateA/AvatarPoseLibrary) は、Unity 上で VRChat 向けのアバター用のポーズを管理・適用するためのツールです（[README](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/README.md) の説明）。この記事では、APL の入れ方と、ポーズを登録する手順、VRChat での使い方を説明します。パラメーター（Expression Parameters）への影響と、注意点もまとめます。
+[AvatarPoseLibrary（APL）](https://github.com/HhotateA/AvatarPoseLibrary) は、Unity 上で VRChat 向けのアバター用のポーズを管理・適用するためのツールです（[README](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/README.md)）。この記事では、APL の入れ方と、ポーズを登録する手順、VRChat での使い方を説明します。パラメーター（Expression Parameters）への影響と、注意点もまとめます。
 
 ::: warning
 APL は、既存の AnimationClip（Unity のアニメーションの動きを保存したファイル）を登録して、VRChat のメニューから呼び出すツールです。
-
-[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual) は、ポーズの元になるものを「ポーズに関連付けられたAnimationClipです。」と説明しています。
 
 そのため、ポーズそのものは、別の方法で作った AnimationClip を用意してください。
 
@@ -36,9 +34,9 @@ APL は、既存の AnimationClip（Unity のアニメーションの動きを�
 - **Unity 2022.3**（APL の対応版）
 - **VRChat のアバター SDK（`com.vrchat.avatars`）**
 - **NDMF（`nadena.dev.ndmf`）**（Non-Destructive Modular Framework の略。アバターを非破壊で改変するための基盤です）
-- **Modular Avatar（`nadena.dev.modular-avatar`）**（衣装などを、アバターを壊さずに組み込むツールです）。Q&A は「APLはModular Avatarを前提として設計されています。」と書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
+- **Modular Avatar（`nadena.dev.modular-avatar`）**（衣装などを、アバターを壊さずに組み込むツールです）。APL は Modular Avatar を前提として設計されています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
 
-依存パッケージの版は、公式の資料の中で 2 通りに書かれています。どちらも原文のまま並べます。
+依存パッケージの版は、導入ページ（[How-to-Install](https://github.com/HhotateA/AvatarPoseLibrary/wiki/How-to-Install)）と APL の package.json で書き方が違います。表の左の列は導入ページの版で、右の列は package.json の条件です。依存パッケージは、APL より先に Unity のプロジェクトに入れておきます。
 
 | パッケージ | 導入ページの記載（[How-to-Install](https://github.com/HhotateA/AvatarPoseLibrary/wiki/How-to-Install)） | リポジトリの package.json |
 |---|---|---|
@@ -46,7 +44,7 @@ APL は、既存の AnimationClip（Unity のアニメーションの動きを�
 | `nadena.dev.ndmf` | `"nadena.dev.ndmf": "1.7.9"` | `">=1.5.0"` |
 | `nadena.dev.modular-avatar` | `"nadena.dev.modular-avatar": "1.12.5"` | `">=1.10.0"` |
 
-導入ページは、「あらかじめ以下の依存パッケージをプロジェクトに追加しておく」と書いています。表の左の列は、その導入ページに書かれた依存パッケージの版で、右の列は package.json の値（そのパッケージの条件）です。導入ページの NDMF 1.7.9 は、AAO（Avatar Optimizer）の要件（1.8.0 以上）より低いため、AAO と一緒に使う場合は、NDMF を 1.8.0 以上 2.0.0 未満にしてください（AAO の要件。[AAO の記事](/learn/optimize-aao/avatar-optimizer) を参照）。
+導入ページの NDMF 1.7.9 は、AAO（Avatar Optimizer）の要件（1.8.0 以上）より低いため、AAO と一緒に使う場合は、NDMF を 1.8.0 以上 2.0.0 未満にしてください（AAO の要件。[AAO の記事](/learn/optimize-aao/avatar-optimizer) を参照）。
 
 ::: warning
 導入の前に、Unity のプロジェクトのバックアップを取ってください。
@@ -56,7 +54,7 @@ APL は、既存の AnimationClip（Unity のアニメーションの動きを�
 
 ### VCC から入れる
 
-APL は、[VCC（VRChat Creator Companion）](/learn/vrchat/vcc-project) から入れるのがおすすめだと、README に書かれています。README の手順は次のとおりです。
+APL は、[VCC（VRChat Creator Companion）](/learn/vrchat/vcc-project) から入れるのがおすすめです（[README](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/README.md)）。手順は次のとおりです。
 
 1. VCC を開き、**Settings** に移動します。
 2. **Packages** タブをクリックします。
@@ -69,7 +67,7 @@ APL は、[VCC（VRChat Creator Companion）](/learn/vrchat/vcc-project) から�
 6. リポジトリの情報を確認し、**I Understand** をクリックします。
 7. 任意のプロジェクトの **Manage Project** から APL を追加します。
 
-wiki の [Beginner-Tutorials](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Beginner-Tutorials) には、APL の公式サイトにある「VCCに追加」ボタンから入れる、別の手順があります。その手順では、「Creator Companion を開く」を選び、「I Understand、AddRepository」をクリックします。
+APL の公式サイトにある「VCCに追加」ボタンから入れる方法もあります。その場合は、「Creator Companion を開く」を選び、「I Understand、AddRepository」をクリックします（[Beginner-Tutorials](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Beginner-Tutorials)）。
 
 ### UnityPackage から入れる
 
@@ -87,13 +85,13 @@ wiki の [Beginner-Tutorials](https://github.com/HhotateA/AvatarPoseLibrary/wiki
 手順は、wiki の [Beginner-Tutorials](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Beginner-Tutorials) の流れに、[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual) の項目の説明を合わせたものです。
 
 1. アバターの [Prefab](/glossary#prefab) を、Hierarchy ウィンドウにドラッグ＆ドロップします。
-2. Hierarchy 上で右クリックし、**Create Empty** を選びます。作った GameObject を、アバターの子にします。Unity-Manual は「アバターの直下にGameObjectを生成します。」と書いています。
+2. Hierarchy 上で右クリックし、**Create Empty** を選びます。作った GameObject は、アバターの子にします（アバターの直下に生成されます。[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual)）。
 3. その GameObject を選び、Inspector で **Add Component** をクリックします。検索欄に「Avatar Pose Library」と入力し、表示されたコンポーネントを選びます。
 4. コンポーネントの右上の **+** をクリックして、カテゴリーを追加します。
 5. カテゴリーの中に、ポーズを登録します。各項目は、次の表のとおりです。
 6. 複数のポーズをまとめて追加するときは、**Drop Area** に AnimationClip をまとめてドラッグ＆ドロップします。
 
-| 項目 | 公式の説明の要約（[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual)） |
+| 項目 | 説明（[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual) の要約） |
 |---|---|
 | Library Name | VRChat のメニューに表示される名前です。この名前が同じコンポーネントは、アップロード時に統合されます。 |
 | Mode Settings | Enable Height、Enable Speed、Enable Mirror、Enable Trackings を切り替えます。同じ Library Name では、単一の設定になります。 |
@@ -107,12 +105,12 @@ wiki の [Beginner-Tutorials](https://github.com/HhotateA/AvatarPoseLibrary/wiki
 | Motion Speed | 再生速度の初期値です。 |
 | Drop Area | AnimationClip をまとめてドラッグ＆ドロップすると、ポーズを一括で生成します。 |
 
-Mode Settings の 4 つの項目には、それぞれ次の説明があります（Unity-Manual の原文）。
+Mode Settings の 4 つの項目は、次のとおりです（[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual)）。
 
-- Enable Height: 「ポーズ再生中の、アバターの地面の高さを設定できるようになります。」
-- Enable Speed: 「ポーズの再生速度を変更できるようになります。これが有効な場合、静的なアニメーションも自動的に生物らしいランダムなアニメーションに変換されます。」
-- Enable Mirror: 「ポーズを左右反転できるようになります。」
-- Enable Trackings: 「トラッキングメニューを表示します。」
+- Enable Height: ポーズ再生中の、アバターの地面の高さを設定できます。
+- Enable Speed: ポーズの再生速度を変更できます。有効にすると、静的なアニメーションも自動的に生物らしいランダムなアニメーションに変換されます。
+- Enable Mirror: ポーズを左右反転できます。
+- Enable Trackings: トラッキングメニューを表示します。
 
 [![APL の設定の入れ子。アバターの Prefab の下に空の GameObject、その中に Avatar Pose Library コンポーネント、その中にカテゴリー、カテゴリーの中にポーズ](images/avatar-pose-library-structure.png)](/learn/vrchat-features/images/avatar-pose-library-structure.png)
 *設定の入れ子（Unity-Manual の説明を、この記事で図にしたもの）*
@@ -135,16 +133,16 @@ Mode Settings の 4 つの項目には、それぞれ次の説明があります
 | 高さ調整機能 ／ スピード調整機能 ／ ミラー機能 ／ トラッキング機能 | Enable Height ／ Enable Speed ／ Enable Mirror ／ Enable Trackings（パッケージの英語の表示は Enable Tracking） |
 
 ::: tip
-Q&A には、「Animation Clip を APL にドラッグ＆ドロップ → Generate を押す」だけで基本的な設定が完了すると書かれています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。Drop Area のツールチップ（英語版）には、"You can generate poses by dropping animation clips here in bulk." と書かれています。この記事では、Drop Area に入れる手順を書いています。
+AnimationClip を APL にドラッグ＆ドロップして **Generate** を押すだけで、基本的な設定が完了します（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。Drop Area の英語のツールチップは "You can generate poses by dropping animation clips here in bulk." です。この記事では、Drop Area に入れる手順を書いています。
 
 ポーズ行の右クリックメニューには「Create Pose（新規作成）」の項目もあります。この項目は、空の項目を 1 つ追加します。この記事では使いません。
 :::
 
 ## 保存して共有する
 
-設定が済んだ GameObject は、Project タブにドラッグ＆ドロップすると、Prefab にできます。Unity-Manual は、この Prefab と AnimationClip をセットで UnityPackage として出力すると、APL を持つ人同士で設定を共有できると書いています（[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual)）。配布する前に、下の「注意・うまくいかないとき」にあるライセンスの注意を読んでください。
+設定が済んだ GameObject は、Project タブにドラッグ＆ドロップすると Prefab になります。この Prefab と AnimationClip をセットで UnityPackage に出力すると、APL を持つ人同士で設定を共有できます（[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual)）。配布する前に、下の「注意・うまくいかないとき」にあるライセンスの注意を読んでください。
 
-Prefab を使う側の手順は、Unity-Manual の「Prefabの使用」に書かれています。
+Prefab を使う側は、次の手順で入れます（[Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual) の「Prefabの使用」）。
 
 1. APL を含む依存パッケージが、Unity のプロジェクトに入っているかを確かめます。
 2. APL 対応の UnityPackage を Import します。
@@ -153,54 +151,55 @@ Prefab を使う側の手順は、Unity-Manual の「Prefabの使用」に書か
 
 ## VRChat での使い方
 
-アップロードしたアバターでは、VRChat のアクションメニューに、Library Name の名前の項目が出ます（[VRC-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/VRC-Manual)）。VRC-Manual と Beginner-Tutorials が書いている使い方は、次のとおりです。
+アップロードしたアバターでは、VRChat のアクションメニューに Library Name の項目が出ます（[VRC-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/VRC-Manual)）。使い方は次のとおりです。
 
 - **カテゴリー**: メインメニューは、ポーズのカテゴリーごとに分かれています。
-- **ポーズの選択**: 「1度押すとポーズの有効化、もう一度押すことで無効化できます。」（VRC-Manual）。Beginner-Tutorials は「ポーズを選択すると即時再生されます」と書いています。
-- **設定**: リセット、高さ、再生速度、左右反転、トラッキング設定があります。再生速度は、「50%で通常速度です」と書かれています。リセットは、再生中のポーズを中断し、設定も初期化します。
-- **トラッキング**: 各部位を、アニメーション優先かトラッキング優先かを選べます。「移動抑制を有効にすると、コントローラーでの移動が無効になります。」と書かれています。
+- **ポーズの選択**: 1 度押すとポーズが有効になり、もう一度押すと無効になります（[VRC-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/VRC-Manual)）。ポーズを選ぶと、すぐに再生されます（[Beginner-Tutorials](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Beginner-Tutorials)）。
+- **設定**: リセット、高さ、再生速度、左右反転、トラッキング設定があります。再生速度は、50% が通常の速度です。リセットは、再生中のポーズを中断し、設定も初期化します。
+- **トラッキング**: 各部位を、アニメーション優先かトラッキング優先かを選べます。「移動抑制」を有効にすると、コントローラーでの移動が無効になります。
 
-Beginner-Tutorials は、Quest の場合は、左手のメニューから「表情」や「パラメータ」を選ぶところから始めると書いています。
+Quest の場合は、左手のメニューから「表情」や「パラメータ」を選ぶところから始めます（[Beginner-Tutorials](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Beginner-Tutorials)）。
 
 ## パラメーター（Expression Parameters）への影響
 
-APL のパラメーターへの影響は、公式の資料によって書き方が違います。Unity-Manual は、各 Enable の説明に「パラメーター数が○削減されます」と書いていて、有効にすると減る、という書き方です。Q&A は、無効にすると削減すると書いています。
+パラメーター数への影響は、資料によって数字が違います。資料ごとの数字を、リンクとともに並べます。
 
-- Unity-Manual の Mode Settings の説明:
-  - 「Enable Height: … （パラメーター数が8削減されます）」
-  - 「Enable Speed: … （パラメーター数が8削減されます）」
-  - 「Enable Mirror: … （パラメーター数が1削減されます）」
-  - 「Enable Trackings: … （パラメーター数の削減にはなりません）」
-- Q&A の「パラメーター数が心配です。」の答え:
-  - 「少しでも削減したい場合は、**Enable Height**、**Enable Speed**、**Enable Mirror** の 3 項目を無効化することで、17パラメーター削減できます。」
+- [Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual) の Mode Settings の説明では、有効にすると次のパラメーター数が減ります。
+  - Enable Height: 8 減る
+  - Enable Speed: 8 減る
+  - Enable Mirror: 1 減る
+  - Enable Trackings: パラメーター数は減らない
+- [Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A) では、「パラメーター数が心配です。」への答えとして、Enable Height、Enable Speed、Enable Mirror の 3 項目を無効にすると、17 パラメーター減ります。
 
-APL 1.2.44 の実装では、Height と Speed は有効にするとそれぞれ Float のパラメーターを 1 つ追加します。Mirror は有効にすると Bool のパラメーターと Float のパラメーター（MirrorCycleOffset）を 1 つずつ追加します。公式の資料の数字は、資料によって違います。Unity-Manual の「8」「1」と Q&A の「17」は、上の APL 1.2.44 の実装の追加数とは一致しません。
+APL 1.2.44 の実装では、Height と Speed は有効にするとそれぞれ Float のパラメーターを 1 つ追加します。Mirror は有効にすると Bool のパラメーターと Float のパラメーター（MirrorCycleOffset）を 1 つずつ追加します。上の資料の数字（8・1・17）とは一致しません。
 
-Q&A は、複数のポーズを 1 つの Int パラメーターで制御する設計だとも書いています（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。APL 1.2.44 の実装では、フラグ用の Int のパラメーターを 2 つ追加し、ポーズの番号用の Int は 255 ポーズごとに 1 つ追加されます。ポーズ数の上限については、Q&A に「最新版にて65280ポーズ（16パラメータ）が上限となっています。」とあります。
+APL は、複数のポーズを 1 つの Int パラメーターで制御する設計です（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。APL 1.2.44 の実装では、フラグ用の Int のパラメーターを 2 つ追加し、ポーズの番号用の Int は 255 ポーズごとに 1 つ追加されます。ポーズ数の上限は、最新版で 65280ポーズ（16パラメータ）です（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
 
+::: tip
 パラメーターの数は、VRChat SDK の Expression Parameters の表示で確かめてください（**この記事の助言**{.lbl .lbl-adv}）。Expression Parameters の基本は、[Expression メニューとパラメーター](/learn/vrchat-features/expressions) を見てください。
+:::
 
 ## 注意・うまくいかないとき
 
 ::: warning
-- **非破壊について**: Q&A は、「アバターに対して非破壊的に改変を行っているので、問題が発生した場合でもAPLをアンインストールすれば問題なく動作します。」と書いています。これは作者の説明です。念のため、アップロードの前にバックアップを取ってください。
-- **名前の衝突**: Q&A は、APL が作る Animator（アニメーションの切り替えを制御する Unity の部品）のレイヤーやパラメーターは、ユニークな名前空間で管理されていると書いています。ただし、特殊な構成のアバターでは、手動の調整が必要な場合もあると書かれています。
-- **テレメトリ（利用状況データ）**: Unity Editor からは、利用状況のデータが送られます（[Analytics.md](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Analytics.md)、[privacy.html](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Website/privacy.html)）。初回起動時に「最小限のみ」か「詳細送信を許可」を選びます（画面のボタンは「最小限」「許可」）。変更は `Tools > Avatar Pose Library > Privacy Settings` からできます。Analytics.md は、「どちらのモードでもイベントは送信されます。」と書いています。送られる内容は、モードによって違います。
-- **ライセンス**: README は「MIT ライセンス」と書いています。一方、[LICENSE](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/LICENSE) は、「Files under Resources/ may only be redistributed as part of the official AvatarPoseLibrary package. Please remove any modifications. All other files are licensed under the MIT License.」と書いています。ポーズのデータを配布する前に、LICENSE を読んでください（**この記事の助言**{.lbl .lbl-adv}）。ライセンスの本文は、ルートの `LICENSE` にあります。README の「許諾なしで再配布OK」という説明は、Resources/ には当てはまりません（LICENSE が Resources/ を制限しているため）。
-- **サポート対象外の機能**: wiki の [Secret](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Secret) には、メニューの階層化などの機能があります。Secret は、「これらの機能は全てサポート対象外です。」と書いています。この記事の手順には入れていません。
+- **非破壊について**: APL は非破壊で改変するので、問題が起きたときは APL をアンインストールすれば、影響を取り除けます（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。念のため、アップロードの前にバックアップを取ってください。
+- **名前の衝突**: APL が作る Animator（アニメーションの切り替えを制御する Unity の部品）のレイヤーやパラメーターは、ユニークな名前空間で管理されています。ただし、特殊な構成のアバターでは、手動の調整が必要になることがあります（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
+- **テレメトリ（利用状況データ）**: Unity Editor からは、利用状況のデータが送られます（[Analytics.md](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Analytics.md)、[privacy.html](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Website/privacy.html)）。初回起動時に「最小限のみ」か「詳細送信を許可」を選びます（画面のボタンは「最小限」「許可」）。変更は `Tools > Avatar Pose Library > Privacy Settings` からできます。どちらのモードでもイベントは送信されます（[Analytics.md](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Analytics.md)）。送られる内容は、モードによって違います。
+- **ライセンス**: README では MIT ライセンスとされています。一方、[LICENSE](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/LICENSE) には、次の条文があります。「Files under Resources/ may only be redistributed as part of the official AvatarPoseLibrary package. Please remove any modifications. All other files are licensed under the MIT License.」つまり、Resources/ のファイルは公式パッケージの一部としてだけ再配布でき、それ以外は MIT ライセンスです。README の「許諾なしで再配布OK」は、Resources/ には当てはまりません。ポーズのデータを配布する前に、ルートの `LICENSE` を読んでください（**この記事の助言**{.lbl .lbl-adv}）。
+- **サポート対象外の機能**: wiki の [Secret](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Secret) には、メニューの階層化などの機能があります。これらの機能はサポート対象外です。この記事の手順には入れていません。
 :::
 
 ### 既知の問題
 
-- **ほかのツールとの併用**: [Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting) は、可愛いポーズツール（ゆにスタジオ様）の「他のAnimatorControllerのトラッキング機能を統合する」機能を使うと、APL の Animator が壊れるようだと書いています。「こちらに対する対策アップデートの予定はありません」と書かれ、この機能をオフにすることを勧めています。
-- **リップシンクや表情が固定される**: Troubleshooting は、「WriteDefaultなどの値によって、動作が不安定になるケースが報告されています。」と書いています。Write Defaults の説明は、[表情と FX の基礎](/learn/vrchat-features/fx-basics) を見てください。Q&A は、WriteDefault の設定を見直すことと、APL の Inspector のプリセットのメニューにある「ポーズのみ」を試すことを勧めています。Troubleshooting は、AnimationClip に含まれる表情のキーを削除すると、正常に動作する可能性があると書いています（「可能性があります」）。元のクリップは直接消さず、複製してから試してください（**この記事の助言**{.lbl .lbl-adv}）。
-- **頭の固定を解除すると腰が浮く**: Q&A は、「VRChatの仕様です。（たぶん）」と書いています。頭の位置に合わせて、高さや姿勢を微調整することを勧めています。
-- **フルトラ（全身トラッキング）で棒立ちになる**: Q&A は、設定項目のフルトラッキング時の移動アニメーションを無効にしている場合に棒立ちになる報告があったと書いています。そのうえで、「移動アニメーションを有効にすることで改善するようです。」と書いています。
-- **VRChat 上で動かない**: Q&A は、VRChat の整合性チェックを試すことを勧めています。改善しないときは、[作者の Discord](https://discord.gg/j393GwU4Es) で相談できます。
+- **ほかのツールとの併用**: 可愛いポーズツール（ゆにスタジオ様）の「他のAnimatorControllerのトラッキング機能を統合する」機能を使うと、APL の Animator が壊れることがあります（[Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting)）。APL 側に対策アップデートの予定はないので、この機能をオフにするのがおすすめです（[Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting)）。
+- **リップシンクや表情が固定される**: WriteDefault などの値によって、動作が不安定になることがあります（[Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting)）。Write Defaults の説明は、[表情と FX の基礎](/learn/vrchat-features/fx-basics) を見てください。WriteDefault の設定を見直すことと、APL の Inspector のプリセットのメニューにある「ポーズのみ」を試すことがおすすめです（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。AnimationClip に含まれる表情のキーを削除すると、正常に動く可能性があります（[Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting)）。元のクリップは直接消さず、複製してから試してください（**この記事の助言**{.lbl .lbl-adv}）。
+- **頭の固定を解除すると腰が浮く**: 頭の固定を解除すると、腰が浮くことがあります。VRChat の仕様による可能性があります。頭の位置に合わせて、高さや姿勢を微調整するとよいです（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
+- **フルトラ（全身トラッキング）で棒立ちになる**: 設定項目のフルトラッキング時の移動アニメーションを無効にしていると、棒立ちになることがあります。移動アニメーションを有効にすると、改善することがあります（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
+- **VRChat 上で動かない**: VRChat の整合性チェックを試すとよいです。改善しないときは、[APL の Discord](https://discord.gg/j393GwU4Es) で相談できます（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
 
 ### ビルド時間とデータ量
 
-Q&A には、ポーズ数とビルド時間の表があります（提供: aster 様）。APL なしは 4 秒、256 ポーズは 16 秒、1024 ポーズは 1 分 59 秒です。また、ポーズ 1 種につき 100kb ほどと書かれています。Q&A は、ポーズごとにデータ量とビルド時間が増えるため、実質的な上限は 1000 前後だとも書いています。
+ポーズ数とビルド時間の目安は、次のとおりです（提供: aster 様、[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。APL なしは 4 秒、256 ポーズは 16 秒、1024 ポーズは 1 分 59 秒です。ポーズ 1 種につき 100kb ほどです。ポーズごとにデータ量とビルド時間が増えるため、実質的な上限の目安は 1000 前後です。
 
 ## 関連ページ
 

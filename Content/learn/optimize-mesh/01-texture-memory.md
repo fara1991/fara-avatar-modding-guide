@@ -7,50 +7,50 @@ updated: 2026-11-07
 ---
 
 ::: point
-- 公式の勧めは、Unity のインポート設定で Max Size を下げることと、高解像度のテクスチャを何枚も使わないこと
-- クランチ圧縮を使っても VRAM のサイズは変わらないと、lilAvatarUtils の説明に書かれている
-- AAO を使うと Control Panel のランクはあてにならないと AAO の公式が書いているため、Play モードで確かめる
+- Unity のインポート設定で Max Size を下げることと、高解像度のテクスチャを何枚も使わないことがおすすめです
+- クランチ圧縮を使っても、VRAM のサイズは変わりません
+- AAO を使うと Control Panel のランクはあてにならないため、Play モードで確かめます
 :::
 
-テクスチャメモリーは、アバターで使うテクスチャが使うメモリーの量を表す項目です。SDK の「パフォーマンスの内訳」に出る項目で、上限は PC の Poor が 150 MB、Android の Poor が 40 MB です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。公式では、どれか 1 項目でも上限を超えると次のランクになると書かれています（[パフォーマンスランク](/learn/vrchat/performance-rank)）。
+テクスチャメモリーは、アバターで使うテクスチャが使うメモリーの量を表す項目です。SDK の「パフォーマンスの内訳」に出る項目で、上限は PC の Poor が 150 MB、Android の Poor が 40 MB です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。どれか 1 項目でも上限を超えると、次のランクになります（[パフォーマンスランク](/learn/vrchat/performance-rank)）。
 
 この記事では、テクスチャメモリーを減らす方法を、ツールの機能ごとに整理します。
 
 ## 減らす前に確かめること
 
-パフォーマンスの内訳で、テクスチャメモリーの値を確かめます。ただし、テクスチャメモリーは上限の数字が画面に出ないため、色で段階を読みます（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。テクスチャは、システム RAM と GPU のメモリーの両方を使うと補足されています。GPU 側のメモリーを VRAM と呼びます。
+パフォーマンスの内訳で、テクスチャメモリーの値を確かめます。ただし、テクスチャメモリーは上限の数字が画面に出ないため、色で段階を読みます（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。テクスチャは、システム RAM と GPU のメモリーの両方を使います。GPU 側のメモリーを VRAM と呼びます。
 
 - **SDK の「パフォーマンスの内訳」**: テクスチャメモリーの値と色を見ます。
 - **lilAvatarUtils のテクスチャのタブ**: テクスチャごとの VRAM サイズを見られます。ツールの説明では、テクスチャがロードされたときに使われる VRAM のサイズです。
-- **AAO の結果**: AAO を使うと、Control Panel のパフォーマンスランクはあてにならなくなると、AAO の公式が書いています。Play モードに入ったときのランクで確かめてください（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
+- **AAO の結果**: AAO を使うと、Control Panel のパフォーマンスランクはあてにならなくなります。Play モードに入ったときのランクで確かめてください（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 
 ## 減らし方の考え方
 
-- 公式の勧めは、Unity のインポート設定で Max Size を下げることと、高解像度のテクスチャを何枚も使わないことです（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表に、公式の勧めとして載せています）。
-- lilAvatarUtils の説明では、解像度が小さいほど VRAM のサイズを抑えられるので、見た目の劣化が目立たない範囲で小さくすることが勧められています。
-- 同じ説明では、クランチ圧縮を使っても VRAM のサイズは変わらないと書かれています。
-- 解像度を下げても、元の画像ファイルは変わりません。lilAvatarUtils の説明では、元の画像ファイルの解像度は変更されないため、小さな値を設定しても元に戻せると書かれています（[lilAvatarUtils のテクスチャのタブ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)）。
+- Unity のインポート設定で Max Size を下げることと、高解像度のテクスチャを何枚も使わないことがおすすめです（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) にも同じ内容があります）。
+- 解像度が小さいほど VRAM のサイズを抑えられます。見た目の劣化が目立たない範囲で小さくするのがおすすめです（[lilAvatarUtils のテクスチャのタブ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)）。
+- クランチ圧縮を使っても、VRAM のサイズは変わりません。
+- 解像度を下げても、元の画像ファイルの解像度は変わらないため、小さな値を設定しても元に戻せます（[lilAvatarUtils のテクスチャのタブ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)）。
 
 ## ツール別の方法
 
 ### TexTransTool（TTT） {.tool .tool-ttt}
 
-**何をするか**: AtlasTexture は、公式によると「テクスチャの必要な部分のみを集めたテクスチャを作ることで VRAM の削減を実現する」コンポーネントです。必要な部分だけを集めた 1 枚のテクスチャを作ります。
+**何をするか**: AtlasTexture は、テクスチャの必要な部分だけを集めた 1 枚のテクスチャを作って、VRAM を減らすコンポーネントです。
 
 **どう使うか**:
 
 - アバターのルートを右クリックして、「TexTransTool/TTT AtlasTexture」を選びます。アバターの中に `AtlasTexture` という GameObject ができ、マテリアルが一覧で出ます。
 - 対象のマテリアルにチェックを入れ、Manual Bake Avatar か、Unity エディターの再生で確かめます（[公式チュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
-- TextureFineTuning（テクスチャー詳細設定）で、解像度や圧縮を設定します。公式は、AtlasTexture が作ったテクスチャをそのまま使うと、かえって VRAM が増える可能性があると書いています。
-- TextureFineTuning の「Remove」は、指定したテクスチャを消去し、マテリアルに割り当てられないようにする設定です。公式は「テクスチャを消せばVRAM削減になります」と書いています（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。この記事の補足ですが、消したテクスチャを使っている部分は表示が変わるため、対象を確かめてから設定してください。
+- TextureFineTuning（テクスチャー詳細設定）で、解像度や圧縮を設定します。AtlasTexture が作ったテクスチャをそのまま使うと、かえって VRAM が増える可能性があります。
+- TextureFineTuning の「Remove」は、指定したテクスチャを消去し、マテリアルに割り当てられないようにする設定です。テクスチャを消すと VRAM を減らせます（[TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。ただし、消したテクスチャを使っている部分は表示が変わるため、対象を確かめてから設定してください。
 
-**TextureConfigurator（実験的）**: 解像度と MipMap を、非破壊的に制御するコンポーネントです。メニューは「TexTransTool/Other/TTT TextureConfigurator」です。一括で作る場合は「TexTransTool/Generate/TTT TextureConfigurator」を使います（無効化された TextureConfigurator を一括生成すると、公式チュートリアルに書かれています）。
+**TextureConfigurator（実験的）**: 解像度と MipMap を、非破壊的に制御するコンポーネントです。メニューは「TexTransTool/Other/TTT TextureConfigurator」です。一括で作る場合は「TexTransTool/Generate/TTT TextureConfigurator」を使います。このメニューでは、無効化された TextureConfigurator を一括で生成できます（[公式チュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByTextureSetting)）。
 
-公式のチュートリアル（[テクスチャ設定でテクスチャーメモリを削減する](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByTextureSetting)）には、解像度を 2048 から 1024 にし、圧縮を Normal から High にする例があります。公式は、解像度を 1 段階下げると容量が 1/4 になると書いています。PC 向けの場合は、圧縮設定を Normal から High に上げると容量が 2 倍になると書いています。この例では、公式は「VRAM の使用量は元の半分になります」と書いています（1/4 × 2 = 1/2）。これは公式の例であり、どのテクスチャでも同じ結果になるとは限りません。
+チュートリアル（[テクスチャ設定でテクスチャーメモリを削減する](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByTextureSetting)）の例では、解像度を 2048 から 1024 にし、圧縮を Normal から High にします。解像度を 1 段階下げると、容量は 1/4 になります。PC 向けの場合は、圧縮設定を Normal から High に上げると、容量は 2 倍になります。この例では、VRAM の使用量は元の半分になります（1/4 × 2 = 1/2）。ただし、これは例であり、どのテクスチャでも同じ結果になるとは限りません。
 
 **注意**:
 
-- TextureConfigurator は、公式が実験的なコンポーネントと警告しています。予告なく機能が変わったり、削除されたりすることがあります。
+- TextureConfigurator は実験的なコンポーネントです。予告なく機能が変わったり、削除されたりすることがあります。
 
 ### lilAvatarUtils {.tool .tool-lil}
 
@@ -58,31 +58,31 @@ updated: 2026-11-07
 
 **どう使うか**:
 
-- VRAM サイズの大きいテクスチャを見つけ、Unity のインポート設定で最大解像度を下げる作業の補助として使います。公式の説明では、最大解像度は画像を読み込むとき（インポート時）に縮小される値です。
+- VRAM サイズの大きいテクスチャを見つけ、Unity のインポート設定で最大解像度を下げる作業の補助として使います。最大解像度は、画像を読み込むとき（インポート時）に縮小される値です。
 - 「置き換え」は、アバターにあるすべてのマテリアルの該当テクスチャを一括で置き換えます。
 
 **注意**:
 
-- 「マテリアルのクリーンアップ」は、割り当て中のシェーダーで使用されない不要なプロパティを削除する機能です（[公式: ツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。公式は、不要なテクスチャの割り当てが残っていると、アバターに含まれて容量が大きくなることがあると説明しています。これは容量（ファイルの大きさ）の話で、VRAM とは別の話として読んでください。
+- 「マテリアルのクリーンアップ」は、割り当て中のシェーダーで使用されない不要なプロパティを削除する機能です（[公式: ツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。不要なテクスチャの割り当てが残っていると、アバターに含まれて容量が大きくなることがあります。これは容量（ファイルの大きさ）の話で、VRAM とは別の話として読んでください。
 - マテリアルのクリーンアップは、アセットを変更する操作です。作業の前に、プロジェクトのバックアップを取るのが安全です。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
 **何をするか**: AAO には、テクスチャを減らす機能が 3 つあります。
 
-- **Optimize Texture（自動）**: Trace And Optimize の「テクスチャを最適化する」です。公式は、見た目に影響を与えずに UV パッキング（UV の配置を詰めること）とテクスチャサイズの縮小を行うと説明しています。対象は、AAO が対応しているシェーダーのマテリアルだけです。
+- **Optimize Texture（自動）**: Trace And Optimize の「テクスチャを最適化する」です。見た目に影響を与えずに UV パッキング（UV の配置を詰めること）とテクスチャサイズの縮小を行います。対象は、AAO が対応しているシェーダーのマテリアルだけです。
 - **AAO Max Texture Size（手動）**: 任意の GameObject に付けると、その子孫すべてに効きます。特定の Mipmap レベルを減らして縮小し、元のテクスチャフォーマットと設定は残ります。
 - **AAO Merge Material（手動）**: 同じシェーダーを使うマテリアルを、テクスチャを手動で並べて 1 つのマテリアルにまとめます。生成されるテクスチャのサイズとフォーマットを指定できます。
 
 **注意**:
 
-- Trace And Optimize の「使われていないObjectを自動的に削除する」は、使われていないテクスチャも削除します（1.9.0 の更新履歴）。
+- AAO 1.9.0 では、Trace And Optimize の「使われていないObjectを自動的に削除する」が、使われていないテクスチャも削除します。
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、テクスチャメモリーの値と色を確かめます。
 2. lilAvatarUtils のテクスチャのタブで、VRAM サイズの大きいテクスチャを確かめます。
-3. 大きすぎるテクスチャは、Unity のインポート設定で最大解像度を下げます（公式の勧め）。
+3. 大きすぎるテクスチャは、Unity のインポート設定で最大解像度を下げます。
 4. アバターのルートに AAO Trace And Optimize を付け、「テクスチャを最適化する」がオンになっているか確かめます。
 5. 同じシェーダーのマテリアルが多いときは、AAO Merge Material を検討します（マテリアルスロットへの影響は、[マテリアルスロットを減らす方法](/learn/optimize-mesh/material-slots) を見てください）。
 6. TTT の AtlasTexture を使うときは、「TexTransTool/TTT AtlasTexture」で作り、Manual Bake Avatar か再生で確かめます。
@@ -91,14 +91,14 @@ updated: 2026-11-07
 ## 注意・うまくいかないとき
 
 ::: warning
-- TTT のテクスチャの圧縮は、NDMF のプレビューには反映されません。公式は、NDMF の Apply On Play か Manual Bake で確かめるよう書いています（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
-- TTT のコンポーネントは、ビルドのときに有効（Active）でないと動きません。公式 FAQ の原文は「TexTransTool のコンポーネントは基本的に、ビルド時に Active でないと動作しません。」です。アバター改変では NDMF が必要です（TTT の公式の説明）。
-- TextureSize を元の設定より大きくすると、無意味に拡大されると公式が書いています。
-- MipMap の設定は、よく分からないときは触らないよう、公式が警告しています。
-- Format Quality の「None」について、公式は「シェーダーについて完全に理解している人ではない、技術者ではないのであるならば、絶対に「None」を選ばないでください」と書いています。シェーダーに詳しくない人は、None を選ばないよう公式が勧めています。
-- TTT の FAQ には、一部の GPU と DirectX 11 で動かない既知の不具合が書かれています。古い TTT で作られたアセットが動かないときは、バックアップを取ったうえで Migrator を実行するよう、公式 FAQ が案内しています。
-- AAO の Max Texture Size は、テクスチャに Mipmap が有効になっている必要があります（[公式: Max Texture Size](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/max-texture-size/)）。Mipmap のないテクスチャは、スキップされて警告が出ます。公式は「Crunch圧縮を使用しているテクスチャはリサイズすることができません。」と書いています。
-- AAO の Merge Material は、同じシェーダーのマテリアルが対象です。公式は「マテリアルを置き換えるアニメーションには対応していません。」と書いています。また「ParallaxやUVスクロールのような、テクスチャの参照される位置が使用時に変化するようなシェーダ機能はサポートされていません」とも書いています。
+- TTT のテクスチャの圧縮は、NDMF のプレビューには反映されません。NDMF の Apply On Play か Manual Bake で確かめてください（[公式: TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。
+- TTT のコンポーネントは、ビルドのときに有効（Active）でないと動きません。アバター改変には NDMF が必要です。
+- TextureSize を元の設定より大きくすると、無意味に拡大されます。
+- MipMap の設定は、よく分からないときは触らないでください。
+- Format Quality の「None」は、シェーダーについて完全に理解している人でなければ選ばないでください。
+- TTT には、一部の GPU と DirectX 11 で動かない既知の不具合があります。古い TTT で作られたアセットが動かないときは、バックアップを取ったうえで Migrator を実行するのがおすすめです。
+- AAO の Max Texture Size は、テクスチャに Mipmap が有効になっている必要があります（[公式: Max Texture Size](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/max-texture-size/)）。Mipmap のないテクスチャは、スキップされて警告が出ます。Crunch 圧縮を使用しているテクスチャは、リサイズできません。
+- AAO の Merge Material は、同じシェーダーのマテリアルが対象です。マテリアルを置き換えるアニメーションには対応していません。Parallax や UV スクロールのような、使用時にテクスチャの参照される位置が変化するシェーダー機能も、サポートされていません。
 - AAO の処理の結果は、Control Panel の数字ではなく、Play モードに入ったときのランクか、NDM Framework の「Manual bake avatar」で作った複製で確かめてください。
 :::
 

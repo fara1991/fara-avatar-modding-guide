@@ -13,29 +13,23 @@ updated: 2026-11-07
 - トレイルを使わなくすると尾を引く表示がなくなるため、見た目を記録と比べて確かめる
 :::
 
-パーティクルトレイルは、Particle System（パーティクルシステム）でトレイル（粒子が通った跡を尾のように残す表示）が有効になっているかを表す項目です。数を数えるのではなく、True（あり）か False（なし）で表されます。公式の定義は、次の原文です。
+パーティクルトレイルは、Particle System（パーティクルシステム）でトレイル（粒子が通った跡を尾のように残す表示）が有効になっているかを表す項目です。数を数えるのではなく、True（あり）か False（なし）で表されます。定義は、アバターのどれか 1 つの Particle System でトレイルが有効なら、この項目が True になるというものです（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 
-> "If any Particle Systems on the avatar have Particle Trails enabled, this will be True."
+パフォーマンスランクの表では、True が許される列は、PC が Medium と Poor、Android が Poor です。つまり、True のとき、PC は Medium、Android は Poor が届く最高のランクです。
 
-訳: アバターのどれか 1 つの Particle System でトレイルが有効なら、この項目は True になる。
-
-公式の表では、True が許される列は、PC が Medium と Poor、Android が Poor です。つまり、True のとき、PC は Medium、Android は Poor が届く最高のランクです。
-
-この項目が True のとき、表示の下限（Minimum Displayed Performance Rank）より下のランクになると、公式の表に「All Particle Systems removed」（すべての Particle System が取り除かれる）と書かれています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
-
-VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は原文に訳を添えています。
+この項目が True のとき、表示の下限（Minimum Displayed Performance Rank）より下のランクになると、All Particle Systems removed（すべての Particle System が取り除かれる）になります（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「パーティクルトレイル」の欄は、数字ではなく「FALSE/あり」と表示されます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、内訳の「パーティクルトレイル」の欄が FALSE でした。
-- **Control Panel の数字**: AAO の公式は、非破壊改変ツールを使った改変では、SDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています。Play モードに入ったときのランクは、Actual Performance Window で確かめられます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
-- **無効にしたものの扱い**: 公式は「現在無効化されているものを含め、すべての GameObject とコンポーネントが数えられる」（原文: "including those that are currently disabled"）と書いています。
+- **Control Panel の数字**: 非破壊改変ツールを使った改変では、SDK の Control Panel のパフォーマンスランクは実際の値とずれます。実際の値は、Play モードの Actual Performance Window で確かめます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
+- **無効にしたものの扱い**: 現在無効化されているものを含め、すべての GameObject とコンポーネントが数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 
 画面の表示（FALSE/あり）の読み方は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の「FALSE/あり」の節を見てください。
 
 ## マテリアルスロットへの影響
 
-- **公式の補足**: Avatar Performance Ranking System の Material Slots の説明には、トレイル付きの Particle System は、マテリアルスロットを 2 つ使うと書かれています（原文: "Particle System with trails use two"）。トレイル付きの Particle System は 2 枠、トレイルのないものは 1 枠を使うので、トレイルを外すと、その枠は 2 から 1 に減ります（公式の Material Slots の補足による）。
+- **マテリアルスロット**: トレイル付きの Particle System は 2 枠、トレイルのないものは 1 枠のマテリアルスロットを使います（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。トレイルを外すと、その枠は 2 から 1 に減ります。
 
 ## 手順
 

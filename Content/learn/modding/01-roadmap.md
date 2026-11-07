@@ -57,7 +57,7 @@ updated: 2026-11-07
 
 ## 4. 対応衣装を着せる
 
-商品ページに「○○対応」と書いてある衣装は、衣装の Prefab をアバターの子に入れて **Setup Outfit** を実行するだけで着せられます（[Modular Avatar で衣装を着せる](/learn/unity/modular-avatar-outfit)）。元の服は無効にして Tag を EditorOnly にします。この流れは、ブラウザの [Unity の練習](/practice/unity) でも試せます。
+商品ページに「○○対応」と表示されている衣装は、衣装の Prefab をアバターの子に入れて **Setup Outfit** を実行するだけで着せられます（[Modular Avatar で衣装を着せる](/learn/unity/modular-avatar-outfit)）。元の服は無効にして Tag を EditorOnly にします。この流れは、ブラウザの [Unity の練習](/practice/unity) でも試せます。
 
 ## 5. メニューで ON/OFF する
 

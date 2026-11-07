@@ -1,7 +1,7 @@
 ---
 title: コンストレイントの数を減らす
 reading: こんすとれいんとのかずをへらす
-description: コンストレイントの数の上限と確かめ方、VRChat 公式の勧め（Unity のコンストレイントを使わず VRChat のコンストレイントを使う）、Modular Avatar の Convert Constraints などのツールの機能を、公式の資料に書かれた範囲でまとめます。
+description: コンストレイントの数の上限と確かめ方、おすすめの減らし方（Unity のコンストレイントを使わず VRChat のコンストレイントを使う）、Modular Avatar の Convert Constraints などのツールの機能をまとめます。
 difficulty: 中級
 updated: 2026-11-07
 ---
@@ -9,31 +9,31 @@ updated: 2026-11-07
 ::: point
 - コンストレイントの数の上限は、PC の Poor が 350、Android の Poor が 150
 - 数えるのは、VRChat のコンストレイントと Unity のコンストレイントを合わせた数
-- 公式は、Unity のコンストレイントを使わず、VRChat のコンストレイントを使うよう勧めている
+- Unity のコンストレイントは使わず、VRChat のコンストレイントを使うのがおすすめ
 :::
 
-コンストレイントの数は、アバターにあるコンストレイント（ある物の位置・回転・スケールを、別の物に紐づける部品）の総数を数える項目です。VRChat 公式の定義は "The total number of VRChat constraints and Unity constraints on the avatar." で、VRChat のコンストレイントと Unity のコンストレイントを合わせた数です。上限は PC の Poor が 350、Android の Poor が 150 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
+コンストレイントの数は、アバターにあるコンストレイント（ある物の位置・回転・スケールを、別の物に紐づける部品）の総数を数える項目です。VRChat のコンストレイントと Unity のコンストレイントを合わせた数です。上限は PC の Poor が 350、Android の Poor が 150 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
-上限を超えると、公式では次のランク（Very Poor）になると書かれています。Android では、硬い上限（150）を超えると、「Show Avatar」を選んでも回避できず、制限の対象のコンポーネントがすべて取り除かれると公式は書いています。PC の既定では、公式は、性能を理由にコンポーネントや表示が影響を受けるアバターはないと書いています。ただし、極端に最適化されていないアバターは、使えなくなる場合があります（詳しくは下の注意）。
+上限を超えると、次のランク（Very Poor）になります。Android では、硬い上限（150）を超えると、「Show Avatar」を選んでも回避できず、制限の対象のコンポーネントがすべて取り除かれます。PC の既定では、性能を理由にコンポーネントや表示が影響を受けるアバターはありません。ただし、極端に最適化されていないアバターは、使えなくなる場合があります（詳しくは下の注意）。
 
-VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に、日本語の訳を添えています。版が上がると挙動が変わることがあります。
+上限や挙動は、版が上がると変わることがあります。
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「コンストレイントの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、199（上限 350）と表示されていました。
-- **無効にしたものも数えられます。** 公式は、「現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられる」（原文: "including those that are currently disabled"）と書いています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。VRChat のコンストレイントの文書も、無効化されたものを含めて数えると書いています（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。使わないコンストレイントは、無効にするだけでは数は減りません。
-- **AAO を使うときの確かめ方**: AAO の公式ドキュメントは、非破壊改変ツールを使う改変では、SDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています。Play モードに入ったときのランクは、Actual Performance Window で確かめられます（[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
+- **無効にしたものも数えられます。** 無効化されている GameObject とコンポーネントも、パフォーマンスランクに数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。VRChat のコンストレイントも、無効化されたものを含めて数えます（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。使わないコンストレイントは、無効にするだけでは数は減りません。
+- **AAO を使うときの確かめ方**: 非破壊のツールを使うと、SDK の Control Panel のランクは実際の値とずれます。実際の値は、Play モードに入ったときの Actual Performance Window で確かめます（[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 
 ## 減らし方の考え方
 
-VRChat 公式の勧めは、次の 2 点です（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)、[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
+減らすには、次の 2 点がおすすめです（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)、[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
 
-- **Unity のコンストレイントを使わず、VRChat のコンストレイントを使う。** 公式の見出しは「Do not use Unity Constraints!」です。原文は "The engine's constraints are sorted based on the dependencies between them every frame, which means they can cause significant performance problems when enough of them exist at once. Use VRChat Constraints instead, because they're designed to provide better performance in the context of VRChat avatars." です。訳は、Unity のコンストレイントは、毎フレーム互いの依存関係で並べ替えられるため、多く同時にあると大きな性能の問題になることがある。VRChat のコンストレイントは、VRChat のアバター向けに性能が良くなるように作られているので、そちらを使う、という意味です。
-- **コンストレイントの総数を減らす。** 公式は "Decreasing the total number of constraints can improve your avatar's performance." と書いています（訳: コンストレイントの総数を減らすと、アバターの性能が上がることがあります）。
+- **Unity のコンストレイントを使わず、VRChat のコンストレイントを使う。** Unity のコンストレイントは、毎フレーム互いの依存関係で並べ替えられるため、多く同時にあると大きな性能の問題になることがあります。VRChat のコンストレイントは、VRChat のアバター向けに性能が良くなるように作られているので、こちらを使うのがおすすめです。
+- **コンストレイントの総数を減らす。** コンストレイントの総数を減らすと、アバターの性能が上がることがあります。
 
 この記事の整理として、減らす方法を次の 3 つに分けます。
 
-1. Unity のコンストレイントを、VRChat のコンストレイントに変える（公式の勧め）。
+1. Unity のコンストレイントを、VRChat のコンストレイントに変える（おすすめ）。
 2. 使っていないコンストレイントを取り除く（無効にするだけでは数に残るため）。
 3. ツールの機能を使って変換する（MA の Convert Constraints など。下のツール別の方法を見てください）。
 
@@ -41,47 +41,44 @@ VRChat 公式の勧めは、次の 2 点です（[Avatar Optimization Tips（VRC
 
 ### Modular Avatar（MA） {.tool .tool-ma}
 
-**何をするか**: Convert Constraints は、ビルド時に Unity のコンストレイントを VRChat のコンストレイントに変換するコンポーネントです。公式の日本語版のページには、「Convert Constraintsコンポーネントは、ビルド時にUnityのConstraintsをVRChatのConstraintに非破壊的に変換するようにModular Avatarに指示します。」「アタッチされているオブジェクトとその子オブジェクトにあるConstraint、およびそれらを参照しているアニメーションを変換します。」と書かれています（[Convert Constraints（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/convert-constraints)）。
+**何をするか**: Convert Constraints は、ビルド時に Unity のコンストレイントを VRChat のコンストレイントに非破壊的に変換するコンポーネントです。アタッチされたオブジェクトとその子オブジェクトにあるコンストレイント、およびそれらを参照しているアニメーションを変換します（[Convert Constraints（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/convert-constraints)）。
 
-**どう使うか**: 公式は「あらかじめ変換するとパフォーマンスが大幅に向上するため、ほとんどの場合はアバタールートにこれを配置するのが良いでしょう。」と書いています。
+**どう使うか**: あらかじめ変換するとパフォーマンスが大幅に向上するため、ほとんどの場合はアバタールートにこれを配置するのがおすすめです。
 
 **注意**:
 
 - 変換でどれだけ減るかは、SDK の「パフォーマンスの内訳」で確かめてください。
-- 逆に、コンストレイントを増やす機能もあります。Mesh Cutter は、時々非アクティブになる場合に、「場合によっては、Constraint を生成する必要があり、パフォーマンスランクの増加に寄与する可能性がありますのでご注意ください。」と書かれています。Merge Armature は、必要に応じて ParentConstraint が生成されると書かれています。
-- World Fixed Object は、「複数のWorld Fixed Objectコンポーネントを使っても、Constraintは一つだけです。」と書かれています。
-- **未リリース**: MA Reactive Move は、CHANGELOG の [Unreleased]（正式版には入っていません）にある機能です。公式は「VRChat では、いくつかの VRC Constraint を生成して、この動作を実現します。」と書いています。
+- 逆に、コンストレイントを増やす機能もあります。Mesh Cutter は、時々非アクティブになる場合に、Constraint を生成することがあります。その場合、パフォーマンスランクの増加に寄与する可能性があるので、注意してください。
+- Merge Armature は、必要に応じて ParentConstraint を生成します。
+- World Fixed Object は、複数の World Fixed Object コンポーネントを使っても、Constraint は 1 つだけです。
+- **未リリース**: MA Reactive Move は、CHANGELOG の [Unreleased]（正式版には入っていません）にある機能です。VRChat では、いくつかの VRC Constraint を生成して、この動作を実現します。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
 以下は、AAO を使うときの注意です。
 
-- CHANGELOG の 1.6.12 では、`Removed` に「Activeness Optimization for Constraint component」があります。理由は「The constraint component is too complex to optimize correctly and reliably」（訳: コンストレイントは、正しく確実に最適化するには複雑すぎる）と書かれています。
-- CHANGELOG の 1.7.12 には、「VRCConstraints with Target might be removed unexpectedly」（意図せず削除される）の修正があります。
+- AAO 1.6.12 では、Constraint コンポーネントの Activeness Optimization を削除しました。コンストレイントは、正しく確実に最適化するには複雑すぎるためです。
+- AAO 1.7.12 では、Target を持つ VRCConstraints が意図せず削除される問題を修正しました。
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「コンストレイントの数」を確かめます（上限は PC の Poor が 350、Android の Poor が 150）。
 2. 変換の前に、プロジェクトのバックアップを取り、確かめたい動き（対象のアニメーションとコンストレイントの追従）を記録しておきます（**この記事の助言**{.lbl .lbl-adv}です）。
-3. Unity のコンストレイントがあれば、VRChat のコンストレイントに変えます。公式は、次のように書いています（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
-   - 原文: "You can convert all the Unity constraints on your avatar into equivalent VRChat constraints by using the relevant Auto Fix option in the control panel in the SDK."（訳: アバターの Unity のコンストレイントは、SDK の Control Panel にある該当する Auto Fix の項目を使うと、同等の VRChat のコンストレイントに変換できます。）
+3. Unity のコンストレイントがあれば、VRChat のコンストレイントに変えます。SDK の Control Panel にある該当する Auto Fix の項目を使うと、アバターの Unity のコンストレイントを、同等の VRChat のコンストレイントに変換できます（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
    - Unity のコンストレイントと深さの関係は、[コンストレイントの深さを減らす](/learn/optimize-constraint/constraint-depth) の注意を見てください。
 4. 変換したあとは、Play モードに入り、対象のアニメーションとコンストレイントの追従が、変換の前と同じかを確かめます。
 5. MA を使っているなら、アバターのルートに Convert Constraints を付けます。付けたあと、SDK の「パフォーマンスの内訳」で、数が変わったかを確かめます。
-6. 使っていないと確かめたコンストレイントは、取り除きます。無効にするだけでは数に残るためです（公式の注記による）。
+6. 使っていないと確かめたコンストレイントは、取り除きます。無効にするだけでは数に残るためです。
 7. 変更のあと、もう一度 SDK の「パフォーマンスの内訳」で確かめます。
 
 ## 注意・うまくいかないとき
 
 ::: warning
 
-- **Android の上限**: 公式は、「You cannot bypass the limits above by using "Show Avatar".」（訳: 上の上限は、「Show Avatar」を使っても回避できません）と書いています。Android の上限を超えると、制限の対象のコンポーネントが、「Show Avatar」を選んでも取り除かれます。コンストレイントの硬い上限は、150 です。
-- **Unity のコンストレイント（Android）**: 公式の 3 つの文書は、次のように書いています。
-  - VRChat Constraints の文書: "Unity constraints are automatically converted into VRChat constraints when your avatar is loaded in-game."（訳: Unity のコンストレイントは、アバターがゲーム内で読み込まれるときに、VRChat のコンストレイントに自動で変換されます。）
-  - Optimization Tips: "VRChat will automatically convert Unity constraints to VRChat constraints at runtime."（訳: VRChat は、実行時に Unity のコンストレイントを VRChat のコンストレイントに自動で変換します。）
-  - Android Content Limitations: "Unity constraints are disabled completely for avatars on Android and Quest due to complex performance issues. Use VRChat Constraints instead."（訳: Android と Quest では、性能の問題が複雑なため、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使ってください。）
-- **PC の既定**: 公式の「PC Default Performance Rank Blocking」は、既定の表示の下限は Very Poor で、ほとんどのアバターは見えると書いています。また、「Minimum Displayed Performance Rank on PC」の節には、既定では性能を理由にコンポーネントや表示が影響を受けないと書かれています（原文: "no avatars will have their components or display affected for performance reasons on PC"）。ただし、極端に最適化されていないアバターは、使えなくなる場合があると書かれています。この設定を変えた場合は、「Constraint Count or Depth」の行（All Constraint components removed）の制限が働きます。
-- **数値は変わることがあります**: 公式は、Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があると書いています（原文: "Any recommended numbers or limits in this document are subject to change at any time."）。
+- **Android の上限**: 「Show Avatar」を使っても、上の上限は回避できません。Android の上限を超えると、制限の対象のコンポーネントが、「Show Avatar」を選んでも取り除かれます。コンストレイントの硬い上限は、150 です。
+- **Unity のコンストレイント（Android）**: Android と Quest では、性能の問題が複雑なため、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使うのがおすすめです（Android Content Limitations）。Unity のコンストレイントは、アバターがゲーム内で読み込まれるときや、実行時に、VRChat のコンストレイントに自動で変換されます（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)、[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
+- **PC の既定**: PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。既定では、性能を理由にコンポーネントや表示が影響を受けるアバターはありません。ただし、極端に最適化されていないアバターは、使えなくなる場合があります。表示される最低のランクの設定を変えた場合は、「Constraint Count or Depth」の行（All Constraint components removed）の制限が働きます。
+- **数値は変わることがあります**: Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があります。
 
 :::
 

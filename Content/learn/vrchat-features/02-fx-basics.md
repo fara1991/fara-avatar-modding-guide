@@ -67,7 +67,7 @@ Unity の Hierarchy で顔のシェイプキーを変えても、VRChat では�
 **Write Defaults**（WD）は、ステートごとの設定で、「そのアニメーションで動かしていない値を、既定の値に戻すかどうか」を決めます（[用語集: Write Defaults](/glossary#write-defaults)）。
 
 - VRChat の公式の Animator は **Off** で作られている
-- 公式は、アバター全体で **On か Off のどちらかにそろえる** ことをすすめている。混ざっていると、思わぬ値が書き込まれる
+- 混ざると思わぬ値が書き込まれるので、アバター全体で **On か Off のどちらかにそろえる** のがおすすめです
 - Motion が空（None）のステートや、空のアニメーションは、WD が On のように振る舞う
 
 ギミックを足したら表情やトグルがおかしくなったときは、まず WD の混在を疑います。Modular Avatar の **MA Merge Animator** には、追加するアニメーターの WD をアバターに合わせる設定（**アバターの Write Defaults 設定に合わせる**）があります。
