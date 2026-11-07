@@ -9,7 +9,7 @@ updated: 2026-11-07
 ::: point
 - パーティクルトレイルは数ではなく、True（あり）か False（なし）で表される
 - アバターのどれか 1 つでもトレイルが有効なら、True になる
-- 上限は、公式の表で PC は Medium と Poor の列、Android は Poor の列が True
+- 表で True になるのは PC が Medium と Poor、Android が Poor の列で、上限は PC が Medium、Android が Poor
 - トレイルを減らす専用の勧めは、確かめた範囲（Avatar Optimization Tips など）で公式に記載なし
 :::
 
@@ -19,7 +19,7 @@ updated: 2026-11-07
 
 訳: アバターのどれか 1 つの Particle System でトレイルが有効なら、この項目は True になる。
 
-上限は、公式の表では PC・Android ともに Poor の列が True です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。表から読むと、True になると PC では Medium が上限（Good 以上にならない）、Android では Poor が上限になります。これは公式の文での説明ではなく、表の読み方です。
+上限は、公式の表では PC は Medium と Poor、Android は Poor の列が True です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。表から読むと、True になると PC では Medium が上限（Good 以上にならない）、Android では Poor が上限になります。これは公式の文での説明ではなく、表の読み方です。
 
 この項目が True のとき、表示の下限（Minimum Displayed Performance Rank）より下のランクになると、公式の表に「All Particle Systems removed」（すべての Particle System が取り除かれる）と書かれています。トレイルのある Particle System だけが外されるのではありません（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 

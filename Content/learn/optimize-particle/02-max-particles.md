@@ -7,10 +7,9 @@ updated: 2026-11-07
 ---
 
 ::: point
-- 最大パーティクルの数は、各 Particle System の maxParticles の合計
+- 最大パーティクルの数は、各 Particle System の maxParticles の合計で、放出されている数や画面に出ている数とは別の値
 - 上限は、PC の Poor が 2,500、Android の Poor が 200
 - 公式の勧めは、同時に放出される粒子の最大数を制限すること
-- 定義は、画面に出ている粒子の数ではなく、maxParticles の合計
 :::
 
 最大パーティクルの数は、アバターのすべての Particle System の maxParticles（最大粒子数）の合計を数える項目です。VRChat 公式のランキングの表では、この項目の行名は Total Particles Active です。定義は "The sum of maxParticles across all particle systems on the avatar." で、訳は「アバターのすべてのパーティクルシステムの maxParticles の合計」です。上限は PC の Poor が 2,500、Android の Poor が 200 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。

@@ -9,7 +9,7 @@ updated: 2026-11-07
 ::: point
 - 基本メッシュの上限は、PC が 24、Android が 2
 - 描画の呼び出し（ドローコール）は、メッシュごとに 1 回ずつ必要になるのが基本（Unity マニュアルの説明）
-- AAO Merge Skinned Mesh の「メッシュレンダラー」に MeshRenderer を入れて統合できる
+- AAO Merge Skinned Mesh の「メッシュレンダラー」に MeshRenderer を入れて統合できる（AAO 1.9.21 で確かめた）
 - Trace And Optimize が MeshRenderer を自動で統合するかは未確認
 :::
 

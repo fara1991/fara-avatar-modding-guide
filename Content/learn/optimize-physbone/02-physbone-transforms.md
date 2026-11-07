@@ -8,8 +8,8 @@ updated: 2026-11-07
 
 ::: point
 - PhysBone トランスフォームの上限は、PC の Poor が 256、Android の Poor が 64
-- 本当に必要なら、1 つのコンポーネントが 128 を超えるときにチェーンを分けることを、公式が検討するよう書いている
-- AAO の Replace End Bone With Endpoint Position は数を減らすが、揺れ方が変わりうる
+- 1 つのコンポーネントが 128 を超えるトランスフォームに影響するなら、チェーンを分けることを検討するよう公式が書いている
+- Replace End Bone With Endpoint Position（AAO）は数を減らすが、揺れ方が変わることがある
 :::
 
 PhysBone トランスフォームの数は、PhysBone コンポーネントが影響するトランスフォーム（ボーン）の合計数を数える項目です（VRChat 公式の定義は "The total number of transforms affected by PhysBones components on the avatar." です）。上限は PC の Poor が 256、Android の Poor が 64 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。

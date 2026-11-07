@@ -7,7 +7,7 @@ updated: 2026-11-07
 ---
 
 ::: point
-- パーティクルの衝突は、数ではなく True か False で、どれか 1 つでも Particle Collision が有効なら True
+- 衝突は数ではなく True か False で、1 つでも Particle Collision が有効なら True
 - 上限の表記は True / True（PC の Medium・Android の Poor は表からの読み取り）
 - 公式の勧めは、大量の粒子を性能を保って使う方法の一つとして、衝突を使わないこと
 - 衝突をオフにしたときの見た目への影響は、公式の資料に記載がなく未確認
