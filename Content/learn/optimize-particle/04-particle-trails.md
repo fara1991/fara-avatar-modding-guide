@@ -26,17 +26,17 @@ updated: 2026-11-07
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
+- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
 
-この記事は、AAO 1.9.21、Modular Avatar（GitHub の main）、TexTransTool・lilAvatarUtils・Meshia Mesh Simplification（版番号は**未確認**{.lbl .lbl-unk}。取得日 2026 年 11 月 6 日の公開サイトと GitHub の main）の資料を、2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。
+この記事は、AAO・Modular Avatar（GitHub の main）・TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を、2026 年 11 月 6 日に確かめて書きました。版は、GitHub の最新リリースで 2026 年 11 月 7 日に確かめました。AAO は 1.9.21（changelog の最新版）、TexTransTool は v1.0.2（2026-06-26）、lilAvatarUtils は 2.1.2（2025-08-11）、Meshia Mesh Simplification は 3.3.1（2026-11-04）です。TexTransTool と lilAvatarUtils は、サイトに版の表示がありません。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に訳を添えています。
 :::
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「パーティクルトレイル」の欄は、数字ではなく「FALSE/あり」と表示されます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、左の値（このアバターの値）が FALSE でした。
 - **Control Panel の数字**: AAO の公式は、非破壊改変ツールを使った改変では、SDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています。Play モードに入ったときのランクは、Actual Performance Window で確かめられます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
-- **無効にしたものの扱い**: 公式は「現在無効化されているものを含め、すべての GameObject とコンポーネントが数えられる」（原文: "including those that are currently disabled"）と書いています。ただし、これは GameObject とコンポーネントの数え方の記述です。トレイルの True / False の定義（"have Particle Trails enabled"）に、無効化された Particle System が含まれるかは、この記事では**未確認**{.lbl .lbl-unk}です。
+- **無効にしたものの扱い**: 公式は「現在無効化されているものを含め、すべての GameObject とコンポーネントが数えられる」（原文: "including those that are currently disabled"）と書いています。ただし、これは GameObject とコンポーネントの数え方の記述です。
 
 ## 減らし方の考え方
 
@@ -44,7 +44,7 @@ updated: 2026-11-07
 - **公式の補足**: Avatar Performance Ranking System の Material Slots の説明には、トレイル付きの Particle System は、マテリアルスロットを 2 つ使うと書かれています（原文: "Particle System with trails use two"）。これは枠の数え方の補足で、トレイルを減らす方法の記述ではありません。
 - **ツールごと**: 5 つのツールの資料で確かめた範囲は、下の節のとおりです。
 
-この項目の減らし方は、公式に専用の勧めが見つからなかったため、この記事には書きません。画面の表示（FALSE/あり）の読み方は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の「FALSE/あり」の節を見てください。
+画面の表示（FALSE/あり）の読み方は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の「FALSE/あり」の節を見てください。
 
 ## ツール別の方法
 
@@ -62,7 +62,7 @@ updated: 2026-11-07
 
 ### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にあるドキュメント 11 件（目次を含めると 19 件）。公開サイト（ramtype0.github.io）は**未確認**{.lbl .lbl-unk}）。トレイルの語は見つかりませんでした。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、`.docfx` にあるドキュメント 11 件（目次を含めると 19 件））。トレイルの語は見つかりませんでした。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
@@ -72,15 +72,14 @@ updated: 2026-11-07
 
 1. SDK の「パフォーマンスの内訳」で、「パーティクルトレイル」が FALSE か True かを確かめます。
 2. 作業の前に、プロジェクトのバックアップを取り、トレイルのある見た目を記録します（**この記事の助言**{.lbl .lbl-adv}）。
-3. トレイルを使っている Particle System を探して、確かめます（探す方法は、下の注意を見てください）。
-4. 見つけた Particle System のトレイルを、必要がなければ使わない設定にします（設定の場所は、下の注意を見てください）。
+3. トレイルを使っている Particle System を探して、確かめます。
+4. 見つけた Particle System のトレイルを、必要がなければ使わない設定にします。
 5. Play モードに入って、見た目と動きが手順 2 の記録と同じかを確かめます（**この記事の助言**{.lbl .lbl-adv}）。
 6. もう一度 SDK の「パフォーマンスの内訳」を開き、「パーティクルトレイル」が FALSE になったかを確かめます。
 
 ## 注意・うまくいかないとき
 
 ::: warning
-- **探す方法と設定の場所は未確認です。** トレイルを使っている Particle System を探す画面と、トレイルを使わない設定の場所は、この記事では確かめていません。
 - **見た目が変わります**: トレイルを使わなくすると、尾を引く表示がなくなります。見た目が変わるので、記録と比べて確かめてください。
 - **トレイルレンダラーは別の項目です**: 「トレイルレンダラーの数」（Trail Renderer の数）は、この項目とは別の項目で、上限も別です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。
 :::

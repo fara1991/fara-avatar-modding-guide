@@ -19,12 +19,12 @@ updated: 2026-11-07
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
+- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
 
-この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、TexTransTool v1.0.2、lilAvatarUtils 2.1.2、Meshia Mesh Simplification（main）の公式の資料を、2026 年 11 月 6 日に確かめて書きました。版が上がると挙動が変わることがあります。
+この記事は、AAO 1.9.21、Modular Avatar（GitHub の main）、TexTransTool v1.0.2、lilAvatarUtils 2.1.2、Meshia Mesh Simplification（main）の公式の資料を、2026 年 11 月 6 日に確かめて書きました。版が上がると挙動が変わることがあります。
 
-VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に、日本語の訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。公開サイトの表示は、この記事では確かめていません。
+VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は英語の原文に、日本語の訳を添えています。VRChat の文章は、公式ドキュメントのソース（GitHub の vrchat-community/creator-docs）で確かめました。
 :::
 
 ## 減らす前に確かめること
@@ -63,15 +63,15 @@ VRChat 公式の勧めは、次の 2 点です（[Avatar Optimization Tips（VRC
 
 ### TexTransTool（TTT） {.tool .tool-ttt}
 
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語の公式ドキュメントの Reference・FAQ・チュートリアルなど、「constraint」「コンストレイント」の語を検索）。英語版のサイトは**未確認**{.lbl .lbl-unk}です。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: 日本語の公式ドキュメントの Reference・FAQ・チュートリアルなど、「constraint」「コンストレイント」の語を検索）。
 
 ### lilAvatarUtils {.tool .tool-lil}
 
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: ja_JP の公式ドキュメントの本文 9 ページと CHANGELOG で、「constraint」「コンストレイント」の語を検索。コンストレイントの数を確かめるタブの記載も見つかりませんでした）。英語版は**未確認**{.lbl .lbl-unk}です。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: ja_JP の公式ドキュメントの本文 9 ページと CHANGELOG で、「constraint」「コンストレイント」の語を検索。コンストレイントの数を確かめるタブの記載も見つかりませんでした）。
 
 ### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、日本語・英語のドキュメントで、「constraint」「コンストレイント」の語を検索）。公式サイトの表示は**未確認**{.lbl .lbl-unk}です。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: GitHub のリポジトリの README（英語・日本語）と、日本語・英語のドキュメントで、「constraint」「コンストレイント」の語を検索）。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
@@ -86,10 +86,10 @@ VRChat 公式の勧めは、次の 2 点です（[Avatar Optimization Tips（VRC
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「コンストレイントの数」を確かめます（上限は PC の Poor が 350、Android の Poor が 150）。
-2. 変換の前に、プロジェクトのバックアップを取り、確かめたい動き（対象のアニメーションとコンストレイントの追従）を記録しておきます（公式の勧めではなく、**この記事の助言**{.lbl .lbl-adv}です）。変換を元に戻せるかは、この記事では**未確認**{.lbl .lbl-unk}です。
+2. 変換の前に、プロジェクトのバックアップを取り、確かめたい動き（対象のアニメーションとコンストレイントの追従）を記録しておきます（公式の勧めではなく、**この記事の助言**{.lbl .lbl-adv}です）。
 3. Unity のコンストレイントがあれば、VRChat のコンストレイントに変えます。公式は、次のように書いています（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
    - 原文: "You can convert all the Unity constraints on your avatar into equivalent VRChat constraints by using the relevant Auto Fix option in the control panel in the SDK."（訳: アバターの Unity のコンストレイントは、SDK の Control Panel にある該当する Auto Fix の項目を使うと、同等の VRChat のコンストレイントに変換できます。）
-   - 変換後の動きへの影響は、この記事では**未確認**{.lbl .lbl-unk}です。詳しくは [コンストレイントの深さを減らす](/learn/optimize-constraint/constraint-depth) の注意も見てください。
+   - Unity のコンストレイントと深さの関係は、[コンストレイントの深さを減らす](/learn/optimize-constraint/constraint-depth) の注意を見てください。
 4. 変換したあとは、Play モードに入り、対象のアニメーションとコンストレイントの追従が、変換の前と同じかを確かめます。
 5. MA を使っているなら、アバターのルートに Convert Constraints を付けます。付けたあと、SDK の「パフォーマンスの内訳」で、数が変わったかを確かめます。
 6. 使っていないと確かめたコンストレイントは、取り除きます。無効にするだけでは数に残るためです（公式の注記による）。

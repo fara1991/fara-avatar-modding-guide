@@ -20,8 +20,7 @@ updated: 2026-11-07
 ::: tip
 この記事では、次の言葉を使います。
 
-- **公式に記載なし**{.lbl .lbl-none}: 各ツールの公式の資料（日本語版のページや更新履歴）を検索して、書かれていないことを確かめた、という意味です。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: 各ツールの公式の資料（日本語版・英語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないことを確かめた、という意味です。できない・減らせないという意味ではありません。
 :::
 
 ## 減らす前に確かめること
@@ -40,7 +39,7 @@ updated: 2026-11-07
 
 ### Modular Avatar（MA） {.tool .tool-ma}
 
-**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のリファレンス一覧と、各ページ）。更新履歴には「MA Material Setter」の項目がありますが、説明のページは確かめていないため、スロット数への効果は**未確認**{.lbl .lbl-unk}です。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MA の日本語版と英語版のリファレンス一覧と、各ページ。Material Setter のページ（英語版）では、スロットのマテリアルを差し替える説明だけで、スロット数への効果は書かれていません）。
 
 ### TexTransTool（TTT） {.tool .tool-ttt}
 
@@ -66,7 +65,7 @@ updated: 2026-11-07
 
 ### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
-**未確認**{.lbl .lbl-unk}。MMS は三角ポリゴンを減らすツールとして説明されていて、マテリアルスロットについては、この記事では確認していません。
+**公式に記載なし**{.lbl .lbl-none}（確かめた範囲: MMS の README と、日本語版・英語版の公式ドキュメントのページ（はじめに・インストール・VRChat 向けのページ））。MMS は三角ポリゴンを減らすツールとして説明されていて、マテリアルスロットを減らす機能の説明はありません。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
@@ -106,7 +105,6 @@ updated: 2026-11-07
 - 統合後に、マテリアルのアニメーションが動かないときは、AAO の公式 FAQ の案内を見てください（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 - AAO Merge Skinned Mesh で統合したメッシュは、見えない・明るさが違うなどの症状が出ることがあります。FAQ では、Root Bone や Anchor Override の指定忘れが原因として挙がっています（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「うまくいかないとき」）。
 - Modular Avatar を使っている場合は、アバターのルートに MA Mesh Settings を追加します。AAO の FAQ の「見えない」の項では、アバター全体の Root Bone と Bounds を設定できると案内されています。「明るさ」の項では、アバター全体の Anchor Override を設定できると案内されています（[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。
-- MMS のマテリアルスロットへの効果は、この記事では**未確認**{.lbl .lbl-unk}です。
 :::
 
 ## 関連ページ

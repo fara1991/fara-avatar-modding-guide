@@ -90,7 +90,7 @@
   description: 左右非対称になった頂点を左右対称に復元するアドオン
   type: モデリング
   price: 無料
-  note: 2.8〜3.0 での動作報告のみ。最新 Blender 向けの fork があるとの情報あり。4.5 での動作は未確認。
+  note: 2.8〜3.0 での動作報告のみ。
   url: https://github.com/12funkeys/BlenderAddons/tree/master/RestoreSymmetry
   source: discord
 
@@ -98,7 +98,7 @@
   description: 選択した頂点だけを編集不可（固定）にする有料アドオン
   type: モデリング
   price: 有料
-  note: 対応バージョン未確認。標準のプロポーショナル編集「接続のみ」や H 非表示で代替可能。
+  note: 標準のプロポーショナル編集「接続のみ」や H 非表示で代替できます。
   url: https://bookyakuno.gumroad.com/l/hide_only_vertex
   source: discord
 

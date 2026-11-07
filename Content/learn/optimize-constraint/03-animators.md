@@ -19,17 +19,17 @@ updated: 2026-11-07
 ::: tip
 この記事で使う言葉は、次のとおりです。
 
-- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。
-- **未確認**{.lbl .lbl-unk}: この記事では確認していない、という意味です。無い・できないという意味ではありません。
+- **公式に記載なし**{.lbl .lbl-none}: そのツールの公式の資料（日本語版のページと changelog。VRChat は英語の原文）を検索して、書かれていないと確かめた、という意味です。できない・減らせないという意味ではありません。
+- **この記事の助言**{.lbl .lbl-adv}: 公式の説明ではない、この記事の助言です。
 
-この記事は、AAO 1.9.21、Modular Avatar（GitHub の main。正式版 1.18.7 との差は**未確認**{.lbl .lbl-unk}）、TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を 2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は日本語に訳した要約です。版が上がると挙動が変わることがあります。
+この記事は、AAO 1.9.21、Modular Avatar（GitHub の main）、TexTransTool・lilAvatarUtils・Meshia Mesh Simplification の公式の資料を 2026 年 11 月 6 日に確かめて書きました。VRChat の公式ドキュメントは英語の原文だけなので、ここでの引用は日本語に訳した要約です。版が上がると挙動が変わることがあります。
 :::
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「アニメーターの数」で、今の値と上限を見ます。例の画面では、2（上限 32）と表示されていました。
 - **無効にしたものも数えられます。** 公式は、「現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられる」（原文: "including those that are currently disabled"）と書いています（[パフォーマンスランク（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。Animator を無効にするだけでは、数は減りません。
-- **数の数え方は、公式の文書で書き方が違います。** ランキングの文書は、"This will always be at least 1 due to the root animator being counted. This means that for the Excellent ranking, you can have no additional animators." と書いています（訳: ルートのアニメーターも数えるため、数は常に 1 以上です。Excellent では、ルート以外のアニメーターを追加できません）。一方、Playable Layers の文書は、"you've got five root animators to play with" と書いています（訳: ルートのアニメーターとして、5 つ使えます）。ランキングが 5 つを数えるかどうかは、この 2 つの文書からは判断できません。両方の関係は、**未確認**{.lbl .lbl-unk}です。
+- **数の数え方**: ランキングの文書は、"This will always be at least 1 due to the root animator being counted. This means that for the Excellent ranking, you can have no additional animators." と書いています（訳: ルートのアニメーターも数えるため、数は常に 1 以上です。Excellent では、ルート以外のアニメーターを追加できません）。Playable Layers の文書は、"you've got five root animators to play with" と書いています（訳: ルートのアニメーターとして、5 つ使えます）。同じ文書は、"all of these Playable Layers are put together into a combined Animator. This Animator is the root, main animator of your avatar." とも書いています（訳: これらの Playable Layers は、1 つの組み合わせたアニメーターにまとめられます。そのアニメーターが、アバターのルートの主要なアニメーターです）。2 つの文書の数え方の関係は、**公式に記載なし**{.lbl .lbl-none}です。
 - **AAO を使うときの数**: AAO の公式ドキュメントは、非破壊改変ツールを使う改変では、VRChat SDK の Control Panel のパフォーマンスランクはあてにならなくなると書いています（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードに入ったときのランクは、anatawa12's Gist Pack の Actual Performance Window で確かめます（同じ箇所。手順は [AAO の結果の確認](/learn/optimize-aao/avatar-optimizer) を見てください）。
 
 ## 減らし方の考え方
@@ -53,7 +53,7 @@ VRChat 公式の Playable Layers の文書は、アバターのアニメータ�
 **注意**:
 
 - 「付属アニメーターを削除」を入れると、同じオブジェクト内の Animator が自動的に排除（削除）されると、公式は書いています（[Merge Animator（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/merge-animator)）。
-- ページは「レイヤーに追加する」「統合する」と書いています。統合後のアニメーター（コントローラー）の数が減るかどうかは、この記事では**未確認**{.lbl .lbl-unk}です。この記事では、数の確かめ方を手順に入れます。
+- ページは「レイヤーに追加する」「統合する」と書いています。統合後のアニメーター（コントローラー）の数が減るかどうかは、ページに書かれていません。この記事では、数の確かめ方を手順に入れます。
 - MA のトップページ（[Modular Avatar（MA 公式）](https://modular-avatar.nadena.dev/ja/)）は「アバターのFXアニメーター等を分割し、実行時に統合しよう。」と書いています。Merge Animator のページには実行時・ビルド時の記述が無いため、この記事では統合の時点を書きません。
 - 未リリース（CHANGELOG の `[Unreleased]` の [MA の変更履歴](https://github.com/bdunderscore/modular-avatar/blob/main/CHANGELOG-jp.md)）の変更として、Reactive Component の生成をブレンドツリー方式に変えて、アニメーターの処理負荷を軽減すると書かれています。数の話ではなく、リリース前の変更です。
 
@@ -81,14 +81,14 @@ VRChat 公式の Playable Layers の文書は、アバターのアニメータ�
 
 公式は、「最適化処理の詳細な仕様は、将来的に変更される可能性があります。」とも書いています。これらは Animator Controller の中身の最適化で、Animator コンポーネントの数への効果は、**公式に記載なし**{.lbl .lbl-none}です（ja と en の全ページで確かめました）。
 
-**注意**: AAO の CHANGELOG（1.6.0）には、「Remove Unused Objects removes meaningless Animators and Renderers」（使われていないObjectの削除で、意味のない Animator と Renderer が消える）と書かれています。Animator Controller の無い Animator が削除の対象になると読めますが、この記載は公式ドキュメント（ja・en）にはありません（[AAO の CHANGELOG](https://raw.githubusercontent.com/anatawa12/AvatarOptimizer/95c231830cefb62dde91e134642c70942f92ed2a/CHANGELOG.md)）。
+**注意**: AAO の CHANGELOG（1.6.0）には、「Remove Unused Objects removes meaningless Animators and Renderers」（使われていないObjectの削除で、意味のない Animator と Renderer が消える）と書かれています。その下位行には、"Renderers without Mesh and Animators without AnimatorController is meaningless"（Mesh の無い Renderer と、AnimatorController の無い Animator は意味がない）とあります。この記載は公式ドキュメント（ja・en）にはありません（[AAO の CHANGELOG](https://raw.githubusercontent.com/anatawa12/AvatarOptimizer/95c231830cefb62dde91e134642c70942f92ed2a/CHANGELOG.md)）。
 
 ## 手順
 
 1. SDK の「パフォーマンスの内訳」で、「アニメーターの数」を確かめます（上限は PC の Poor が 32、Android の Poor が 2）。
 2. アバターの中で、ルート以外の Animator があるオブジェクトを探します。探す画面の操作は、この記事の資料には書かれていないため、説明しません。Unity の画面の基本は [Unity の画面の見方](/learn/unity/editor-overview) を見てください。
 3. 追加のアニメーターを、Playable Layers の仕組みの中にまとめられないかを確かめます。Playable Layer のスロットには Animation Controller だけを使い、同じコントローラーを複数のレイヤーで使わないようにします（公式の勧め）。
-4. Modular Avatar の Merge Animator で、指定したレイヤーに統合するものを決めます。既存のアニメーターを替えるかどうかは、下の「注意・うまくいかないとき」の「置き換え」の注意を見て決めます。同じオブジェクトの Animator は、「付属アニメーターを削除」で扱えます。統合で数が減るかは**未確認**{.lbl .lbl-unk}のため、手順 6 で確かめます。
+4. Modular Avatar の Merge Animator で、指定したレイヤーに統合するものを決めます。既存のアニメーターを替えるかどうかは、下の「注意・うまくいかないとき」の「置き換え」の注意を見て決めます。同じオブジェクトの Animator は、「付属アニメーターを削除」で扱えます。統合で数が減るかは、手順 6 で確かめます。
 5. AAO を使う場合は、先に「注意・うまくいかないとき」の OSC の注意（FAQ）と、AAO の削除の効果についての注意を読みます。
 6. 処理のあと、SDK の「アニメーターの数」と、Play モードでの Actual Performance Window の値を比べます。あわせて、アニメーションの動きが変わっていないかを確かめます。
 
@@ -98,7 +98,7 @@ VRChat 公式の Playable Layers の文書は、アバターのアニメータ�
 - **Playable Layers のスロットには Animation Controller だけ**: 公式は、ほかの種類のコントローラーを使うと、エラーになるか、アップロードできなくなると書いています。
 - **無効にしても数は減りません**: 公式は、無効化されたものも数えると書いています（上の「減らす前に確かめること」を見てください）。
 - **Merge Animator の「置き換える」**: 公式は、同じレイヤー種別で複数のアニメーターを「置き換える」設定にするとエラーになると書いています（[Merge Animator（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/merge-animator)）。既存のアニメーターを替えるときは、同じレイヤー種別の「置き換える」を 1 つだけにしてください。
-- **AAO の削除の効果**: 効果は**公式に記載なし**{.lbl .lbl-none}です（CHANGELOG 1.6.0 に、Animator Controller の無い Animator が無意味と判断される旨の記録がある）。使う場合は、適用の前後でアニメーターの数と動きを確かめてください。
+- **AAO の削除の効果**: 公式ドキュメント（日本語版・英語版）には記載がありません。CHANGELOG 1.6.0 には、上の記録があります。使う場合は、適用の前後でアニメーターの数と動きを確かめてください。
 - **OSC で使うコンポーネントがある場合**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。公式 FAQ（[よくある質問](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）は、そのようなコンポーネントを使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools を設定するよう案内しています。自動の最適化のあとは、動くかを確かめてください（**この記事の助言**{.lbl .lbl-adv}）。
 - **未リリースの変更**: 上の Modular Avatar の節の、Reactive Component の処理負荷の改善は、未リリースです。
 :::

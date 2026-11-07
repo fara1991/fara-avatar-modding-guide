@@ -59,7 +59,6 @@ shortcuts: [G, R, S]      # shortcuts.yml の key と一致させる
 
 ```markdown
 **公式に記載なし**{.lbl .lbl-none}   <!-- 灰。そのツールの公式の資料を検索して、書かれていないと確かめた -->
-**未確認**{.lbl .lbl-unk}            <!-- 黄。この記事では確認していない -->
 **この記事の助言**{.lbl .lbl-adv}    <!-- 青。公式の説明ではない、この記事の助言 -->
 **○**{.lbl .lbl-ok}  **△**{.lbl .lbl-unk}  **×**{.lbl .lbl-ng}  **確認のみ**{.lbl .lbl-adv}   <!-- 早見表の記号 -->
 
