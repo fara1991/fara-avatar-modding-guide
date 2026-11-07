@@ -25,7 +25,7 @@ updated: 2026-11-07
 
 - メッシュを統合するのがおすすめです（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表にも同じ内容があり、出典は [Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。静的（Static）メッシュは 3 つまでにするのがおすすめです。この数は、ランクの上限とは別の推奨値です。
 - AAO の Merge Skinned Mesh は、統合対象に MeshRenderer を入れられます。統合する静的メッシュの移動・回転・変形は、ボーンで再現されます。
-- AAO の Remove Mesh 系では、服で隠れていて見えない部分のメッシュを削除すると、見た目に影響させずに描画の負荷を減らせます（[Remove Mesh By BlendShape](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-blendshape/)）。MeshRenderer に使えるのは、1.9.0 以降の Remove Mesh By Box・Remove Mesh By Mask・Remove Mesh By UV Tile です。
+- AAO の Remove Mesh 系では、服で隠れていて見えない部分のメッシュを削除すると、見た目に影響させずに描画の負荷を減らせます。MeshRenderer に使えるのは、1.9.0 以降の Remove Mesh By Box・Remove Mesh By Mask・Remove Mesh By UV Tile です。
 - 統合すると、個々のメッシュをアニメーションでオン・オフできなくなります（[スキンドメッシュの数を減らす](/learn/optimize-mesh/skinned-mesh) の注意）。
 
 ## ツール別の方法

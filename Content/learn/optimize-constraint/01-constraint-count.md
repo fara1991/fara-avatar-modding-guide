@@ -77,7 +77,7 @@ updated: 2026-11-07
 
 - **Android の上限**: 「Show Avatar」を使っても、上の上限は回避できません。Android の上限を超えると、制限の対象のコンポーネントが、「Show Avatar」を選んでも取り除かれます。コンストレイントの硬い上限は、150 です。
 - **Unity のコンストレイント（Android）**: Android と Quest では、性能の問題が複雑なため、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使うのがおすすめです（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。
-- **Unity のコンストレイントの自動変換**: 全プラットフォームで、Unity のコンストレイントは、アバターがゲーム内で読み込まれるときや、実行時に、VRChat のコンストレイントに自動で変換されます（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)、[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
+- **Unity のコンストレイントの自動変換**: Android・Quest 以外では、Unity のコンストレイントは、アバターがゲーム内で読み込まれるときや、実行時に、VRChat のコンストレイントに自動で変換されます（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)、[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
 - **PC の既定**: PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。既定では、性能を理由にコンポーネントや表示が影響を受けるアバターはありません。ただし、極端に最適化されていないアバターは、使えなくなる場合があります。表示される最低のランクの設定を変えた場合は、「Constraint Count or Depth」の行（All Constraint components removed）の制限が働きます。
 - **数値は変わることがあります**: Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があります。
 

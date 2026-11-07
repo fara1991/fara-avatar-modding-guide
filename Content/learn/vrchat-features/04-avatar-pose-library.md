@@ -8,7 +8,7 @@ updated: 2026-11-07
 
 ::: point
 - APL は既存の AnimationClip を登録して呼び出すツールなので、ポーズ自体は別に作った AnimationClip を用意する
-- 依存パッケージの版は導入ページと package.json で書き方が違い、パラメーター数への影響は、Unity-Manual の書き方だけ向きが逆に読める
+- 依存パッケージの版は導入ページと package.json で書き方が違い、パラメーター数への影響は、Unity-Manual の書き方だけ向きが逆
 - Resources/ のファイルは、公式パッケージの一部としてだけ再配布できるので、ポーズのデータを配布する前に LICENSE を読む
 :::
 
@@ -164,14 +164,14 @@ Quest の場合は、左手のメニューから「表情」や「パラメー�
 
 パラメーター数への影響について、資料の記載と、APL 1.2.44 の実装を並べます。
 
-- [Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual) の Mode Settings の説明は、有効にするとパラメーター数が減るように読める書き方で、次のように書かれています。
+- [Unity-Manual](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Unity-Manual) の Mode Settings の説明は、有効にするとパラメーター数が削減される書き方で、次のとおりです。
   - Enable Height: 8 減る
   - Enable Speed: 8 減る
   - Enable Mirror: 1 減る
   - Enable Trackings: パラメーター数は減らない
 - [Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A) では、「パラメーター数が心配です。」への答えとして、少しでも削減したい場合は、Enable Height、Enable Speed、Enable Mirror の 3 項目を無効にすると、17 パラメーター減ります。
 
-Unity-Manual の説明は、有効にすると削減されるように読める書き方で、Q&A（無効にすると削減）と実装（有効にすると追加）とは向きが逆です。
+Unity-Manual の説明は、有効にするとパラメーター数が削減される書き方です。Q&A（無効にすると削減）と実装（有効にすると追加）とは向きが逆です。
 
 APL 1.2.44 の実装では、Height と Speed は有効にするとそれぞれ Float のパラメーターを 1 つ追加します（同期されるのは、Height が 8 ビット、Speed が 8 ビット）。Mirror は有効にすると Bool のパラメーターを 1 つ追加します（同期されるのは 1 ビット）。MirrorCycleOffset（Float）は同期しません（localOnly）。Unity-Manual の 8・8・1 と、Q&A の 17 は、同期されるパラメーターのビット数（Float 8、Float 8、Bool 1）と一致します。
 
@@ -186,14 +186,14 @@ APL は、複数のポーズを 1 つの Int パラメーターで制御する�
 ::: warning
 - **非破壊について**: APL は非破壊で改変するので、アンインストールすれば問題なく動作する、というのが作者の説明です（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。念のため、アップロードの前にバックアップを取ってください。
 - **名前の衝突**: APL が作る Animator（アニメーションの切り替えを制御する Unity の部品）のレイヤーやパラメーターは、ユニークな名前空間で管理されています。ただし、特殊な構成のアバターでは、手動の調整が必要になることがあります（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
-- **テレメトリ（利用状況データ）**: Unity Editor からは、利用状況のデータが送られます（[Analytics.md](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Analytics.md)、[privacy.html](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Website/privacy.html)）。初回起動時に「最小限のみ」か「詳細送信を許可」を選びます（画面のボタンは「最小限」「許可」）。変更は `Tools > Avatar Pose Library > Privacy Settings` からできます。どちらのモードでもイベントは送信されます。ただし、ビルド失敗時は、最小限モードでは許可された場合だけ送信されます（[Analytics.md](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Analytics.md)）。送られる内容は、モードによって違います。
+- **テレメトリ（利用状況データ）**: Unity Editor からは、利用状況のデータが送られます（[Analytics.md](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Analytics.md)、[privacy.html](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Website/privacy.html)）。初回起動時に「最小限のみ」か「詳細送信を許可」を選びます（画面のボタンは「最小限」「許可」）。変更は `Tools > Avatar Pose Library > Privacy Settings` からできます。どちらのモードでもイベントは送信されます。ただし、ビルド失敗時のエラーレポートは、最小限モードでは確認して許可された場合だけ送信されます（[Analytics.md](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/Analytics.md)）。送られる内容は、モードによって違います。
 - **ライセンス**: README では、このプロジェクトは MIT ライセンスで提供されます（[README](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/README.md)）。一方、[LICENSE](https://github.com/HhotateA/AvatarPoseLibrary/blob/main/LICENSE) には、次の条文があります。「Files under Resources/ may only be redistributed as part of the official AvatarPoseLibrary package. Please remove any modifications. All other files are licensed under the MIT License.」つまり、Resources/ のファイルは公式パッケージの一部としてだけ再配布でき、それ以外は MIT ライセンスです。README の「許諾なしで再配布OK」は、Resources/ には当てはまりません。ポーズのデータを配布する前に、ルートの `LICENSE` を読んでください（**この記事の助言**{.lbl .lbl-adv}）。
 - **サポート対象外の機能**: wiki の [Secret](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Secret) には、メニューの階層化などの機能があります。これらの機能はサポート対象外です。この記事の手順には入れていません。
 :::
 
 ### 既知の問題
 
-- **ほかのツールとの併用**: 可愛いポーズツール（ゆにスタジオ様）の「他のAnimatorControllerのトラッキング機能を統合する」機能を使うと、原因は分かっていませんが、この機能を使うと APL の Animator が壊れるという報告があります（[Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting)）。APL 側に対策アップデートの予定はないので、この機能をオフにするのがおすすめです（[Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting)）。
+- **ほかのツールとの併用**: 可愛いポーズツール（ゆにスタジオ様）の「他のAnimatorControllerのトラッキング機能を統合する」機能を使うと、この機能を使うと APL の Animator が壊れるという報告があります。原因は調査できていません（[Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting)）。APL 側に対策アップデートの予定はないので、この機能をオフにするのがおすすめです（[Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting)）。
 - **リップシンクや表情が固定される**: WriteDefault などの値によって、動作が不安定になることがあります（[Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting)）。Write Defaults の説明は、[表情と FX の基礎](/learn/vrchat-features/fx-basics) を見てください。WriteDefault の設定を見直すことと、APL の Inspector のプリセットのメニューにある「ポーズのみ」を試すことがおすすめです（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。AnimationClip に含まれる表情のキーを削除すると、正常に動く可能性があります（[Troubleshooting](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Troubleshooting)）。元のクリップは直接消さず、複製してから試してください（**この記事の助言**{.lbl .lbl-adv}）。
 - **頭の固定を解除すると腰が浮く**: 頭の固定を解除すると、腰が浮くことがあります。VRChat の仕様による可能性があります。頭の位置に合わせて、高さや姿勢を微調整するとよいです（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。
 - **フルトラ（全身トラッキング）で棒立ちになる**: 設定項目のフルトラッキング時の移動アニメーションを無効にしていると、棒立ちになることがあります。移動アニメーションを有効にすると、改善することがあります（[Q&A](https://github.com/HhotateA/AvatarPoseLibrary/wiki/Q&A)）。

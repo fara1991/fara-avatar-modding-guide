@@ -131,7 +131,7 @@ Trace And Optimize は、見た目に影響を与えないことを前提に、�
 
 **使われていないObjectを自動的に削除する**（Remove unused Objects）について、補足します。
 
-- 「切り替えるもの」は、英語版では「切り替えられるオブジェクトだけで使われている PhysBone」を指します（changelog の 1.6.0 の例は、服を Simple Toggle で切り替えると PhysBone も自動で切り替わる、というものです）。
+- 「切り替えるもの」は、「切り替えられるオブジェクトだけで使われている PhysBone」を指します（changelog の 1.6.0 の例は、服を Simple Toggle で切り替えると PhysBone も自動で切り替わる、というものです）。
 - AAO 1.6.0 では、Mesh の無い Renderer と、Animator Controller の無い Animator を、意味がないものとして削除します。
 - AAO 1.7.0 では、パラメーターが定義されていても Animator Controller で使われていない PhysBone と Contact Receiver を削除します。
 
@@ -223,7 +223,7 @@ Trace And Optimize の自動の処理では足りないときや、消す範囲�
 Remove Mesh 系のコンポーネントは、削除する範囲を間違えると、見える部分が消えたり、隠れる部分が残ったりします。
 :::
 
-- **AAO Remove Mesh By Mask**: マスクテクスチャで指定した範囲のポリゴンを削除します。服で隠れて見えない部分などを消すと、見た目に影響させずに描画負荷や BlendShape の処理負荷を減らせます（[Remove Mesh By BlendShape](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-blendshape/)）。
+- **AAO Remove Mesh By Mask**: マスクテクスチャで指定した範囲のポリゴンを削除します。服で隠れて見えない部分などを消すと、見た目に影響させずに描画負荷や BlendShape の処理負荷を減らせます（[Remove Mesh By BlendShape](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-mask/)）。
   - 追加する場所: SkinnedMeshRenderer か MeshRenderer のある GameObject です。
   - 設定: マテリアルスロットの一覧（対象を選びます）、マスクテクスチャ（削除する範囲を色で指定する画像）、削除モード（`Remove Black` か `Remove White`）です。
   - 注意: マスクテクスチャは、物（アイテム）ごとに色が異なります。削除モードを間違えると、別の部分が消えます。アルファマスク（透明度で範囲を指定する画像）や、gatosyocora さんの MeshDeleterWithTexture 用のマスクも使えます。
