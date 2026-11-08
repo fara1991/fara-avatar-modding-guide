@@ -12,7 +12,7 @@ updated: 2026-11-07
 - 大量の粒子を性能を保って使う方法の一つとして、衝突を使わないのがおすすめです
 :::
 
-パーティクルの衝突は、パーティクルシステムの粒子が、ほかの物とぶつかるかどうかを計算する設定（Particle Collision）です。パフォーマンスランクでは数字ではなく、True（あり）か False（なし）で数えます。定義は、アバターのパーティクルシステムのどれか 1 つでも Particle Collision が有効なら、True になるというものです（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+パーティクルの衝突は、パーティクルシステムの粒子が、ほかの物とぶつかるかどうかを計算する設定（Particle Collision）です。パフォーマンスランクでは数字ではなく、True（あり）か False（なし）で数えます。定義は、アバターのパーティクルシステムのどれか 1 つでも Particle Collision が有効なら、True になるというものです（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 
 上限は、[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表では「True / True」です。パフォーマンスランクの表（上と同じページ）では、True のとき PC は Medium、Android は Poor の列に当たります（表からの読み取りです）。つまり、PC では Good 以上にならず、Android では Medium 以上にならない、という意味です。
 
@@ -25,7 +25,7 @@ updated: 2026-11-07
 
 ## 減らし方
 
-大量のパーティクルを使いながら性能を保つには、スプライトのパーティクルのダイナミックバッチングを調べ、衝突（collision）は使わず、パーティクルの動きをシンプルにするのがおすすめです（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
+大量のパーティクルを使いながら性能を保つには、スプライトのパーティクルのダイナミックバッチングを調べ、衝突（collision）は使わず、パーティクルの動きをシンプルにするのがおすすめです（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
 
 衝突を使わないことは、大量のパーティクルを性能を保って使うための一つの方法です。この記事の整理として、衝突が要らないパーティクルシステムは、衝突の設定をオフにします。すべてのパーティクルシステムでオフになると、この項目は False になります（定義のとおり）。
 
@@ -43,7 +43,7 @@ updated: 2026-11-07
 ::: warning
 - 衝突をオフにすると、粒子の動きや当たり方が変わります。
 - 「パーティクルの衝突」は、PhysBone のコライダー（「PHYSBONE コライダーの数」）とは別の項目です。
-- Avatar Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があります（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
+- Avatar Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があります（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
 :::
 
 ## 関連ページ

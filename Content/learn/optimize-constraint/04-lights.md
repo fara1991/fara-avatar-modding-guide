@@ -12,7 +12,7 @@ updated: 2026-11-07
 - アバターでどの種類のライトも使わないのがおすすめ
 :::
 
-ライトの数は、アバターにある Light コンポーネントの数を数える項目です。上限は PC の Poor が 1 です（Excellent・Good・Medium は 0）（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。モバイル（Android・iOS。Quest を含む）では、ライトは無効になります。アバターに表示されることがないためです（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。Android と Quest では、ライトは完全に無効になります（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。
+ライトの数は、アバターにある Light コンポーネントの数を数える項目です。上限は PC の Poor が 1 です（Excellent・Good・Medium は 0）（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。モバイル（Android・iOS。Quest を含む）では、ライトは無効になります。アバターに表示されることがないためです（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。Android と Quest では、ライトは完全に無効になります（[Quest Content Limitations](https://docs.vrchat.com/docs/quest-content-limitations)）。
 
 上限を超えると、表示される最低のランクを設定しているときに、すべてのライトが取り除かれます（ランキングの表の「All Lights removed」）。ランキングの例では、上限を超えたためにライトとパーティクルシステムが無効になります。
 
@@ -21,13 +21,13 @@ updated: 2026-11-07
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「ライトの数」で、今の値と上限を見ます。例の画面では、1（上限 1）と表示されていました。上限ちょうどのため、Poor の範囲になります。
-- **無効にしたものも数えられます。** 無効化されている GameObject とコンポーネントも、パフォーマンスランクに数えられます（[パフォーマンスランク（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。ライトを消すだけでは、数は減りません。
+- **無効にしたものも数えられます。** 無効化されている GameObject とコンポーネントも、パフォーマンスランクに数えられます（[パフォーマンスランク](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。ライトを消すだけでは、数は減りません。
 - **PC の既定の設定**: PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。ただし、極端に最適化されていないアバターは、使えなくなる場合があります。上限を超えたライトが取り除かれるのは、表示される最低のランクを設定しているときです。
-- **AAO を使うときの数**: 非破壊のツールを使うと、Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードに入ったときのランクは、anatawa12's Gist Pack の Actual Performance Window で確かめます（[AAO の結果の確認](/learn/optimize-aao/avatar-optimizer) を見てください）。
+- **AAO を使うときの数**: 非破壊のツールを使うと、Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードに入ったときのランクは、anatawa12's Gist Pack の Actual Performance Window で確かめます（[AAO の結果の確認](/learn/optimize-aao/avatar-optimizer) を見てください）。
 
 ## 減らし方の考え方
 
-ライトについて、次の点を押さえてください（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips/)）。
+ライトについて、次の点を押さえてください（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips/)）。
 
 - アバターのライトはリアルタイムで計算されるため、非常に負荷が大きいです。
 - ライトを追加すると、そのライトが当たるものは、描画の呼び出し（ドローコール）が 2 倍になります。
@@ -50,10 +50,10 @@ updated: 2026-11-07
 ## 注意・うまくいかないとき
 
 ::: warning
-- **Android と Quest ではライトは無効**: Android と Quest のアバターでは、ライトは完全に無効になります（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。Android 向けのアバターでは、ライトを当てにしないでください。
+- **Android と Quest ではライトは無効**: Android と Quest のアバターでは、ライトは完全に無効になります（[Quest Content Limitations](https://docs.vrchat.com/docs/quest-content-limitations)）。Android 向けのアバターでは、ライトを当てにしないでください。
 - **無効にしても数は減りません**: 無効化されたものも数えます。
-- **AAO を使うときは**: 先に OSC の注意（[よくある質問（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）を読んでください。AAO は、OSC（外部ツールと値をやりとりする仕組み）で使われている PhysBone や Contact Receiver を判別できないため、Asset Description の設定が必要になることがあります。
-- **パーティクルのライト**: ライトの付いたパーティクルは、それぞれがリアルタイムライトとして扱われ、非常に負荷が大きくなります（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips/)）。
+- **AAO を使うときは**: 先に OSC の注意（[よくある質問](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）を読んでください。AAO は、OSC（外部ツールと値をやりとりする仕組み）で使われている PhysBone や Contact Receiver を判別できないため、Asset Description の設定が必要になることがあります。
+- **パーティクルのライト**: ライトの付いたパーティクルは、それぞれがリアルタイムライトとして扱われ、非常に負荷が大きくなります（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips/)）。
 :::
 
 ## 関連ページ

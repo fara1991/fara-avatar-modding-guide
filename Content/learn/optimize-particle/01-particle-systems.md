@@ -19,11 +19,11 @@ updated: 2026-11-07
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「パーティクルシステムの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、20（上限 16）と表示されていました。
-- **無効にしたものも数えられます。** 現在無効化されているものを含め、すべての GameObject とコンポーネントがパフォーマンスランクに数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。使わないパーティクルシステムは、無効にするだけでは数が減りません。
+- **無効にしたものも数えられます。** 現在無効化されているものを含め、すべての GameObject とコンポーネントがパフォーマンスランクに数えられます（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。使わないパーティクルシステムは、無効にするだけでは数が減りません。
 
 ## 減らし方の考え方
 
-使っているパーティクルシステムの数を制限し、同時に放出される粒子の最大数も制限するのがおすすめです（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。後半の「同時に放出される粒子の最大数」は、[最大パーティクルの数を減らす](/learn/optimize-particle/max-particles) で扱います。
+使っているパーティクルシステムの数を制限し、同時に放出される粒子の最大数も制限するのがおすすめです（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。後半の「同時に放出される粒子の最大数」は、[最大パーティクルの数を減らす](/learn/optimize-particle/max-particles) で扱います。
 
 この記事の整理として、減らす方法を次の 2 つに分けます。
 
@@ -59,7 +59,7 @@ AAO の「使われていないObjectを自動的に削除する」は、アニ�
 - **無効にしただけでは数は減りません。** 使わないものは削除してください（上の手順 4）。
 - **Android の上限は 2 です。** Android と Quest のアバターでは、パーティクルは大きく制限されています。その設定は PC の Avatar Particle System Limits に合わせてあります（[Quest Content Limitations](https://docs.vrchat.com/docs/quest-content-limitations)）。ただし、パフォーマンスランクの表では、モバイルの値（2）は PC の値（16）と違います。
 - **表示制限では、パーティクルシステムの全部が取り除かれます。** 表示の下限に届かないと、All Particle Systems removed になります。
-- **マテリアルスロット。** パーティクルシステムは 1 枠、トレイル付きのパーティクルシステムは 2 枠のマテリアルスロットを使います（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。数を減らすときは、マテリアルスロットの数も SDK の「パフォーマンスの内訳」で確かめてください（**この記事の助言**{.lbl .lbl-adv}。マテリアルスロットの減らし方は [マテリアルスロットを減らす方法](/learn/optimize-mesh/material-slots) を見てください）。
+- **マテリアルスロット。** パーティクルシステムは 1 枠、トレイル付きのパーティクルシステムは 2 枠のマテリアルスロットを使います（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。数を減らすときは、マテリアルスロットの数も SDK の「パフォーマンスの内訳」で確かめてください（**この記事の助言**{.lbl .lbl-adv}。マテリアルスロットの減らし方は [マテリアルスロットを減らす方法](/learn/optimize-mesh/material-slots) を見てください）。
 - **Mesh Read/Write に注意してください。** パーティクルシステムのメッシュを含め、アバターのいずれかの mesh で Mesh Read/Write を無効にすると、パフォーマンスランクは即座に Very Poor になります。
 :::
 

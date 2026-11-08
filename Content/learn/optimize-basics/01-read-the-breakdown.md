@@ -201,10 +201,10 @@ PHYSBONE 衝突チェックの数（329/512）、ライトの数（1/1）、ト�
 
 ## 参考
 
-- [Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)
-- [Avatar Size Limits（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-size-limits)
-- [Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)
-- [Avatar Fallback System（VRChat 公式）](https://docs.vrchat.com/docs/avatar-fallback-system)。このページの冒頭には警告があります（要旨）。フォールバックは impostor に置き換えられつつあり、Web では選べるが VRChat の中では選べない、という内容です。
+- [Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)
+- [Avatar Size Limits](https://creators.vrchat.com/avatars/avatar-size-limits)
+- [Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)
+- [Avatar Fallback System](https://docs.vrchat.com/docs/avatar-fallback-system)。このページの冒頭には警告があります（要旨）。フォールバックは impostor に置き換えられつつあり、Web では選べるが VRChat の中では選べない、という内容です。
 - [Tags（Unity マニュアル）](https://docs.unity3d.com/Manual/Tags.html)・[FBX Importer（Unity マニュアル。Read/Write）](https://docs.unity3d.com/Manual/FBXImporter-Model.html)・[描画の呼び出しの最適化（Unity マニュアル）](https://docs.unity3d.com/Manual/optimizing-draw-calls.html)
 
 上限の値は見直されることがあるので、最新の値は、上の参考のページで確かめてください。

@@ -15,7 +15,7 @@ updated: 2026-11-07
 
 メッシュパーティクルの三角ポリゴン数は、有効（active）な Particle System（パーティクルシステム）が出すメッシュ状の粒子（メッシュパーティクル）の三角ポリゴンの数を数える項目です。SDK の「パフォーマンスの内訳」では「メッシュパーティクルの三角ポリゴン数」と表示され、ランキングの表の行名は Mesh Particle Active Polys です。上限は、PC の Poor が 5,000、Android の Poor が 400 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
-上限を超えると、次のランクになります。表示の下限（Minimum Displayed Performance Rank）より下のランクになると、All Particle Systems removed（すべての Particle System が取り除かれる）になります（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。ただし、極端に最適化されていないアバターは、使えなくなることがあります。
+上限を超えると、次のランクになります。表示の下限（Minimum Displayed Performance Rank）より下のランクになると、All Particle Systems removed（すべての Particle System が取り除かれる）になります（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。ただし、極端に最適化されていないアバターは、使えなくなることがあります。
 
 ## 減らす前に確かめること
 
@@ -25,7 +25,7 @@ updated: 2026-11-07
 
 ## 減らし方
 
-パーティクル全般では、使う Particle System の数を制限し、同時に放出される粒子の最大数を制限するのがおすすめです（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
+パーティクル全般では、使う Particle System の数を制限し、同時に放出される粒子の最大数を制限するのがおすすめです（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
 
 ## 手順
 
@@ -38,7 +38,7 @@ updated: 2026-11-07
 ## 注意・うまくいかないとき
 
 ::: warning
-- **Mesh Read/Write**: アバターのいずれかの mesh（パーティクルシステムのメッシュを含む）で Mesh Read/Write を無効にすると、アバターの Triangles（三角ポリゴン数）の行は「Mesh Read/Write Disabled」と表示され、ランクは即座に Very Poor になります。アバターの実際の三角ポリゴン数にかかわらず、この扱いになります（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+- **Mesh Read/Write**: アバターのいずれかの mesh（パーティクルシステムのメッシュを含む）で Mesh Read/Write を無効にすると、アバターの Triangles（三角ポリゴン数）の行は「Mesh Read/Write Disabled」と表示され、ランクは即座に Very Poor になります。アバターの実際の三角ポリゴン数にかかわらず、この扱いになります（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 :::
 
 ## 関連ページ

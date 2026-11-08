@@ -36,12 +36,12 @@ MA には、三角ポリゴンを減らせる条件つきの機能がありま�
 
 **何をするか**:
 
-- **Mesh Cutter**: メッシュの一部を、頂点フィルターで指定して、削除または非表示にするコンポーネントです。Mesh Cutter が常に有効（アクティブ）な場合は、選んだポリゴンを完全に削除します。時々非アクティブになる場合は、選んだポリゴンを非表示にします（[公式: Mesh Cutter](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/mesh-cutter)）。どちらの場合も部位が見えなくなるので、見た目が変わります。
-- **Shape Changer（Delete モード）**: アニメーションされていない場合は、ポリゴンを削除して数を減らせます。アニメーションされている場合は非表示になりますが、測定されるポリゴン数は減りません（[公式: Shape Changer](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/shape-changer)）。
+- **Mesh Cutter**: メッシュの一部を、頂点フィルターで指定して、削除または非表示にするコンポーネントです。Mesh Cutter が常に有効（アクティブ）な場合は、選んだポリゴンを完全に削除します。時々非アクティブになる場合は、選んだポリゴンを非表示にします（[Mesh Cutter](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/mesh-cutter)）。どちらの場合も部位が見えなくなるので、見た目が変わります。
+- **Shape Changer（Delete モード）**: アニメーションされていない場合は、ポリゴンを削除して数を減らせます。アニメーションされている場合は非表示になりますが、測定されるポリゴン数は減りません（[Shape Changer](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/shape-changer)）。
 
 **注意**:
 
-- Mesh Cutter が時々非アクティブになる場合は、場合によって Constraint を生成する必要があり、パフォーマンスランクの増加に寄与する可能性があるため、注意してください（[公式: Mesh Cutter](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/mesh-cutter)）。
+- Mesh Cutter が時々非アクティブになる場合は、場合によって Constraint を生成する必要があり、パフォーマンスランクの増加に寄与する可能性があるため、注意してください（[Mesh Cutter](https://modular-avatar.nadena.dev/ja/docs/reference/reaction/mesh-cutter)）。
 
 ### Meshia Mesh Simplification（MMS） {.tool .tool-mms}
 
@@ -77,8 +77,8 @@ MMS には 2 種類のコンポーネントがあります。
 **何をするか**: AAO の削除の機能は、Edit Skinned Mesh の種類のコンポーネントです。1.9.0 以降は、Box・Mask・UV Tile の 3 つが MeshRenderer にも使えます。
 
 - **AAO Remove Mesh By Mask**: マスクテクスチャで指定した範囲のポリゴンを削除します。マスクは、削除する範囲を色で指定する画像です。削除モードは「Remove Black」か「Remove White」を選びます。
-- **AAO Remove Mesh By Box**: 1 つ以上の箱で指定した範囲のポリゴンを削除します。箱の内側と外側のどちらを削るかを選べます（[公式: Remove Mesh By Box](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-box/)）。
-- **AAO Remove Mesh By UV Tile**: UV タイルで指定した範囲のポリゴンを削除します。Poiyomi や lilToon の UV Tile Discard の Vertex モードに近い動きです（[公式: Remove Mesh By UV Tile](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-uv-tile/)）。
+- **AAO Remove Mesh By Box**: 1 つ以上の箱で指定した範囲のポリゴンを削除します。箱の内側と外側のどちらを削るかを選べます（[Remove Mesh By Box](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-box/)）。
+- **AAO Remove Mesh By UV Tile**: UV タイルで指定した範囲のポリゴンを削除します。Poiyomi や lilToon の UV Tile Discard の Vertex モードに近い動きです（[Remove Mesh By UV Tile](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-mesh-by-uv-tile/)）。
 - **AAO Remove Mesh By BlendShape**: 選んだ BlendShape で動く頂点と、その頂点を含むポリゴンを削除します。多くの素体に含まれている貫通防止用の BlendShape を使うと、簡単にメッシュを削除できます。
 - **AAO Remove Zero Sized Polygon**: 面積がゼロのポリゴンを削除します。これは高度な最適化の一つで、既定ではオフです（下の注意を見てください）。
 
@@ -92,7 +92,7 @@ MMS には 2 種類のコンポーネントがあります。
 **注意**:
 
 - **形で削る Remove Mesh 系（Mask・Box・UV Tile・BlendShape）は、手動のコンポーネントとして追加して使います。**
-- **面積がゼロのポリゴンの削除は、Trace And Optimize の高度な最適化「面積がゼロのポリゴンを自動的に削除する」で、自動で行えます**（[公式: Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。AAO 1.7.1 では、この機能は既定ではオフです。一部のシェーダーやアニメーションを壊すおそれがあります。
+- **面積がゼロのポリゴンの削除は、Trace And Optimize の高度な最適化「面積がゼロのポリゴンを自動的に削除する」で、自動で行えます**（[Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。AAO 1.7.1 では、この機能は既定ではオフです。一部のシェーダーやアニメーションを壊すおそれがあります。
 - 面積がゼロのポリゴンを削除する Remove Zero Sized Polygon を手動で追加するより、Trace And Optimize を使うのがおすすめです。統合対象の SkinnedMeshRenderer に追加しても効果はありません（[Remove Zero Sized Polygon のページ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/remove-zero-sized-polygon/)）。
 - Remove Mesh By BlendShape の許容差の向きは、定義（選んだ BlendShape が頂点を許容差より大きく動かしていたら、その頂点を削除する。通常モード）と、例文および Unity 内の説明で逆になっています。プレビューで確かめながら調整してください。
 

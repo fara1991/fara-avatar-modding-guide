@@ -14,20 +14,20 @@ updated: 2026-11-07
 
 アニメーターの数は、アバターにある Animator コンポーネントの数を数える項目です。上限は PC の Poor が 32、Android の Poor が 2 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
-上限を超えると、表示される最低のランクを設定しているときに、ルート以外のすべてのアニメーターが取り除かれます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+上限を超えると、表示される最低のランクを設定しているときに、ルート以外のすべてのアニメーターが取り除かれます（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 
 上限や挙動は、版が上がると変わることがあります。
 
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「アニメーターの数」で、今の値と上限を見ます。例の画面では、2（上限 32）と表示されていました。
-- **無効にしたものも数えられます。** 無効化されている GameObject とコンポーネントも、パフォーマンスランクに数えられます（[パフォーマンスランク（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。Animator を無効にするだけでは、数は減りません。
-- **数の数え方**: ルートのアニメーターも数えるため、数は常に 1 以上です。そのため、Excellent では、ルート以外のアニメーターを追加できません（[パフォーマンスランク（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。Playable Layers では、ルートのアニメーターとして 5 つ使えます（[Playable Layers（VRChat 公式）](https://creators.vrchat.com/avatars/playable-layers/)）。これらの Playable Layers は、1 つの組み合わせたアニメーターにまとめられます。そのアニメーターが、アバターのルートの主要なアニメーターです。
-- **AAO を使うときの数**: 非破壊のツールを使うと、Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードに入ったときのランクは、anatawa12's Gist Pack の Actual Performance Window で確かめます（手順は [AAO の結果の確認](/learn/optimize-aao/avatar-optimizer) を見てください）。
+- **無効にしたものも数えられます。** 無効化されている GameObject とコンポーネントも、パフォーマンスランクに数えられます（[パフォーマンスランク](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。Animator を無効にするだけでは、数は減りません。
+- **数の数え方**: ルートのアニメーターも数えるため、数は常に 1 以上です。そのため、Excellent では、ルート以外のアニメーターを追加できません（[パフォーマンスランク](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。Playable Layers では、ルートのアニメーターとして 5 つ使えます（[Playable Layers](https://creators.vrchat.com/avatars/playable-layers/)）。これらの Playable Layers は、1 つの組み合わせたアニメーターにまとめられます。そのアニメーターが、アバターのルートの主要なアニメーターです。
+- **AAO を使うときの数**: 非破壊のツールを使うと、Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードに入ったときのランクは、anatawa12's Gist Pack の Actual Performance Window で確かめます（手順は [AAO の結果の確認](/learn/optimize-aao/avatar-optimizer) を見てください）。
 
 ## 減らし方の考え方
 
-Playable Layers については、次の 3 点を押さえてください（[Playable Layers（VRChat 公式）](https://creators.vrchat.com/avatars/playable-layers/)）。
+Playable Layers については、次の 3 点を押さえてください（[Playable Layers](https://creators.vrchat.com/avatars/playable-layers/)）。
 
 - アバターに追加のアニメーターを足す理由はありません。
 - Playable Layer のスロットで使えるのは、Animation Controller だけです。
@@ -45,14 +45,14 @@ Playable Layers については、次の 3 点を押さえてください（[Pla
 
 **注意**:
 
-- 「付属アニメーターを削除」を入れると、同じオブジェクト内の Animator が自動的に排除（削除）されます（[Merge Animator（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/merge-animator)）。
+- 「付属アニメーターを削除」を入れると、同じオブジェクト内の Animator が自動的に排除（削除）されます（[Merge Animator](https://modular-avatar.nadena.dev/ja/docs/reference/merge-animator)）。
 - Merge Animator は、アニメーターをレイヤーに追加して統合します。統合後にアニメーターの数が減るかは、この記事の手順 6 で確かめてください。
-- MA は、アバターの FX アニメーターなどを分割し、実行時に統合できます（[Modular Avatar（MA 公式）](https://modular-avatar.nadena.dev/ja/)）。
+- MA は、アバターの FX アニメーターなどを分割し、実行時に統合できます（[Modular Avatar](https://modular-avatar.nadena.dev/ja/)）。
 - 未リリースの変更（CHANGELOG の `[Unreleased]` の [MA の変更履歴](https://github.com/bdunderscore/modular-avatar/blob/main/CHANGELOG-jp.md)）では、Reactive Component の生成をブレンドツリー方式に変えて、アニメーターの処理負荷を軽減します。まだリリースされていません。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-**何をするか**: AAO の Trace And Optimize の「アニメーターの最適化」（Optimize Animator）は、Animator Controller（アニメーションの動きを決めるアセット）のレイヤーを整理する機能です。次の 5 つを行います（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。
+**何をするか**: AAO の Trace And Optimize の「アニメーターの最適化」（Optimize Animator）は、Animator Controller（アニメーションの動きを決めるアセット）のレイヤーを整理する機能です。次の 5 つを行います（[Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。
 
 - AnyState 式のレイヤーを Entry-Exit 式に変換する
 - 完全グラフ構造のレイヤーを Entry-Exit 式に変換する
@@ -78,9 +78,9 @@ Playable Layers については、次の 3 点を押さえてください（[Pla
 ::: warning
 - **Playable Layers のスロットには Animation Controller だけ**: Playable Layers のスロットには、Animation Controller だけを使ってください。ほかの種類のコントローラーを使うと、エラーになるか、アップロードできなくなります。
 - **無効にしても数は減りません**: 無効化されたものも数えます（上の「減らす前に確かめること」を見てください）。
-- **Merge Animator の「置き換える」**: 同じレイヤー種別で複数のアニメーターを「置き換える」設定にすると、エラーになります（[Merge Animator（MA 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/merge-animator)）。既存のアニメーターを替えるときは、同じレイヤー種別の「置き換える」を 1 つだけにしてください。
+- **Merge Animator の「置き換える」**: 同じレイヤー種別で複数のアニメーターを「置き換える」設定にすると、エラーになります（[Merge Animator](https://modular-avatar.nadena.dev/ja/docs/reference/merge-animator)）。既存のアニメーターを替えるときは、同じレイヤー種別の「置き換える」を 1 つだけにしてください。
 - **AAO の削除の効果**: AAO 1.6.0 以降は、意味のない Animator が削除されます（上の AAO の節を見てください）。使う場合は、適用の前後でアニメーターの数と動きを確かめてください。
-- **OSC で使うコンポーネントがある場合**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。そのようなコンポーネントを使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools を設定するのがおすすめです（[よくある質問（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。自動の最適化のあとは、動くかを確かめてください（**この記事の助言**{.lbl .lbl-adv}）。
+- **OSC で使うコンポーネントがある場合**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。そのようなコンポーネントを使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools を設定するのがおすすめです（[よくある質問](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。自動の最適化のあとは、動くかを確かめてください（**この記事の助言**{.lbl .lbl-adv}）。
 - **未リリースの変更**: 上の Modular Avatar の節の、Reactive Component の処理負荷の改善は、未リリースです。
 :::
 

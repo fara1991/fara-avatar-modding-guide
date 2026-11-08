@@ -33,18 +33,18 @@ updated: 2026-11-07
 
 ### TexTransTool（TTT） {.tool .tool-ttt}
 
-**何をするか**: AtlasTexture は、マテリアルを 1 つにまとめて、テクスチャを 1 枚にまとめる機能です。AtlasTexture のマテリアルの結合は、マテリアルをまとめるだけで、マテリアルスロットの結合はできません（[TexTransTool の公式チュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing) の末尾の注意）。
+**何をするか**: AtlasTexture は、マテリアルを 1 つにまとめて、テクスチャを 1 枚にまとめる機能です。AtlasTexture のマテリアルの結合は、マテリアルをまとめるだけで、マテリアルスロットの結合はできません（[TexTransTool のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing) の末尾の注意）。
 
 **どう使うか**:
 
 - マテリアルを結合するには、「結合時参照」を指定します。
 - 結合時参照が None のままだと、マテリアルは結合されません。
-- 何らかのマテリアルが割り当てられている場合は、そのマテリアルに結合されます（[公式: AtlasTexture](https://ttt.rs64.net/docs/Reference/AtlasTexture)）。
+- 何らかのマテリアルが割り当てられている場合は、そのマテリアルに結合されます（[AtlasTexture](https://ttt.rs64.net/docs/Reference/AtlasTexture)）。
 - 部分的にマテリアルを選び、それぞれの結合時参照を指定できる「マテリアルの結合グループ」があります。
 
 **注意**:
 
-- マテリアルスロットを減らすには、AAO の Trace And Optimize や Merge Skinned Mesh との併用を強くおすすめします（[TexTransTool の公式チュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
+- マテリアルスロットを減らすには、AAO の Trace And Optimize や Merge Skinned Mesh との併用を強くおすすめします（[TexTransTool のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
 - [Quest対応のためのアトラス化とマテリアルの結合のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing) には、Quest 向けにマテリアルを結合する例があります。Quest 向けのこの方法は、見た目を維持できない軽量化になります。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}

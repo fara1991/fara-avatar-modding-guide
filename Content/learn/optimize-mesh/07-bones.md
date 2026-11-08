@@ -39,7 +39,7 @@ updated: 2026-11-07
 - **どう使う**: 統合先と名前が一致するボーンは、統合先にまとめられます。統合元にあって統合先にないボーンは、名前を変えて配置されます。連鎖的に統合することも、1.7.0 以降はできます。
 - **注意**: 該当するボーンがない場合や、統合元のボーンへの引用を統合先のボーンへ書き換えられない場合は、子にボーンが追加されます。Transform 以外のコンポーネントが入っているボーンは残り、そのほかのボーンは原則として統合後に削除されます。既存のボーンを再利用して、作られるボーンを最小限にします（MA の README）。
 - **Bone Proxy**: プレハブ化したオブジェクトを、元のアバターのボーンの中に配置する機能です。衣装向けのものではありません。
-- 出典: [Merge Armature（Modular Avatar 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature)、[Bone Proxy（Modular Avatar 公式）](https://modular-avatar.nadena.dev/ja/docs/reference/bone-proxy)
+- 出典: [Merge Armature](https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature)、[Bone Proxy](https://modular-avatar.nadena.dev/ja/docs/reference/bone-proxy)
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
@@ -48,7 +48,7 @@ updated: 2026-11-07
 - **Trace And Optimize の「PhysBone を最適化する」**: Endpoint Position で問題なく表現できる場合に、end ボーン（PhysBone の末端のボーン）を削除して、Endpoint Position に置き換えます。この置き換えで、PhysBone Affected Transforms の数を減らせます。これは SDK の「ボーンの数」とは別の項目です（[PhysBone トランスフォームの数を減らす](/learn/optimize-physbone/physbone-transforms)）。
 - **AAO Merge Bone（手動）**: GameObject を親の GameObject に統合して、元の GameObject を取り除きます。統合対象に付いているほかのコンポーネントも、削除されます。「名前の競合を避ける」を使うと、子の GameObject の名前を変えて、アニメーションの破損を防げます。親にも Merge Bone があれば、さらに親に統合されます。Trace And Optimize が似た処理を自動で行うため、大抵の場合は使う必要はありません。
 - **UnusedBonesByReferencesTool**: 非推奨です。代わりに、Trace And Optimize の「使われていないObjectを自動的に削除する」を使うのがおすすめです。
-- 出典: [Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)、[Merge Bone（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-bone/)
+- 出典: [Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)、[Merge Bone](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-bone/)
 
 ## 手順
 
@@ -64,7 +64,7 @@ updated: 2026-11-07
 - **OSC で使う PhysBone・Contact Receiver**: AAO の Trace And Optimize は、PhysBone や Contact Receiver が OSC（外部ツールと値をやりとりする仕組み）のギミックで使われているかを判別できません。そのため、他の用途で使われていなければ削除します。これは「使われていないObjectを自動的に削除する」の働きです。OSC で使う場合は、Asset Description ファイルを作り、Parameters Read By External Tools に設定する方法があります（[AAO の FAQ](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/faq/)）。OSC を使うアバターでは、自動の最適化のあとに、PhysBone と Contact が効くかを確かめてください（**この記事の助言**{.lbl .lbl-adv}）。
 - **ボーンの統合で動きが変わることがある**: CHANGELOG には、版ごとに次の記録があります。AAO 1.9.20 では、スケールが 100 倍のとき 3mm 以内のボーンが誤って統合されることがある問題がありました（修正の内容は CHANGELOG を見てください）。AAO 1.9.15 では、Merge Bone が z-fighting（面がちらつく現象）を起こすことがある問題を修正しました。AAO 1.8.3 では、C# の名前付きプロパティで Transform をアニメーションすると Merge Bone で壊れる問題を修正しました。
 - **統合で、より多くのボーンが統合されるようになった**: AAO 1.7.5 では、Trace And Optimize が以前より多くのボーンを統合するようになりました。
-- **Merge PhysBone**: 統合したあとは、掴めるのは 1 か所だけになります（[Merge PhysBone（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-physbone/)）。また、Merge PhysBone を 1 つ使うごとに、PhysBone Affected Transforms の数が 1 増えます（ルートの GameObject も数えるため）。PhysBone の項目を減らす目的では、この増え方に注意してください。
+- **Merge PhysBone**: 統合したあとは、掴めるのは 1 か所だけになります（[Merge PhysBone](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/merge-physbone/)）。また、Merge PhysBone を 1 つ使うごとに、PhysBone Affected Transforms の数が 1 増えます（ルートの GameObject も数えるため）。PhysBone の項目を減らす目的では、この増え方に注意してください。
 
 ## 関連ページ
 
