@@ -25,7 +25,7 @@ updated: 2026-11-07
 
 ## 減らし方の考え方
 
-減らすには、次の 2 つの考え方がおすすめです（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
+減らすには、次の 2 つの考え方がおすすめです（[Constraints](https://creators.vrchat.com/common-components/constraints)）。
 
 - **いちばん長いつながりを短くする。** コンストレイントの深さは、いちばん長いつながりの長さを減らすと下がります。
 - **依存を減らして、同時に動けるようにする。** コンストレイントどうしの依存を減らすように並べると、多くのコンストレイントを同時に動かせます。順番に動かさなければならない場合より、性能が良くなります。
@@ -54,7 +54,7 @@ AAO 1.6.5 以降は、ネストしたコンストレイントが Trace And Optim
 
 1. SDK の「パフォーマンスの内訳」で、「コンストレイントの深さ」を確かめます（上限は PC の Poor が 100、Android の Poor が 50）。
 2. 変換の前に、プロジェクトのバックアップを取り、確かめたい動き（対象のアニメーションとコンストレイントの追従）を記録しておきます（**この記事の助言**{.lbl .lbl-adv}です）。
-3. Unity のコンストレイントが含まれているなら、VRChat のコンストレイントに変えます。SDK の Control Panel にある該当する Auto Fix の項目を使うと、アバターの Unity のコンストレイントを、同等の VRChat のコンストレイントに変換できます（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
+3. Unity のコンストレイントが含まれているなら、VRChat のコンストレイントに変えます。SDK の Control Panel にある該当する Auto Fix の項目を使うと、アバターの Unity のコンストレイントを、同等の VRChat のコンストレイントに変換できます（[Constraints](https://creators.vrchat.com/common-components/constraints)）。
    - Unity のコンストレイントがあると、深さが過大に見積もられることがあります（下の注意を見てください）。
 4. 変換したあとは、Play モードに入り、対象のアニメーションとコンストレイントの追従が、変換の前と同じかを確かめます。
 5. いちばん長いつながりを探します。コンストレイントの設定（どの物をどの物に合わせているか）を確かめて、つながりを追います（この記事の整理）。
@@ -68,9 +68,9 @@ AAO 1.6.5 以降は、ネストしたコンストレイントが Trace And Optim
 - **Android の硬い上限**: Android の硬い上限は、依存の深さ 50 です（Mobile Avatar Component Limits）。「Show Avatar」を使っても、上の上限は回避できません。
 - **並べ替え**: 依存を減らすように並べると、多くのコンストレイントが同時に動けます。並べ替えは、コンストレイントの設定を確かめて、つながりを追ってから決めてください。
 - **Unity のコンストレイントと深さ**:
-  - Unity のコンストレイントがあると、この項目は、Unity のコンストレイントは一度に 1 つしか動かないと仮定するため、深さが過大に見積もられることがあります（[Constraints（VRChat 公式）](https://creators.vrchat.com/common-components/constraints)）。
-  - Android・Quest 以外では、VRChat は、実行時に Unity のコンストレイントを VRChat のコンストレイントに自動で変換します（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
-  - Android と Quest では、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使うのがおすすめです（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。
+  - Unity のコンストレイントがあると、この項目は、Unity のコンストレイントは一度に 1 つしか動かないと仮定するため、深さが過大に見積もられることがあります（[Constraints](https://creators.vrchat.com/common-components/constraints)）。
+  - Android・Quest 以外では、VRChat は、実行時に Unity のコンストレイントを VRChat のコンストレイントに自動で変換します（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
+  - Android と Quest では、Unity のコンストレイントは完全に無効になります。VRChat のコンストレイントを使うのがおすすめです（[Quest Content Limitations](https://docs.vrchat.com/docs/quest-content-limitations)）。
 - **数値は変わることがあります**: Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があります。
 - **AAO の不具合の修正の記録**: AAO 1.5.5 以降は、自動の MergeBone で、コンストレイントとアニメーションが壊れる不具合が修正されています。1.8.13 以降は、ローカル空間で解く VRCConstraints が、自動の merge bone で壊れる不具合が修正されています。AAO を使ったあとは、コンストレイントの動きを確かめてください。
 

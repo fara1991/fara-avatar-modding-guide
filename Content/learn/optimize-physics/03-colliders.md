@@ -14,7 +14,7 @@ updated: 2026-11-07
 
 コライダーの数（Physics Colliders）は、アバターにある Collider（Unity の物理の衝突の形を決める部品）の数です。PhysBone のコライダー（[PhysBone コライダーの数を減らす](/learn/optimize-physbone/physbone-colliders)）とは、別の項目です。
 
-上限は、PC では Excellent が 0、Good が 1、Medium と Poor が 8 です（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。Android と iOS では、Mobile Removed Components の一覧に入っていて、値は常にゼロです。
+上限は、PC では Excellent が 0、Good が 1、Medium と Poor が 8 です（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。Android と iOS では、Mobile Removed Components の一覧に入っていて、値は常にゼロです。
 
 上限を超えると、次のランクに入ります（[パフォーマンスランク](/learn/vrchat/performance-rank)）。表示の下限（Minimum Displayed Performance Rank）より下のランクになると、コライダーがすべて取り除かれます（All Physics Colliders removed）。PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。ただし、極端に最適化されていないアバターは、使えなくなる場合があります。
 
@@ -23,7 +23,7 @@ VRChat のドキュメントは英語のみのため、項目名は英語のま�
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「コライダーの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、1（上限 8）と表示されていました。
-- **無効にしたものも数えます。** 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+- **無効にしたものも数えます。** 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 - **PhysBone のコライダーと混同しないこと。** 統計表の「PhysBones Colliders」は、アバターにある PhysBone のコライダーのスクリプトの数で、別の項目です。
 - **AAO を使うとき**: 非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードに入ったときの Actual Performance Window で確かめられます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 
@@ -36,7 +36,7 @@ VRChat のドキュメントは英語のみのため、項目名は英語のま�
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
-**何をするか**: Trace And Optimize の「PhysBone を最適化する」は、全く同じ設定の PhysBone Collider を 1 つに統合します（[Trace And Optimize（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。これは PhysBone のコライダーの統合です（[PhysBone コライダーの数を減らす](/learn/optimize-physbone/physbone-colliders) を参照）。
+**何をするか**: Trace And Optimize の「PhysBone を最適化する」は、全く同じ設定の PhysBone Collider を 1 つに統合します（[Trace And Optimize](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/reference/trace-and-optimize/)）。これは PhysBone のコライダーの統合です（[PhysBone コライダーの数を減らす](/learn/optimize-physbone/physbone-colliders) を参照）。
 
 [AAO の CHANGELOG](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/changelog/) では、Unity の Collider に関係する修正が 3 件あります。いずれも Fixed（不具合の修正）です。
 
@@ -58,9 +58,9 @@ VRChat のドキュメントは英語のみのため、項目名は英語のま�
 ## 注意・うまくいかないとき
 
 ::: warning
-- **モバイル（Android と iOS）**: Mobile Removed Components の一覧には Physics Colliders が入っていて、値は常にゼロです（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
-- **Android と Quest**: Android と Quest では、アバターの Rigidbody・コライダー・ジョイントは完全に無効になります（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。
-- **数値は変わることがあります**: Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があります（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
+- **モバイル（Android と iOS）**: Mobile Removed Components の一覧には Physics Colliders が入っていて、値は常にゼロです（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+- **Android と Quest**: Android と Quest では、アバターの Rigidbody・コライダー・ジョイントは完全に無効になります（[Quest Content Limitations](https://docs.vrchat.com/docs/quest-content-limitations)）。
+- **数値は変わることがあります**: Optimization Tips の推奨の数値や上限は、いつでも変わる可能性があります（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
 :::
 
 ## 関連ページ

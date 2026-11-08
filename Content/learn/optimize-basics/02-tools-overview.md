@@ -72,8 +72,8 @@ lilAvatarUtils は、アバターの改変を助けるツールです。
 - **公式ページ**: https://lilxyzw.github.io/lilAvatarUtils/ja_JP/
 - **減らせる主な項目**: テクスチャメモリー（△。Unity のインポート設定を変える作業の補助）。
 - **注意**:
-  - ツールのタブには、不要なものを削除する操作があります。マテリアルのクリーンアップ（割り当て中のシェーダーで使用されない不要なプロパティの削除）、AnimatorController のクリーンアップ（どこからも参照されない不要なサブアセットの削除）、Missing なコンポーネントの削除です（[ツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。これらはアセットを変更する操作なので、作業の前にプロジェクトのバックアップを取るのが安全です。
-  - 不要なテクスチャの割り当てが残っていると、使われないテクスチャがアバターに含まれて容量が大きくなることがあります。マテリアルのクリーンアップは、その整理にも使えます（[ツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。
+  - ツールのタブには、不要なものを削除する操作があります。マテリアルのクリーンアップ（割り当て中のシェーダーで使用されない不要なプロパティの削除）、AnimatorController のクリーンアップ（どこからも参照されない不要なサブアセットの削除）、Missing なコンポーネントの削除です（[lilAvatarUtils のツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。これらはアセットを変更する操作なので、作業の前にプロジェクトのバックアップを取るのが安全です。
+  - 不要なテクスチャの割り当てが残っていると、使われないテクスチャがアバターに含まれて容量が大きくなることがあります。マテリアルのクリーンアップは、その整理にも使えます（[lilAvatarUtils のツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。
   - 各タブの「適用」ボタンで、変更したプロパティがまとめて反映されます。テクスチャのタブの「置き換え」は、アバターに存在する全マテリアルの該当テクスチャを一括で置き換えます（[テクスチャ](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/TexturesGUI.html)、[マテリアル](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/MaterialsGUI.html)）。
   - 半透明マテリアルのレンダーキューを 2450 以下などに下げすぎると、ほかのマテリアルが消えやすくなります（[マテリアル](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/MaterialsGUI.html)）。
 

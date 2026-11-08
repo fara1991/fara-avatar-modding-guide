@@ -60,7 +60,7 @@ PhysBone の項目の意味は [PhysBone と Contact](/learn/vrchat-features/phy
 **Avatar Optimizer**（AAO）は、アップロードのとき（ビルドの途中）に、アバターを自動で軽くするツールです。元のシーンやデータは変わらないので、外せばいつでも元に戻ります。Modular Avatar と同じ NDMF という仕組みで動きます（[用語集: NDMF](/glossary#ndmf)）。
 
 ::: tip
-AAO は ALCOM で入れるのがおすすめです（[Avatar Optimizer（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/)）。VCC では正しく動かないことがあります（この記事の「入れる」の手順は VCC の例です）。AAO の入れ方の詳細、オプションごとの詳しい説明、うまくいかないときは、[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer) にまとめています。
+AAO は ALCOM で入れるのがおすすめです（[Avatar Optimizer](https://vpm.anatawa12.com/avatar-optimizer/ja/)）。VCC では正しく動かないことがあります（この記事の「入れる」の手順は VCC の例です）。AAO の入れ方の詳細、オプションごとの詳しい説明、うまくいかないときは、[Avatar Optimizer でできること・使い方](/learn/optimize-aao/avatar-optimizer) にまとめています。
 :::
 
 ### 入れる
@@ -90,7 +90,7 @@ VCC に AAO のリポジトリ（`https://vpm.anatawa12.com/vpm.json`）を登�
 | **AAO Freeze BlendShapes** | 値を変えないシェイプキーを固定して消す。多くは Trace And Optimize で足りる |
 | **AAO Merge PhysBone** | 複数の PhysBone を 1 つにまとめる |
 
-それぞれ Add Component の **Avatar Optimizer** の中にあります。使い方の詳細は [AAO の公式ドキュメント](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/) を見てください。
+それぞれ Add Component の **Avatar Optimizer** の中にあります。使い方の詳細は [AAO のドキュメント](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/) を見てください。
 
 ::: tip
 AAO で何が消えたかは、アップロード前に確かめられます。アバターを右クリックして **NDM Framework > Manual bake avatar** を実行すると、処理したあとのアバターの複製がシーンに作られます。確かめたら、その複製は削除します。

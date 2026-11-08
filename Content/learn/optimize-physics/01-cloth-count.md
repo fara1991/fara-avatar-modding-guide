@@ -11,9 +11,9 @@ updated: 2026-11-07
 - 無効にしたものも、ランクの数に入ります
 :::
 
-Cloth の数は、アバターにある Cloth コンポーネント（布の動きを物理で計算する部品）の数を数える項目です。SDK の「パフォーマンスの内訳」では「CLOTH メッシュの数」と表示されますが、定義は Cloth コンポーネントの総数です（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。この記事も、その定義に合わせて書きます。上限は PC の Poor が 1 で、モバイル（Android と iOS）では無効です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
+Cloth の数は、アバターにある Cloth コンポーネント（布の動きを物理で計算する部品）の数を数える項目です。SDK の「パフォーマンスの内訳」では「CLOTH メッシュの数」と表示されますが、定義は Cloth コンポーネントの総数です（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。この記事も、その定義に合わせて書きます。上限は PC の Poor が 1 で、モバイル（Android と iOS）では無効です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。
 
-モバイルでは、Cloth は表示されることがないため無効になります。Mobile Removed Components（モバイルで取り除かれるコンポーネントの一覧）には、Cloths（Cloth コンポーネントの数）が入っています（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+モバイルでは、Cloth は表示されることがないため無効になります。Mobile Removed Components（モバイルで取り除かれるコンポーネントの一覧）には、Cloths（Cloth コンポーネントの数）が入っています（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 
 上限を超えると、次のランクになります。表示の下限（Minimum Displayed Performance Rank）より下のランクになると、Cloth コンポーネントがすべて取り除かれます（All Cloth components removed）。PC の既定の表示の下限は Very Poor で、ほとんどのアバターは見えます。ただし、極端に最適化されていないアバターは、使えなくなることがあります。
 
@@ -23,12 +23,12 @@ VRChat のドキュメントは英語のみのため、項目名は英語のま�
 
 - **SDK の「パフォーマンスの内訳」**: 「CLOTH メッシュの数」の行で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、0（上限 1）と表示されていました。
 - **表から読めること（この記事の読み方）**: PC の表では、Excellent の上限が 0 です。そのため、Cloth コンポーネントの数が 0 を超えると Excellent にはなりません。Good・Medium・Poor の上限は、いずれも 1 です。2 つ以上あると Poor の上限を超えるため、次のランク（Very Poor）になります。
-- **無効にしたものも数えられます。** 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。使わない Cloth は、無効にするだけでは数が減りません。
-- **AAO を使うときの確かめ方**: 非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードに入ったときの Actual Performance Window で確かめます（[基本の使い方（AAO 公式）](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。
+- **無効にしたものも数えられます。** 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。使わない Cloth は、無効にするだけでは数が減りません。
+- **AAO を使うときの確かめ方**: 非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードに入ったときの Actual Performance Window で確かめます（[基本の使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。
 
 ## 減らし方の考え方
 
-Cloth の使用は、強く控えるのがおすすめです。Cloth は Unity の標準のコンポーネントで、コストは Dynamic Bones と同程度で、設定も難しいです。また、200 頂点程度より多いメッシュには使わないのがおすすめです（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips) の「Limit usage of Cloth」の節）。
+Cloth の使用は、強く控えるのがおすすめです。Cloth は Unity の標準のコンポーネントで、コストは Dynamic Bones と同程度で、設定も難しいです。また、200 頂点程度より多いメッシュには使わないのがおすすめです（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips) の「Limit usage of Cloth」の節）。
 
 この記事では、残す Cloth は、上の勧めに沿って使う場所を見直します。頂点数の勧めは、[Cloth の最大頂点の確かめ方](/learn/optimize-physics/cloth-vertices) で扱います。
 
@@ -51,7 +51,7 @@ AAO 1.7.0（2024 年 4 月 30 日、Changed（仕様の変更））以降、Clot
 ## 注意・うまくいかないとき
 
 ::: warning
-- **Android と Quest**: Android と Quest では、Cloth は完全に無効です（[Quest Content Limitations（VRChat 公式）](https://docs.vrchat.com/docs/quest-content-limitations)）。Mobile Removed Components の一覧の値は、アバターの詳細画面に出ることがありますが、常にゼロです。
+- **Android と Quest**: Android と Quest では、Cloth は完全に無効です（[Quest Content Limitations](https://docs.vrchat.com/docs/quest-content-limitations)）。Mobile Removed Components の一覧の値は、アバターの詳細画面に出ることがありますが、常にゼロです。
 - **無効にしただけでは数は減りません**: 無効にしたものも数えられます。上の「減らす前に確かめること」を参照してください。
 - **AAO の Cloth の記録（1.7.0）**: 1.7.0 から、Cloth のある SkinnedMeshRenderer を Merge Skinned Mesh の統合元にするとエラーになります（上の AAO の節）。
 :::

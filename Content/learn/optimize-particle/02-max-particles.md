@@ -20,14 +20,14 @@ updated: 2026-11-07
 
 - **SDK の「パフォーマンスの内訳」**: 「最大パーティクルの数」で、今の値と上限を見ます。[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の例の画面では、622,022（上限 2,500）と表示されていました。
 - **合計の出し方**: 定義どおり、アバターの各 Particle System の maxParticles を足し合わせると、どれが大きいかを見つけられます（**この記事の助言**{.lbl .lbl-adv}）。
-- **行名の Active について**: 行名は Active を含みますが、定義はアバターのすべての Particle System を対象にしています。無効のものも含めて数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+- **行名の Active について**: 行名は Active を含みますが、定義はアバターのすべての Particle System を対象にしています。無効のものも含めて数えられます（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 - **AAO を使うときのランク**: 非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならなくなります。Play モードに入ったときのランクは、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」の方法で確かめます。
 
 ## 減らし方の考え方
 
-減らすには、使っているパーティクルシステムの数を制限し、同時に放出される粒子の最大数も制限するのがおすすめです（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。粒子の多いパーティクルシステムを使いつつ性能を保つには、スプライトのパーティクルのダイナミックバッチングを調べ、衝突（collision）を使わず、粒子の動きを単純にするとよいです。
+減らすには、使っているパーティクルシステムの数を制限し、同時に放出される粒子の最大数も制限するのがおすすめです（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。粒子の多いパーティクルシステムを使いつつ性能を保つには、スプライトのパーティクルのダイナミックバッチングを調べ、衝突（collision）を使わず、粒子の動きを単純にするとよいです。
 
-一般には、大きな半透明の粒子は、小さく不透明な粒子を多く使うより負荷が大きくなります。Unity のパーティクルシステムは、うまく使えば十分に最適化されていて、速く動きます（[Avatar Optimization Tips（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
+一般には、大きな半透明の粒子は、小さく不透明な粒子を多く使うより負荷が大きくなります。Unity のパーティクルシステムは、うまく使えば十分に最適化されていて、速く動きます（[Avatar Optimization Tips](https://creators.vrchat.com/avatars/avatar-optimizing-tips)）。
 
 「同時に放出される粒子の最大数」は、この記事では maxParticles の合計を下げる手がかりとして扱います。
 

@@ -30,7 +30,7 @@ updated: 2026-11-07
 3. Unity Hub で Unity のライセンスを有効にする（個人なら無料の Personal で構いません）
 
 ::: warning
-Unity は、**VRChat が指定するバージョン** を使います。2026 年 10 月時点の指定は **Unity 2022.3.22f1** です。これより新しいバージョン（Unity 6 など）でアップロードすると、VRChat で読み込めなくなります。指定は変わることがあるので、[VRChat の公式ページ（Current Unity Version）](https://creators.vrchat.com/sdk/current-unity-version/) で確かめてください（[TIPS: Unity のバージョンが違うと言われる](/tips#unity-version)）。
+Unity は、**VRChat が指定するバージョン** を使います。2026 年 10 月時点の指定は **Unity 2022.3.22f1** です。これより新しいバージョン（Unity 6 など）でアップロードすると、VRChat で読み込めなくなります。指定は変わることがあるので、[VRChat の Current Unity Version のページ](https://creators.vrchat.com/sdk/current-unity-version/) で確かめてください（[TIPS: Unity のバージョンが違うと言われる](/tips#unity-version)）。
 :::
 
 ## アバター用のプロジェクトを作る
@@ -52,7 +52,7 @@ Unity は、**VRChat が指定するバージョン** を使います。2026 年
 
 ## パッケージを追加する
 
-VCC の **Projects** の一覧で、プロジェクトの **Manage Project** を押すと、そのプロジェクトに入っているパッケージと、追加できるパッケージが一覧で出ます。**+** のアイコンで最新版が入り、バージョンの欄で別のバージョンを選べます。新しいバージョンがあれば **Latest Version** で更新できます。ボタンの形や並びは VCC のバージョンで変わるので、見つからないときは [VCC の公式ドキュメント](https://vcc.docs.vrchat.com/) を見てください。
+VCC の **Projects** の一覧で、プロジェクトの **Manage Project** を押すと、そのプロジェクトに入っているパッケージと、追加できるパッケージが一覧で出ます。**+** のアイコンで最新版が入り、バージョンの欄で別のバージョンを選べます。新しいバージョンがあれば **Latest Version** で更新できます。ボタンの形や並びは VCC のバージョンで変わるので、見つからないときは [VCC のドキュメント](https://vcc.docs.vrchat.com/) を見てください。
 
 最初から入っている公式のパッケージは次のとおりです。
 

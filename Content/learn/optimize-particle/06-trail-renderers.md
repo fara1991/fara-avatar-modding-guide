@@ -12,7 +12,7 @@ updated: 2026-11-07
 - 無効にしても数は減らないため、必要ないものはコンポーネントを削除する
 :::
 
-トレイルレンダラー（Trail Renderer）は、動いた軌跡に尾を引く線を描く部品です。定義は、アバターにあるトレイルレンダラーの数です（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。パーティクルシステムのトレイル（パーティクルトレイル）とは別の項目として数えられます。
+トレイルレンダラー（Trail Renderer）は、動いた軌跡に尾を引く線を描く部品です。定義は、アバターにあるトレイルレンダラーの数です（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。パーティクルシステムのトレイル（パーティクルトレイル）とは別の項目として数えられます。
 
 上限は、PC の Poor が 8、Android の Poor が 1 です（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown) の表と同じ値）。ランクごとの値は次のとおりです。
 
@@ -28,8 +28,8 @@ updated: 2026-11-07
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「トレイルレンダラーの数」で、今の値と上限を見ます。例の画面では 5/8 で、上限の 8 以下でした（[パフォーマンスの内訳の見方](/learn/optimize-basics/read-the-breakdown)）。
-- **範囲（BOUNDS）の計算には入りません**: トレイルとラインのレンダラーは、範囲（BOUNDS）の計算には入りません（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。範囲の確かめ方は [範囲（BOUNDS）の確かめ方と注意](/learn/optimize-mesh/bounds) を見てください。
-- **無効にしても数は減りません**: 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[Avatar Performance Ranking System（VRChat 公式）](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
+- **範囲（BOUNDS）の計算には入りません**: トレイルとラインのレンダラーは、範囲（BOUNDS）の計算には入りません（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。範囲の確かめ方は [範囲（BOUNDS）の確かめ方と注意](/learn/optimize-mesh/bounds) を見てください。
+- **無効にしても数は減りません**: 現在無効化されているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[Avatar Performance Ranking System](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 - **AAO を使うとき**: 非破壊改変ツールを使う改変では、Control Panel のパフォーマンスランクはあてにならなくなります。実際の値は、Play モードの Actual Performance Window で確かめます（[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer)）。
 
 ## 手順
