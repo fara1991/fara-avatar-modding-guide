@@ -22,7 +22,7 @@ PhysBone コンポーネントの数は、アバターにある PhysBone コン�
 
 - **SDK の「パフォーマンスの内訳」** の「PHYSBONE コンポーネントの数」で、今の値と上限を見ます。例の画面では、170（上限 32）と表示されていました。
 - **無効にしたものも、ランクの数に入ります。** 現在無効になっているものを含め、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[パフォーマンスランク](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。そのため、使わない PhysBone は、無効にするだけでは数が減りません。
-- **lilAvatarUtils の PhysBone タブ**: パフォーマンスランクへの影響が大きい PhysBone コンポーネントを特定したり、ルートボーンや設定がほぼ共通で統合できそうな PhysBone を見つけたりするのに役立ちます（[PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
+- **lilAvatarUtils の PhysBone タブ**: パフォーマンスランクへの影響が大きい PhysBone コンポーネントを特定したり、ルートボーンや設定がほぼ共通で統合できそうな PhysBone を見つけたりするのに役立ちます（[lilAvatarUtils の PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
 - **AAO を使うときのランク**: 非破壊改変ツールを使うと、VRCSDK の Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。実際の値は、Play モードの Actual Performance Window で確かめます（[AAO の結果の確認](/learn/optimize-aao/avatar-optimizer) の節を見てください）。
 
 ## 減らし方の考え方
@@ -43,9 +43,9 @@ PhysBones のコンポーネントは、次のように使うのがおすすめ�
 
 ### lilAvatarUtils {.tool .tool-lil}
 
-**何をするか**: PhysBones タブで、アバターにあるすべての PhysBone を一覧できます。一部の項目は編集でき、変更したものは左上の適用ボタンで一括して反映されます（[PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
+**何をするか**: PhysBones タブで、アバターにあるすべての PhysBone を一覧できます。一部の項目は編集でき、変更したものは左上の適用ボタンで一括して反映されます（[lilAvatarUtils の PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
 
-**どう使うか**: 「親オブジェクト」の項目を見ると、親が同じ PhysBone は、コンポーネントを統一してコンポーネント数を減らせることがあります（[PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。統合できそうなものを見つける手がかりとして使えます。
+**どう使うか**: 「親オブジェクト」の項目を見ると、親が同じ PhysBone は、コンポーネントを統一してコンポーネント数を減らせることがあります（[lilAvatarUtils の PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。統合できそうなものを見つける手がかりとして使えます。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 

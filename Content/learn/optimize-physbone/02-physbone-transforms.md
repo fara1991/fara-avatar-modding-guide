@@ -22,7 +22,7 @@ PhysBone トランスフォームの数は、PhysBone コンポーネントが�
 
 - **SDK の「パフォーマンスの内訳」** の「PHYSBONE トランスフォームの数」で、今の値と上限を見ます。例の画面では、409（上限 256）と表示されていました。
 - **1 つのコンポーネントが影響するトランスフォームの数**: 上限の 256 は、1 つのコンポーネントについての上限でもあります（128 を超える場合の扱いは、下の「減らし方の考え方」を見てください）。
-- **lilAvatarUtils の PhysBone タブの「ボーン数」**: 「ボーン数」は、揺れが計算されるボーン数です。この記事では、lilAvatarUtils の「ボーン数」を、SDK の「PHYSBONE トランスフォームの数」とは別の値として扱います。同じタブの「ルートボーン」は、PhysBone の計算を行うボーンまたは Transform の親で、この配下の Transform に揺れが適用されます（[PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
+- **lilAvatarUtils の PhysBone タブの「ボーン数」**: 「ボーン数」は、揺れが計算されるボーン数です。この記事では、lilAvatarUtils の「ボーン数」を、SDK の「PHYSBONE トランスフォームの数」とは別の値として扱います。同じタブの「ルートボーン」は、PhysBone の計算を行うボーンまたは Transform の親で、この配下の Transform に揺れが適用されます（[lilAvatarUtils の PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
 - **無効にしたものも、ランクの数に入ります。** 無効化されているものも含めて、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[パフォーマンスランク](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 
 ## 減らし方の考え方

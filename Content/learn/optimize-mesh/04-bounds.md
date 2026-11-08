@@ -34,14 +34,14 @@ updated: 2026-11-07
 - **何をするか**: MA Mesh Settings は、指定した GameObject の配下にあるメッシュに、アンカーオーバーライドと範囲（BOUNDS）を設定します。範囲は、Root Bone として指定したトランスフォームを基準に決まります。
 - **どう使う**: アバターの最上位（ルート）に置くと、アバター内のすべてのメッシュに、範囲とライトプローブアンカーが一貫して設定されます。設定モードは 4 つあります（「継承」「設定」「設定しない」「親で指定されているときは継承、それ以外では設定」）。
 - **注意**: 範囲は SkinnedMeshRenderer だけに影響します。配布用のアセットに範囲を設定するときは、注意が必要です。
-- 出典: [Mesh Settings](https://modular-avatar.nadena.dev/ja/docs/reference/mesh-settings)
+- 出典: [Modular Avatar の Mesh Settings](https://modular-avatar.nadena.dev/ja/docs/reference/mesh-settings)
 
 ### lilAvatarUtils {.tool .tool-lil}
 
 - **何をするか**: レンダラーのタブで、Bounds と ルートボーン（Root Bone）を確認できます。Bounds は、メッシュが画面やライトの範囲外にあるかどうかを判定するときの境界です。ルートボーンは、メッシュの原点となるボーンまたは Transform で、Bounds はこの Transform に追従して動きます。
 - **どう使う**: Update When Offscreen をオンにすると、画面の外にあるメッシュでも Bounds を計算します。既定ではオフです。
 - **注意**: メッシュがこの範囲に収まっていないと、画面内にあるはずのメッシュが突然消えたり、ライトが突然暗くなったりします。そのため、範囲は適切に設定してください。
-- 出典: [レンダラー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/RenderersGUI.html)
+- 出典: [lilAvatarUtils のレンダラー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/RenderersGUI.html)
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 

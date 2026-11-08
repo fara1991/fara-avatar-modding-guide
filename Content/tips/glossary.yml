@@ -791,7 +791,7 @@
     - アニメーションの不具合で詰まったら、まず Write Defaults の混在を疑います。
     - アバター本体の FX コントローラーの設定に合わせて、追加するギミックの WD もそろえます。
     - Modular Avatar の Merge Animator には、アバターの WD 設定に合わせる設定（「アバターの Write Defaults 設定に合わせる」）があります。
-    - VRChat の Animator は WD を Off で作られています。アバター全体で On か Off のどちらかにそろえるのがおすすめです。Motion が空（None）のステートは On のように振る舞います。
+    - VRChat の Animator は WD を Off で作られています。アバター全体で On か Off のどちらかにそろえるのがおすすめです（[VRChat のアバターのページ](https://creators.vrchat.com/avatars/)）。Motion が空（None）のステートは On のように振る舞います。
     - MMD ワールドの表情自動変化のように、WD ON を前提にした仕組みもあります。
     - WD の混在を検出して警告してくれるツールもあります（当時はカメラギミックの導入ツールがチェッカー代わりに使われていました）。
   tags: [Unity, VRChat, Modular Avatar, アニメーション]

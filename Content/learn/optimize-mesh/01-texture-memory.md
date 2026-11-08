@@ -40,11 +40,11 @@ updated: 2026-11-07
 **どう使うか**:
 
 - アバターのルートを右クリックして、「TexTransTool/TTT AtlasTexture」を選びます。アバターの中に `AtlasTexture` という GameObject ができ、マテリアルが一覧で出ます。
-- 対象のマテリアルにチェックを入れ、Manual Bake Avatar か、Unity エディターの再生で確かめます（[チュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
+- 対象のマテリアルにチェックを入れ、Manual Bake Avatar か、Unity エディターの再生で確かめます（[TexTransTool のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByAtlasing)）。
 - TextureFineTuning（テクスチャー詳細設定）で、解像度や圧縮を設定します。AtlasTexture が作ったテクスチャをそのまま使うと、かえって VRAM が増える可能性があります。
 - TextureFineTuning の「Remove」は、指定したテクスチャを消去し、マテリアルに割り当てられないようにする設定です。テクスチャを消すと VRAM を減らせます（[TextureFineTuning](https://ttt.rs64.net/docs/Reference/AtlasTexture/TextureFineTuning)）。ただし、消したテクスチャを使っている部分は表示が変わるため、対象を確かめてから設定してください。
 
-**TextureConfigurator（実験的）**: 解像度と MipMap を、非破壊的に制御するコンポーネントです。メニューは「TexTransTool/Other/TTT TextureConfigurator」です。一括で作る場合は「TexTransTool/Generate/TTT TextureConfigurator」を使います。このメニューでは、無効化された TextureConfigurator を一括で生成できます（[チュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByTextureSetting)）。
+**TextureConfigurator（実験的）**: 解像度と MipMap を、非破壊的に制御するコンポーネントです。メニューは「TexTransTool/Other/TTT TextureConfigurator」です。一括で作る場合は「TexTransTool/Generate/TTT TextureConfigurator」を使います。このメニューでは、無効化された TextureConfigurator を一括で生成できます（[TexTransTool のチュートリアル](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByTextureSetting)）。
 
 チュートリアル（[テクスチャ設定でテクスチャーメモリを削減する](https://ttt.rs64.net/docs/Tutorial/ReductionTextureMemoryByTextureSetting)）の例では、解像度を 2048 から 1024 にし、圧縮を Normal から High にします。解像度を 1 段階下げると、容量は 1/4 になります。PC 向けの場合は、圧縮設定を Normal から High に上げると、容量は 2 倍になります。この例では、VRAM の使用量は元の半分になります（1/4 × 2 = 1/2）。ただし、これは例であり、どのテクスチャでも同じ結果になるとは限りません。
 
@@ -63,7 +63,7 @@ updated: 2026-11-07
 
 **注意**:
 
-- 「マテリアルのクリーンアップ」は、割り当て中のシェーダーで使用されない不要なプロパティを削除する機能です（[ツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。不要なテクスチャの割り当てが残っていると、アバターに含まれて容量が大きくなることがあります。これは容量（ファイルの大きさ）の話で、VRAM とは別の話として読んでください。
+- 「マテリアルのクリーンアップ」は、割り当て中のシェーダーで使用されない不要なプロパティを削除する機能です（[lilAvatarUtils のツール](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/UtilsGUI.html)）。不要なテクスチャの割り当てが残っていると、アバターに含まれて容量が大きくなることがあります。これは容量（ファイルの大きさ）の話で、VRAM とは別の話として読んでください。
 - マテリアルのクリーンアップは、アセットを変更する操作です。作業の前に、プロジェクトのバックアップを取るのが安全です。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}

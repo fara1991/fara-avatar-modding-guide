@@ -22,7 +22,7 @@ PhysBone コライダーの数は、アバター上の PhysBone コライダー�
 
 - **SDK の「パフォーマンスの内訳」** の「PHYSBONE コライダーの数」で、今の値と上限を見ます。例の画面では、7（上限 32）と表示されていました。
 - **標準コライダー**: アバター記述子の「Colliders」にある標準コライダー（Standard Colliders）は、性能ランクに影響しません（[PhysBones](https://creators.vrchat.com/common-components/physbones)）。
-- **lilAvatarUtils の PBコライダー タブ**: コライダーの参照元を特定したり、どこからも参照されない無駄なコライダーを減らしたりするのに役立ちます。「参照数」は、このコライダーを参照している PhysBone の数です（[PhysBoneCollidersGUI](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBoneCollidersGUI)）。
+- **lilAvatarUtils の PBコライダー タブ**: コライダーの参照元を特定したり、どこからも参照されない無駄なコライダーを減らしたりするのに役立ちます。「参照数」は、このコライダーを参照している PhysBone の数です（[lilAvatarUtils の PBコライダー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBoneCollidersGUI)）。
 - **Global Collision**: アバターでは、Global Collision を有効にしたコライダーは最大 4 つです。Global Collision は、Sphere と Capsule のコライダーにだけ対応します。ワールドには制限がありません（[PhysBones](https://creators.vrchat.com/common-components/physbones)）。
 - **無効にしたものも、ランクの数に入ります。** 無効化されているものも含めて、すべての GameObject とコンポーネントが、パフォーマンスランクに数えられます（[パフォーマンスランク](https://creators.vrchat.com/avatars/avatar-performance-ranking-system)）。
 
@@ -37,7 +37,7 @@ PhysBone コライダーの数は、アバター上の PhysBone コライダー�
 
 ### lilAvatarUtils {.tool .tool-lil}
 
-**何をするか**: PBコライダー タブで、アバターのコライダーを一覧し、どの PhysBone から参照されているかを見られます（[PhysBoneCollidersGUI](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBoneCollidersGUI)）。
+**何をするか**: PBコライダー タブで、アバターのコライダーを一覧し、どの PhysBone から参照されているかを見られます（[lilAvatarUtils の PBコライダー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBoneCollidersGUI)）。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 

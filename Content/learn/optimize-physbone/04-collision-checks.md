@@ -25,8 +25,8 @@ PhysBone 衝突チェックの数は、アバターの PhysBone コライダー�
 ## 減らす前に確かめること
 
 - **SDK の「パフォーマンスの内訳」**: 「PHYSBONE 衝突チェックの数」で、今の値と上限を見ます。
-- **lilAvatarUtils の PhysBone タブ**: PhysBone ごとに「コリジョン数」を見られます。「コリジョン数」は衝突判定の計算回数で、ボーン数やコライダー数に応じて増えていき、数字が増えるほど負荷も増えます（[PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。この記事では、lilAvatarUtils の「コリジョン数」を、SDK の「PHYSBONE 衝突チェックの数」とは別の値として扱います。
-- **同じタブの「ボーン数」と「コライダー数」**: 「ボーン数」は、揺れが計算されるボーン数です。「コライダー数」は、この PhysBone との当たり判定を計算するコライダー数です（[PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
+- **lilAvatarUtils の PhysBone タブ**: PhysBone ごとに「コリジョン数」を見られます。「コリジョン数」は衝突判定の計算回数で、ボーン数やコライダー数に応じて増えていき、数字が増えるほど負荷も増えます（[lilAvatarUtils の PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。この記事では、lilAvatarUtils の「コリジョン数」を、SDK の「PHYSBONE 衝突チェックの数」とは別の値として扱います。
+- **同じタブの「ボーン数」と「コライダー数」**: 「ボーン数」は、揺れが計算されるボーン数です。「コライダー数」は、この PhysBone との当たり判定を計算するコライダー数です（[lilAvatarUtils の PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)）。
 - **Play モードのランク**: 非破壊改変ツールを使うと、VRCSDK の Control Panel のパフォーマンスランクはあてにならなくなります（[基本の使い方](https://vpm.anatawa12.com/avatar-optimizer/ja/docs/tutorial/basic-usage/)）。Play モードのランクの確かめ方は、[Avatar Optimizer（AAO）でできること・使い方](/learn/optimize-aao/avatar-optimizer) の「結果の確認」を見てください。
 
 ## 減らし方の考え方
@@ -39,8 +39,8 @@ PhysBone 衝突チェックの数は、アバターの PhysBone コライダー�
 
 ### lilAvatarUtils {.tool .tool-lil}
 
-- **何をするか**: PhysBone タブで、アバターの PhysBone の一覧を確認できます。PBコライダー タブでは、コライダーの一覧と「参照数」（このコライダーを参照している PhysBone の数）を確認できます（[PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)・[PBコライダー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBoneCollidersGUI)）。
-- **どう使うか**: 「コリジョン数」が大きい PhysBone を見つける候補にします。PhysBone タブは、パフォーマンスランクへの影響が大きい PhysBone コンポーネントの特定に役立ちます。PBコライダー タブは、どこからも参照されない無駄なコライダーの削減に役立ちます（[PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)・[PBコライダー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBoneCollidersGUI)）。
+- **何をするか**: PhysBone タブで、アバターの PhysBone の一覧を確認できます。PBコライダー タブでは、コライダーの一覧と「参照数」（このコライダーを参照している PhysBone の数）を確認できます（[lilAvatarUtils の PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)・[PBコライダー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBoneCollidersGUI)）。
+- **どう使うか**: 「コリジョン数」が大きい PhysBone を見つける候補にします。PhysBone タブは、パフォーマンスランクへの影響が大きい PhysBone コンポーネントの特定に役立ちます。PBコライダー タブは、どこからも参照されない無駄なコライダーの削減に役立ちます（[lilAvatarUtils の PhysBones](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBonesGUI)・[PBコライダー](https://lilxyzw.github.io/lilAvatarUtils/ja_JP/docs/PhysBoneCollidersGUI)）。
 - **注意**: 「コリジョン数」は lilAvatarUtils の項目名で、SDK の「PHYSBONE 衝突チェックの数」とは別の値として扱います。
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}

@@ -39,7 +39,7 @@ updated: 2026-11-07
 - **どう使う**: 統合先と名前が一致するボーンは、統合先にまとめられます。統合元にあって統合先にないボーンは、名前を変えて配置されます。連鎖的に統合することも、1.7.0 以降はできます。
 - **注意**: 該当するボーンがない場合や、統合元のボーンへの引用を統合先のボーンへ書き換えられない場合は、子にボーンが追加されます。Transform 以外のコンポーネントが入っているボーンは残り、そのほかのボーンは原則として統合後に削除されます。既存のボーンを再利用して、作られるボーンを最小限にします（MA の README）。
 - **Bone Proxy**: プレハブ化したオブジェクトを、元のアバターのボーンの中に配置する機能です。衣装向けのものではありません。
-- 出典: [Merge Armature](https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature)、[Bone Proxy](https://modular-avatar.nadena.dev/ja/docs/reference/bone-proxy)
+- 出典: Modular Avatar の [Merge Armature](https://modular-avatar.nadena.dev/ja/docs/reference/merge-armature)、[Bone Proxy](https://modular-avatar.nadena.dev/ja/docs/reference/bone-proxy)
 
 ### Avatar Optimizer（AAO） {.tool .tool-aao}
 
