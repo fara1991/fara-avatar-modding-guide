@@ -1,0 +1,25 @@
+{
+ "count": "5 / 23",
+ "bubble": "5\nCtrl+B でベベルを始めてください。マウスを離すほど面取りの幅が広がります。",
+ "keys": "Ctrl\n+\nB",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "辺選択モード",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge"
+ ],
+ "progress": "17.3913%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

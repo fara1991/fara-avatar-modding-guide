@@ -1,0 +1,25 @@
+{
+ "count": "23 / 23",
+ "bubble": "23\nTab でオブジェクトモードに戻ってください。",
+ "keys": "Tab",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "面を張りました",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge"
+ ],
+ "progress": "95.6522%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

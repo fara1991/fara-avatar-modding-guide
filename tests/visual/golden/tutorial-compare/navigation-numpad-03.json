@@ -1,0 +1,23 @@
+{
+ "count": "4 / 7",
+ "bubble": "4\nCtrl+Numpad 1 で反対側（後ろ）から見てください。",
+ "keys": "Ctrl\n+\nNumpad 1",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "上・平行投影",
+ "status": "案内にしたがって操作してください",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": true,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "42.8571%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

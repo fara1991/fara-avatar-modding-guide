@@ -1,0 +1,53 @@
+@page "/learn/{CategoryId}"
+@inject ContentStore Store
+@inject SiteSettings Settings
+
+@* 静的 HTML（Build の PageBodies.Category）と同じ構造・class。カテゴリが無いとき（content.json に無い URL）は、404 の表示 *@
+@if (Store.Content is not { } content || category is null)
+{
+    <NotFoundView HomeHref="/" />
+}
+else
+{
+    <PageTitle>@PageTitles.Compose(category.Title, Settings.Title)</PageTitle>
+    <Breadcrumb Items="@Crumbs(content, category)" />
+    <h1><AvIcon Name="@category.Icon" Class="me-2" />@category.Title@if (articles.Count > 0) {<CategoryProgress Ids="@(articles.Select(a => a.Id).ToList())" />}</h1>
+    <p class="lead">@category.Description</p>
+
+    @if (articles.Count == 0)
+    {
+        <div class="alert alert-secondary">このテーマの記事は準備中です。</div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var article in articles)
+            {
+                <div class="col-md-6 col-xl-4">
+                    <ArticleCard Article="article" />
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public string CategoryId { get; set; } = string.Empty;
+
+    private CategoryDto? category;
+    private IReadOnlyList<ArticleDto> articles = [];
+
+    protected override void OnParametersSet()
+    {
+        category = Store.Content?.CategoryById(CategoryId);
+        articles = category is null ? [] : Store.Content!.ArticlesOf(category.Id);
+    }
+
+    private static IReadOnlyList<(string? Href, string Text)> Crumbs(SiteContent content, CategoryDto category)
+    {
+        var crumbs = new List<(string?, string)> { ("/learn", "記事一覧") };
+        if (content.SectionOf(category) is { } section) crumbs.Add(($"/learn#section-{section.Id}", section.Title));
+        crumbs.Add((null, category.Title));
+        return crumbs;
+    }
+}

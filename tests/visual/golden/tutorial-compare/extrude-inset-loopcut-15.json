@@ -1,0 +1,25 @@
+{
+ "count": "16 / 18",
+ "bubble": "16\n黄色い線が出ている状態で 左クリック して、辺を入れてください。",
+ "keys": "左クリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "ループカット: 2 本（ホイールで本数、クリックで確定）",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "クリック",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "83.3333%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

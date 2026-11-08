@@ -1,0 +1,321 @@
+@* Unity 風の画面(unity.js)の C# 版(?engine=cs。Phase 3b S5)の画面。unity.js の constructor が root.innerHTML に作っていた構造・クラス名(既存の CSS をそのまま使う)を、Razor で描く。
+   状態は IUnityCs.Hud(UnityHud)。Scene ビューの WebGL は、この部品の最初の描画のあとに Engine.StartGl() で始める。
+   ドラッグ(Hierarchy・Project から)・ポップアップや案内の矢印の位置(要素の大きさを測る)は、wwwroot/js/unity-ui.js が受け持つ。 *@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div id="@RootId" class="@RootClass" tabindex="0" aria-label="Unity エディター（練習）" @oncontextmenu:preventDefault="true" @onclick="OnRootClick" @onfocusin="OnFocusIn" @onfocusout="OnFocusOut">
+    @if (failed)
+    {
+        <text>画面を表示できません。WebGL が有効なブラウザで開いてください。</text>
+    }
+    else
+    {
+        var h = Engine.Hud;
+        if (h.Highlight is { Label: { Length: > 0 } lb }) labelText = lb;   // 隠したあとも、最後に出した文字が残る(unity.js の applyHighlight)
+        <div class="ue-menubar">@foreach (var m in UnityCsEngine.Menus){<button type="button" class="@Hl("menu", m)" data-menu="@m" @onclick="() => OnMenu(m)" @onclick:stopPropagation="true">@m</button>}</div>
+        <div class="ue-toolbar">
+            @foreach (var (t, k, i) in Tools)
+            {
+                <button type="button" class="@ToolClass(h, t)" data-tool="@t" title="@k" @onclick="() => OnTool(t)" @onclick:stopPropagation="true"><i class="bi @i" aria-hidden="true"></i><span class="visually-hidden">@t</span></button>
+            }
+            <span class="ue-toolbar-sep"></span><span class="ue-toolbar-label">Pivot</span><span class="ue-toolbar-label">Global</span>
+            <span class="ue-play"><i class="bi bi-play-fill"></i><i class="bi bi-pause-fill"></i><i class="bi bi-skip-end-fill"></i></span>
+        </div>
+        <section class="ue-panel ue-hierarchy"><div class="ue-tab"><i class="bi bi-list-nested"></i> Hierarchy</div><div class="ue-hier-list" role="tree"><div class="ue-scene-row"><i class="bi bi-unity"></i> SampleScene</div>@foreach (var r in h.Rows)
+            {
+                <div class="@RowClass(h, r)" role="treeitem" aria-selected="@(r.Selected ? "true" : "false")" aria-expanded="@(r.HasKids ? (r.Expanded ? "true" : "false") : null)" data-node="@r.Id" data-node-name="@r.Name" style="padding-left:@(4 + r.Depth * 14)px" @ondblclick="() => Engine.DoubleClickRow(r.Id)">
+                    <span class="ue-fold" data-fold="@r.Id">@if (r.HasKids){<i class="bi @(r.Expanded ? "bi-caret-down-fill" : "bi-caret-right-fill")"></i>}</span>
+                    <i class="bi @r.Icon ue-row-icon" aria-hidden="true"></i><span class="ue-row-name">@r.Name</span>
+                    @if (r.EditorOnly){<span class="ue-row-tag">EditorOnly</span>}</div>
+            }<div class="ue-hier-empty" data-drop-root></div></div></section>
+        <section class="ue-panel ue-scene"><div class="ue-tab"><i class="bi bi-grid-3x3"></i> Scene</div><div class="@(h.Highlight is { Kind: "scene" } ? "ue-scene-view ue-hl" : "ue-scene-view")" id="@SceneViewId"><div class="practice-gl" id="@GlHostId"></div><div class="ue-scene-info">@h.Info</div><div class="ue-preview" hidden="@(h.Preview is null)" data-gl-ignore>@if (h.Preview is { } pv){<div class="ue-preview-box">@if (pv.Busy){<div class="ue-progress"><span></span></div>}else{<i class="bi bi-check-circle-fill"></i>}<div>@pv.Text</div></div>}</div></div></section>
+        <section class="ue-panel ue-inspector"><div class="ue-tab"><i class="bi bi-info-circle"></i> Inspector</div><div class="ue-insp-body">@if (h.Inspector is not { } ins){<div class="ue-insp-empty">Hierarchy でオブジェクトを選ぶと、ここに設定が表示されます</div>}else{@InspectorView(h, ins)}</div></section>
+        <section class="ue-panel ue-project"><div class="ue-tab"><i class="bi bi-folder2"></i> Project</div><div class="ue-proj-path">Assets</div><div class="ue-proj-grid">@foreach (var a in h.Assets){<div class="@Hl("project", a.Key, "ue-asset")" data-asset="@a.Key" title="@a.Title"><i class="@AssetIcon(a)" style="@(a.Color is null ? null : $"color:{a.Color}")"></i><span>@a.Label</span></div>}</div></section>
+        <div class="ue-status">@h.Status</div>
+        <div class="ue-popup" hidden="@(h.Popup is null)" @onclick="() => { }" @onclick:stopPropagation="true">@if (h.Popup is { } pop){@PopupView(h, pop)}</div>
+        <div class="ue-sdk" hidden="@(!h.SdkOpen)">@if (h.SdkOpen && h.Sdk is { } sdk){@SdkView(h, sdk)}</div>
+        <div class="ue-hl-label" hidden="@(h.Highlight is null || string.IsNullOrEmpty(h.Highlight.Label))">@labelText</div>
+        <div class="ue-ghost-host" id="@GhostHostId" style="display:contents"></div>
+    }
+</div>
+
+@code {
+    private static readonly (string Tool, string Key, string Icon)[] Tools =
+    [
+        ("hand", "Q", "bi-hand-index"), ("move", "W", "bi-arrows-move"), ("rotate", "E", "bi-arrow-repeat"), ("scale", "R", "bi-arrows-angle-expand"),
+    ];
+
+    private IJSObjectReference? module;
+    private DotNetObjectReference<UnityEditorView>? self;
+    private bool failed;
+    private bool disposed;
+    private bool started;
+    private string labelText = "";
+    private string lastPopupKey = "";
+    private readonly Dictionary<string, string> typed = [];
+
+    [Parameter, EditorRequired] public IUnityCs Engine { get; set; } = null!;
+    [Parameter, EditorRequired] public string RootId { get; set; } = "";
+    [Parameter] public string RootClass { get; set; } = "unity-editor";
+    [Parameter, EditorRequired] public string SceneViewId { get; set; } = "";
+    [Parameter, EditorRequired] public string GlHostId { get; set; } = "";
+    /// <summary>WebGL を始めたあと(成功したか)。</summary>
+    [Parameter] public EventCallback<bool> OnStarted { get; set; }
+
+    private string GhostHostId => $"{RootId}-ghost";
+
+    protected override void OnInitialized() => Engine.Changed += OnChanged;
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    // ---------------------------------------------------------------- クラス名
+    /// <summary>案内中の場所なら ue-hl を足す(unity.js の applyHighlight)。</summary>
+    private string Hl(string kind, string key, string? baseClass = null)
+    {
+        var on = Engine.Hud.Highlight is { } hl && hl.Kind == kind && hl.Key == key;
+        return (baseClass, on) switch { (null, true) => "ue-hl", (null, false) => "", (_, true) => baseClass + " ue-hl", _ => baseClass! };
+    }
+
+    private string ToolClass(UnityHud h, string tool)
+    {
+        var on = h.Tool == tool;
+        var hl = h.Highlight is { Kind: "tool" } t && t.Key == tool;
+        return (on ? "is-on" : "") + (hl ? (on ? " ue-hl" : "ue-hl") : "");
+    }
+
+    private string RowClass(UnityHud h, UnityHudRow r)
+    {
+        var c = "ue-row" + (r.Selected ? " is-selected" : "") + (r.Inactive ? " is-inactive" : "") + (r.Prefab ? " is-prefab" : "");
+        return h.Highlight is { Kind: "hierarchy" } hl && hl.Key == r.Id ? c + " ue-hl" : c;
+    }
+
+    private static string AssetIcon(UnityHudAsset a) => "bi " + a.Type switch { "prefab" => "bi-box-fill", "model" => "bi-boxes", "material" => "bi-circle-fill", _ => "bi-image" };
+
+    // ---------------------------------------------------------------- 部分
+    private RenderFragment InspectorView(UnityHud h, UnityHudInspector ins) => @<text>
+        <div class="ue-insp-head">
+            <input type="checkbox" class="@(Hl("inspector", "active", "ue-active"))" checked="@ins.Active" data-hl="active" aria-label="有効" title="有効 / 無効" @onchange="OnActive" />
+            <input type="text" class="ue-name" value="@ins.Name" aria-label="名前" readonly />
+        </div>
+        <div class="ue-field ue-tagrow"><span class="ue-field-label">Tag</span>
+            <select class="@(Hl("inspector", "tag", "ue-tag"))" data-hl="tag" @onchange="OnTag">@foreach (var t in TagNames){<option selected="@(t == ins.Tag)">@t</option>}</select></div>
+        <div class="ue-comp" data-comp="Transform"><div class="ue-comp-head"><i class="bi bi-caret-down-fill"></i> <strong>Transform</strong></div>
+            <div class="ue-comp-body">@Vec("Position", "p", ins.P)@Vec("Rotation", "r", ins.R)@Vec("Scale", "s", ins.S)</div></div>
+        @foreach (var c in ins.Components){@CompView(c)}
+        <div class="ue-addcomp-wrap"><button type="button" class="@(Hl("inspector", "add-component", "ue-addcomp"))" data-hl="add-component" @onclick="() => Engine.OpenAddComponent()" @onclick:stopPropagation="true">Add Component</button></div>
+    </text>;
+
+    private static readonly string[] TagNames = ["Untagged", "EditorOnly", "MainCamera", "Player"];
+
+    private RenderFragment Vec(string label, string prop, IReadOnlyList<string> values) => @<div class="ue-field"><span class="ue-field-label">@label</span><div class="ue-vec">@for (var i = 0; i < 3; i++){var axis = i; var hl = $"{prop}-{axis}"; <label class="ue-num"><span>@("XYZ"[axis])</span><input type="number" step="@(prop == "r" ? "1" : "0.01")" value="@FieldText(prop, axis, values[axis])" data-field="@prop" data-axis="@axis" data-hl="@hl" class="@Hl("inspector", hl)" @onchange="e => OnTransform(prop, axis, e.Value?.ToString() ?? string.Empty)" /></label>}</div></div>;
+
+    private RenderFragment CompView(UnityHudComp c) => @<div class="ue-comp" data-comp="@c.Type"><div class="ue-comp-head"><i class="bi bi-caret-down-fill"></i> <input type="checkbox" checked disabled /> <strong>@c.Label</strong></div>@if (c.Fields.Count > 0){<div class="ue-comp-body">@foreach (var f in c.Fields){@FieldView(f)}</div>}</div>;
+
+    private RenderFragment FieldView(UnityHudField f)
+    {
+        switch (f.Kind)
+        {
+            case "muted":
+                return @<div class="ue-field"><span class="ue-field-label">@f.Label</span><span class="ue-muted">@f.Text</span></div>;
+            case "obj":
+                return @<div class="ue-field"><span class="ue-field-label">@f.Label</span><span class="ue-objfield">@if (f.Icon is not null){<i class="bi @f.Icon"></i>@(" " + f.Text)}else{<text>@f.Text</text>}</span></div>;
+            case "slot":
+                return @<div class="@(Hl("inspector", f.Hl ?? "", "ue-field ue-slot"))" data-slot="@f.Slot" data-hl="@f.Hl"><span class="ue-field-label">@f.Label</span><span class="ue-objfield"><i class="bi bi-circle-fill" style="color:@f.Color"></i>@(" " + f.Text)</span></div>;
+            default:
+                return @<div class="ue-muted">@f.Text</div>;
+        }
+    }
+
+    private RenderFragment PopupView(UnityHud h, UnityHudPopup pop)
+    {
+        if (pop.Kind == "context")
+            return @<div class="ue-menu">
+                <div class="ue-menu-title">@pop.NodeName</div>
+                <button type="button" class="@Hl("popup", "setup-outfit")" data-ctx="setup-outfit" data-hl="setup-outfit" @onclick="() => OnContextSetup()" @onclick:stopPropagation="true"><i class="bi bi-person-plus"></i> Modular Avatar ▸ Setup Outfit</button>
+                <button type="button" data-ctx="delete" @onclick="() => OnContextDelete()" @onclick:stopPropagation="true"><i class="bi bi-trash"></i> Delete</button>
+                <button type="button" disabled>Rename</button><button type="button" disabled>Duplicate</button>
+            </div>;
+        if (pop.Kind == "add")
+            return @<div class="ue-menu ue-addmenu"><input type="search" class="ue-addsearch" placeholder="Search" aria-label="コンポーネントを検索" value="@pop.Search" @oninput="e => Engine.SetAddSearch(e.Value?.ToString() ?? string.Empty)" @onkeydown="OnAddKey" /><div class="ue-addlist">@if (pop.Items.Count == 0){<div class="ue-muted p-2">見つかりません</div>}else{@foreach (var it in pop.Items){<button type="button" class="@Hl("popup", $"add-{it.Type}")" data-add="@it.Type" data-hl="@($"add-{it.Type}")" @onclick="() => OnAdd(it.Type)" @onclick:stopPropagation="true"><span class="ue-muted">@(it.Path + " /")</span>@(" " + it.Label)</button>}}</div></div>;
+        if (pop.MenuName == "VRChat SDK")
+            return @<div class="ue-menu"><button type="button" class="@Hl("popup", "sdk-panel")" data-menuitem="sdk-panel" data-hl="sdk-panel" @onclick="() => OnSdkPanel()" @onclick:stopPropagation="true">Show Control Panel</button><button type="button" disabled>Utilities</button></div>;
+        return @<div class="ue-menu"><div class="ue-muted p-2">練習では使えません</div></div>;
+    }
+
+    private RenderFragment SdkView(UnityHud h, UnityHudSdk sdk)
+    {
+        if (!sdk.HasAvatar) return @<div class="ue-sdk-body">アバターが見つかりません</div>;
+        return @<text>
+            <div class="ue-sdk-head"><span>VRChat SDK</span><button type="button" data-sdk="close" aria-label="閉じる" @onclick="() => OnSdkClose()" @onclick:stopPropagation="true">×</button></div>
+            <div class="ue-sdk-tabs"><span>Authentication</span><span class="is-on">Builder</span><span>Settings</span></div>
+            <div class="ue-sdk-body">
+                <div class="ue-sdk-avatar"><i class="bi bi-person-badge"></i> @sdk.AvatarName <span class="ue-muted">（練習用アカウントでログイン中）</span></div>
+                @foreach (var n in sdk.Notes){<div class="@($"ue-note ue-note-{n.Level}")">@((n.Level == "warn" ? "⚠" : "ℹ") + " " + n.Text)</div>}
+                <table class="ue-perf"><thead><tr><th>Performance</th><th></th><th><span class="@($"ue-rank ue-rank-{sdk.Overall}")">@sdk.OverallName</span></th></tr></thead><tbody>
+                    @foreach (var r in sdk.Rows){<tr><td>@r.Label</td><td>@r.Value</td><td><span class="@($"ue-rank ue-rank-{r.Rank}")">@r.RankName</span></td></tr>}
+                </tbody></table>
+                <div class="ue-sdk-buttons"><button type="button" class="@Hl("sdk", "build-test")" data-sdk="test" data-hl="build-test" @onclick='() => OnBuild("test")' @onclick:stopPropagation="true">Build &amp; Test</button><button type="button" class="@Hl("sdk", "build-upload")" data-sdk="upload" data-hl="build-upload" @onclick='() => OnBuild("upload")' @onclick:stopPropagation="true">Build &amp; Publish</button></div>
+                <div class="ue-muted small">この画面は練習用のシミュレーションです。数値は目安で、実際には何もアップロードしません。</div>
+            </div>
+        </text>;
+    }
+
+    // ---------------------------------------------------------------- 描画のあと
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (disposed) return;
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/unity-ui.js");
+            self = DotNetObjectReference.Create(this);
+            await module.InvokeVoidAsync("bind", RootId, self);
+            started = Engine.StartGl();
+            if (!started)
+            {
+                failed = true;
+                StateHasChanged();
+            }
+            await OnStarted.InvokeAsync(started);
+        }
+        if (module is null || failed) return;
+        var h = Engine.Hud;
+        // ポップアップ: 出した最初(位置の決め方が変わったとき)だけ、実際の大きさで位置を決める。閉じたら、次に出すまで見えなくする(古い位置のまま一瞬出ないように)
+        var key = h.Popup?.Key ?? "";
+        if (key != lastPopupKey)
+        {
+            lastPopupKey = key;
+            if (h.Popup is { } p) await module.InvokeVoidAsync("positionPopup", RootId, p.Kind, p.AnchorKind, p.X, p.Y, p.Selector);
+            else await module.InvokeVoidAsync("hidePopup", RootId);
+        }
+        // 案内の吹き出し: 位置は要素の大きさで決まるので、描くたびに決め直す
+        var hl = h.Highlight;
+        if (hl is { Label: { Length: > 0 } }) await module.InvokeVoidAsync("placeLabel", RootId, hl.Kind, hl.Key);
+    }
+
+    // ---------------------------------------------------------------- 操作
+    private void OnRootClick() => Engine.ClickBackground();
+
+    private async Task FocusRoot()
+    {
+        if (module is not null) await module.InvokeVoidAsync("focusRoot", RootId);
+    }
+
+    private async Task OnTool(string tool)
+    {
+        Engine.ClickTool(tool);
+        await Task.CompletedTask;
+    }
+
+    private async Task OnActive(ChangeEventArgs e)
+    {
+        Engine.SetActive(e.Value is true);
+        await FocusRoot();   // 作り直した欄にあったフォーカスは、エディターに戻す(unity.js の keepFocus)
+    }
+
+    private async Task OnTag(ChangeEventArgs e)
+    {
+        Engine.SetTag(e.Value?.ToString() ?? "");
+        await FocusRoot();
+    }
+
+    private void OnTransform(string prop, int axis, string text)
+    {
+        typed[$"{prop}{axis}"] = text;
+        Engine.SetTransform(prop, axis, text);
+    }
+
+    /// <summary>欄に打った文字は、そのまま見せる(unity.js は、欄からの入力のあと欄を作り直さない)。値が別の理由で変わったら、状態の値を出す。</summary>
+    private string FieldText(string prop, int axis, string model)
+    {
+        var key = $"{prop}{axis}";
+        if (typed.TryGetValue(key, out var t))
+        {
+            if (ParseNum(t) == ParseNum(model)) return t;
+            typed.Remove(key);
+        }
+        return model;
+    }
+
+    private void OnMenu(string name) => Engine.OpenMenu(name, "[data-menu=\"" + name + "\"]");
+
+    private static double ParseNum(string s) => double.TryParse(s, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : double.NaN;
+
+    private async Task OnContextSetup()
+    {
+        Engine.ContextItem("setup-outfit");
+        await FocusRoot();
+    }
+
+    private async Task OnContextDelete()
+    {
+        Engine.ContextItem("delete");
+        await FocusRoot();
+    }
+
+    private async Task OnAdd(string type)
+    {
+        Engine.AddItem(type);
+        await FocusRoot();
+    }
+
+    private void OnAddKey(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or "Escape") Engine.AddSearchKey(e.Key);
+    }
+
+    private async Task OnSdkPanel()
+    {
+        Engine.MenuItem("sdk-panel");
+        await FocusRoot();   // 閉じたメニューの項目にあったフォーカスは、エディターに戻す(unity.js の keepFocus)
+    }
+
+    private async Task OnSdkClose()
+    {
+        Engine.CloseSdk();
+        await FocusRoot();
+    }
+
+    private async Task OnBuild(string kind)
+    {
+        Engine.BuildSdk(kind);
+        await FocusRoot();
+    }
+
+    private void OnFocusIn() => Engine.SetFocused(true);
+
+    private void OnFocusOut() => Engine.SetFocused(false);
+
+    // ---------------------------------------------------------------- JavaScript から(unity-ui.js)
+    [JSInvokable] public void ToggleFold(string id) => Engine.ToggleFold(id);
+
+    [JSInvokable] public void SelectRow(string id) => Engine.SelectRow(id);
+
+    [JSInvokable] public void ContextAt(string id, double x, double y) => Engine.ContextAt(id, x, y);
+
+    [JSInvokable] public void ClearSelection() => Engine.ClearSelection();
+
+    [JSInvokable] public void ClickAsset(string asset) => Engine.ClickAsset(asset);
+
+    [JSInvokable] public void DropNode(string id, string targetKind, string? targetId) => Engine.DropNode(id, targetKind, targetId);
+
+    [JSInvokable] public void DropAsset(string asset, string targetKind, string? targetId, int slot, double x, double y) => Engine.DropAsset(asset, targetKind, targetId, slot, x, y);
+
+    public async ValueTask DisposeAsync()
+    {
+        disposed = true;
+        Engine.Changed -= OnChanged;
+        if (module is not null)
+        {
+            try
+            {
+                await module.InvokeVoidAsync("unbind", RootId);
+                await module.DisposeAsync();
+            }
+            // 回線が切れている（ページを離れた後）なら、解放は要らない。画面を閉じる途中の失敗も、解放は続ける
+            catch (JSDisconnectedException) { }
+            catch (JSException) { }
+        }
+        self?.Dispose();
+    }
+}

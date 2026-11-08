@@ -1,0 +1,26 @@
+{
+ "texts": {
+  "count": "3 / 16",
+  "bubble": "3\nマウスを動かしてみたら、Esc（または右クリック）でキャンセルしてください。元の位置に戻ります。",
+  "keys": "Esc\n または右クリック",
+  "msg": null,
+  "mode": "オブジェクトモード",
+  "view": "ユーザー・透視投影",
+  "status": "移動 : X 1.192 m Y -1.718 m Z -0.731 m　（X / Y / Z で軸固定）",
+  "numeric": "",
+  "stats": null,
+  "complete": null,
+  "overlayHidden": true,
+  "marker": null,
+  "highlightedTools": [],
+  "viewHighlight": false,
+  "focused": true,
+  "toolsOn": [],
+  "progress": "12.5%",
+  "ueStatus": null,
+  "ueInfo": null,
+  "ueLabel": null,
+  "ueTools": []
+ },
+ "state": null
+}

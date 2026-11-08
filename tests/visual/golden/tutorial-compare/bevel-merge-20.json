@@ -1,0 +1,25 @@
+{
+ "count": "21 / 23",
+ "bubble": "21\n穴のふちの辺を Alt+クリックして、ふちを一周選んでください。",
+ "keys": "Alt\n Alt+左クリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "辺選択モード",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "Alt+クリック",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge"
+ ],
+ "progress": "86.9565%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

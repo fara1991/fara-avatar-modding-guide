@@ -1,0 +1,26 @@
+{
+ "count": "4 / 11",
+ "bubble": "4\nCtrl+R を押して、手前の左の縦の辺にマウスを置いてください。黄色い線でカットの位置が表示されます。",
+ "keys": "Ctrl\n+\nR",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "編集モード（頂点選択）。1 / 2 / 3 で頂点・辺・面",
+ "numeric": "",
+ "stats": "Cube\n頂点 8/8\n辺 12/12\n面 6/6\n三角形 12",
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "ここに置く",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "vert",
+  "stats"
+ ],
+ "progress": "27.2727%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

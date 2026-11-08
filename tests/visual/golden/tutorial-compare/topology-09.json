@@ -1,0 +1,26 @@
+{
+ "count": "10 / 11",
+ "bubble": "10\n「辺を溶解」をクリックしてください。穴を開けずに辺だけが消え、面の数が元の 6 に戻ります。",
+ "keys": "メニューをクリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "ループを選択: 頂点 4 / 辺 4 / 面 0",
+ "numeric": "",
+ "stats": "Cube\n頂点 4/12\n辺 4/20\n面 0/10\n三角形 20",
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge",
+  "stats"
+ ],
+ "progress": "81.8182%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

@@ -1,0 +1,25 @@
+{
+ "count": "1 / 12",
+ "bubble": "1\n下の Project ウィンドウの衣装「Hoodie」を、Hierarchy の「Avatar」の 上 までドラッグして離してください。衣装がアバターの中（子）に入ります。",
+ "keys": "Avatar の上へドラッグ",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": false,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": false,
+ "toolsOn": [],
+ "progress": "0%",
+ "ueStatus": "案内にしたがって操作してください",
+ "ueInfo": "Move Tool",
+ "ueLabel": "Hierarchy の Avatar へドラッグ",
+ "ueTools": [
+  "move"
+ ]
+}

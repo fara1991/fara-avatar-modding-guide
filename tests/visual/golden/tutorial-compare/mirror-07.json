@@ -1,0 +1,27 @@
+{
+ "count": "8 / 13",
+ "bubble": "8\nAlt+Z で透過表示にしてください。裏側の面もまとめて囲めるようになります。",
+ "keys": "Alt\n+\nZ",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "前・平行投影",
+ "status": "面選択モード",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [
+  "xray"
+ ],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "53.8462%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

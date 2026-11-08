@@ -1,0 +1,39 @@
+{
+ "under": [
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  },
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  },
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  },
+  {
+   "cls": "CANVAS",
+   "cursor": "auto"
+  }
+ ],
+ "active": "root",
+ "rootClasses": "practice-viewport",
+ "rootOutline": "none 3px rgb(243, 237, 255) 0px",
+ "rootShadow": "none",
+ "rootBorder": "1px rgba(200, 170, 255, 0.14)",
+ "tabindex": "0",
+ "box": null,
+ "menu": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "透過表示: オン（裏側も選択できる）",
+ "numeric": "",
+ "stats": "Cube\n頂点 8/8\n辺 12/12\n面 6/6\n三角形 12",
+ "marker": null,
+ "toolsOn": "vert,xray,stats",
+ "toolsHl": "",
+ "toolsDisabled": "",
+ "npanel": "",
+ "npanelVisible": false
+}

@@ -1,0 +1,25 @@
+{
+ "count": "14 / 18",
+ "bubble": "14\nCtrl+R を押して、手前の左の縦の辺にマウスを置いてください。黄色い線でカットの位置が表示されます。",
+ "keys": "Ctrl\n+\nR",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "確定",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "ここに置く",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "72.2222%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

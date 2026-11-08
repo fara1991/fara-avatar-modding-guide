@@ -1,0 +1,25 @@
+{
+ "count": "5 / 18",
+ "bubble": "5\nE を押して押し出してください。面が引き出され、マウスで長さが変わります（面の向きに固定されています）。",
+ "keys": "E",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "面選択モード",
+ "numeric": "",
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "face"
+ ],
+ "progress": "22.2222%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

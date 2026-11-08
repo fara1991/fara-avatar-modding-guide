@@ -1,0 +1,25 @@
+{
+ "count": "2 / 13",
+ "bubble": "2\n「Body」をクリックして選んでください。右の Inspector に、そのオブジェクトの設定（コンポーネント）が表示されます。",
+ "keys": "左クリック",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "7.69231%",
+ "ueStatus": "案内にしたがって操作してください",
+ "ueInfo": "Move Tool",
+ "ueLabel": "クリック",
+ "ueTools": [
+  "move"
+ ]
+}

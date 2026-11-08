@@ -1,0 +1,25 @@
+{
+ "count": "8 / 13",
+ "bubble": "8\nW で移動ツールにしてください。Scene に赤・緑・青の矢印（X / Y / Z）が出ます。",
+ "keys": "W",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "53.8462%",
+ "ueStatus": "Body を表示（Frame Selected）",
+ "ueInfo": "Avatar · Move Tool",
+ "ueLabel": null,
+ "ueTools": [
+  "move"
+ ]
+}

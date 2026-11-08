@@ -1,0 +1,29 @@
+@inherits ProgressAware
+@* ホームの分野別カード（アイコン・テーマ名・記事数とむずかしさの幅・説明・「読んだ 4/5」・バー・状態）。静的 HTML（Build の PageBodies.HomeCard）と同じ構造・class。
+   状態は文字でも出す（全部読んだ／読んでいる途中／これから。色だけに頼らない）。バーは role="progressbar"。読んだ印は「読んだ記事」の仕組み（ProgressStore）から。静的 HTML の間は 0 件のまま、起動したら反映する *@
+@{
+    var ids = Articles.Select(a => a.Id).ToList();
+    var done = Progress.CountDone(ids);
+    var total = ids.Count;
+    var state = HomeCards.State(done, total);
+}
+<a class="@("home-card is-" + state)" href="/learn/@Category.Id">
+    <span class="home-card-top">
+        <span class="home-tile"><AvIcon Name="@Category.Icon" /></span>
+        <span class="home-card-name"><h3 class="home-card-title">@Category.Title</h3><span class="home-card-meta">@HomeCards.Meta(Articles)</span></span>
+    </span>
+    <span class="home-card-desc">@Category.Description</span>
+    <span class="home-card-pg">
+        <span class="home-card-row">
+            <span class="home-card-count">読んだ @done/@total</span>
+            <span class="@("home-badge is-" + state)">@if (state == HomeCards.Done) {<AvIcon Name="CheckCircle" />} else if (state == HomeCards.Going) {<AvIcon Name="ArrowForward" />}@HomeCards.StateLabel(state)</span>
+        </span>
+        <span class="home-bar" role="progressbar" aria-label="@(Category.Title + " の読み進み")" aria-valuemin="0" aria-valuemax="@total" aria-valuenow="@done"><i style="@("width: " + HomeCards.Percent(done, total))"></i></span>
+    </span>
+</a>
+
+@code {
+    [Parameter, EditorRequired] public required CategoryDto Category { get; set; }
+
+    [Parameter, EditorRequired] public required IReadOnlyList<ArticleDto> Articles { get; set; }
+}

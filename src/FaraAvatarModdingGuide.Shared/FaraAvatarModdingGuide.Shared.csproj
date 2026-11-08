@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    ビルド（Build）が書き、WebAssembly（Web）が読む JSON（data/content.json・search.json・site.json）の型と、その読み書き（System.Text.Json のソース生成）。
+    どちらからも参照する小さなライブラリで、ほかには依存しない（Web は Content を参照しない。計画書 3.1）。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FaraAvatarModdingGuide.Models</RootNamespace>
+  </PropertyGroup>
+
+</Project>

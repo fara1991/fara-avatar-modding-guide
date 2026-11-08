@@ -1,0 +1,25 @@
+{
+ "count": "13 / 13",
+ "bubble": "13\nQ で手のツールにしてください。左ドラッグで視点を平行移動できます。",
+ "keys": "Q",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "92.3077%",
+ "ueStatus": "Body を表示（Frame Selected）",
+ "ueInfo": "Avatar · Scale Tool",
+ "ueLabel": null,
+ "ueTools": [
+  "scale"
+ ]
+}

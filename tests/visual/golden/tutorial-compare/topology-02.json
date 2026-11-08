@@ -1,0 +1,25 @@
+{
+ "count": "3 / 11",
+ "bubble": "3\nTab で編集モードに入ってください。統計が「選択 / 全体」の表示になります。",
+ "keys": "Tab",
+ "msg": null,
+ "mode": "オブジェクトモード",
+ "view": "ユーザー・透視投影",
+ "status": "案内にしたがって操作してください",
+ "numeric": "",
+ "stats": "オブジェクト 1/1\n頂点 8\n辺 12\n面 6\n三角形 12",
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "stats"
+ ],
+ "progress": "18.1818%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

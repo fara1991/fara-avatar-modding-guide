@@ -1,0 +1,26 @@
+{
+ "count": "5 / 11",
+ "bubble": "5\n黄色い線が出ている状態で 左クリック して、辺を入れてください。",
+ "keys": "左クリック",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "ループカット: 1 本（ホイールで本数、クリックで確定）",
+ "numeric": "",
+ "stats": "Cube\n頂点 8/8\n辺 12/12\n面 6/6\n三角形 12",
+ "complete": null,
+ "overlayHidden": true,
+ "marker": "クリック",
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "vert",
+  "stats"
+ ],
+ "progress": "36.3636%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

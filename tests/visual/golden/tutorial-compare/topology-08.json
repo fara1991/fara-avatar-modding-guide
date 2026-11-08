@@ -1,0 +1,26 @@
+{
+ "count": "9 / 11",
+ "bubble": "9\nX で削除のメニューを出してください。",
+ "keys": "X",
+ "msg": null,
+ "mode": "編集モード",
+ "view": "ユーザー・透視投影",
+ "status": "ループを選択: 頂点 4 / 辺 4 / 面 0",
+ "numeric": "",
+ "stats": "Cube\n頂点 4/12\n辺 4/20\n面 0/10\n三角形 20",
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [
+  "edge",
+  "stats"
+ ],
+ "progress": "72.7273%",
+ "ueStatus": null,
+ "ueInfo": null,
+ "ueLabel": null,
+ "ueTools": []
+}

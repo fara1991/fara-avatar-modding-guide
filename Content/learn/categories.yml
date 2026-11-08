@@ -1,0 +1,151 @@
+# 目次のカテゴリ。上から順に読む想定で並べる。
+# id はディレクトリ名 (Content/learn/<id>/) と URL (/learn/<id>) に使われる。
+# section は sections.yml の id（Blender / Unity / VRChat / 通しで作る）。目次はその区切りごとにまとまる。
+# nav_title は、サイドバーの文言（任意。サイドバーの幅で 1 行に収まる長さ。区切りの見出しの下に出るので、区切りと重なる語は省く）。無ければ title。
+
+- id: getting-started
+  section: blender
+  title: はじめに
+  reading: はじめに
+  en: Getting Started
+  description: Blender のインストール、画面の見方、視点の動かし方。
+  icon: bi-rocket-takeoff
+
+- id: basics
+  section: blender
+  title: 基本操作
+  reading: きほんそうさ
+  en: Basics
+  description: オブジェクトの選択・移動・回転・拡縮など、すべての作業の土台になる操作。
+  icon: bi-arrows-move
+
+- id: modeling
+  section: blender
+  title: モデリング
+  reading: もでりんぐ
+  en: Modeling
+  description: 編集モードで頂点・辺・面を操作して形を作る。
+  icon: bi-box
+
+- id: materials
+  section: blender
+  title: マテリアルとテクスチャ
+  reading: まてりあるとてくすちゃ
+  en: Materials and Textures
+  description: 色や質感を設定し、画像テクスチャを貼る。
+  icon: bi-palette
+
+- id: rigging
+  section: blender
+  title: リギング
+  reading: りぎんぐ
+  en: Rigging
+  description: ボーンを入れてキャラクターを動かせるようにする。
+  icon: bi-person-arms-up
+
+- id: unity
+  section: unity
+  title: Unity でアバターを整える
+  nav_title: アバターを整える
+  reading: ゆにてぃーであばたーをととのえる
+  en: Unity
+  description: Unity の画面の見方、Modular Avatar での衣装の着せ方、lilToon、アップロード前の確認。
+  icon: bi-grid-3x3-gap
+
+- id: vrchat
+  section: vrchat
+  title: VRChat にアップロードする
+  nav_title: アップロード
+  reading: ぶいあーるちゃっとにあっぷろーどする
+  en: VRChat Upload
+  description: VCC でのプロジェクト作成、アップロード、つまずいたときの対処、パフォーマンスランク、軽量化、Android（Quest）対応。
+  icon: bi-cloud-upload
+
+- id: vrchat-features
+  section: vrchat
+  title: メニュー・表情・揺れもの
+  nav_title: メニュー・表情・揺れ
+  reading: めにゅーひょうじょうゆれもの
+  en: Menu, Expressions, Physics
+  description: Expression メニューとパラメーター、表情と FX の基礎、PhysBone と Contact、AvatarPoseLibrary でのポーズの設定。
+  icon: bi-ui-radios-grid
+
+- id: modding
+  section: practice
+  title: 実践：アバター改変
+  nav_title: アバター改変
+  reading: じっせんあばたーかいへん
+  en: Avatar Modding
+  description: 買ったアバターの改変の進め方と、非対応衣装の着せ替え、首すげ替え、VRM への書き出し。
+  icon: bi-tools
+
+- id: avatar-clothing
+  section: practice
+  title: 実践：アバター用衣装の作成
+  nav_title: 衣装を作る
+  reading: じっせんあばたーよういしょうのさくせい
+  en: Clothing Creation
+  description: VRChat などで使うアバターの衣装を、インポートから Unity での設定まで通して作る。
+  icon: bi-person-standing-dress
+
+- id: optimize-basics
+  section: optimize
+  title: 軽量化の基本
+  reading: けいりょうかのきほん
+  en: Optimization Basics
+  description: パフォーマンスの内訳の画面の見方と、軽量化に使う 5 つのツール（Modular Avatar など）でできること。
+  icon: bi-search
+
+- id: optimize-aao
+  section: optimize
+  title: Avatar Optimizer の使い方
+  nav_title: Avatar Optimizer
+  reading: あばたーおぷてぃまいざーのつかいかた
+  en: Avatar Optimizer
+  description: Avatar Optimizer（AAO）でできること、入れ方、使い方、うまくいかないとき。
+  icon: bi-puzzle
+
+- id: optimize-mesh
+  section: optimize
+  title: テクスチャ・メッシュ・ボーンを減らす
+  nav_title: テクスチャ・メッシュ・ボーン
+  reading: てくすちゃめっしゅぼーんをへらす
+  en: Reduce Textures, Meshes and Bones
+  description: テクスチャメモリー、三角ポリゴン、範囲（BOUNDS）、スキンドメッシュ、基本メッシュ、マテリアルスロット、ボーンを減らす方法と、使えるツール。
+  icon: bi-box
+
+- id: optimize-physbone
+  section: optimize
+  title: PhysBone・コンタクトを減らす
+  nav_title: PhysBone・コンタクト
+  reading: ふぃじっくぼーんこんたくとをへらす
+  en: Reduce PhysBones and Contacts
+  description: PhysBone のコンポーネント・トランスフォーム・コライダー・衝突チェックと、コンタクトの数を減らす方法と、使えるツール。
+  icon: bi-arrows-move
+
+- id: optimize-constraint
+  section: optimize
+  title: コンストレイント・アニメーター・ライトを減らす
+  nav_title: コンストレイント・アニメーター・ライト
+  reading: こんすとれいんとあにめーたーらいとをへらす
+  en: Reduce Constraints, Animators and Lights
+  description: コンストレイントの数と深さ、アニメーターの数、ライトの数を減らす方法と、使えるツール。
+  icon: bi-lightbulb
+
+- id: optimize-particle
+  section: optimize
+  title: パーティクル・トレイルを減らす
+  nav_title: パーティクル・トレイル
+  reading: ぱーてぃくるとれいるをへらす
+  en: Reduce Particles and Trails
+  description: パーティクルシステムの数、最大パーティクル、メッシュパーティクルの三角ポリゴン、パーティクルトレイル、パーティクルの衝突、トレイルレンダラーの数の確かめ方と、公式に書かれていること。
+  icon: bi-rocket-takeoff
+
+- id: optimize-physics
+  section: optimize
+  title: Cloth・コライダー・リジッドボディ・音・レイキャスト
+  nav_title: Cloth・コライダー・音など
+  reading: くろーすこらいだーりじっどぼでぃおとれいきゃすと
+  en: Cloth, Colliders, Rigidbodies, Audio and Raycasts
+  description: Cloth コンポーネントの数と最大頂点数、コライダー、リジッドボディ、オーディオソース、レイキャストの数の確かめ方と、公式に書かれていること。
+  icon: bi-grid-3x3-gap

@@ -1,0 +1,25 @@
+{
+ "count": "4 / 12",
+ "bubble": "4\n次は、アバターが最初から着ている服を外します。Hierarchy の「Avatar」の中の Shirt_Default を選んでください。",
+ "keys": "左クリック",
+ "msg": null,
+ "mode": null,
+ "view": null,
+ "status": null,
+ "numeric": null,
+ "stats": null,
+ "complete": null,
+ "overlayHidden": true,
+ "marker": null,
+ "highlightedTools": [],
+ "viewHighlight": false,
+ "focused": true,
+ "toolsOn": [],
+ "progress": "25%",
+ "ueStatus": "Setup Outfit: Hoodie/Armature に MA Merge Armature を追加しました",
+ "ueInfo": "Hoodie · Move Tool",
+ "ueLabel": "クリック",
+ "ueTools": [
+  "move"
+ ]
+}

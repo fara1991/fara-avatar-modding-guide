@@ -1,0 +1,26 @@
+{
+ "texts": {
+  "count": "4 / 16",
+  "bubble": "4\n今度は正確に動かします。G を押して移動を始めてください。",
+  "keys": "G",
+  "msg": null,
+  "mode": "オブジェクトモード",
+  "view": "ユーザー・透視投影",
+  "status": "キャンセル",
+  "numeric": "",
+  "stats": null,
+  "complete": null,
+  "overlayHidden": true,
+  "marker": "Cube",
+  "highlightedTools": [],
+  "viewHighlight": false,
+  "focused": true,
+  "toolsOn": [],
+  "progress": "18.75%",
+  "ueStatus": null,
+  "ueInfo": null,
+  "ueLabel": null,
+  "ueTools": []
+ },
+ "state": null
+}
